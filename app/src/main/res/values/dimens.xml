@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dimensions for spacing -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    <dimen name="spacing_xxl">48dp</dimen>
+    
+    <!-- Corner radius -->
+    <dimen name="corner_radius_sm">8dp</dimen>
+    <dimen name="corner_radius_md">12dp</dimen>
+    <dimen name="corner_radius_lg">16dp</dimen>
+    <dimen name="corner_radius_xl">24dp</dimen>
+    <dimen name="corner_radius_circle">50dp</dimen>
+    
+    <!-- Card dimensions -->
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    
+    <!-- Button dimensions -->
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="button_min_width">120dp</dimen>
+    <dimen name="button_corner_radius">28dp</dimen>
+    
+    <!-- Icon sizes -->
+    <dimen name="icon_size_sm">16dp</dimen>
+    <dimen name="icon_size_md">24dp</dimen>
+    <dimen name="icon_size_lg">32dp</dimen>
+    <dimen name="icon_size_xl">48dp</dimen>
+    <dimen name="icon_size_xxl">64dp</dimen>
+    
+    <!-- Avatar sizes -->
+    <dimen name="avatar_size_sm">32dp</dimen>
+    <dimen name="avatar_size_md">48dp</dimen>
+    <dimen name="avatar_size_lg">80dp</dimen>
+    <dimen name="avatar_size_xl">120dp</dimen>
+    
+    <!-- Text sizes -->
+    <dimen name="text_size_xs">10sp</dimen>
+    <dimen name="text_size_sm">12sp</dimen>
+    <dimen name="text_size_md">14sp</dimen>
+    <dimen name="text_size_lg">16sp</dimen>
+    <dimen name="text_size_xl">18sp</dimen>
+    <dimen name="text_size_xxl">24sp</dimen>
+    <dimen name="text_size_title">32sp</dimen>
+    
+    <!-- Input field -->
+    <dimen name="input_height">56dp</dimen>
+    <dimen name="input_padding">16dp</dimen>
+    
+    <!-- Bottom navigation -->
+    <dimen name="bottom_nav_height">64dp</dimen>
+    <dimen name="bottom_nav_icon_size">24dp</dimen>
+    
+    <!-- Place card dimensions -->
+    <dimen name="place_card_height">180dp</dimen>
+    <dimen name="place_card_width">280dp</dimen>
+    <dimen name="place_card_image_height">120dp</dimen>
+    
+    <!-- Category chip -->
+    <dimen name="category_chip_height">80dp</dimen>
+    <dimen name="category_chip_width">80dp</dimen>
+    <dimen name="category_icon_size">36dp</dimen>
+    
+    <!-- Map marker -->
+    <dimen name="map_marker_size">48dp</dimen>
+    
+    <!-- Progress indicators -->
+    <dimen name="progress_indicator_size">48dp</dimen>
+    <dimen name="progress_stroke_width">4dp</dimen>
+    
+    <!-- Badge dimensions -->
+    <dimen name="badge_size">64dp</dimen>
+    <dimen name="badge_icon_size">32dp</dimen>
+    
+    <!-- Toolbar -->
+    <dimen name="toolbar_height">56dp</dimen>
+    
+    <!-- Search bar -->
+    <dimen name="search_bar_height">48dp</dimen>
+    
+    <!-- Rating bar -->
+    <dimen name="rating_star_size">16dp</dimen>
+    
+    <!-- Itinerary timeline -->
+    <dimen name="timeline_line_width">2dp</dimen>
+    <dimen name="timeline_dot_size">12dp</dimen>
+</resources>

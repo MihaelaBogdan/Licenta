@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Dark Theme -->
+    <color name="primary_dark">#0D1F17</color>
+    <color name="primary_green">#1E5631</color>
+    <color name="accent_green">#4CAF50</color>
+    <color name="highlight_green">#8BC34A</color>
+    
+    <!-- Surface Colors -->
+    <color name="surface_dark">#1A2E23</color>
+    <color name="card_background">#243D2F</color>
+    <color name="card_background_light">#2D4A38</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0BEC5</color>
+    <color name="text_hint">#78909C</color>
+    
+    <!-- Accent Colors -->
+    <color name="gold_accent">#FFD700</color>
+    <color name="gold_dark">#D4AF37</color>
+    <color name="error_red">#FF5252</color>
+    <color name="success_green">#69F0AE</color>
+    <color name="warning_orange">#FFB74D</color>
+    
+    <!-- Button Colors -->
+    <color name="button_primary">#4CAF50</color>
+    <color name="button_secondary">#1E5631</color>
+    <color name="button_disabled">#37474F</color>
+    
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#1E5631</color>
+    <color name="gradient_end">#0D1F17</color>
+    
+    <!-- Social Login Colors -->
+    <color name="google_red">#DB4437</color>
+    <color name="facebook_blue">#4267B2</color>
+    
+    <!-- Category Colors -->
+    <color name="category_food">#FF7043</color>
+    <color name="category_coffee">#795548</color>
+    <color name="category_nightlife">#7C4DFF</color>
+    <color name="category_culture">#26A69A</color>
+    <color name="category_nature">#66BB6A</color>
+    <color name="category_shopping">#EC407A</color>
+    
+    <!-- Light Theme Colors -->
+    <color name="light_background">#F5F5F5</color>
+    <color name="light_surface">#FFFFFF</color>
+    <color name="light_text_primary">#212121</color>
+    <color name="light_text_secondary">#757575</color>
+    
+    <!-- Transparency -->
+    <color name="black_overlay">#80000000</color>
+    <color name="white_overlay">#40FFFFFF</color>
+    
+    <!-- Map Colors -->
+    <color name="map_marker_primary">#4CAF50</color>
+    <color name="map_marker_secondary">#1E5631</color>
+    <color name="map_route">#8BC34A</color>
+</resources>
