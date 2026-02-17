@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="4dp">
+
+    <!-- Bot Message (Left) -->
+    <LinearLayout
+        android:id="@+id/bot_message_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:maxWidth="280dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/circle_primary"
+            android:padding="6dp"
+            android:src="@drawable/ic_smart_toy" />
+
+        <TextView
+            android:id="@+id/bot_message_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_message_bot"
+            android:padding="12dp"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- User Message (Right) -->
+    <TextView
+        android:id="@+id/user_message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:background="@drawable/bg_message_user"
+        android:maxWidth="280dp"
+        android:padding="12dp"
+        android:textColor="@color/background_dark"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+</FrameLayout>

@@ -1,0 +1,26 @@
+package com.example.licenta.data;
+
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.Query;
+import com.example.licenta.model.UserAchievement;
+import java.util.List;
+
+@Dao
+public interface AchievementDao {
+    @Insert
+    long insert(UserAchievement achievement);
+
+    @Delete
+    void delete(UserAchievement achievement);
+
+    @Query("SELECT * FROM user_achievements WHERE userId = :userId ORDER BY earnedAt DESC")
+    List<UserAchievement> getAchievementsForUser(int userId);
+
+    @Query("SELECT * FROM user_achievements WHERE userId = :userId ORDER BY earnedAt DESC LIMIT :limit")
+    List<UserAchievement> getRecentAchievements(int userId, int limit);
+
+    @Query("SELECT SUM(xpReward) FROM user_achievements WHERE userId = :userId")
+    int getTotalXpEarned(int userId);
+}

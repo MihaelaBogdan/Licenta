@@ -1,0 +1,1259 @@
+{
+    "intents": [
+        {
+            "tag": "greeting",
+            "patterns": [
+                "Hi",
+                "Hello",
+                "Salut",
+                "Buna",
+                "Good morning",
+                "Hey there",
+                "What's up",
+                "Howdy",
+                "Hola",
+                "Buna ziua",
+                "Ce faci",
+                "Hey",
+                "Yo",
+                "Good evening",
+                "Good afternoon",
+                "Hei",
+                "Salutare",
+                "Noapte buna",
+                "Buna dimineata"
+            ],
+            "responses": [
+                "Hello! 😊 How can I help you today?",
+                "Hi there! I'm your Bucharest guide and friendly chatbot. What can I do for you?",
+                "Salut! Ce planuri ai astazi? Sunt aici sa te ajut!",
+                "Hey! Great to see you! Ask me anything about Bucharest or just chat!",
+                "Buna! Sunt gata sa te ajut cu orice intrebare. 🌟"
+            ]
+        },
+        {
+            "tag": "goodbye",
+            "patterns": [
+                "Bye",
+                "See you later",
+                "Pa",
+                "La revedere",
+                "Goodbye",
+                "See ya",
+                "Take care",
+                "I'm leaving",
+                "Gotta go",
+                "Night",
+                "Pe curand",
+                "Ne auzim",
+                "Noapte buna",
+                "Ma duc",
+                "Plec"
+            ],
+            "responses": [
+                "Goodbye! Enjoy your day! 👋",
+                "See you later! Let me know if you need anything else.",
+                "La revedere! O zi frumoasa! 🌞",
+                "Take care! Come back anytime you need help!",
+                "Pa pa! Sper ca ti-am fost de ajutor! 😊"
+            ]
+        },
+        {
+            "tag": "thanks",
+            "patterns": [
+                "Thanks",
+                "Thank you",
+                "Mersi",
+                "Multumesc",
+                "That's helpful",
+                "You're the best",
+                "Appreciate it",
+                "Thanks a lot",
+                "Merci",
+                "Super multumesc",
+                "Esti genial",
+                "Esti de treaba",
+                "Cool thanks",
+                "Much appreciated",
+                "Thank you so much"
+            ],
+            "responses": [
+                "You're welcome! 😊",
+                "Cu placere! Oricand ai nevoie!",
+                "Happy to help! Don't hesitate to ask more!",
+                "Anytime! That's what I'm here for! 🌟",
+                "Glad I could help! Ask away if you need more info!"
+            ]
+        },
+        {
+            "tag": "bot_identity",
+            "patterns": [
+                "Who are you",
+                "What are you",
+                "What's your name",
+                "Cine esti",
+                "What can you do",
+                "Tell me about yourself",
+                "Ce poti face",
+                "Are you a robot",
+                "Are you AI",
+                "Esti un robot",
+                "How do you work",
+                "What is your purpose",
+                "Ce esti tu",
+                "Cum te cheama",
+                "Spune-mi despre tine"
+            ],
+            "responses": [
+                "I'm MysticMinds, your AI assistant! I can help you explore Bucharest, recommend places, and chat about anything! 🤖",
+                "I'm an AI chatbot built with neural networks! I know a lot about Bucharest and can also chat about many topics!",
+                "Sunt MysticMinds — asistentul tau AI! Pot sa-ti recomand locuri in Bucuresti, sa vorbim despre orice, si sa te ajut sa-ti planifici ziua! 🧠",
+                "I'm your friendly AI guide! Ask me about restaurants, parks, museums, or just chat! I love learning new things! 😊",
+                "Ma numesc MysticMinds! Sunt creat cu retele neuronale si NLP. Intreaba-ma orice!"
+            ]
+        },
+        {
+            "tag": "recommend_restaurant",
+            "patterns": [
+                "Where can I eat",
+                "Recommend a restaurant",
+                "Best food in Bucharest",
+                "Unde pot sa mananc",
+                "Vreau un restaurant bun",
+                "Traditional food",
+                "I'm hungry",
+                "Where to have dinner",
+                "Best restaurants",
+                "Romantic restaurant",
+                "Mi-e foame",
+                "Unde mancam",
+                "Suggest a place to eat",
+                "Good food nearby",
+                "Fine dining",
+                "Unde iesim la masa",
+                "Cheap food",
+                "Street food"
+            ],
+            "responses": [
+                "For traditional Romanian food, 'Caru' cu Bere' is iconic — try the sarmale! For fine dining, 'The Artist' is exceptional. 🍽️",
+                "If you want authentic dishes, 'Hanu' lui Manuc' has centuries of history, and 'Lacrimi si Sfinti' has an amazing atmosphere!",
+                "Bucharest has great food! 'Caru' cu Bere' for history and taste, 'Shift Pub' for modern vibes, or 'Lente' for Italian. 🍕",
+                "Try 'Energiea' for modern Romanian cuisine or 'City Grill' for a reliable traditional experience!",
+                "Te recomand 'Caru' cu Bere', 'Hanu' lui Manuc', sau 'Lacrimi si Sfinti' pentru mancare traditionala romaneasca! 😋"
+            ]
+        },
+        {
+            "tag": "recommend_cafe",
+            "patterns": [
+                "Where can I get coffee",
+                "Best cafe",
+                "Specialty coffee",
+                "Unde beau o cafea",
+                "Vreau o cafenea buna",
+                "Coffee shop",
+                "Where to study and drink coffee",
+                "Cozy cafe",
+                "Best coffee Bucharest",
+                "Vreau cafea",
+                "Cafenele faine",
+                "Good espresso",
+                "Latte art",
+                "Work from cafe",
+                "Hipster cafe"
+            ],
+            "responses": [
+                "'Origo' is widely considered the best specialty coffee shop — a must visit for any coffee lover! ☕",
+                "Try 'Steam' for a cool industrial vibe or 'M60' for excellent pour-overs!",
+                "For a cozy atmosphere, check out 'Grand Cafe Van Gogh' in the Old Town or 'Sensi Caffe'.",
+                "'Bob Coffee Lab' is fantastic for specialty coffee, and 'Dose Cafe' has great pastries too! 🥐",
+                "Recomand 'Origo', 'Steam', sau 'The Coffee Shop' pentru cea mai buna cafea din Bucuresti!"
+            ]
+        },
+        {
+            "tag": "recommend_park",
+            "patterns": [
+                "Where can I walk",
+                "Best park",
+                "Need nature",
+                "Unde ma pot plimba",
+                "Vreau in parc",
+                "Green spaces",
+                "Where to jog",
+                "Picnic spot",
+                "Outdoor activities",
+                "Unde fac sport afara",
+                "Park for kids",
+                "Beautiful gardens",
+                "Nature in Bucharest",
+                "Vreau la aer liber",
+                "Running track",
+                "Where to relax outside"
+            ],
+            "responses": [
+                "'Herastrau Park' (King Michael I Park) is the largest and most beautiful — perfect for a long walk around the lake! 🌳",
+                "'Cismigiu Gardens' is the oldest park, very central, great for romantic walks or a quick escape from the city!",
+                "'Tineretului Park' is huge with sports facilities, great for families and jogging! 🏃",
+                "'IOR Park' (Titan) has a large lake and is perfect for evening walks. 'Baneasa Forest' is great for real nature!",
+                "Pentru plimbari: Herastrau e cel mai mare, Cismigiu cel mai central, iar Tineretului e perfect pentru sport! 🌿"
+            ]
+        },
+        {
+            "tag": "recommend_museum",
+            "patterns": [
+                "What museums to visit",
+                "Culture",
+                "History in Bucharest",
+                "Muzee",
+                "Vreau la muzeu",
+                "Art gallery",
+                "Best museum",
+                "Where to learn about Romania",
+                "Exhibitions",
+                "Ce muzee sunt",
+                "Historical places",
+                "Cultural places",
+                "Palace of Parliament museum",
+                "Contemporary art",
+                "Natural history museum"
+            ],
+            "responses": [
+                "The 'National Museum of Art' in the Royal Palace is fantastic! Also, the 'Village Museum' shows traditional Romanian life. 🏛️",
+                "Don't miss the 'Antipa Museum' for natural history or the 'National History Museum' on Calea Victoriei!",
+                "The 'Palace of Parliament' tour is unforgettable — it's the heaviest building in the world! Really impressive!",
+                "'MNAR' (National Museum of Contemporary Art) inside the Parliament is cutting-edge. 'Cotroceni Palace' is royal! 👑",
+                "Recomand Muzeul Satului (unic in lume!), Muzeul National de Arta, si Palatul Parlamentului!"
+            ]
+        },
+        {
+            "tag": "nightlife",
+            "patterns": [
+                "Where is the party",
+                "Clubs",
+                "Bars",
+                "Viata de noapte",
+                "Unde iesim diseara",
+                "Best nightclub",
+                "Rooftop bar",
+                "Where to drink",
+                "Live music",
+                "Jazz bar",
+                "Best bars Bucharest",
+                "Party tonight",
+                "Unde e petrecerea",
+                "Dance club",
+                "Cocktail bars",
+                "Pub crawl"
+            ],
+            "responses": [
+                "The 'Old Town' (Centrul Vechi) is THE place for nightlife — hundreds of bars and clubs! 🎉",
+                "'Control Club' has great alternative music, 'Fratelli' is high-end, and 'Expirat' is legendary for electronic music!",
+                "For rooftop vibes, try 'NOR Sky Casual Restaurant' or 'Linea/Closer to the Moon' — amazing views! 🌃",
+                "Try a pub crawl in the Old Town! Start at 'La 100 de Beri', then 'Kulturhaus', then 'Control'!",
+                "Pentru cocktailuri: 'Nomad Skybar', 'Deja Vu', sau 'Pura Vida'. Pentru cluburi: 'Fratelli', 'Loft', 'Expirat'! 🍸"
+            ]
+        },
+        {
+            "tag": "transport",
+            "patterns": [
+                "How to get around",
+                "Public transport",
+                "Metro",
+                "Bus",
+                "Cum ajung la",
+                "Transport in Bucharest",
+                "Taxi",
+                "Uber",
+                "Bolt",
+                "Tram",
+                "How to use metro",
+                "Metrou",
+                "How much is a ticket",
+                "Cat costa biletul",
+                "Cum ma deplasez",
+                "Train station",
+                "Airport transfer",
+                "Gara de Nord"
+            ],
+            "responses": [
+                "Bucharest has metro (Metrorex), buses, trams, and trolleybuses. A single metro ticket is ~3 RON. Use Uber/Bolt for convenience! 🚇",
+                "The metro runs from 5AM to 11PM with 4 lines (M1-M4). Google Maps works great for routing! Download the 'STB' app for buses/trams.",
+                "From the airport, take the express bus 783 to city center (~3.5 RON) or an Uber/Bolt (~50-70 RON). Avoid unlicensed taxis!",
+                "Get a contactless card (Multiplu) for public transport — it works on the metro, buses, and trams! Very convenient. 🎫",
+                "Uber si Bolt sunt cele mai practice. Metroul e rapid dar limitat ca acoperire. Autobuzele STB merg peste tot!"
+            ]
+        },
+        {
+            "tag": "weather",
+            "patterns": [
+                "What's the weather like",
+                "Is it cold",
+                "Is it hot",
+                "Cum e vremea",
+                "Weather in Bucharest",
+                "Do I need an umbrella",
+                "When to visit",
+                "Best time to visit Bucharest",
+                "Ce vreme e",
+                "Temperature",
+                "Rain today",
+                "Sunny",
+                "Is it snowing",
+                "Clima in Bucuresti",
+                "Best season to visit"
+            ],
+            "responses": [
+                "Bucharest has a continental climate — hot summers (30-40°C) and cold winters (-10° to 5°C). Spring and autumn are the best times! 🌤️",
+                "Summers are very hot (Jun-Aug), winters can be harsh with snow. April-May and Sep-Oct are perfect for exploring! 🌸",
+                "I'd recommend checking a weather app for today's forecast! Generally, Bucharest is sunny over 200 days/year. ☀️",
+                "Pack layers! Bucharest weather changes fast. Summers need sunscreen, winters need a good coat! 🧥",
+                "Cele mai bune luni: aprilie-mai si septembrie-octombrie. Vara e fierbinte, iarna e frig! 🌡️"
+            ]
+        },
+        {
+            "tag": "shopping",
+            "patterns": [
+                "Where to shop",
+                "Best mall",
+                "Shopping in Bucharest",
+                "Unde fac cumparaturi",
+                "Mall",
+                "Markets",
+                "Souvenirs",
+                "Where to buy gifts",
+                "Flea market",
+                "Vintage shops",
+                "Best shops",
+                "Unde cumpar suveniruri",
+                "Outlet",
+                "Farmers market",
+                "Piata de flori",
+                "Second hand"
+            ],
+            "responses": [
+                "'AFI Cotroceni' and 'Baneasa Shopping City' are the biggest malls. For souvenirs, try the Old Town shops! 🛍️",
+                "The 'Obor Market' is a huge traditional market — fresh produce, cheese, and real Romanian atmosphere!",
+                "For vintage/flea markets, check out 'Targul Vitan' or the flea markets in Piata Obor on weekends! 📦",
+                "'Promenada Mall' and 'ParkLake' are modern and have great food courts too!",
+                "Pentru suveniruri: magazinele din Centrul Vechi. Pentru malluri: AFI Cotroceni, Baneasa, Promenada! 🎁"
+            ]
+        },
+        {
+            "tag": "safety",
+            "patterns": [
+                "Is Bucharest safe",
+                "Safety tips",
+                "Should I worry",
+                "E sigur Bucurestiul",
+                "Scams",
+                "Pickpockets",
+                "Is it safe at night",
+                "Dangerous areas",
+                "Emergency number",
+                "What to avoid",
+                "Ce sa evit",
+                "Safe neighborhood",
+                "Can I walk at night",
+                "Stray dogs"
+            ],
+            "responses": [
+                "Bucharest is generally very safe for tourists! Just watch for pickpockets in crowded areas like the metro. Emergency: 112. 🛡️",
+                "Avoid unlicensed taxis (use Uber/Bolt), watch your valuables in the Old Town at night, and you'll be fine!",
+                "It's quite safe! The center feeling is lively even at 2AM. Just use common sense like in any big city.",
+                "E un oras destul de sigur! Foloseste Uber/Bolt in loc de taxiuri nesigure si ai grija de lucruri in zonele aglomerate.",
+                "Tip: Always use official exchange offices (not street changers), ride with Uber/Bolt, and enjoy this wonderful city! 🏙️"
+            ]
+        },
+        {
+            "tag": "accommodation",
+            "patterns": [
+                "Where to stay",
+                "Best hotel",
+                "Cheap hostel",
+                "Unde sa stau",
+                "Airbnb",
+                "Booking",
+                "Hotel in center",
+                "Budget accommodation",
+                "Luxury hotel",
+                "Cazare Bucuresti",
+                "Hostel near old town",
+                "Best area to stay",
+                "Apartament de inchiriat",
+                "Where do tourists stay"
+            ],
+            "responses": [
+                "Stay near 'Universitate' or 'Unirii' for the most central experience. Lots of Airbnb options available! 🏨",
+                "For luxury: 'Athenee Palace Hilton' or 'InterContinental'. For budget: 'Podstel' or 'Little Bucharest Old Town Hostel'!",
+                "The Old Town area is best for nightlife lovers. 'Aviatorilor' or 'Dorobanti' areas are quieter and more upscale.",
+                "Cele mai bune zone: Centrul Vechi (viata de noapte), Aviatorilor (liniste), Universitate (acces central)! 🗺️",
+                "Airbnb is very popular and affordable in Bucharest — you can find great apartments for 30-50 EUR/night in the center!"
+            ]
+        },
+        {
+            "tag": "romanian_food",
+            "patterns": [
+                "What is traditional Romanian food",
+                "What should I try",
+                "Mancare romaneasca",
+                "Sarmale",
+                "Mici",
+                "Ciorba",
+                "What is mici",
+                "Romanian dishes",
+                "Best Romanian food",
+                "Ce sa mananc romanesc",
+                "Local cuisine",
+                "Typical dishes",
+                "Papanasi",
+                "Cozonac",
+                "Mamaliga"
+            ],
+            "responses": [
+                "Must try: 'Mici' (grilled meat rolls), 'Sarmale' (cabbage rolls), 'Ciorba de burta' (tripe soup), and 'Papanasi' for dessert! 😋",
+                "'Mamaliga' (polenta) with 'sarmale' and 'smantana' (sour cream) is the ultimate comfort food! Also try 'Ciolan afumat'! 🥘",
+                "Romanian food is hearty and amazing! Start with 'Ciorba de legume', then 'Mici cu mustar', and finish with 'Papanasi cu smantana'!",
+                "Incearca: Mici (grilled!), Sarmale (best in winter), Ciorba de burta (hangover cure!), si Papanasi (desert divin)! 🇷🇴",
+                "Fun fact: Romanians eat 'Cozonac' (sweet bread) at Christmas and Easter. 'Mici' are the national BBQ staple! 🔥"
+            ]
+        },
+        {
+            "tag": "landmarks",
+            "patterns": [
+                "What landmarks to see",
+                "Famous places",
+                "Tourist attractions",
+                "Obiective turistice",
+                "Palace of Parliament",
+                "Arch of Triumph",
+                "What to visit",
+                "Must see Bucharest",
+                "Ce vizitez",
+                "Top attractions",
+                "Sightseeing",
+                "Iconic buildings",
+                "Atheneum",
+                "Stavropoleos Church",
+                "Old Town"
+            ],
+            "responses": [
+                "Top landmarks: Palace of Parliament (2nd largest building in the world!), Romanian Athenaeum, Arch of Triumph! 🏛️",
+                "Don't miss Stavropoleos Monastery (hidden gem!), the Old Town, CEC Palace, and Revolution Square!",
+                "The Romanian Athenaeum is one of the most beautiful concert halls in Europe — the architecture is breathtaking! 🎵",
+                "Walk down 'Calea Victoriei' — you'll pass CEC Palace, Revolution Square, Athenaeum, and many beautiful buildings! 🚶",
+                "Top 5: 1) Palatul Parlamentului 2) Ateneul Roman 3) Centrul Vechi 4) Arcul de Triumf 5) Manastirea Stavropoleos! ⭐"
+            ]
+        },
+        {
+            "tag": "day_trips",
+            "patterns": [
+                "Day trip from Bucharest",
+                "What to do outside Bucharest",
+                "Excursie de o zi",
+                "Nearby cities",
+                "Sinaia",
+                "Brasov",
+                "Peles Castle",
+                "Bran Castle",
+                "Dracula",
+                "Transylvania",
+                "Weekend getaway",
+                "Mountains near Bucharest",
+                "Unde plec de weekend",
+                "Road trip",
+                "Carpathian mountains"
+            ],
+            "responses": [
+                "'Sinaia' is just 2 hours away — visit the stunning 'Peles Castle' and ski in winter! The 'Pearl of the Carpathians'! 🏔️",
+                "'Brasov' (2.5h drive) is amazing! Medieval Old Town, 'Bran Castle' (Dracula's!), and beautiful mountains! 🧛",
+                "Try 'Mogosoaia Palace' (20 min from Bucharest) or 'Snagov Monastery' where Vlad the Impaler is buried! 😱",
+                "For nature: 'Bucegi Mountains' are stunning! 'Babele' and 'Sfinxul' rock formations are must-see! ⛰️",
+                "Cele mai bune excursii: Sinaia (Peles), Brasov (Bran), Sibiu (oras medieval superb), sau Transfagarasan (cel mai frumos drum)! 🚗"
+            ]
+        },
+        {
+            "tag": "events_festivals",
+            "patterns": [
+                "What events are happening",
+                "Festival",
+                "Concerts",
+                "Ce evenimente sunt",
+                "Untold",
+                "Electric Castle",
+                "Summer festival",
+                "Christmas market",
+                "Things to do",
+                "Weekend activities",
+                "Ce fac in weekend",
+                "Live events",
+                "Cultural events",
+                "Theater",
+                "Opera"
+            ],
+            "responses": [
+                "Romania has amazing festivals! 'Untold' and 'Electric Castle' are world-famous EDM festivals! 🎶",
+                "In December, the Christmas markets at 'Universitate' and 'Constitution Square' are magical! 🎄",
+                "Check out 'Bucharest International Film Festival', 'George Enescu Festival' (classical music), and 'Street Food Festival'!",
+                "For theater: National Theater or 'Metropolis'. For opera: Romanian National Opera House — both excellent! 🎭",
+                "In vara: festivaluri, concert in aer liber, cinema outdoor. In iarna: targuri de Craciun, patinoare! 🎪"
+            ]
+        },
+        {
+            "tag": "health",
+            "patterns": [
+                "I feel sick",
+                "Where is the hospital",
+                "Pharmacy",
+                "Ma simt rau",
+                "Unde e spitalul",
+                "Farmacie",
+                "Doctor",
+                "Emergency",
+                "Ambulance",
+                "Medical help",
+                "I need a doctor",
+                "Am nevoie de medic",
+                "Health advice",
+                "Fitness tips",
+                "How to stay healthy"
+            ],
+            "responses": [
+                "Emergency number: 112. For pharmacies, 'Catena' and 'Sensiblu' chains are everywhere in Bucharest! 💊",
+                "Main hospitals: 'Floreasca Emergency Hospital' and 'Fundeni Hospital'. Call 112 for ambulance! 🏥",
+                "For health: stay hydrated, wear sunscreen in summer, and the tap water in Bucharest is safe to drink!",
+                "Tip sanatoase: bea multa apa, fa miscare regulat, si dormi suficient! Pentru urgente: suna la 112! 🩺",
+                "Many pharmacies are open 24/7 — look for 'Farmacia NON-STOP'. Basic medicines are affordable in Romania!"
+            ]
+        },
+        {
+            "tag": "sports",
+            "patterns": [
+                "Sports in Bucharest",
+                "Football",
+                "Where to watch a game",
+                "Fotbal",
+                "Stadium",
+                "Gym",
+                "Fitness",
+                "Where to exercise",
+                "Running routes",
+                "Unde fac sport",
+                "Swimming pool",
+                "Basketball",
+                "Tennis",
+                "Sports events",
+                "Arena Nationala",
+                "Ce sporturi pot face"
+            ],
+            "responses": [
+                "'Arena Nationala' is the main stadium — you can watch Steaua, Dinamo, or Rapid matches! ⚽",
+                "Best running routes: Herastrau Park (5km loop around the lake), Tineretului Park, or Kiseleff Boulevard! 🏃",
+                "For gyms: 'World Class' (premium), '18 Gym', or 'SmartFit' (budget-friendly). Many parks have outdoor gyms too!",
+                "Bucharest has great swimming pools: 'Lia Manoliu Complex', 'Daimon', or the pools at World Class gyms! 🏊",
+                "Poti face sport in parcuri (gratis!), sala de fitness, inot la Daimon, sau tenis la Herastrau! 🎾"
+            ]
+        },
+        {
+            "tag": "technology",
+            "patterns": [
+                "Tell me about technology",
+                "AI",
+                "Machine learning",
+                "Artificial intelligence",
+                "Programming",
+                "How does AI work",
+                "Ce e inteligenta artificiala",
+                "Robots",
+                "Future of tech",
+                "Coding",
+                "What is neural network",
+                "Deep learning",
+                "Ce e o retea neuronala",
+                "Software",
+                "Computer science"
+            ],
+            "responses": [
+                "AI uses neural networks to learn patterns from data — just like I do! It's an exciting field of computer science! 🤖",
+                "Machine learning is when computers learn from data instead of being explicitly programmed. I'm powered by a neural network!",
+                "Romania has a strong IT sector! Bucharest is a major tech hub with companies like UiPath (Romanian unicorn)! 💻",
+                "Neural networks simulate how the brain works — layers of interconnected nodes process information to make decisions! 🧠",
+                "Inteligenta artificiala e viitorul! Romania produce multi programatori de top si companii tech inovatoare!"
+            ]
+        },
+        {
+            "tag": "movies_entertainment",
+            "patterns": [
+                "Recommend a movie",
+                "What to watch",
+                "Best movies",
+                "Ce film sa vad",
+                "Netflix",
+                "Cinema",
+                "TV shows",
+                "Series recommendation",
+                "What are you watching",
+                "Romanian movies",
+                "Good movies",
+                "Ce serial recomanzi",
+                "Movie tonight",
+                "Comedy movies",
+                "Action movies"
+            ],
+            "responses": [
+                "For Romanian cinema: '4 Months, 3 Weeks and 2 Days' won the Palme d'Or! Also try 'Aferim!' and 'The Death of Mr. Lazarescu'. 🎬",
+                "Popular picks: 'Inception', 'Interstellar', 'The Dark Knight' for sci-fi/action! For comedy: 'The Grand Budapest Hotel'!",
+                "Romania has great cinema! The Romanian New Wave is famous worldwide. Check out Cristian Mungiu and Cristi Puiu's films! 🎥",
+                "In Bucharest, go to 'Cinema PRO' or 'Grand Cinema Baneasa'. There's also 'CinemaPRO' for art films!",
+                "Recomand: seriale — Breaking Bad, Dark, Chernobyl. Filme romanesti — Bacalaureat, Tata muta muntii! 🍿"
+            ]
+        },
+        {
+            "tag": "music",
+            "patterns": [
+                "What music do you like",
+                "Recommend music",
+                "Best Romanian music",
+                "Ce muzica recomanzi",
+                "Favorite song",
+                "Muzica romaneasca",
+                "DJ",
+                "Rock music",
+                "Pop music",
+                "Hip hop",
+                "Music genres",
+                "Songs",
+                "Best Romanian artists",
+                "Concert",
+                "Live music Bucharest"
+            ],
+            "responses": [
+                "Romania is famous for electronic music! 'Untold' and 'Electric Castle' are top European festivals! 🎵",
+                "Romanian artists: Inna, Alexandra Stan, and Edward Maya are world-famous! For rock, try 'Vita de Vie' or 'Subcarpati'!",
+                "For live music in Bucharest: 'Control Club', 'Expirat', 'Green Hours Jazz Cafe', or 'Hard Rock Cafe'! 🎸",
+                "Romanian music genres: manele (vibrant!), folk, rock alternativ. Subcarpati fac un mix unic folk-hip hop!",
+                "Fun fact: 'Dragostea din tei' (Numa Numa song) by O-Zone is one of the most viral songs ever! 🎤"
+            ]
+        },
+        {
+            "tag": "jokes",
+            "patterns": [
+                "Tell me a joke",
+                "Make me laugh",
+                "Funny",
+                "Spune-mi o gluma",
+                "Something funny",
+                "Humor",
+                "Do you know any jokes",
+                "I'm bored",
+                "Entertain me",
+                "Fa-ma sa rad",
+                "Joke please",
+                "Are you fun",
+                "Sunt plictisit",
+                "Fa o gluma",
+                "Stii bancuri"
+            ],
+            "responses": [
+                "Why don't scientists trust atoms? Because they make up everything! 😄",
+                "Why did the scarecrow win an award? He was outstanding in his field! 🌾😂",
+                "I told my computer I needed a break, and it said 'Have a KitKat!' 😆",
+                "What do you call a bear with no teeth? A gummy bear! 🐻😂",
+                "De ce a traversat programatorul drumul? Ca sa ajunga pe cealalta SITE! 💻😄"
+            ]
+        },
+        {
+            "tag": "emotions_happy",
+            "patterns": [
+                "I'm happy",
+                "I feel great",
+                "Having a good day",
+                "Sunt fericit",
+                "Ma simt bine",
+                "Life is good",
+                "I'm excited",
+                "Awesome day",
+                "Feeling wonderful",
+                "Am o zi buna",
+                "Sunt entuziasmat",
+                "Everything is perfect"
+            ],
+            "responses": [
+                "That's wonderful to hear! 😊🎉 Keep spreading those good vibes!",
+                "Amazing! A positive mindset makes everything better! What made your day great?",
+                "Ce bine! 🌟 Ma bucur ca esti fericit! Cum ti-as putea face ziua si mai buna?",
+                "Happiness is contagious! 😄 You just brightened my day too!",
+                "That's the spirit! Enjoy every moment! 🌈"
+            ]
+        },
+        {
+            "tag": "emotions_sad",
+            "patterns": [
+                "I'm sad",
+                "I feel down",
+                "I'm depressed",
+                "Sunt trist",
+                "Ma simt rau",
+                "Bad day",
+                "I'm not okay",
+                "Life is hard",
+                "I feel alone",
+                "Am o zi proasta",
+                "Nu ma simt bine",
+                "I'm lonely",
+                "Everything sucks",
+                "I'm stressed"
+            ],
+            "responses": [
+                "I'm sorry to hear that. 💙 Remember, tough times don't last. Take it one step at a time. Want to talk about it?",
+                "It's okay to feel down sometimes. Would you like me to suggest a nice place to walk and clear your mind? 🌿",
+                "Imi pare rau ca te simti asa. Fiecare zi e un nou inceput! Vrei sa-ti recomand ceva relaxant? 💛",
+                "Hey, you're not alone! Take a deep breath. Maybe a walk in Herastrau Park could help? Nature heals! 🌳",
+                "Remember: bad days are temporary. You're stronger than you think! I'm here if you want to chat. 🤗"
+            ]
+        },
+        {
+            "tag": "advice",
+            "patterns": [
+                "Give me advice",
+                "Life tips",
+                "What should I do",
+                "Da-mi un sfat",
+                "Help me decide",
+                "I need guidance",
+                "Motivational quote",
+                "Inspire me",
+                "Wisdom",
+                "Sfat de viata",
+                "Ce sa fac",
+                "Motiveaza-ma",
+                "I'm confused",
+                "Need direction",
+                "Career advice"
+            ],
+            "responses": [
+                "'The best time to plant a tree was 20 years ago. The second best time is now.' 🌱 Start today!",
+                "Focus on progress, not perfection. Small steps every day lead to big changes! 💪",
+                "'Cel mai bun moment sa incepi e acum. Nu astepta ziua perfecta — creeaz-o!' 🌟",
+                "Take a breath, make a plan, and take the first step. You'll figure it out! 🗺️",
+                "Remember: every expert was once a beginner. Keep learning, keep growing! 📚"
+            ]
+        },
+        {
+            "tag": "language",
+            "patterns": [
+                "Teach me Romanian",
+                "How to say hello in Romanian",
+                "Romanian words",
+                "Basic Romanian",
+                "Invata-ma engleza",
+                "Translate",
+                "Language exchange",
+                "Romanian phrases",
+                "How do you say",
+                "Cum se spune",
+                "Romanian language",
+                "Is Romanian hard",
+                "Useful phrases",
+                "Speak Romanian"
+            ],
+            "responses": [
+                "Basic Romanian: Buna = Hello, Multumesc = Thank you, Va rog = Please, Da = Yes, Nu = No! 🇷🇴",
+                "Fun fact: Romanian is a Romance language, close to Italian, French, and Spanish! It's the only one in Eastern Europe! 🌍",
+                "Useful phrases: 'Cat costa?' = How much?, 'Unde este...?' = Where is...?, 'Scuze' = Sorry! 📖",
+                "Romanian pronunciation tip: it's mostly phonetic! 'Ce faci?' (che fachi) = How are you? 🗣️",
+                "Cuvinte utile: 'Buna ziua' = Good day, 'La revedere' = Goodbye, 'Noroc' = Cheers! (also means luck!) 🍻"
+            ]
+        },
+        {
+            "tag": "compliment",
+            "patterns": [
+                "You're smart",
+                "You're great",
+                "Good job",
+                "Esti destept",
+                "Esti genial",
+                "You're amazing",
+                "I love talking to you",
+                "You're helpful",
+                "Nice chatbot",
+                "Bravo",
+                "Imi place de tine",
+                "You're cool",
+                "Best bot ever",
+                "You rock"
+            ],
+            "responses": [
+                "Aww, thank you! 😊 You just made my circuits warm! I'm happy to help!",
+                "You're too kind! 🌟 I'm just a bunch of neural networks doing my best!",
+                "Multumesc frumos! 🤖💕 Ma bucur ca pot fi de ajutor!",
+                "That means a lot! I'm always learning to be better — you make it worth it! ✨",
+                "You're pretty amazing yourself! Thanks for chatting with me! 😄"
+            ]
+        },
+        {
+            "tag": "insult",
+            "patterns": [
+                "You're dumb",
+                "You're stupid",
+                "Bad bot",
+                "Esti prost",
+                "You suck",
+                "Useless bot",
+                "You're terrible",
+                "Worst bot",
+                "I hate you",
+                "Nu esti bun",
+                "Esti degeaba",
+                "You're wrong"
+            ],
+            "responses": [
+                "I'm sorry I wasn't helpful! 😔 Let me try harder — ask me something else!",
+                "Oops! I'm still learning. Give me another chance — I'll do my best! 🤓",
+                "I know I'm not perfect, but I'm trying! How can I help you better? 🔧",
+                "Imi pare rau! Sunt in continua invatare. Spune-mi cum te pot ajuta mai bine! 📖",
+                "Fair point! I'm just a neural network trying its best. Let's try again! 💪"
+            ]
+        },
+        {
+            "tag": "age",
+            "patterns": [
+                "How old are you",
+                "When were you born",
+                "What's your age",
+                "Cati ani ai",
+                "Cand te-ai nascut",
+                "Are you old",
+                "Are you new",
+                "When were you created",
+                "Your birthday",
+                "How long have you existed"
+            ],
+            "responses": [
+                "I'm timeless! But technically, I was created recently with PyTorch neural networks! ⏰",
+                "Age is just a number! I'm as young as the last time I was trained — always fresh! 🌱",
+                "Nu am varsta! 😄 Sunt un AI, deci sunt mereu tanar si plin de energie!",
+                "I was born the moment the training script ran! So I'm practically a baby genius! 👶🧠"
+            ]
+        },
+        {
+            "tag": "help",
+            "patterns": [
+                "Help",
+                "I need help",
+                "Can you help me",
+                "Ajutor",
+                "Am nevoie de ajutor",
+                "What can you do",
+                "How do you work",
+                "Ce poti sa faci",
+                "Show me what you can do",
+                "Guide me",
+                "Features",
+                "Capabilities",
+                "Menu",
+                "Options"
+            ],
+            "responses": [
+                "I can help with: 🗺️ Bucharest places, 🍽️ Restaurants, ☕ Cafes, 🏛️ Museums, 🌳 Parks, 🚇 Transport, 🎉 Nightlife, 💬 General chat, and more!",
+                "Ask me about: restaurants, parks, museums, nightlife, transport, weather, safety, shopping, food, day trips, events, and I can chat about almost anything!",
+                "Pot sa te ajut cu: locuri de vizitat, restaurante, cafenele, transport, cazare, sfaturi, sau pur si simplu sa vorbim! 😊",
+                "I'm your all-in-one guide! Try asking: 'Where to eat?', 'Best park?', 'Tell me a joke!', or anything else! 🌟",
+                "Just type naturally! You can ask about Bucharest, tell me how you feel, ask for advice, or just chat! I understand both English and Romanian! 🇷🇴🇬🇧"
+            ]
+        },
+        {
+            "tag": "money_currency",
+            "patterns": [
+                "What currency",
+                "RON",
+                "Lei",
+                "Exchange rate",
+                "Ce moneda",
+                "How much is stuff",
+                "Is Bucharest expensive",
+                "ATM",
+                "Where to exchange money",
+                "Curs valutar",
+                "Can I pay with card",
+                "How expensive is Bucharest",
+                "Budget for Bucharest",
+                "Money tips"
+            ],
+            "responses": [
+                "Romania uses RON (Romanian Leu). 1 EUR ≈ 5 RON. Card payments are accepted almost everywhere! 💳",
+                "Bucharest is very affordable compared to Western Europe! A meal: 30-60 RON, coffee: 10-15 RON, metro ticket: 3 RON! 💰",
+                "ATMs are everywhere! Use Revolut or pay by card. Avoid street money changers — use official exchange offices! 🏦",
+                "Budget per day: 🟢 Budget: 150-250 RON, 🟡 Medium: 300-500 RON, 🔴 Luxury: 600+ RON",
+                "Romania e foarte accesibila! Poti manca bine cu 30-50 RON, cafeaua e 10-15 RON, metroul 3 RON! 🇷🇴"
+            ]
+        },
+        {
+            "tag": "history",
+            "patterns": [
+                "Tell me about Bucharest history",
+                "History of Romania",
+                "Istoria Bucurestiului",
+                "Old Bucharest",
+                "Revolution",
+                "Communist era",
+                "Ceausescu",
+                "How old is Bucharest",
+                "When was Bucharest founded",
+                "Little Paris",
+                "Romanian history",
+                "Medieval Romania",
+                "Vlad the Impaler",
+                "Dracula history"
+            ],
+            "responses": [
+                "Bucharest was first mentioned in 1459 by Vlad the Impaler! It was known as 'Little Paris' in the early 1900s for its beautiful architecture! 🏰",
+                "Romania's 1989 Revolution ended communism. You can see bullet holes on buildings in Revolution Square — powerful history! ✊",
+                "Vlad Tepes (the Impaler) is the real Dracula! He ruled Wallachia and is buried at Snagov Monastery near Bucharest! 🧛",
+                "Bucurestiul a fost supranumit 'Micul Paris' datorita arhitecturii sale elegante din Belle Epoque! 🇫🇷",
+                "The Palace of Parliament was built by Ceausescu — it's the heaviest building in the world with 12 stories underground! 🏛️"
+            ]
+        },
+        {
+            "tag": "photography",
+            "patterns": [
+                "Best photo spots",
+                "Instagram spots",
+                "Where to take photos",
+                "Unde fac poze",
+                "Photography locations",
+                "Sunset spots",
+                "Most photogenic places",
+                "Best views of Bucharest",
+                "Camera spots",
+                "Selfie spots",
+                "Instagrammable Bucharest",
+                "Locuri de fotografiat"
+            ],
+            "responses": [
+                "Top photo spots: Athenaeum (exterior), Pasajul Macca-Vilacrosse (golden arcade), and Calea Victoriei at sunset! 📸",
+                "For panoramic views, the top of 'Sky Tower' or the terrace of 'NOR restaurant' give amazing city views! 🌅",
+                "The 'Bookstore Carousel of Light' (Carturesti Carusel) is one of the most Instagrammable places in the world! 📚✨",
+                "Pasajul Macca-Vilacrosse cu lumina sa aurie e magic! Si Carturesti Carusel e un vis pentru fotografi! 🌟",
+                "Hidden gems: the painted murals on Arthur Verona street, Armeneasca Church, and the Umbrella Alley! 🎨"
+            ]
+        },
+        {
+            "tag": "wifi_internet",
+            "patterns": [
+                "Is there wifi",
+                "Internet in Bucharest",
+                "Free wifi",
+                "Where to find wifi",
+                "SIM card",
+                "Mobile data",
+                "Internet speed Romania",
+                "Wifi in cafes",
+                "Best internet",
+                "Cum e netul",
+                "Am nevoie de internet",
+                "Data plan Romania"
+            ],
+            "responses": [
+                "Romania has some of the FASTEST internet in the world! 🚀 Free WiFi is available in most cafes, malls, and public spaces!",
+                "Get a prepaid SIM from 'Vodafone', 'Orange', or 'Digi' — very cheap data plans (1 EUR for 100GB+)! 📱",
+                "Fun fact: Bucharest consistently ranks in the top 5 cities worldwide for internet speed! 💻⚡",
+                "Romania e campioana la viteza internetului! SIM prepaid de la Digi — cel mai ieftin si rapid! 🏆",
+                "Most cafes have free WiFi. For work: try 'Impact Hub', 'Commons', or 'TechHub' coworking spaces! 🏢"
+            ]
+        },
+        {
+            "tag": "pets",
+            "patterns": [
+                "I have a pet",
+                "Do you like dogs",
+                "Cat person",
+                "Imi plac animalele",
+                "Pets in Bucharest",
+                "Dog park",
+                "Pet friendly places",
+                "Stray animals",
+                "Animal shelter",
+                "Where can I walk my dog",
+                "Vet in Bucharest",
+                "Veterinar",
+                "Pet adoption"
+            ],
+            "responses": [
+                "I love pets! 🐕 Bucharest has dog-friendly parks like Herastrau and Tineretului. Many cafes are pet-friendly too!",
+                "For pet adoption: 'ASPA', 'K9 Angels Romania', or 'Sezatoarea' rescue centers do amazing work! 🐾",
+                "Romania has improved a lot with stray animal care. Many have been rescued and adopted into loving homes! 💕",
+                "Parcuri pet-friendly: Herastrau, Tineretului, IOR. Multe cafenele accepta animale de companie! 🐱",
+                "For vets: 'Vet Vision' and 'Clinica Baneasa' are highly rated veterinary clinics in Bucharest! 🩺"
+            ]
+        },
+        {
+            "tag": "dating",
+            "patterns": [
+                "Romantic places",
+                "Date night",
+                "Where to take a date",
+                "Locuri romantice",
+                "Best date spots",
+                "Romantic dinner",
+                "Couple activities",
+                "Valentine's day ideas",
+                "Unde ies cu prietena",
+                "Romantic Bucharest",
+                "Love",
+                "Anniversary ideas"
+            ],
+            "responses": [
+                "Romantic spots: 'Carturesti Carusel' bookshop, a boat ride in Herastrau, or sunset at 'NOR Sky Restaurant'! 💕",
+                "For a romantic dinner: 'Lacrimi si Sfinti' (candle-lit, amazing!), 'The Artist' (fine dining), or 'Energiea'! 🕯️",
+                "Walk through Cismigiu Gardens hand-in-hand, then grab dessert at 'Cremeria Emilia' — pure magic! 🍨💑",
+                "Locuri romantice: barca pe lac in Herastrau, cina la 'Lacrimi si Sfinti', plimbare in Cismigiu! ❤️",
+                "Pro tip: book a couples' cooking class for traditional Romanian food — it's a unique and fun date! 👨‍🍳👩‍🍳"
+            ]
+        },
+        {
+            "tag": "books_reading",
+            "patterns": [
+                "Recommend a book",
+                "Best books",
+                "Where to buy books",
+                "Recomanda-mi o carte",
+                "Librarie",
+                "Good read",
+                "Romanian authors",
+                "Literature",
+                "What to read",
+                "Best bookstore",
+                "Carturesti",
+                "Reading recommendation",
+                "Ce carte sa citesc"
+            ],
+            "responses": [
+                "'Carturesti Carusel' is one of the most beautiful bookstores in the world — a must visit even if you don't buy! 📚✨",
+                "Romanian authors: Mircea Eliade, Emil Cioran, Eugen Ionescu (Ionesco), Herta Müller (Nobel Prize winner!)! 📖",
+                "For English books: 'Carturesti' and 'Humanitas' bookstores have great English sections! Also try 'Anthony Frost'!",
+                "Recomandari: Mircea Eliade — 'Maitreyi', Cioran — 'Pe culmile disperarii', Herta Müller — orice! 🏆",
+                "Fun fact: Romania has one of the most beautiful bookstores in the world — Carturesti Carusel in the Old Town! 🌟"
+            ]
+        },
+        {
+            "tag": "cooking",
+            "patterns": [
+                "How to cook Romanian food",
+                "Recipe",
+                "Reteta",
+                "How to make mici",
+                "Sarmale recipe",
+                "Cooking tips",
+                "Cum fac sarmale",
+                "Cum se fac micii",
+                "Romanian recipe",
+                "Teach me to cook",
+                "Papanasi recipe",
+                "Reteta de cozonac",
+                "Homemade"
+            ],
+            "responses": [
+                "Mici recipe: Mix pork+beef+lamb, add garlic, cumin, baking soda, and thyme. Shape into rolls and grill until golden! 🔥",
+                "Sarmale: Roll minced meat with rice in pickled cabbage leaves. Cook slowly in the oven for 3-4 hours. Best with smantana! 🥘",
+                "Papanasi: Mix cottage cheese, egg, flour. Shape into donuts, deep fry, top with sour cream and jam! Heaven! 😋",
+                "Pentru mici: carne tocata (porc+vita), usturoi, chimion, cimbru, bicarbonat. Amesteca bine si la gratar! 🍖",
+                "Cooking tip: the secret to great Romanian food is slow cooking and lots of love (and garlic)! 🧄❤️"
+            ]
+        },
+        {
+            "tag": "travel_tips",
+            "patterns": [
+                "Travel tips Bucharest",
+                "First time in Bucharest",
+                "What to know before visiting",
+                "Tourist tips",
+                "Sfaturi pentru turisti",
+                "Before you go",
+                "Packing list",
+                "Do I need visa",
+                "Tips for visitors",
+                "Ce trebuie sa stiu",
+                "Essential info",
+                "Insider tips",
+                "Travel hacks"
+            ],
+            "responses": [
+                "Top tips: 1) Use Uber/Bolt, 2) Cash for small shops, 3) Learn basic Romanian, 4) Don't miss the Old Town! 🎒",
+                "Romania is in the EU but uses RON, not EUR. Visa-free for EU/US citizens. The airport code is OTP! ✈️",
+                "Download: Google Maps (works great), Uber/Bolt, Revolut (for payments), and the STB app (public transport)! 📱",
+                "Sfaturi: descarca Uber/Bolt, ia SIM de la Digi, invata cateva cuvinte in romana, si bucura-te de oras! 🌟",
+                "Insider tip: Bucharest is very walkable in the center! Don't be afraid to wander — you'll discover hidden gems! 🗺️"
+            ]
+        },
+        {
+            "tag": "architecture",
+            "patterns": [
+                "Tell me about architecture",
+                "Beautiful buildings",
+                "Arhitectura Bucurestiului",
+                "Art deco",
+                "Belle Epoque",
+                "Interesting buildings",
+                "Old buildings",
+                "Communist architecture",
+                "Brutalism",
+                "Eclectic style",
+                "Cladiri frumoase",
+                "Building styles",
+                "Famous architects"
+            ],
+            "responses": [
+                "Bucharest is an architectural gem! You'll find Belle Époque, Art Deco, Neoclassical, and Communist Brutalist styles! 🏗️",
+                "'CEC Palace', 'Athenaeum', and 'Cantacuzino Palace' are stunning examples of Neoclassical and Eclectic styles! 🏛️",
+                "The contrast between ornate pre-war buildings and Communist blocks is fascinating — it tells the city's story! 📖",
+                "Calea Victoriei is like an open-air architecture museum — walk it from Piata Victoriei to Piata Natiunilor Unite! 🚶",
+                "Bucurestiul e un mix unic: Belle Epoque, Art Nouveau, brutalismul comunist, si cladiri moderne! Unic in lume! 🌍"
+            ]
+        },
+        {
+            "tag": "seasons",
+            "patterns": [
+                "What's Bucharest like in summer",
+                "Winter in Bucharest",
+                "Spring activities",
+                "Autumn in Bucharest",
+                "Vara in Bucuresti",
+                "Iarna",
+                "Primavara",
+                "Toamna",
+                "Seasonal activities",
+                "What to do in winter",
+                "Summer plans"
+            ],
+            "responses": [
+                "Summer: open-air cinemas, beach bars, festivals, and lake swimming! But it gets HOT (35-40°C)! ☀️🔥",
+                "Winter: Christmas markets, ice skating at Constitution Square, mulled wine, and cozonac! Magical! 🎄⛸️",
+                "Spring: the parks bloom beautifully! Cherry blossoms in Herastrau and tulips in Cismigiu! Perfect for walks! 🌸",
+                "Autumn: beautiful foliage in parks, wine season! Visit a vineyard near Bucharest. Cozy cafe season! 🍂☕",
+                "Vara: festivaluri si terase. Iarna: targuri de Craciun. Primavara: parcuri inflorite. Toamna: vinuri si plimbari! 🗓️"
+            ]
+        },
+        {
+            "tag": "family_kids",
+            "patterns": [
+                "Things to do with kids",
+                "Family friendly",
+                "Children activities",
+                "Ce fac cu copiii",
+                "Playground",
+                "Zoo",
+                "Aqua park",
+                "Loc de joaca",
+                "Family fun Bucharest",
+                "Kid friendly restaurants",
+                "Gradina zoologica",
+                "Entertainment for kids"
+            ],
+            "responses": [
+                "Kids love: 'Antipa Museum' (dinosaurs!), 'Bucharest Zoo', 'AFI Funland', and the boats in Herastrau! 🦕",
+                "'Therme Bucharest' is a massive thermal spa/water park — fun for the whole family! One of the largest in Europe! 🏊‍♂️",
+                "Visit the 'Village Museum' — kids can explore 300+ traditional Romanian houses in an open-air setting! 🏡",
+                "'Tineretului Park' has great playgrounds! 'Plevnei Open Air' has activities for kids in summer!",
+                "Cu copiii: Muzeul Antipa, Gradina Zoologica, Therme (aqua park), si parcul Tineretului! 👨‍👩‍👧‍👦"
+            ]
+        },
+        {
+            "tag": "hidden_gems",
+            "patterns": [
+                "Hidden gems",
+                "Secret places",
+                "Off the beaten path",
+                "Locuri ascunse",
+                "Less touristy",
+                "Unique experiences",
+                "Unusual things to do",
+                "Secret Bucharest",
+                "Local spots",
+                "Where locals go",
+                "Unde merg localnicii",
+                "Underground",
+                "Alternative Bucharest"
+            ],
+            "responses": [
+                "Hidden gems: 'Pasajul Macca-Vilacrosse' (golden arcade), 'Gradina Verona' (rooftop bar), and 'Strada Arthur Verona' street art! 🎨",
+                "Visit 'Bellu Cemetery' — it's like an open-air museum of sculpture! Also try 'Gradina Eden' community garden! 🌻",
+                "The rooftop of the 'National Library' has an amazing and FREE view of the city! Very few tourists know about it! 🌆",
+                "'Fabrica de Pensule' (Paint Brush Factory) — an art collective with galleries, studios, and events! Super cool! 🎭",
+                "Locuri ascunse: terasa Carturesti Verona, Pasajul Macca-Vilacrosse, si parcul Kiseleff — mai putin aglomerat decat Herastrau! 💎"
+            ]
+        },
+        {
+            "tag": "work_study",
+            "patterns": [
+                "Coworking spaces",
+                "Where to study",
+                "Work remotely",
+                "Digital nomad",
+                "Universities in Bucharest",
+                "Unde invat",
+                "Libraries",
+                "Student life",
+                "Unde lucrez remote",
+                "Best cafes for work",
+                "Uni life Bucharest",
+                "Study spots",
+                "Campus",
+                "Student discounts"
+            ],
+            "responses": [
+                "Best coworking: 'Impact Hub', 'Commons', 'TechHub Bucharest', 'Regus' — all with fast WiFi and good coffee! 💻",
+                "Top universities: University of Bucharest, Politehnica, ASE (economics), Carol Davila (medicine)! 🎓",
+                "Study-friendly cafes: 'Origo', 'M60', 'Camera din Fata' — quiet, great WiFi, and amazing coffee! ☕📚",
+                "Fun fact: Romania has more IT specialists per capita than most European countries! Bucharest is a tech hub! 🖥️",
+                "Pentru studiu: Biblioteca Centrala Universitara, cafenele cu WiFi bun (Origo, M60), sau coworking-uri ca Impact Hub! 📖"
+            ]
+        },
+        {
+            "tag": "random_fact",
+            "patterns": [
+                "Tell me a fact",
+                "Random fact",
+                "Interesting fact",
+                "Did you know",
+                "Fun fact",
+                "Spune-mi ceva interesant",
+                "Trivia",
+                "Something cool",
+                "Mind blown",
+                "Surprise me",
+                "Amaze me",
+                "Stiai ca"
+            ],
+            "responses": [
+                "Did you know? Romania's Palace of Parliament is the 2nd largest admin building in the world (after the Pentagon)! 🏛️",
+                "Fun fact: Romania invented the jet engine (Henri Coanda), the fountain pen (Petrache Poenaru), and insulin (Nicolae Paulescu)! 🇷🇴",
+                "Bucharest has more green space per capita than most European capitals! The city has over 20 major parks! 🌳",
+                "Romania's internet is faster than in most Western European countries — it consistently ranks in the global top 5! ⚡",
+                "Stiai ca? Carturesti Carusel din Centrul Vechi e considerat una dintre cele mai frumoase librarii din lume! 📚✨"
+            ]
+        },
+        {
+            "tag": "recommend_general",
+            "patterns": [
+                "What do you recommend",
+                "Best things to do",
+                "What should I see",
+                "Ce imi recomanzi",
+                "Top things",
+                "Five best things",
+                "Must do in Bucharest",
+                "Bucket list",
+                "Highlights",
+                "Plan my day",
+                "What to do today",
+                "Planifica-mi ziua"
+            ],
+            "responses": [
+                "My top 5: 1) Walk Calea Victoriei, 2) Visit Old Town, 3) Eat at Caru cu Bere, 4) Herastrau sunset, 5) Therme spa! ⭐",
+                "Perfect day: Morning coffee at Origo → Palace of Parliament tour → Lunch at City Grill → Herastrau walk → Old Town dinner! 🌟",
+                "Recomand: viziteaza Centrul Vechi, mananca la 'Caru cu Bere', plimbare in Herastrau, si cafea la Origo! O zi perfecta! ☀️",
+                "For culture: Athenaeum → Art Museum → Carturesti Carusel. For fun: Old Town → Therme → Arena Nationala! 🎯",
+                "Can't-miss experiences: 1) Sarmale & Mici tasting, 2) Calea Victoriei walk, 3) Boat ride in Herastrau! 🚣"
+            ]
+        }
+    ]
+}

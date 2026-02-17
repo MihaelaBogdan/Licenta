@@ -1,0 +1,60 @@
+[versions]
+agp = "8.13.2"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+appcompat = "1.7.1"
+material = "1.13.0"
+activity = "1.12.3"
+constraintlayout = "2.2.1"
+navVersion = "2.8.5"
+mapsVersion = "19.0.0"
+locationVersion = "21.3.0"
+retrofitVersion = "2.11.0"
+glideVersion = "4.16.0"
+roomVersion = "2.6.1"
+lifecycleVersion = "2.8.7"
+navigationFragment = "2.9.7"
+okhttpVersion = "4.12.0"
+
+[libraries]
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+
+# Navigation
+nav-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navVersion" }
+nav-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navVersion" }
+
+# Maps & Location
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "mapsVersion" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "locationVersion" }
+
+# Retrofit (Networking)
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofitVersion" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofitVersion" }
+
+# Glide (Image Loading)
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glideVersion" }
+glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glideVersion" }
+
+# Room (Database)
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomVersion" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomVersion" }
+
+# Lifecycle
+lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycleVersion" }
+lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata", version.ref = "lifecycleVersion" }
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
+
+# OkHttp
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttpVersion" }
+logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttpVersion" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+

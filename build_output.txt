@@ -1,0 +1,253 @@
+﻿> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources
+> Task :app:mergeDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:parseDebugLocalResources
+> Task :app:processDebugMainManifest
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:processDebugManifest
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+
+> Task :app:compileDebugJavaWithJavac
+./gradlew : C:\Users\mihab\Li
+centa\app\src\main\java\com\e
+xample\licenta\model\User.jav
+a:7: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+At line:1 char:1
++ ./gradlew assembleDebug 
+2>&1 | Out-File -FilePath 
+build_output.txt -E ...
++ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (C:\User  
+  s\mihab\...d constructor   
+ s.:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+public class User {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\UserBadge.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class UserBadge {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\UserAchievement.java
+:7: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+public class UserAchievement 
+{
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\PlannedActivity.java
+:7: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+public class PlannedActivity 
+{
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\ActivityGroup.java:7
+: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+public class ActivityGroup {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\GroupMember.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class GroupMember {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\Invitation.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class Invitation {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\User.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class User {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\UserBadge.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class UserBadge {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\UserAchievement.java
+:7: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+public class UserAchievement 
+{
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\PlannedActivity.java
+:7: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+public class PlannedActivity 
+{
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\ActivityGroup.java:7
+: warning: There are 
+multiple good constructors 
+and Room will pick the 
+no-arg constructor. You can 
+use the @Ignore annotation 
+to eliminate unwanted 
+constructors.
+public class ActivityGroup {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\GroupMember.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class GroupMember {
+       ^
+C:\Users\mihab\Licenta\app\sr
+c\main\java\com\example\licen
+ta\model\Invitation.java:7: 
+warning: There are multiple 
+good constructors and Room 
+will pick the no-arg 
+constructor. You can use the 
+@Ignore annotation to 
+eliminate unwanted 
+constructors.
+public class Invitation {
+       ^
+Note: C:\Users\mihab\Licenta\
+app\src\main\java\com\example
+\licenta\adapter\PlaceAdapter
+.java uses or overrides a 
+deprecated API.
+Note: Recompile with 
+-Xlint:deprecation for 
+details.
+14 warnings
+
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:mergeProjectDexDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+
+[Incubating] Problems report is available at: file:///C:/Users/mihab/Licenta/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 28s
+37 actionable tasks: 16 executed, 21 up-to-date

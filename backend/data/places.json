@@ -1,0 +1,79 @@
+[
+    {
+        "id": 1,
+        "name": "Caru' cu Bere",
+        "description": "Historic restaurant with traditional food and Neo-Gothic architecture.",
+        "rating": 4.7,
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Caru_cu_Bere.jpg/800px-Caru_cu_Bere.jpg",
+        "latitude": 44.432,
+        "longitude": 26.098,
+        "type": "Restaurant",
+        "address": "Strada Stavropoleos 5"
+    },
+    {
+        "id": 2,
+        "name": "Origo Coffee",
+        "description": "Top-tier specialty coffee shop and roastery in Bucharest.",
+        "rating": 4.9,
+        "imageUrl": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0e/9d/32/3f/origo-coffee-shop.jpg?w=1200&h=-1&s=1",
+        "latitude": 44.434,
+        "longitude": 26.095,
+        "type": "Cafe",
+        "address": "Strada Lipscani 9"
+    },
+    {
+        "id": 3,
+        "name": "Herastrau Park",
+        "description": "Largest park in Bucharest surrounding Lake Herastrau.",
+        "rating": 4.6,
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Parcul_Her%C4%83str%C4%83u_-_Island_of_Roses.jpg/1200px-Parcul_Her%C4%83str%C4%83u_-_Island_of_Roses.jpg",
+        "latitude": 44.470,
+        "longitude": 26.085,
+        "type": "Park",
+        "address": "Soseaua Nordului"
+    },
+    {
+        "id": 4,
+        "name": "Therme Bucuresti",
+        "description": "Massive wellness center and indoor tropical garden.",
+        "rating": 4.8,
+        "imageUrl": "https://therme.ro/images/slideshow/galaxy/therme-galaxy-1.jpg",
+        "latitude": 44.605,
+        "longitude": 26.082,
+        "type": "Wellness",
+        "address": "Calea Bucuresti 1K"
+    },
+    {
+        "id": 5,
+        "name": "Romanian Athenaeum",
+        "description": "Iconic concert hall and symbol of Romanian culture.",
+        "rating": 4.9,
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Romanian_Athenaeum_2011.jpg/1200px-Romanian_Athenaeum_2011.jpg",
+        "latitude": 44.441,
+        "longitude": 26.097,
+        "type": "Museum",
+        "address": "Strada Benjamin Franklin 1-3"
+    },
+    {
+        "id": 6,
+        "name": "Palace of Parliament",
+        "description": "Second largest administrative building in the world.",
+        "rating": 4.5,
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Palatul_Parlamentului_noaptea.jpg/1200px-Palatul_Parlamentului_noaptea.jpg",
+        "latitude": 44.427,
+        "longitude": 26.087,
+        "type": "Landmark",
+        "address": "Strada Izvor 2-4"
+    },
+    {
+        "id": 7,
+        "name": "Carturesti Carusel",
+        "description": "Beautiful bookstore in a restored 19th-century building.",
+        "rating": 4.8,
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Carturesti_Carusel_interior.jpg/800px-Carturesti_Carusel_interior.jpg",
+        "latitude": 44.432,
+        "longitude": 26.100,
+        "type": "Shop",
+        "address": "Strada Lipscani 55"
+    }
+]

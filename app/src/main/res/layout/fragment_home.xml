@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary_dark">
+    android:background="@color/background_dark">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -12,22 +11,18 @@
         android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/contentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:padding="16dp">
 
             <!-- Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="16dp">
+                android:gravity="center_vertical">
 
-                <!-- Greeting & City -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -35,67 +30,38 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/greetingText"
+                        android:id="@+id/text_greeting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Good evening, Alex"
                         android:textColor="@color/text_primary"
-                        android:textSize="24sp"
-                        android:fontFamily="sans-serif-medium" />
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:id="@+id/citySelector"
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:background="?attr/selectableItemBackground"
-                        android:padding="4dp">
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:src="@drawable/ic_location"
-                            app:tint="@color/accent_green" />
-
-                        <TextView
-                            android:id="@+id/cityName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="București"
-                            android:textColor="@color/accent_green"
-                            android:textSize="14sp" />
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_marginStart="4dp"
-                            android:src="@drawable/ic_dropdown"
-                            app:tint="@color/accent_green" />
-                    </LinearLayout>
+                        android:text="Ready to explore Bucharest?"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
-                <!-- Profile Avatar -->
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/profileImage"
+                <ImageView
+                    android:id="@+id/img_profile"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@drawable/ic_profile"
-                    app:civ_border_color="@color/accent_green"
-                    app:civ_border_width="2dp" />
+                    android:background="@drawable/circle_green"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_person" />
             </LinearLayout>
 
             <!-- Search Bar -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/searchBar"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="20dp"
-                app:cardBackgroundColor="@color/surface_dark"
-                app:cardCornerRadius="24dp"
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -110,40 +76,128 @@
                         android:src="@drawable/ic_search"
                         app:tint="@color/text_hint" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <EditText
+                        android:id="@+id/search_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:layout_marginStart="12dp"
-                        android:text="@string/search_hint"
-                        android:textColor="@color/text_hint"
+                        android:background="@android:color/transparent"
+                        android:hint="Search places, events..."
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
                         android:textSize="14sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Categories -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/categories_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="All"
+                        android:textColor="@color/background_dark"
+                        app:chipBackgroundColor="@color/primary"
+                        app:chipCornerRadius="20dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Restaurants"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/card_dark"
+                        app:chipCornerRadius="20dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Cafes"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/card_dark"
+                        app:chipCornerRadius="20dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Parks"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/card_dark"
+                        app:chipCornerRadius="20dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Museums"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/card_dark"
+                        app:chipCornerRadius="20dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Map Preview Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
                 android:layout_marginTop="24dp"
-                android:text="Categories"
+                android:text="Explore Nearby"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
-                android:fontFamily="sans-serif-medium" />
+                android:textStyle="bold" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/categoriesRecycler"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_map_preview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="160dp"
                 android:layout_marginTop="12dp"
-                android:clipToPadding="false"
-                android:paddingHorizontal="16dp" />
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
 
-            <!-- Personalized For You -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <fragment
+                        android:id="@+id/map_preview"
+                        android:name="com.google.android.gms.maps.SupportMapFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/gradient_overlay" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_margin="16dp"
+                        android:text="Bucharest"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Near You Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="24dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
@@ -152,133 +206,31 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/personalized_for_you"
+                    android:text="Near You"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
-                    android:fontFamily="sans-serif-medium" />
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/seeAllRecommended"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="@string/see_all"
-                    android:textColor="@color/accent_green"
+                    android:text="See all"
+                    android:textColor="@color/primary"
                     android:textSize="14sp" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recommendedRecycler"
+                android:id="@+id/recycler_near_you"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:clipToPadding="false"
-                android:paddingHorizontal="16dp" />
+                android:orientation="horizontal" />
 
-            <!-- Itinerary Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/itineraryCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="24dp"
-                app:cardBackgroundColor="@color/primary_green"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="A Perfect Day"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
-                            android:fontFamily="sans-serif-medium" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Generate a personalized day itinerary"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_itinerary"
-                        app:tint="@color/highlight_green" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Calendar Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/calendarCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/planned_activities"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp"
-                            android:fontFamily="sans-serif-medium" />
-
-                        <TextView
-                            android:id="@+id/calendarSubtitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Plan visits and invite friends"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_calendar"
-                        app:tint="@color/accent_green" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Trending Now -->
+            <!-- Trending Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="24dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
@@ -287,50 +239,27 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/trending_now"
+                    android:text="Trending Now"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
-                    android:fontFamily="sans-serif-medium" />
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/seeAllTrending"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:text="@string/see_all"
-                    android:textColor="@color/accent_green"
+                    android:text="See all"
+                    android:textColor="@color/primary"
                     android:textSize="14sp" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/trendingRecycler"
+                android:id="@+id/recycler_recommended"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:clipToPadding="false"
-                android:paddingHorizontal="16dp" />
+                android:layout_marginBottom="80dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Loading Progress -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
-
-    <!-- Chatbot FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabChatbot"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="AI Assistant"
-        android:src="@drawable/ic_chatbot"
-        app:backgroundTint="@color/accent_green"
-        app:tint="@color/text_primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
