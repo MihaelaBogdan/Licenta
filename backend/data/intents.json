@@ -1254,6 +1254,575 @@
                 "For culture: Athenaeum → Art Museum → Carturesti Carusel. For fun: Old Town → Therme → Arena Nationala! 🎯",
                 "Can't-miss experiences: 1) Sarmale & Mici tasting, 2) Calea Victoriei walk, 3) Boat ride in Herastrau! 🚣"
             ]
+        },
+        {
+            "tag": "what_to_do",
+            "patterns": [
+                "Ce pot sa fac azi",
+                "Ce fac azi",
+                "Ce sa fac",
+                "Nu stiu ce sa fac",
+                "M-am plictisit",
+                "I'm bored what should I do",
+                "What should I do today",
+                "What can I do",
+                "Give me ideas",
+                "Sugereaza-mi ceva",
+                "Da-mi idei",
+                "Plan my day",
+                "Ce planuri sa fac",
+                "Help me decide what to do",
+                "Ce activitati am",
+                "I don't know what to do",
+                "I have nothing to do",
+                "N-am ce face",
+                "Vreau sa fac ceva",
+                "Ce propui"
+            ],
+            "responses": [
+                "Hai să-ți planificăm ziua! 🌟 Ce ai chef să faci?",
+                "Super! Am câteva idei pentru tine! Ce te atrage mai mult?",
+                "Să vedem ce putem face azi! 🎯 Alege ce ți-ar plăcea:",
+                "Ziua e plină de posibilități! ✨ Spune-mi ce te interesează:"
+            ],
+            "suggestions": [
+                "🍽️ Să mănânc ceva",
+                "🌃 Să ies în oraș",
+                "🌿 Relaxare",
+                "🎭 Cultură",
+                "🏃 Activități sportive"
+            ]
+        },
+        {
+            "tag": "want_to_eat",
+            "patterns": [
+                "Vreau sa mananc",
+                "Sa mananc ceva",
+                "Mancare",
+                "Mi-e foame",
+                "Vreau mancare",
+                "I want to eat",
+                "I'm hungry let's eat",
+                "Food options",
+                "Vreau sa mananc ceva bun",
+                "Unde mancam",
+                "Ce mancam",
+                "Hai sa mancam",
+                "Food",
+                "Imi e foame",
+                "Ceva de mancare"
+            ],
+            "responses": [
+                "Mmmm, mâncare! 😋 Ce tip de mâncare te atrage?",
+                "Bună alegere! Hai să găsim ceva bun de mâncare! Ce preferi?",
+                "Sunt expert în restaurante din București! 🍽️ Ce ai poftă?",
+                "Hai să-ți găsim ceva delicios! Ce gen de mâncare vrei?"
+            ],
+            "suggestions": [
+                "🍔 Fast food",
+                "🥘 Mâncare tradițională",
+                "🍝 Italienesc",
+                "🍣 Asiatic",
+                "🥗 Sănătos/Vegan",
+                "🍰 Deserturi"
+            ]
+        },
+        {
+            "tag": "want_fast_food",
+            "patterns": [
+                "Fast food",
+                "Vreau fast food",
+                "Ceva rapid",
+                "Burger",
+                "Pizza rapida",
+                "Something quick to eat",
+                "Quick food",
+                "Mancare rapida",
+                "Grab and go",
+                "Ceva la pachet"
+            ],
+            "responses": [
+                "Pentru fast food bun în București: 🍔\n\n• **Burger Van** — cei mai buni burgeri artizanali\n• **Ît Burger** — burgeri premium cu ingrediente locale\n• **Dristor Kebab** — shaorma legendară din București\n• **Pizza Hut / Jerry's Pizza** — pizza rapidă și bună\n• **Spartan** — fast food grecesc (gyros, souvlaki)",
+                "Fast food de calitate: 🔥\n\n• **Burger Van** — burgeri wow, merită așteptarea\n• **Dristor Kebab** — shaorma nr. 1 în București!\n• **Ît Burger** — burgeri gourmet la preț ok\n• **McDonald's/KFC** — clasicele, peste tot în oraș"
+            ],
+            "suggestions": [
+                "🍕 Vreau pizza",
+                "🌯 Vreau shaorma",
+                "🍔 Vreau burgeri",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_traditional_food",
+            "patterns": [
+                "Mancare traditionala",
+                "Vreau mancare romaneasca",
+                "Traditional food",
+                "Romanian food",
+                "Ceva traditional",
+                "Sarmale si mici",
+                "Vreau ceva romanesc",
+                "Mancare de casa",
+                "Unde mananc traditional",
+                "Home style food"
+            ],
+            "responses": [
+                "Mâncare tradițională în București! 🇷🇴\n\n• **Caru' cu Bere** — iconic, sarmale legendare! Atmosferă medievală\n• **Hanu' lui Manuc** — restaurant istoric din 1808\n• **Lacrimi și Sfinți** — atmosferă romantică, mâncare autentică\n• **La Mama** — mâncare ca la mama acasă, prețuri ok\n• **City Grill** — traditional modern, mai multe locații",
+                "Pentru mâncare românească autentică recomand: 🥘\n\n• **Caru' cu Bere** — o experiență completă (mâncare + atmosferă)\n• **Energiea** — twist modern pe bucătăria tradițională\n• **Lacrimi și Sfinți** — lumânări, muzică live, mâncare divină\n• **Vatra** — terci, sarmale, ciolan — totul e de 10!"
+            ],
+            "suggestions": [
+                "📍 Unde e Caru' cu Bere?",
+                "💰 Ce prețuri au?",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_italian_food",
+            "patterns": [
+                "Italienesc",
+                "Vreau pizza",
+                "Paste",
+                "Mancare italiana",
+                "Italian food",
+                "Pizza buna",
+                "Pasta",
+                "Italian restaurant",
+                "Vreau paste",
+                "Pizzerie buna"
+            ],
+            "responses": [
+                "Mâncare italiană în București! 🍝🇮🇹\n\n• **Passo** — pizza napoletană autentică, pe lemne\n• **Trattoria Monza** — paste proaspete, atmosferă caldă\n• **Lente** — fine dining italian, prezentare impecabilă\n• **Fior di Latte** — pizza superbă, prețuri accesibile\n• **Roberto's** — italian clasic, porții generoase",
+                "Italia vine la București! 🍕\n\n• **Passo** — pizza ca la Napoli!\n• **Trattoria Monza** — paste făcute in house\n• **Il Calcio** — prețuri ok, pizza foarte bună\n• **Lente** — dacă vrei ceva mai fancy"
+            ],
+            "suggestions": [
+                "🍕 Vreau pizza specifc",
+                "🍝 Vreau paste",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_asian_food",
+            "patterns": [
+                "Mancare asiatica",
+                "Asiatic",
+                "Vreau sushi",
+                "Mancare japoneza",
+                "Chinezesc",
+                "Thai food",
+                "Asian food",
+                "Sushi",
+                "Ramen",
+                "Noodles",
+                "Vreau ceva asiatic"
+            ],
+            "responses": [
+                "Mâncare asiatică în București! 🍣🥢\n\n• **Zen Sushi** — cel mai bun sushi din oraș!\n• **Noua** — fuziune asiatică modernă, premiat\n• **Kanpai** — ramen autentic japonez\n• **Beijing Restaurant** — chinezesc autentic\n• **Bao** — street food asiatic trendy",
+                "Asia în București! 🍜\n\n• **Zen Sushi** — sushi premium, must try!\n• **Kanpai** — ramen fierbinte, perfect iarna\n• **Bao** — bao buns și noodles, vibe cool\n• **Osho** — fine dining asiatic"
+            ],
+            "suggestions": [
+                "🍣 Mai vreau sushi",
+                "🍜 Vreau ramen",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_healthy_food",
+            "patterns": [
+                "Mancare sanatoasa",
+                "Vegan",
+                "Vegetarian",
+                "Healthy food",
+                "Salate",
+                "Vreau ceva sanatos",
+                "Light food",
+                "Mancare usoara",
+                "Vreau salata",
+                "Fara carne",
+                "Plant based"
+            ],
+            "responses": [
+                "Mâncare sănătoasă în București! 🥗💚\n\n• **Simbio** — organic, vegetarian, grădină superbă\n• **Rawdia** — raw vegan, sucuri fresh\n• **Frudisiac** — fructe, smoothie bowls, toast-uri\n• **Manasia Hub** — opțiuni vegane creative\n• **Samsara Foodhouse** — vegan, prețuri ok",
+                "Opțiuni sănătoase: 🌱\n\n• **Simbio** — meniu veggie fantastic + terasă\n• **Rawdia** — raw vegan de top\n• **Frudisiac** — acai bowls, smoothies, pur și simplu wow\n• **Lente** — opțiuni sănătoase italiene"
+            ],
+            "suggestions": [
+                "🥤 Smoothie bars",
+                "🥗 Salad bars",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_desserts",
+            "patterns": [
+                "Deserturi",
+                "Ceva dulce",
+                "Vreau desert",
+                "Prajituri",
+                "Inghetata",
+                "Dessert",
+                "Cake",
+                "Ice cream",
+                "Vreau ceva dulce",
+                "Cofetarie",
+                "Patiserie",
+                "Ciocolata"
+            ],
+            "responses": [
+                "Deserturi divine în București! 🍰✨\n\n• **French Revolution** — croissante și eclere de vis\n• **Cremeria Emilia** — cea mai bună înghețată artizanală\n• **Zexe** — prăjituri premium, prezentare wow\n• **Bakers** — cheesecake legendar\n• **Papanași la Caru' cu Bere** — must try românesc!",
+                "Dulciuri de top: 🍫\n\n• **Cremeria Emilia** — înghețată italiană autentică\n• **French Revolution** — totul e perfect acolo\n• **Zexe** — tort de ciocolată fenomenal\n• **Dulce by Diana** — prăjituri raw vegan delicioase"
+            ],
+            "suggestions": [
+                "🍨 Unde e Cremeria Emilia?",
+                "🥐 Vreau croissante",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_going_out",
+            "patterns": [
+                "Sa ies in oras",
+                "Vreau sa ies",
+                "Iesit in oras",
+                "Going out",
+                "Let's go out",
+                "Night out",
+                "Vreau sa ies diseara",
+                "Ce fac diseara",
+                "Iesire in oras",
+                "Unde iesim",
+                "Sa iesim undeva",
+                "Hai sa iesim",
+                "Vreau afara din casa",
+                "Let's go somewhere"
+            ],
+            "responses": [
+                "Hai să ieșim! 🌃 Ce gen de ieșire te interesează?",
+                "O ieșire în oraș, perfect! 🎉 Ce ai chef de?",
+                "București are de toate! 🌟 Ce tip de ieșire preferi?",
+                "Super alegere! Hai să găsim ceva mișto! Ce vrei?"
+            ],
+            "suggestions": [
+                "☕ La o cafea",
+                "🍸 La un cocktail/bar",
+                "🎶 Club/Party",
+                "🎬 Cinema",
+                "🛍️ Shopping",
+                "🚶 Plimbare"
+            ]
+        },
+        {
+            "tag": "want_coffee_out",
+            "patterns": [
+                "La o cafea",
+                "Vreau cafea",
+                "Sa bem o cafea",
+                "Coffee date",
+                "Cafenea",
+                "Hai la cafea",
+                "Vreau sa beau o cafea",
+                "Un loc de cafea",
+                "O cafea buna"
+            ],
+            "responses": [
+                "Cafenele de top în București! ☕✨\n\n• **Origo** — specialty coffee nr. 1, must visit\n• **Steam** — vibe industrial, cafea excelentă\n• **M60** — pour-over perfect, cozy\n• **Bob Coffee Lab** — prăjire proprie, premium\n• **Dose Cafe** — cafea + prăjituri incredibile",
+                "Cele mai bune cafenele: ☕\n\n• **Origo** — dacă bei o cafea, AICI!\n• **The Coffee Shop** — multiple locații, consistent bun\n• **Steam** — atmosferă unică, filtru perfect\n• **Camera din Față** — hipster, cozy, excelent"
+            ],
+            "suggestions": [
+                "📍 Unde e Origo?",
+                "💻 Cafenea pentru lucru",
+                "📸 Cafenea instagrammable",
+                "⬅️ Alte ieșiri",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_cocktails_bar",
+            "patterns": [
+                "La un cocktail",
+                "Bar",
+                "Vreau un cocktail",
+                "Cocktail bar",
+                "Vreau la bar",
+                "Unde beau un cocktail",
+                "O bere",
+                "Craft beer",
+                "Vreau o bere",
+                "Pub",
+                "Wine bar"
+            ],
+            "responses": [
+                "Baruri de cocktailuri în București! 🍸\n\n• **Nomad Skybar** — rooftop view incredibil + cocktailuri premium\n• **Deja Vu** — cocktailuri creative, atmosferă chic\n• **Fix Me a Drink** — speakeasy, ascuns și cool\n• **Pura Vida** — tropical vibes, cocktailuri exotice\n• **La 100 de Beri** — paradis pentru iubitorii de bere craft",
+                "Cocktailuri și bere: 🍹\n\n• **Nomad Skybar** — vedere panoramică + cocktailuri wow\n• **Control Club** — bar + concerte, vibe alternativ\n• **Kulturhaus** — bere craft, atmosferă relaxată\n• **Fix Me a Drink** — speakeasy secret, super cool"
+            ],
+            "suggestions": [
+                "🌃 Cu view/rooftop",
+                "🍺 Bere craft",
+                "🎵 Cu muzică live",
+                "⬅️ Alte ieșiri",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_club_party",
+            "patterns": [
+                "Club",
+                "Party",
+                "Vreau la club",
+                "Dans",
+                "Vreau sa dansez",
+                "Petrecere",
+                "Unde e petrecerea",
+                "Clubbing",
+                "Dance",
+                "Party tonight",
+                "Vreau la party",
+                "Hai la club"
+            ],
+            "responses": [
+                "Party time în București! 🎶🔥\n\n• **Fratelli** — high-end, dresscode, muzică comercială\n• **Control Club** — alternativ, indie, electro\n• **Expirat** — legendar, underground electronic\n• **NOA** — club modern, atmosferă premium\n• **Loft** — EDM, laser show, energie nebună",
+                "Cluburi de top: 🎉\n\n• **Fratelli** — glam, vibe premium\n• **Expirat** — dacă iubești electronica\n• **Control** — indie/rock/alternativ\n• **Kristal Glam** — party grande\n• **Gaia** — mai intimate, muzică bună"
+            ],
+            "suggestions": [
+                "🎵 Muzică electronică",
+                "🎸 Muzică live/rock",
+                "💃 Latin dance",
+                "⬅️ Alte ieșiri",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_cinema",
+            "patterns": [
+                "Cinema",
+                "Vreau la film",
+                "Un film",
+                "Movie",
+                "Ce filme sunt",
+                "Vreau sa vad un film",
+                "Hai la cinema",
+                "La film",
+                "Movie tonight",
+                "Ce rulează"
+            ],
+            "responses": [
+                "Cinema în București! 🎬🍿\n\n• **Cinema City (AFI/Sun Plaza/Mega Mall)** — blockbustere, IMAX, 4DX\n• **Grand Cinema Digiplex** — confortabil, ecran mare\n• **Cinema PRO** — filme de artă, atmosferă vintage\n• **Cinemateca** — clasice și filme de festival\n• **Cinema în aer liber** (vara) — evenimente speciale!",
+                "Filme azi: 🎥\n\n• **Cinema City** — cele mai noi filme, IMAX disponibil\n• **Grand Cinema** — experiență premium\n• **Cinema PRO** — pentru cinefili, filme independente"
+            ],
+            "suggestions": [
+                "🎥 IMAX / 4DX",
+                "🎭 Film de artă",
+                "⬅️ Alte ieșiri",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_shopping",
+            "patterns": [
+                "Shopping",
+                "Vreau la shopping",
+                "Cumparaturi",
+                "Mall",
+                "Vreau la mall",
+                "Hai la shopping",
+                "Unde fac shopping",
+                "Vreau sa cumpar ceva"
+            ],
+            "responses": [
+                "Shopping în București! 🛍️\n\n• **AFI Cotroceni** — cel mai mare mall, branduri de top\n• **Băneasa Shopping City** — premium, mai puțin aglomerat\n• **Promenada** — modern, food court super\n• **ParkLake** — lângă Titan, cinema + shopping\n• **Centrul Vechi** — branduri unice, suveniruri",
+                "Mall-uri de top: 🏬\n\n• **AFI Cotroceni** — tot ce ai nevoie sub un acoperiș\n• **Băneasa** — experiență premium\n• **Promenada** — vibe modern, recomand!"
+            ],
+            "suggestions": [
+                "👗 Haine/Fashion",
+                "🎁 Cadouri/Suveniruri",
+                "📱 Electronice",
+                "⬅️ Alte ieșiri",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_walk",
+            "patterns": [
+                "Plimbare",
+                "Vreau sa ma plimb",
+                "O plimbare",
+                "Sa ne plimbam",
+                "Walk",
+                "La plimbare",
+                "Vreau aer curat",
+                "Hai la plimbare",
+                "Unde ma plimb"
+            ],
+            "responses": [
+                "Locuri perfecte de plimbare! 🚶🌳\n\n• **Herăstrău (Parcul Regele Mihai I)** — lac, alee, bărci\n• **Cișmigiu** — central, romantic, istoric\n• **Calea Victoriei** — arhitectură superba, magazine\n• **Centrul Vechi** — vibrant, cafenele, artă stradală\n• **Parcul Tineretului** — mare, verde, liniștit",
+                "Plimbări de vis: 🌿\n\n• **Herăstrău** — cel mai frumos parc din București\n• **Cișmigiu** — clasic, cu lac și alee romantice\n• **Kiseleff** — mai puțin aglomerat, superb"
+            ],
+            "suggestions": [
+                "🌳 Parc/Natură",
+                "🏛️ Plimbare culturală",
+                "🌅 Loc cu view",
+                "⬅️ Alte ieșiri",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_relax",
+            "patterns": [
+                "Relaxare",
+                "Vreau sa ma relaxez",
+                "Ceva relaxant",
+                "Relax",
+                "Spa",
+                "Wellness",
+                "Vreau liniste",
+                "Vreau sa ma odihnesc",
+                "Chill",
+                "Something chill",
+                "Vreau ceva calm"
+            ],
+            "responses": [
+                "Relaxare în București! 🧘‍♀️✨\n\n• **Therme București** — cel mai mare spa din Europa!\n• **Cișmigiu Gardens** — plimbare liniștită, aer curat\n• **Spa @ Hilton/Radisson** — tratamente premium\n• **Yoga/Meditație** — la Impact Hub sau în parcuri\n• **O carte la cafenea** — Carturești Verona e perfect",
+                "Oaze de liniște: 🌿\n\n• **Therme** — piscine termale, saune, relaxare totală\n• **Herăstrău** — plimbare în natură\n• **O cafea liniștită** — Origo, Camera din Față"
+            ],
+            "suggestions": [
+                "🏊 Therme/Spa",
+                "🌳 Natură/Parc",
+                "☕ Cafenea liniștită",
+                "📚 Librărie",
+                "⬅️ Ce fac azi?"
+            ]
+        },
+        {
+            "tag": "want_culture",
+            "patterns": [
+                "Cultura",
+                "Vreau ceva cultural",
+                "Muzeu",
+                "Teatru",
+                "Expozitie",
+                "Vreau la muzeu",
+                "Cultural activities",
+                "Ceva educativ",
+                "Arta",
+                "Art gallery",
+                "Galerie de arta"
+            ],
+            "responses": [
+                "Cultură în București! 🎭🏛️ Ce te atrage mai mult?",
+                "Experiențe culturale de top! 🎨 Alege categoria:",
+                "București e un oraș plin de cultură! 🌟 Ce preferi?"
+            ],
+            "suggestions": [
+                "🏛️ Muzee",
+                "🎭 Teatru/Operă",
+                "🎨 Galerii de artă",
+                "📚 Librării",
+                "⬅️ Ce fac azi?"
+            ]
+        },
+        {
+            "tag": "want_sports",
+            "patterns": [
+                "Activitati sportive",
+                "Sport",
+                "Vreau sa fac sport",
+                "Fitness",
+                "Alergare",
+                "Vreau sa alerg",
+                "Gym",
+                "Sala",
+                "Active activities",
+                "Vreau sa ma misc",
+                "Ceva activ"
+            ],
+            "responses": [
+                "Activități sportive în București! 🏃💪 Ce sport te atrage?",
+                "Hai la mișcare! 🔥 Ce ai vrea să faci?",
+                "Sport și energie! ⚡ Alege ce ți-ar plăcea:"
+            ],
+            "suggestions": [
+                "🏃 Alergare/Jogging",
+                "💪 Sală de fitness",
+                "🏊 Înot",
+                "🚴 Ciclism",
+                "🧘 Yoga",
+                "⬅️ Ce fac azi?"
+            ]
+        },
+        {
+            "tag": "want_shaorma",
+            "patterns": [
+                "Vreau shaorma",
+                "Shaorma",
+                "Shawarma",
+                "Doner",
+                "Kebab",
+                "Cea mai buna shaorma"
+            ],
+            "responses": [
+                "Shaorma în București! 🌯🔥\n\n• **Dristor Kebab** — legendară, nr. 1 în București\n• **Calif** — alternativă bună, porții mari\n• **Mesopotamia** — kebab turcesc autentic\n• **Genin** — shaorma artizanală\n• **Shaorma de pe Dristor** — orice chioșc de acolo e bun!",
+                "Shaorma de top: 🌯\n\n• **Dristor Kebab** — THE shaorma din București!\n• **Calif** — porții generoase, gustoase\n• **Mesopotamia** — stil turcesc autentic"
+            ],
+            "suggestions": [
+                "📍 Unde e Dristor?",
+                "💰 Cât costă?",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "want_burgers",
+            "patterns": [
+                "Vreau burgeri",
+                "Burger",
+                "Cel mai bun burger",
+                "Burgeri buni",
+                "Best burgers",
+                "Hamburger"
+            ],
+            "responses": [
+                "Burgeri de top în București! 🍔🔥\n\n• **Burger Van** — artizanali, ingrediente premium\n• **Ît Burger** — burgeri gourmet, prăjiturile sunt wow\n• **Vacmușel** — burgeri creativi, prețuri ok\n• **Switch Eat** — burgeri + milkshake-uri\n• **Philly Cheese** — stil american autentic",
+                "Cei mai buni burgeri: 🍔\n\n• **Burger Van** — nr. 1 indiscutabil!\n• **Ît Burger** — super calitate\n• **Vacmușel** — opțiuni creative și gustoase"
+            ],
+            "suggestions": [
+                "📍 Unde e Burger Van?",
+                "🥤 Cu milkshake",
+                "⬅️ Alte opțiuni de mâncare",
+                "🏠 Altceva"
+            ]
+        },
+        {
+            "tag": "go_back_main",
+            "patterns": [
+                "Altceva",
+                "Vreau altceva",
+                "Alte optiuni",
+                "Inapoi",
+                "Back",
+                "Main menu",
+                "Inapoi la inceput",
+                "Alte idei",
+                "Something else",
+                "Meniu principal",
+                "Ce fac azi?",
+                "Arată-mi opțiunile"
+            ],
+            "responses": [
+                "Nicio problemă! 😊 Hai din nou — ce ai chef să faci?",
+                "OK! Hai să o luăm de la capăt! 🔄 Ce te interesează?",
+                "Sigur! Iată opțiunile principale:"
+            ],
+            "suggestions": [
+                "🍽️ Să mănânc ceva",
+                "🌃 Să ies în oraș",
+                "🌿 Relaxare",
+                "🎭 Cultură",
+                "🏃 Activități sportive"
+            ]
         }
     ]
 }

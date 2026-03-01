@@ -12,6 +12,7 @@ def index_get():
 
 @app.post("/predict")
 def predict():
+    """Simple endpoint - returns just the answer text."""
     text = request.get_json().get("message")
     response = get_response(text)
     message = {"answer": response}
@@ -19,7 +20,18 @@ def predict():
 
 @app.post("/predict/detailed")
 def predict_detailed():
-    """Returns response with intent and confidence info — useful for debugging."""
+    """
+    Full endpoint - returns answer, intent, confidence, and suggestions.
+    Used by the Android app for conversational flow with quick replies.
+    
+    Response format:
+    {
+        "answer": "Hai să-ți planificăm ziua! 🌟 Ce ai chef să faci?",
+        "intent": "what_to_do",
+        "confidence": 0.95,
+        "suggestions": ["🍽️ Să mănânc ceva", "🌃 Să ies în oraș", ...]
+    }
+    """
     text = request.get_json().get("message")
     result = get_response_with_details(text)
     return jsonify(result)

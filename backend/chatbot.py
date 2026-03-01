@@ -3,6 +3,7 @@ Chatbot inference using fine-tuned DistilBERT.
 
 Loads the fine-tuned model and provides responses
 based on intent classification with confidence scoring.
+Supports conversational flow with quick reply suggestions.
 """
 
 import os
@@ -22,6 +23,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Load intents
 with open('data/intents.json', 'r', encoding='utf-8') as f:
     intents = json.load(f)
+
+# Build a quick lookup: tag -> intent data
+intent_lookup = {}
+for intent in intents['intents']:
+    intent_lookup[intent['tag']] = intent
 
 # Load model data
 model_data = torch.load(
@@ -60,8 +66,10 @@ FALLBACK_RESPONSES = [
     "Oops! I didn't catch that. I'm great with Bucharest tips, travel advice, food recommendations, and casual chat! 💬"
 ]
 
+FALLBACK_SUGGESTIONS = ["🍽️ Să mănânc ceva", "🌃 Să ies în oraș", "🏛️ Muzee", "🌳 Parcuri", "💬 Spune-mi o glumă"]
+
 # Confidence thresholds
-CONFIDENCE_THRESHOLD = 0.40  # DistilBERT gives much clearer probabilities than bag-of-words
+CONFIDENCE_THRESHOLD = 0.40
 
 
 def _predict_intent(msg):
@@ -69,7 +77,6 @@ def _predict_intent(msg):
     Internal: Run the DistilBERT model on a message.
     Returns (top_tag, top_probability, all_probs).
     """
-    # Tokenize with DistilBERT tokenizer
     encoding = tokenizer(
         msg,
         padding='max_length',
@@ -104,38 +111,43 @@ def get_response(msg):
     top_tag, confidence, _ = _predict_intent(msg)
     
     if confidence > CONFIDENCE_THRESHOLD:
-        for intent in intents['intents']:
-            if top_tag == intent['tag']:
-                return random.choice(intent['responses'])
+        if top_tag in intent_lookup:
+            return random.choice(intent_lookup[top_tag]['responses'])
     
     return random.choice(FALLBACK_RESPONSES)
 
 
 def get_response_with_details(msg):
     """
-    Extended version that returns response with intent and confidence.
-    Useful for debugging and the Android app.
+    Extended version that returns response with intent, confidence,
+    and optional suggestions for conversational flow.
     """
     if not msg or not msg.strip():
         return {
             "answer": "Please type something! I'm here to help! 😊",
             "intent": "empty",
-            "confidence": 0.0
+            "confidence": 0.0,
+            "suggestions": FALLBACK_SUGGESTIONS
         }
     
     top_tag, confidence, _ = _predict_intent(msg)
     
     if confidence > CONFIDENCE_THRESHOLD:
-        for intent in intents['intents']:
-            if top_tag == intent['tag']:
-                return {
-                    "answer": random.choice(intent['responses']),
-                    "intent": top_tag,
-                    "confidence": round(confidence, 4)
-                }
+        if top_tag in intent_lookup:
+            intent_data = intent_lookup[top_tag]
+            response = random.choice(intent_data['responses'])
+            suggestions = intent_data.get('suggestions', [])
+            
+            return {
+                "answer": response,
+                "intent": top_tag,
+                "confidence": round(confidence, 4),
+                "suggestions": suggestions
+            }
     
     return {
         "answer": random.choice(FALLBACK_RESPONSES),
         "intent": "fallback",
-        "confidence": round(confidence, 4)
+        "confidence": round(confidence, 4),
+        "suggestions": FALLBACK_SUGGESTIONS
     }
