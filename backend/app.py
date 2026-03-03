@@ -12,9 +12,11 @@ def index_get():
 
 @app.post("/predict")
 def predict():
-    """Simple endpoint - returns just the answer text."""
-    text = request.get_json().get("message")
-    response = get_response(text)
+    """Simple endpoint - returns just the answer text. Supports language parameter."""
+    data = request.get_json()
+    text = data.get("message")
+    language = data.get("language", "ro")  # Default to Romanian
+    response = get_response(text, language)
     message = {"answer": response}
     return jsonify(message)
 
@@ -23,6 +25,7 @@ def predict_detailed():
     """
     Full endpoint - returns answer, intent, confidence, and suggestions.
     Used by the Android app for conversational flow with quick replies.
+    Supports language parameter for bilingual responses.
     
     Response format:
     {
@@ -32,8 +35,10 @@ def predict_detailed():
         "suggestions": ["🍽️ Să mănânc ceva", "🌃 Să ies în oraș", ...]
     }
     """
-    text = request.get_json().get("message")
-    result = get_response_with_details(text)
+    data = request.get_json()
+    text = data.get("message")
+    language = data.get("language", "ro")  # Default to Romanian
+    result = get_response_with_details(text, language)
     return jsonify(result)
 
 # Additional endpoint to provide places data to Android app

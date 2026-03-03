@@ -1823,6 +1823,1404 @@
                 "🎭 Cultură",
                 "🏃 Activități sportive"
             ]
+        },
+        {
+            "tag": "situr_general_info",
+            "patterns": [
+                "Ce restaurante sunt in Romania",
+                "Cate restaurante clasificate sunt",
+                "Locuri de mancare in Romania",
+                "Restaurante clasificate Romania",
+                "What restaurants are in Romania",
+                "How many restaurants in Romania",
+                "Classified food places Romania",
+                "Food establishments Romania",
+                "Spune-mi despre restaurantele din Romania",
+                "Ce locuri de mancat exista in tara",
+                "Restaurante din tara",
+                "Localuri clasificate",
+                "Unde pot manca in Romania",
+                "Tell me about Romanian restaurants",
+                "Eating places in Romania"
+            ],
+            "responses": [
+                "România are 5966 structuri de alimentație clasificate oficial, în toate județele țării! Cele mai populare tipuri sunt: RESTAURANT CLASIC (2635), BAR DE ZI (1001), RESTAURANT FAMILIAL/PENSIUNE (484), SNACK-BAR (304), BUFET-BAR (299), CAFE-BAR SAU CAFENEA (226). 🍽️ Spune-mi județul sau orașul și îți dau detalii!",
+                "Am date oficiale de la Ministerul Turismului cu 5966 restaurante, baruri, cofetării și alte localuri clasificate din toată România! Întreabă-mă despre orice localitate! 🇷🇴",
+                "According to official data, Romania has 5966 classified food establishments across all counties! The most common types are: RESTAURANT CLASIC (2635), BAR DE ZI (1001), RESTAURANT FAMILIAL/PENSIUNE (484), SNACK-BAR (304), BUFET-BAR (299), CAFE-BAR SAU CAFENEA (226). Ask me about any city! 🍴",
+                "În baza mea de date am 5966 locuri de alimentație clasificate oficial, din 42 județe! Ce localitate te interesează? 🗺️",
+                "Romania boasts 5966 officially classified dining establishments! From restaurants to bars, cafes to pastry shops. Which county or city are you interested in? 🌟"
+            ],
+            "suggestions": [
+                "🍽️ Restaurante București",
+                "🏔️ Restaurante Brașov",
+                "☕ Cafenele Cluj",
+                "🍕 Ce tipuri există?"
+            ]
+        },
+        {
+            "tag": "situr_restaurant_clasic",
+            "patterns": [
+                "Restaurante clasice",
+                "Restaurant clasic",
+                "Unde gasesc un restaurant clasic",
+                "Restaurante traditionale",
+                "Restaurant traditional",
+                "Vreau un restaurant clasic",
+                "Unde pot manca la restaurant clasic",
+                "Classic restaurant",
+                "Traditional restaurant",
+                "Where is a classic restaurant",
+                "Fine dining restaurant",
+                "I want a classic restaurant"
+            ],
+            "responses": [
+                "În România sunt 2635 restaurant clasic clasificate oficial! Le găsești în județele: BOTOŞANI, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA, VASLUI și altele. Exemple: 'STEAUA ARIESULUI' (Com. Albac); 'LOTUS' (ARAD); 'LA DOCTORUL' (Com. Albeştii de Argeş); 'LIVADA MINUNATĂ' (Com. Asău). 🍽️ Spune-mi localitatea ta!",
+                "Am 2635 restaurant clasic în baza de date! Unele dintre ele: 'STEAUA ARIESULUI' (Com. Albac); 'LOTUS' (ARAD); 'LA DOCTORUL' (Com. Albeştii de Argeş); 'LIVADA MINUNATĂ' (Com. Asău). Vrei să caut în județul sau orașul tău? 📍",
+                "Romania has 2635 classified restaurant clasic establishments! Some examples: 'STEAUA ARIESULUI' (Com. Albac); 'LOTUS' (ARAD); 'LA DOCTORUL' (Com. Albeştii de Argeş); 'LIVADA MINUNATĂ' (Com. Asău). Tell me your city for recommendations! 🏙️",
+                "Sunt 2635 unități de tip restaurant clasic clasificate. Sunt în 8+ județe, inclusiv BOTOŞANI, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA, VASLUI. Unde te afli?"
+            ],
+            "suggestions": [
+                "📍 BOTOŞANI",
+                "📍 HARGHITA",
+                "📍 HUNEDOARA",
+                "📍 IALOMIŢA"
+            ]
+        },
+        {
+            "tag": "situr_bar_zi",
+            "patterns": [
+                "Bar de zi",
+                "Baruri de zi",
+                "Unde gasesc un bar de zi",
+                "Vreau la un bar",
+                "Bar in zona",
+                "Un bar fain",
+                "Day bar",
+                "Bars",
+                "Where to find a bar",
+                "I want a bar",
+                "Bar nearby"
+            ],
+            "responses": [
+                "În România sunt 1001 bar de zi clasificate oficial! Le găsești în județele: BOTOŞANI, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA, VASLUI și altele. Exemple: 'BLEUMARIN' (Com. Galda de Jos); 'CODRU MOMA' (Com. Moneasa); 'POSADA VIDRARU' (Com. Arefu); 'KITTY PANZIO' (Com. Gârleni). 🍽️ Spune-mi localitatea ta!",
+                "Am 1001 bar de zi în baza de date! Unele dintre ele: 'BLEUMARIN' (Com. Galda de Jos); 'CODRU MOMA' (Com. Moneasa); 'POSADA VIDRARU' (Com. Arefu); 'KITTY PANZIO' (Com. Gârleni). Vrei să caut în județul sau orașul tău? 📍",
+                "Romania has 1001 classified bar de zi establishments! Some examples: 'BLEUMARIN' (Com. Galda de Jos); 'CODRU MOMA' (Com. Moneasa); 'POSADA VIDRARU' (Com. Arefu); 'KITTY PANZIO' (Com. Gârleni). Tell me your city for recommendations! 🏙️",
+                "Sunt 1001 unități de tip bar de zi clasificate. Sunt în 8+ județe, inclusiv BOTOŞANI, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA, VASLUI. Unde te afli?"
+            ],
+            "suggestions": [
+                "📍 BOTOŞANI",
+                "📍 HARGHITA",
+                "📍 HUNEDOARA",
+                "📍 IALOMIŢA"
+            ]
+        },
+        {
+            "tag": "situr_cofetarie",
+            "patterns": [
+                "Cofetarie",
+                "Cofetarii",
+                "Unde gasesc o cofetarie",
+                "Vreau ceva dulce",
+                "Patiserie",
+                "Prajituri",
+                "Unde mananc prajituri",
+                "Cofetarie buna",
+                "Pastry shop",
+                "Confectionery",
+                "Where to find pastries",
+                "Sweet shop",
+                "I want pastries",
+                "Cake shop"
+            ],
+            "responses": [
+                "În România sunt 33 cofetărie clasificate oficial! Le găsești în județele: ARAD, CLUJ, CONSTANŢA, CĂLĂRAŞI, MARAMUREŞ, MEHEDINŢI, PRAHOVA, VÂLCEA și altele. Exemple: 'CRISAN' (Mun. Arad); 'ARGES' (Mun. Piteşti); 'CASA LIZ' (Mun. Braşov); 'BORCEA' (Mun. Călăraşi). 🍽️ Spune-mi localitatea ta!",
+                "Am 33 cofetărie în baza de date! Unele dintre ele: 'CRISAN' (Mun. Arad); 'ARGES' (Mun. Piteşti); 'CASA LIZ' (Mun. Braşov); 'BORCEA' (Mun. Călăraşi). Vrei să caut în județul sau orașul tău? 📍",
+                "Romania has 33 classified cofetărie establishments! Some examples: 'CRISAN' (Mun. Arad); 'ARGES' (Mun. Piteşti); 'CASA LIZ' (Mun. Braşov); 'BORCEA' (Mun. Călăraşi). Tell me your city for recommendations! 🏙️",
+                "Sunt 33 unități de tip cofetărie clasificate. Sunt în 8+ județe, inclusiv ARAD, CLUJ, CONSTANŢA, CĂLĂRAŞI, MARAMUREŞ, MEHEDINŢI, PRAHOVA, VÂLCEA. Unde te afli?"
+            ],
+            "suggestions": [
+                "📍 ARAD",
+                "📍 CLUJ",
+                "📍 CONSTANŢA",
+                "📍 CĂLĂRAŞI"
+            ]
+        },
+        {
+            "tag": "situr_pizzerie",
+            "patterns": [
+                "Pizzerie",
+                "Pizza",
+                "Unde gasesc pizza",
+                "Vreau pizza",
+                "Pizzerii",
+                "Cel mai bun pizza",
+                "Pizza buna",
+                "Pizza place",
+                "Pizzeria",
+                "Where to find pizza",
+                "I want pizza",
+                "Best pizza",
+                "Pizza restaurant"
+            ],
+            "responses": [
+                "În România sunt 95 pizzerie clasificate oficial! Le găsești în județele: BOTOŞANI, BUZĂU, CLUJ, CONSTANŢA, HUNEDOARA, MEHEDINŢI, MUREŞ, TULCEA și altele. Exemple: 'BOCCACCIO' (Mun. Arad); 'CUCINA' (Com. Caşin); 'LA SOSTA' (Com. Gepiu); 'FATA VERDE' (Com. Blândeşti, Sat Şoldăneşti). 🍽️ Spune-mi localitatea ta!",
+                "Am 95 pizzerie în baza de date! Unele dintre ele: 'BOCCACCIO' (Mun. Arad); 'CUCINA' (Com. Caşin); 'LA SOSTA' (Com. Gepiu); 'FATA VERDE' (Com. Blândeşti, Sat Şoldăneşti). Vrei să caut în județul sau orașul tău? 📍",
+                "Romania has 95 classified pizzerie establishments! Some examples: 'BOCCACCIO' (Mun. Arad); 'CUCINA' (Com. Caşin); 'LA SOSTA' (Com. Gepiu); 'FATA VERDE' (Com. Blândeşti, Sat Şoldăneşti). Tell me your city for recommendations! 🏙️",
+                "Sunt 95 unități de tip pizzerie clasificate. Sunt în 8+ județe, inclusiv BOTOŞANI, BUZĂU, CLUJ, CONSTANŢA, HUNEDOARA, MEHEDINŢI, MUREŞ, TULCEA. Unde te afli?"
+            ],
+            "suggestions": [
+                "📍 BOTOŞANI",
+                "📍 BUZĂU",
+                "📍 CLUJ",
+                "📍 CONSTANŢA"
+            ]
+        },
+        {
+            "tag": "situr_fast_food",
+            "patterns": [
+                "Fast food",
+                "Mancare rapida",
+                "Unde gasesc fast food",
+                "Vreau ceva rapid",
+                "Fast food in zona",
+                "Mancare pe apucate",
+                "Fast food",
+                "Quick food",
+                "Where to find fast food",
+                "I want something quick",
+                "Fast food nearby"
+            ],
+            "responses": [
+                "În România sunt 137 fast-food clasificate oficial! Le găsești în județele: ARGEŞ, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA, VASLUI și altele. Exemple: 'SNACK BAR HEI ALBA IULIA' (Mun. Alba Iulia); 'SNACK BAR HEI SAVARSIN' (Com. Săvârşin); 'STILL' (Com. Cotmeana); 'SNACK BAR HEI BACAU 1' (Mun. Bacău). 🍽️ Spune-mi localitatea ta!",
+                "Am 137 fast-food în baza de date! Unele dintre ele: 'SNACK BAR HEI ALBA IULIA' (Mun. Alba Iulia); 'SNACK BAR HEI SAVARSIN' (Com. Săvârşin); 'STILL' (Com. Cotmeana); 'SNACK BAR HEI BACAU 1' (Mun. Bacău). Vrei să caut în județul sau orașul tău? 📍",
+                "Romania has 137 classified fast-food establishments! Some examples: 'SNACK BAR HEI ALBA IULIA' (Mun. Alba Iulia); 'SNACK BAR HEI SAVARSIN' (Com. Săvârşin); 'STILL' (Com. Cotmeana); 'SNACK BAR HEI BACAU 1' (Mun. Bacău). Tell me your city for recommendations! 🏙️",
+                "Sunt 137 unități de tip fast-food clasificate. Sunt în 8+ județe, inclusiv ARGEŞ, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA, VASLUI. Unde te afli?"
+            ],
+            "suggestions": [
+                "📍 ARGEŞ",
+                "📍 HARGHITA",
+                "📍 HUNEDOARA",
+                "📍 IALOMIŢA"
+            ]
+        },
+        {
+            "tag": "situr_restaurant_pensiune",
+            "patterns": [
+                "Restaurant de pensiune",
+                "Restaurant familial",
+                "Mancare la pensiune",
+                "Pensiune cu restaurant",
+                "Mancare la sat",
+                "Restaurant rural",
+                "Guesthouse restaurant",
+                "Family restaurant at guesthouse",
+                "Rural restaurant",
+                "Countryside dining"
+            ],
+            "responses": [
+                "În România sunt 484 restaurant familial/pensiune clasificate oficial! Le găsești în județele: ARGEŞ, BOTOŞANI, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA și altele. Exemple: 'PERLA APUSENILOR' (Com. Albac, Sat Pleşeşti); 'HAN BÂRSA' (Com. Bârsa); 'SATU MUSCELEAN' (Com. Albeştii de Muşcel, Sat Albeşti); 'EVELYN' (Com. Gârleni). 🍽️ Spune-mi localitatea ta!",
+                "Am 484 restaurant familial/pensiune în baza de date! Unele dintre ele: 'PERLA APUSENILOR' (Com. Albac, Sat Pleşeşti); 'HAN BÂRSA' (Com. Bârsa); 'SATU MUSCELEAN' (Com. Albeştii de Muşcel, Sat Albeşti); 'EVELYN' (Com. Gârleni). Vrei să caut în județul sau orașul tău? 📍",
+                "Romania has 484 classified restaurant familial/pensiune establishments! Some examples: 'PERLA APUSENILOR' (Com. Albac, Sat Pleşeşti); 'HAN BÂRSA' (Com. Bârsa); 'SATU MUSCELEAN' (Com. Albeştii de Muşcel, Sat Albeşti); 'EVELYN' (Com. Gârleni). Tell me your city for recommendations! 🏙️",
+                "Sunt 484 unități de tip restaurant familial/pensiune clasificate. Sunt în 8+ județe, inclusiv ARGEŞ, BOTOŞANI, HARGHITA, HUNEDOARA, IALOMIŢA, MEHEDINŢI, MUREŞ, TULCEA. Unde te afli?"
+            ],
+            "suggestions": [
+                "📍 ARGEŞ",
+                "📍 BOTOŞANI",
+                "📍 HARGHITA",
+                "📍 HUNEDOARA"
+            ]
+        },
+        {
+            "tag": "situr_county_constanţa",
+            "patterns": [
+                "Restaurante in Constanţa",
+                "Unde mananc in Constanţa",
+                "Localuri in Constanţa",
+                "Ce restaurante sunt in Constanţa",
+                "Mancare in Constanţa",
+                "Recomandari Constanţa",
+                "Locuri de mancat Constanţa",
+                "Restaurants in Constanţa",
+                "Where to eat in Constanţa",
+                "Food places in Constanţa",
+                "What restaurants are in Constanţa",
+                "Dining in Constanţa"
+            ],
+            "responses": [
+                "În Constanţa sunt 1209 locuri de alimentație clasificate! Tipuri: restaurant clasic (339), bar de zi (282), terasă (108), restaurant-autoservire (91). Câteva exemple: 'POFTA PESCARULUI', 'VALURILE MĂRII', 'RAPANE FISH GRILL', 'GOLDEN PEARL'. 🍽️",
+                "Județul Constanţa are 1209 structuri clasificate, în localități ca: Mun. Constanţa, Sat Vacanță - Zona Luna Park - Lot 4, Com. Limanu, Sat Vama Veche, Com. 23 August, Com. Valu lui Traian, Oraş Eforie, Loc. Eforie Sud. Vrei detalii despre o localitate anume? 📍",
+                "Constanţa county has 1209 classified food establishments! Types include: restaurant clasic (339), bar de zi (282), terasă (108), restaurant-autoservire (91). Examples: 'POFTA PESCARULUI', 'VALURILE MĂRII', 'RAPANE FISH GRILL', 'GOLDEN PEARL'. 🌟",
+                "Am 1209 restaurante/baruri/cafenele clasificate în Constanţa! Întreabă-mă despre o localitate specifică din Constanţa! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Mun. Constanţa, Sat Vacanță - Zona Luna Park - Lot 4",
+                "📍 Com. Limanu, Sat Vama Veche",
+                "📍 Com. 23 August",
+                "📍 Com. Valu lui Traian"
+            ]
+        },
+        {
+            "tag": "situr_county_cluj",
+            "patterns": [
+                "Restaurante in Cluj",
+                "Unde mananc in Cluj",
+                "Localuri in Cluj",
+                "Ce restaurante sunt in Cluj",
+                "Mancare in Cluj",
+                "Recomandari Cluj",
+                "Locuri de mancat Cluj",
+                "Restaurants in Cluj",
+                "Where to eat in Cluj",
+                "Food places in Cluj",
+                "What restaurants are in Cluj",
+                "Dining in Cluj"
+            ],
+            "responses": [
+                "În Cluj sunt 503 locuri de alimentație clasificate! Tipuri: restaurant clasic (153), bar de zi (108), cafe-bar sau cafenea (75), braserie sau bistrou (31). Câteva exemple: 'TEROM', 'LOBBY', 'CARMESI', 'FORREST'. 🍽️",
+                "Județul Cluj are 503 structuri clasificate, în localități ca: Com. Jucu, Sat Jucu-Herghelie, Com. Feleacu, Sat Gheorghieni, Com. Ciucea, Com. Cojocna, Com. Gilău. Vrei detalii despre o localitate anume? 📍",
+                "Cluj county has 503 classified food establishments! Types include: restaurant clasic (153), bar de zi (108), cafe-bar sau cafenea (75), braserie sau bistrou (31). Examples: 'TEROM', 'LOBBY', 'CARMESI', 'FORREST'. 🌟",
+                "Am 503 restaurante/baruri/cafenele clasificate în Cluj! Întreabă-mă despre o localitate specifică din Cluj! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Jucu, Sat Jucu-Herghelie",
+                "📍 Com. Feleacu, Sat Gheorghieni",
+                "📍 Com. Ciucea",
+                "📍 Com. Cojocna"
+            ]
+        },
+        {
+            "tag": "situr_county_braşov",
+            "patterns": [
+                "Restaurante in Braşov",
+                "Unde mananc in Braşov",
+                "Localuri in Braşov",
+                "Ce restaurante sunt in Braşov",
+                "Mancare in Braşov",
+                "Recomandari Braşov",
+                "Locuri de mancat Braşov",
+                "Restaurants in Braşov",
+                "Where to eat in Braşov",
+                "Food places in Braşov",
+                "What restaurants are in Braşov",
+                "Dining in Braşov"
+            ],
+            "responses": [
+                "În Braşov sunt 453 locuri de alimentație clasificate! Tipuri: restaurant clasic (225), bar de zi (62), restaurant familial/pensiune (52), bufet-bar (24). Câteva exemple: 'MOTOROM', 'SKI&SKY', 'ELEXUS BOUTIQUE ROBINSON', 'LILIANA'. 🍽️",
+                "Județul Braşov are 453 structuri clasificate, în localități ca: Com. Şercaia, Com. Voila, Sat Sâmbăta de Jos, Mun. Făgăraş, Mun. Braşov, Mun. Săcele. Vrei detalii despre o localitate anume? 📍",
+                "Braşov county has 453 classified food establishments! Types include: restaurant clasic (225), bar de zi (62), restaurant familial/pensiune (52), bufet-bar (24). Examples: 'MOTOROM', 'SKI&SKY', 'ELEXUS BOUTIQUE ROBINSON', 'LILIANA'. 🌟",
+                "Am 453 restaurante/baruri/cafenele clasificate în Braşov! Întreabă-mă despre o localitate specifică din Braşov! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Şercaia",
+                "📍 Com. Voila, Sat Sâmbăta de Jos",
+                "📍 Mun. Făgăraş",
+                "📍 Mun. Braşov"
+            ]
+        },
+        {
+            "tag": "situr_county_arad",
+            "patterns": [
+                "Restaurante in Arad",
+                "Unde mananc in Arad",
+                "Localuri in Arad",
+                "Ce restaurante sunt in Arad",
+                "Mancare in Arad",
+                "Recomandari Arad",
+                "Locuri de mancat Arad",
+                "Restaurants in Arad",
+                "Where to eat in Arad",
+                "Food places in Arad",
+                "What restaurants are in Arad",
+                "Dining in Arad"
+            ],
+            "responses": [
+                "În Arad sunt 266 locuri de alimentație clasificate! Tipuri: bar de zi (81), restaurant clasic (70), cafe-bar sau cafenea (34), bufet-bar (19). Câteva exemple: 'GREEN CLUB', 'ROMPETROL', 'A1 ŞAGU STÂNGA', 'MUNTELE GĂINA'. 🍽️",
+                "Județul Arad are 266 structuri clasificate, în localități ca: Giarmata, Oraş Sebiş, Com. Şagu, Sat Şagu, Com. Vladimirescu, Com. Şagu. Vrei detalii despre o localitate anume? 📍",
+                "Arad county has 266 classified food establishments! Types include: bar de zi (81), restaurant clasic (70), cafe-bar sau cafenea (34), bufet-bar (19). Examples: 'GREEN CLUB', 'ROMPETROL', 'A1 ŞAGU STÂNGA', 'MUNTELE GĂINA'. 🌟",
+                "Am 266 restaurante/baruri/cafenele clasificate în Arad! Întreabă-mă despre o localitate specifică din Arad! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Giarmata",
+                "📍 Oraş Sebiş",
+                "📍 Com. Şagu, Sat Şagu",
+                "📍 Com. Vladimirescu"
+            ]
+        },
+        {
+            "tag": "situr_county_municipiul_bucureşti",
+            "patterns": [
+                "Restaurante in Municipiul Bucureşti",
+                "Unde mananc in Municipiul Bucureşti",
+                "Localuri in Municipiul Bucureşti",
+                "Ce restaurante sunt in Municipiul Bucureşti",
+                "Mancare in Municipiul Bucureşti",
+                "Recomandari Municipiul Bucureşti",
+                "Locuri de mancat Municipiul Bucureşti",
+                "Restaurants in Municipiul Bucureşti",
+                "Where to eat in Municipiul Bucureşti",
+                "Food places in Municipiul Bucureşti",
+                "What restaurants are in Municipiul Bucureşti",
+                "Dining in Municipiul Bucureşti"
+            ],
+            "responses": [
+                "În Municipiul Bucureşti sunt 234 locuri de alimentație clasificate! Tipuri: restaurant clasic (89), bar de zi (44), cafe-bar sau cafenea (23), braserie sau bistrou (18). Câteva exemple: 'ATLANTIC SALON', 'CURTEA BERARILOR', 'PALATUL SUTER', 'EUROPA ROYALE BUCHAREST'. 🍽️",
+                "Județul Municipiul Bucureşti are 234 structuri clasificate, în localități ca: Bucureşti, Mun. Bucureşti, Sector 3, Mun. Bucureşti, Sector 2, Mun. Bucureşti, Mun. Bucureşti, Sector 5. Vrei detalii despre o localitate anume? 📍",
+                "Municipiul Bucureşti county has 234 classified food establishments! Types include: restaurant clasic (89), bar de zi (44), cafe-bar sau cafenea (23), braserie sau bistrou (18). Examples: 'ATLANTIC SALON', 'CURTEA BERARILOR', 'PALATUL SUTER', 'EUROPA ROYALE BUCHAREST'. 🌟",
+                "Am 234 restaurante/baruri/cafenele clasificate în Municipiul Bucureşti! Întreabă-mă despre o localitate specifică din Municipiul Bucureşti! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Bucureşti",
+                "📍 Mun. Bucureşti, Sector 3",
+                "📍 Mun. Bucureşti, Sector 2",
+                "📍 Mun. Bucureşti"
+            ]
+        },
+        {
+            "tag": "situr_county_suceava",
+            "patterns": [
+                "Restaurante in Suceava",
+                "Unde mananc in Suceava",
+                "Localuri in Suceava",
+                "Ce restaurante sunt in Suceava",
+                "Mancare in Suceava",
+                "Recomandari Suceava",
+                "Locuri de mancat Suceava",
+                "Restaurants in Suceava",
+                "Where to eat in Suceava",
+                "Food places in Suceava",
+                "What restaurants are in Suceava",
+                "Dining in Suceava"
+            ],
+            "responses": [
+                "În Suceava sunt 227 locuri de alimentație clasificate! Tipuri: restaurant clasic (128), restaurant familial/pensiune (52), bufet-bar (15), bar de zi (15). Câteva exemple: 'BUCHENLAND', 'MARTISORUL', 'KARELIA', 'INIMA BUCOVINEI'. 🍽️",
+                "Județul Suceava are 227 structuri clasificate, în localități ca: Com. Dorna Candrenilor, Com. Frumosu, Com. Mălini, Oraş Gura Humorului, Com. Cârlibaba. Vrei detalii despre o localitate anume? 📍",
+                "Suceava county has 227 classified food establishments! Types include: restaurant clasic (128), restaurant familial/pensiune (52), bufet-bar (15), bar de zi (15). Examples: 'BUCHENLAND', 'MARTISORUL', 'KARELIA', 'INIMA BUCOVINEI'. 🌟",
+                "Am 227 restaurante/baruri/cafenele clasificate în Suceava! Întreabă-mă despre o localitate specifică din Suceava! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Dorna Candrenilor",
+                "📍 Com. Frumosu",
+                "📍 Com. Mălini",
+                "📍 Oraş Gura Humorului"
+            ]
+        },
+        {
+            "tag": "situr_county_prahova",
+            "patterns": [
+                "Restaurante in Prahova",
+                "Unde mananc in Prahova",
+                "Localuri in Prahova",
+                "Ce restaurante sunt in Prahova",
+                "Mancare in Prahova",
+                "Recomandari Prahova",
+                "Locuri de mancat Prahova",
+                "Restaurants in Prahova",
+                "Where to eat in Prahova",
+                "Food places in Prahova",
+                "What restaurants are in Prahova",
+                "Dining in Prahova"
+            ],
+            "responses": [
+                "În Prahova sunt 221 locuri de alimentație clasificate! Tipuri: restaurant clasic (113), bar de zi (27), cafe-bar sau cafenea (14), restaurant familial/pensiune (14). Câteva exemple: 'C.P.P.I', 'PANAIT VIORICA', 'KEO'S CAFE', 'IZVOARELE DOFTANEI'. 🍽️",
+                "Județul Prahova are 221 structuri clasificate, în localități ca: Com. Vărbilău, Sat Livadea, Com. Băneşti, Com. Bucov, Com. Gura Vadului, Com. Telega. Vrei detalii despre o localitate anume? 📍",
+                "Prahova county has 221 classified food establishments! Types include: restaurant clasic (113), bar de zi (27), cafe-bar sau cafenea (14), restaurant familial/pensiune (14). Examples: 'C.P.P.I', 'PANAIT VIORICA', 'KEO'S CAFE', 'IZVOARELE DOFTANEI'. 🌟",
+                "Am 221 restaurante/baruri/cafenele clasificate în Prahova! Întreabă-mă despre o localitate specifică din Prahova! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Vărbilău, Sat Livadea",
+                "📍 Com. Băneşti",
+                "📍 Com. Bucov",
+                "📍 Com. Gura Vadului"
+            ]
+        },
+        {
+            "tag": "situr_county_caraş_severin",
+            "patterns": [
+                "Restaurante in Caraş-Severin",
+                "Unde mananc in Caraş-Severin",
+                "Localuri in Caraş-Severin",
+                "Ce restaurante sunt in Caraş-Severin",
+                "Mancare in Caraş-Severin",
+                "Recomandari Caraş-Severin",
+                "Locuri de mancat Caraş-Severin",
+                "Restaurants in Caraş-Severin",
+                "Where to eat in Caraş-Severin",
+                "Food places in Caraş-Severin",
+                "What restaurants are in Caraş-Severin",
+                "Dining in Caraş-Severin"
+            ],
+            "responses": [
+                "În Caraş-Severin sunt 178 locuri de alimentație clasificate! Tipuri: restaurant clasic (82), bar de zi (28), bufet-bar (26), restaurant familial/pensiune (11). Câteva exemple: 'FIAMA', 'YZADAN - 2', 'CASA CREŢA', 'ROGGE'. 🍽️",
+                "Județul Caraş-Severin are 178 structuri clasificate, în localități ca: Com. Brebu Nou, Com. Sasca Montană, Sat Sasca Română, Com. Brebu Nou, Sat Gărâna, Com. Slatina-Timiş, Sat Sadova Veche, Com. Măureni. Vrei detalii despre o localitate anume? 📍",
+                "Caraş-Severin county has 178 classified food establishments! Types include: restaurant clasic (82), bar de zi (28), bufet-bar (26), restaurant familial/pensiune (11). Examples: 'FIAMA', 'YZADAN - 2', 'CASA CREŢA', 'ROGGE'. 🌟",
+                "Am 178 restaurante/baruri/cafenele clasificate în Caraş-Severin! Întreabă-mă despre o localitate specifică din Caraş-Severin! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Brebu Nou",
+                "📍 Com. Sasca Montană, Sat Sasca Română",
+                "📍 Com. Brebu Nou, Sat Gărâna",
+                "📍 Com. Slatina-Timiş, Sat Sadova Veche"
+            ]
+        },
+        {
+            "tag": "situr_county_mureş",
+            "patterns": [
+                "Restaurante in Mureş",
+                "Unde mananc in Mureş",
+                "Localuri in Mureş",
+                "Ce restaurante sunt in Mureş",
+                "Mancare in Mureş",
+                "Recomandari Mureş",
+                "Locuri de mancat Mureş",
+                "Restaurants in Mureş",
+                "Where to eat in Mureş",
+                "Food places in Mureş",
+                "What restaurants are in Mureş",
+                "Dining in Mureş"
+            ],
+            "responses": [
+                "În Mureş sunt 157 locuri de alimentație clasificate! Tipuri: restaurant clasic (68), bar de zi (43), restaurant familial/pensiune (12), snack-bar (8). Câteva exemple: 'DARINA', 'SCHOSSBURGER TOR', 'SORA', 'SANDORIA - MIC'. 🍽️",
+                "Județul Mureş are 157 structuri clasificate, în localități ca: Com. Daneş, Oraş Sângeorgiu de Pădure, Com. Cristeşti, Com. Ibăneşti, Sat Brădeţelu, Com. Ghindari. Vrei detalii despre o localitate anume? 📍",
+                "Mureş county has 157 classified food establishments! Types include: restaurant clasic (68), bar de zi (43), restaurant familial/pensiune (12), snack-bar (8). Examples: 'DARINA', 'SCHOSSBURGER TOR', 'SORA', 'SANDORIA - MIC'. 🌟",
+                "Am 157 restaurante/baruri/cafenele clasificate în Mureş! Întreabă-mă despre o localitate specifică din Mureş! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Daneş",
+                "📍 Oraş Sângeorgiu de Pădure",
+                "📍 Com. Cristeşti",
+                "📍 Com. Ibăneşti, Sat Brădeţelu"
+            ]
+        },
+        {
+            "tag": "situr_county_bihor",
+            "patterns": [
+                "Restaurante in Bihor",
+                "Unde mananc in Bihor",
+                "Localuri in Bihor",
+                "Ce restaurante sunt in Bihor",
+                "Mancare in Bihor",
+                "Recomandari Bihor",
+                "Locuri de mancat Bihor",
+                "Restaurants in Bihor",
+                "Where to eat in Bihor",
+                "Food places in Bihor",
+                "What restaurants are in Bihor",
+                "Dining in Bihor"
+            ],
+            "responses": [
+                "În Bihor sunt 155 locuri de alimentație clasificate! Tipuri: restaurant clasic (76), bar de zi (25), restaurant familial/pensiune (14), bufet-bar (14). Câteva exemple: 'CERES', 'SLAVIA', 'ACOM', 'VALEA GEPIŞULUI'. 🍽️",
+                "Județul Bihor are 155 structuri clasificate, în localități ca: Com. Nojorid, Sat Livada de Bihor, Com. Hidişelu de Sus, Sat Şumugiu, Com. Borş, Mun. Beiuş, Mun. Marghita. Vrei detalii despre o localitate anume? 📍",
+                "Bihor county has 155 classified food establishments! Types include: restaurant clasic (76), bar de zi (25), restaurant familial/pensiune (14), bufet-bar (14). Examples: 'CERES', 'SLAVIA', 'ACOM', 'VALEA GEPIŞULUI'. 🌟",
+                "Am 155 restaurante/baruri/cafenele clasificate în Bihor! Întreabă-mă despre o localitate specifică din Bihor! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Nojorid, Sat Livada de Bihor",
+                "📍 Com. Hidişelu de Sus, Sat Şumugiu",
+                "📍 Com. Borş",
+                "📍 Mun. Beiuş"
+            ]
+        },
+        {
+            "tag": "situr_county_argeş",
+            "patterns": [
+                "Restaurante in Argeş",
+                "Unde mananc in Argeş",
+                "Localuri in Argeş",
+                "Ce restaurante sunt in Argeş",
+                "Mancare in Argeş",
+                "Recomandari Argeş",
+                "Locuri de mancat Argeş",
+                "Restaurants in Argeş",
+                "Where to eat in Argeş",
+                "Food places in Argeş",
+                "What restaurants are in Argeş",
+                "Dining in Argeş"
+            ],
+            "responses": [
+                "În Argeş sunt 150 locuri de alimentație clasificate! Tipuri: restaurant clasic (86), restaurant familial/pensiune (24), bar de zi (11), bufet-bar (8). Câteva exemple: 'AQVILA CLUB', 'PALTINU', 'CIOBĂNAŞU', 'GREEN HOUSE'. 🍽️",
+                "Județul Argeş are 150 structuri clasificate, în localități ca: Com. Brăduleţ, Com. Berevoeşti, Sat Berevoeşti, Oraş Mioveni, Com. Corbeni, Com. Albeştii de Argeş. Vrei detalii despre o localitate anume? 📍",
+                "Argeş county has 150 classified food establishments! Types include: restaurant clasic (86), restaurant familial/pensiune (24), bar de zi (11), bufet-bar (8). Examples: 'AQVILA CLUB', 'PALTINU', 'CIOBĂNAŞU', 'GREEN HOUSE'. 🌟",
+                "Am 150 restaurante/baruri/cafenele clasificate în Argeş! Întreabă-mă despre o localitate specifică din Argeş! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Brăduleţ",
+                "📍 Com. Berevoeşti, Sat Berevoeşti",
+                "📍 Oraş Mioveni",
+                "📍 Com. Corbeni"
+            ]
+        },
+        {
+            "tag": "situr_county_sibiu",
+            "patterns": [
+                "Restaurante in Sibiu",
+                "Unde mananc in Sibiu",
+                "Localuri in Sibiu",
+                "Ce restaurante sunt in Sibiu",
+                "Mancare in Sibiu",
+                "Recomandari Sibiu",
+                "Locuri de mancat Sibiu",
+                "Restaurants in Sibiu",
+                "Where to eat in Sibiu",
+                "Food places in Sibiu",
+                "What restaurants are in Sibiu",
+                "Dining in Sibiu"
+            ],
+            "responses": [
+                "În Sibiu sunt 142 locuri de alimentație clasificate! Tipuri: restaurant clasic (88), restaurant familial/pensiune (20), bar de zi (12), snack-bar (6). Câteva exemple: 'HERMANNS', 'A1 CRISTIAN DREAPTA', 'STRAND', 'LAUNGE'. 🍽️",
+                "Județul Sibiu are 142 structuri clasificate, în localități ca: Com. Râu Sadului, Com. Cristian, Sat Cristian, Com. Jina, Sat Jina, Oraş Ocna Sibiului, Oraş Cisnădie. Vrei detalii despre o localitate anume? 📍",
+                "Sibiu county has 142 classified food establishments! Types include: restaurant clasic (88), restaurant familial/pensiune (20), bar de zi (12), snack-bar (6). Examples: 'HERMANNS', 'A1 CRISTIAN DREAPTA', 'STRAND', 'LAUNGE'. 🌟",
+                "Am 142 restaurante/baruri/cafenele clasificate în Sibiu! Întreabă-mă despre o localitate specifică din Sibiu! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Râu Sadului",
+                "📍 Com. Cristian, Sat Cristian",
+                "📍 Com. Jina, Sat Jina",
+                "📍 Oraş Ocna Sibiului"
+            ]
+        },
+        {
+            "tag": "situr_county_hunedoara",
+            "patterns": [
+                "Restaurante in Hunedoara",
+                "Unde mananc in Hunedoara",
+                "Localuri in Hunedoara",
+                "Ce restaurante sunt in Hunedoara",
+                "Mancare in Hunedoara",
+                "Recomandari Hunedoara",
+                "Locuri de mancat Hunedoara",
+                "Restaurants in Hunedoara",
+                "Where to eat in Hunedoara",
+                "Food places in Hunedoara",
+                "What restaurants are in Hunedoara",
+                "Dining in Hunedoara"
+            ],
+            "responses": [
+                "În Hunedoara sunt 139 locuri de alimentație clasificate! Tipuri: restaurant clasic (89), restaurant familial/pensiune (20), bar de zi (7), bufet-bar (4). Câteva exemple: 'MDM', 'STRAJA', 'CASA SMILE', 'MONTANA BUSSINES'. 🍽️",
+                "Județul Hunedoara are 139 structuri clasificate, în localități ca: Mun. Vulcan, Com. Dobra, Sat Dobra, Com. Gurasada, Mun. Deva, Mun. Brad. Vrei detalii despre o localitate anume? 📍",
+                "Hunedoara county has 139 classified food establishments! Types include: restaurant clasic (89), restaurant familial/pensiune (20), bar de zi (7), bufet-bar (4). Examples: 'MDM', 'STRAJA', 'CASA SMILE', 'MONTANA BUSSINES'. 🌟",
+                "Am 139 restaurante/baruri/cafenele clasificate în Hunedoara! Întreabă-mă despre o localitate specifică din Hunedoara! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Mun. Vulcan",
+                "📍 Com. Dobra, Sat Dobra",
+                "📍 Com. Gurasada",
+                "📍 Mun. Deva"
+            ]
+        },
+        {
+            "tag": "situr_county_maramureş",
+            "patterns": [
+                "Restaurante in Maramureş",
+                "Unde mananc in Maramureş",
+                "Localuri in Maramureş",
+                "Ce restaurante sunt in Maramureş",
+                "Mancare in Maramureş",
+                "Recomandari Maramureş",
+                "Locuri de mancat Maramureş",
+                "Restaurants in Maramureş",
+                "Where to eat in Maramureş",
+                "Food places in Maramureş",
+                "What restaurants are in Maramureş",
+                "Dining in Maramureş"
+            ],
+            "responses": [
+                "În Maramureş sunt 138 locuri de alimentație clasificate! Tipuri: restaurant clasic (45), restaurant familial/pensiune (30), bar de zi (29), snack-bar (11). Câteva exemple: 'FLOARE DE COLTI', 'SNACK BAR HEI BAIA MARE', 'HORIA', 'LALEAUA PESTRIŢA'. 🍽️",
+                "Județul Maramureş are 138 structuri clasificate, în localități ca: Com. Săcel, Sat Săcel, Com. Vişeu de Jos, Oraş Cavnic, Com. Rona de Sus, Com. Ocna Şugatag. Vrei detalii despre o localitate anume? 📍",
+                "Maramureş county has 138 classified food establishments! Types include: restaurant clasic (45), restaurant familial/pensiune (30), bar de zi (29), snack-bar (11). Examples: 'FLOARE DE COLTI', 'SNACK BAR HEI BAIA MARE', 'HORIA', 'LALEAUA PESTRIŢA'. 🌟",
+                "Am 138 restaurante/baruri/cafenele clasificate în Maramureş! Întreabă-mă despre o localitate specifică din Maramureş! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Săcel, Sat Săcel",
+                "📍 Com. Vişeu de Jos",
+                "📍 Oraş Cavnic",
+                "📍 Com. Rona de Sus"
+            ]
+        },
+        {
+            "tag": "situr_county_harghita",
+            "patterns": [
+                "Restaurante in Harghita",
+                "Unde mananc in Harghita",
+                "Localuri in Harghita",
+                "Ce restaurante sunt in Harghita",
+                "Mancare in Harghita",
+                "Recomandari Harghita",
+                "Locuri de mancat Harghita",
+                "Restaurants in Harghita",
+                "Where to eat in Harghita",
+                "Food places in Harghita",
+                "What restaurants are in Harghita",
+                "Dining in Harghita"
+            ],
+            "responses": [
+                "În Harghita sunt 136 locuri de alimentație clasificate! Tipuri: restaurant clasic (74), bar de zi (17), snack-bar (11), restaurant familial/pensiune (10). Câteva exemple: 'FENYŐ', 'IMOLA', 'CASTOR', 'TUȘNAD'. 🍽️",
+                "Județul Harghita are 136 structuri clasificate, în localități ca: Oraş Băile Tuşnad, Mun. Miercurea Ciuc, Loc. Harghita-Băi, Com. Ciceu, Sat Ciceu, Com. Ditrău, Com. Feliceni, Sat Arvăţeni. Vrei detalii despre o localitate anume? 📍",
+                "Harghita county has 136 classified food establishments! Types include: restaurant clasic (74), bar de zi (17), snack-bar (11), restaurant familial/pensiune (10). Examples: 'FENYŐ', 'IMOLA', 'CASTOR', 'TUȘNAD'. 🌟",
+                "Am 136 restaurante/baruri/cafenele clasificate în Harghita! Întreabă-mă despre o localitate specifică din Harghita! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Oraş Băile Tuşnad",
+                "📍 Mun. Miercurea Ciuc, Loc. Harghita-Băi",
+                "📍 Com. Ciceu, Sat Ciceu",
+                "📍 Com. Ditrău"
+            ]
+        },
+        {
+            "tag": "situr_county_vâlcea",
+            "patterns": [
+                "Restaurante in Vâlcea",
+                "Unde mananc in Vâlcea",
+                "Localuri in Vâlcea",
+                "Ce restaurante sunt in Vâlcea",
+                "Mancare in Vâlcea",
+                "Recomandari Vâlcea",
+                "Locuri de mancat Vâlcea",
+                "Restaurants in Vâlcea",
+                "Where to eat in Vâlcea",
+                "Food places in Vâlcea",
+                "What restaurants are in Vâlcea",
+                "Dining in Vâlcea"
+            ],
+            "responses": [
+                "În Vâlcea sunt 135 locuri de alimentație clasificate! Tipuri: restaurant clasic (73), bar de zi (18), restaurant familial/pensiune (14), snack-bar (6). Câteva exemple: 'RUSIDAVA', 'CAPELA', 'CĂCIULATA', 'BROSCUTA'. 🍽️",
+                "Județul Vâlcea are 135 structuri clasificate, în localități ca: Oraş Băile Olăneşti, Loc. Olăneşti, Oraş Băile Olăneşti, Com. Voineasa, Sat Voineasa, Com. Berislăveşti, Com. Vaideeni. Vrei detalii despre o localitate anume? 📍",
+                "Vâlcea county has 135 classified food establishments! Types include: restaurant clasic (73), bar de zi (18), restaurant familial/pensiune (14), snack-bar (6). Examples: 'RUSIDAVA', 'CAPELA', 'CĂCIULATA', 'BROSCUTA'. 🌟",
+                "Am 135 restaurante/baruri/cafenele clasificate în Vâlcea! Întreabă-mă despre o localitate specifică din Vâlcea! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Oraş Băile Olăneşti, Loc. Olăneşti",
+                "📍 Oraş Băile Olăneşti",
+                "📍 Com. Voineasa, Sat Voineasa",
+                "📍 Com. Berislăveşti"
+            ]
+        },
+        {
+            "tag": "situr_county_timiş",
+            "patterns": [
+                "Restaurante in Timiş",
+                "Unde mananc in Timiş",
+                "Localuri in Timiş",
+                "Ce restaurante sunt in Timiş",
+                "Mancare in Timiş",
+                "Recomandari Timiş",
+                "Locuri de mancat Timiş",
+                "Restaurants in Timiş",
+                "Where to eat in Timiş",
+                "Food places in Timiş",
+                "What restaurants are in Timiş",
+                "Dining in Timiş"
+            ],
+            "responses": [
+                "În Timiş sunt 131 locuri de alimentație clasificate! Tipuri: restaurant clasic (65), bar de zi (26), bufet-bar (15), snack-bar (6). Câteva exemple: 'PORKY'S', 'LA ROȘU', 'PLEASURE', 'BOCA BOUTIQUE'. 🍽️",
+                "Județul Timiş are 131 structuri clasificate, în localități ca: Com. Giroc, Sat Giroc, Com. Bethausen, Com. Fârdea, Sat Fârdea, CARANSEBES, Com. Bucovăţ. Vrei detalii despre o localitate anume? 📍",
+                "Timiş county has 131 classified food establishments! Types include: restaurant clasic (65), bar de zi (26), bufet-bar (15), snack-bar (6). Examples: 'PORKY'S', 'LA ROȘU', 'PLEASURE', 'BOCA BOUTIQUE'. 🌟",
+                "Am 131 restaurante/baruri/cafenele clasificate în Timiş! Întreabă-mă despre o localitate specifică din Timiş! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Giroc, Sat Giroc",
+                "📍 Com. Bethausen",
+                "📍 Com. Fârdea, Sat Fârdea",
+                "📍 CARANSEBES"
+            ]
+        },
+        {
+            "tag": "situr_county_alba",
+            "patterns": [
+                "Restaurante in Alba",
+                "Unde mananc in Alba",
+                "Localuri in Alba",
+                "Ce restaurante sunt in Alba",
+                "Mancare in Alba",
+                "Recomandari Alba",
+                "Locuri de mancat Alba",
+                "Restaurants in Alba",
+                "Where to eat in Alba",
+                "Food places in Alba",
+                "What restaurants are in Alba",
+                "Dining in Alba"
+            ],
+            "responses": [
+                "În Alba sunt 119 locuri de alimentație clasificate! Tipuri: restaurant clasic (71), restaurant familial/pensiune (27), bar de zi (6), bufet-bar (5). Câteva exemple: 'COLŢ DIN RAI', 'WINE&SIMPHONY RESORT', 'SARRA VANK', 'SELECT'. 🍽️",
+                "Județul Alba are 119 structuri clasificate, în localități ca: Com. Horea, Sat Petreasa, Com. Meteş, Sat Ampoiţa, Com. Şugag, Sat Tău Bistra, Com. Gârda de Sus, Sat Izvoarele, Com. Rimetea. Vrei detalii despre o localitate anume? 📍",
+                "Alba county has 119 classified food establishments! Types include: restaurant clasic (71), restaurant familial/pensiune (27), bar de zi (6), bufet-bar (5). Examples: 'COLŢ DIN RAI', 'WINE&SIMPHONY RESORT', 'SARRA VANK', 'SELECT'. 🌟",
+                "Am 119 restaurante/baruri/cafenele clasificate în Alba! Întreabă-mă despre o localitate specifică din Alba! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Horea, Sat Petreasa",
+                "📍 Com. Meteş, Sat Ampoiţa",
+                "📍 Com. Şugag, Sat Tău Bistra",
+                "📍 Com. Gârda de Sus, Sat Izvoarele"
+            ]
+        },
+        {
+            "tag": "situr_county_tulcea",
+            "patterns": [
+                "Restaurante in Tulcea",
+                "Unde mananc in Tulcea",
+                "Localuri in Tulcea",
+                "Ce restaurante sunt in Tulcea",
+                "Mancare in Tulcea",
+                "Recomandari Tulcea",
+                "Locuri de mancat Tulcea",
+                "Restaurants in Tulcea",
+                "Where to eat in Tulcea",
+                "Food places in Tulcea",
+                "What restaurants are in Tulcea",
+                "Dining in Tulcea"
+            ],
+            "responses": [
+                "În Tulcea sunt 115 locuri de alimentație clasificate! Tipuri: restaurant clasic (66), restaurant familial/pensiune (16), bar de zi (14), restaurant pescăresc (6). Câteva exemple: 'CORMORAN RESORT I', 'CONFERENCE CENTER', 'ESPLANADA - TRATORIA', 'LA NĂVOD'. 🍽️",
+                "Județul Tulcea are 115 structuri clasificate, în localități ca: Com. Nufăru, Com. Crişan, Com. Jurilovca, Sat Vişina, Com. Beştepe, Sat Băltenii de Sus, Com. Mahmudia, Sat Mahmudia. Vrei detalii despre o localitate anume? 📍",
+                "Tulcea county has 115 classified food establishments! Types include: restaurant clasic (66), restaurant familial/pensiune (16), bar de zi (14), restaurant pescăresc (6). Examples: 'CORMORAN RESORT I', 'CONFERENCE CENTER', 'ESPLANADA - TRATORIA', 'LA NĂVOD'. 🌟",
+                "Am 115 restaurante/baruri/cafenele clasificate în Tulcea! Întreabă-mă despre o localitate specifică din Tulcea! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Nufăru",
+                "📍 Com. Crişan",
+                "📍 Com. Jurilovca, Sat Vişina",
+                "📍 Com. Beştepe, Sat Băltenii de Sus"
+            ]
+        },
+        {
+            "tag": "situr_county_neamţ",
+            "patterns": [
+                "Restaurante in Neamţ",
+                "Unde mananc in Neamţ",
+                "Localuri in Neamţ",
+                "Ce restaurante sunt in Neamţ",
+                "Mancare in Neamţ",
+                "Recomandari Neamţ",
+                "Locuri de mancat Neamţ",
+                "Restaurants in Neamţ",
+                "Where to eat in Neamţ",
+                "Food places in Neamţ",
+                "What restaurants are in Neamţ",
+                "Dining in Neamţ"
+            ],
+            "responses": [
+                "În Neamţ sunt 109 locuri de alimentație clasificate! Tipuri: restaurant clasic (50), restaurant familial/pensiune (27), bufet-bar (9), snack-bar (4). Câteva exemple: 'NORA', 'VALEA CELOR DOISPREZECE', 'ARTED', 'BALTATESTI'. 🍽️",
+                "Județul Neamţ are 109 structuri clasificate, în localități ca: Com. Alexandru cel Bun, Sat Bistriţa, Com. Agapia, Com. Negreşti, Com. Săvineşti, Com. Borleşti. Vrei detalii despre o localitate anume? 📍",
+                "Neamţ county has 109 classified food establishments! Types include: restaurant clasic (50), restaurant familial/pensiune (27), bufet-bar (9), snack-bar (4). Examples: 'NORA', 'VALEA CELOR DOISPREZECE', 'ARTED', 'BALTATESTI'. 🌟",
+                "Am 109 restaurante/baruri/cafenele clasificate în Neamţ! Întreabă-mă despre o localitate specifică din Neamţ! 🗺️"
+            ],
+            "suggestions": [
+                "📍 Com. Alexandru cel Bun, Sat Bistriţa",
+                "📍 Com. Agapia",
+                "📍 Com. Negreşti",
+                "📍 Com. Săvineşti"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_cluj_napoca",
+            "patterns": [
+                "Restaurante in Mun. Cluj-Napoca",
+                "Unde mananc in Mun. Cluj-Napoca",
+                "Ce locuri de mancat sunt in Mun. Cluj-Napoca",
+                "Recomandari mancare Mun. Cluj-Napoca",
+                "Baruri in Mun. Cluj-Napoca",
+                "Unde iesim in Mun. Cluj-Napoca",
+                "Localuri Mun. Cluj-Napoca",
+                "Restaurants in Mun. Cluj-Napoca",
+                "Where to eat in Mun. Cluj-Napoca",
+                "Food in Mun. Cluj-Napoca",
+                "Dining in Mun. Cluj-Napoca",
+                "Bars in Mun. Cluj-Napoca"
+            ],
+            "responses": [
+                "În Mun. Cluj-Napoca (CLUJ) sunt 397 locuri clasificate! Tipuri: restaurant clasic (99), bar de zi (91), cafe-bar sau cafenea (72), club sau disco-bar (27). Exemple: 'THE PARK' (restaurant clasic), 'TURKISH KEBAB' (fast-food), 'VISUIN' (restaurant clasic), 'VĂRZĂRIE' (restaurant clasic). 🍽️",
+                "Mun. Cluj-Napoca are 397 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (99), bar de zi (91), cafe-bar sau cafenea (72), club sau disco-bar (27). Vrei să afli mai multe? 📍",
+                "Mun. Cluj-Napoca (CLUJ) has 397 classified food establishments! Types: restaurant clasic (99), bar de zi (91), cafe-bar sau cafenea (72), club sau disco-bar (27). Some popular ones: 'THE PARK' (restaurant clasic), 'TURKISH KEBAB' (fast-food), 'VISUIN' (restaurant clasic), 'VĂRZĂRIE' (restaurant clasic). 🌟",
+                "Am găsit 397 locuri de mâncare în Mun. Cluj-Napoca! Exemple: 'THE PARK' (restaurant clasic), 'TURKISH KEBAB' (fast-food), 'VISUIN' (restaurant clasic), 'VĂRZĂRIE' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_constanţa_loc_mamaia",
+            "patterns": [
+                "Restaurante in Mun. Constanţa, Loc. Mamaia",
+                "Unde mananc in Mun. Constanţa, Loc. Mamaia",
+                "Ce locuri de mancat sunt in Mun. Constanţa, Loc. Mamaia",
+                "Recomandari mancare Mun. Constanţa, Loc. Mamaia",
+                "Baruri in Mun. Constanţa, Loc. Mamaia",
+                "Unde iesim in Mun. Constanţa, Loc. Mamaia",
+                "Localuri Mun. Constanţa, Loc. Mamaia",
+                "Restaurants in Mun. Constanţa, Loc. Mamaia",
+                "Where to eat in Mun. Constanţa, Loc. Mamaia",
+                "Food in Mun. Constanţa, Loc. Mamaia",
+                "Dining in Mun. Constanţa, Loc. Mamaia",
+                "Bars in Mun. Constanţa, Loc. Mamaia"
+            ],
+            "responses": [
+                "În Mun. Constanţa, Loc. Mamaia (CONSTANŢA) sunt 214 locuri clasificate! Tipuri: restaurant clasic (69), bar de zi (61), restaurant-autoservire (14), terasă (13). Exemple: 'JIJO BEACH BAR' (bar de zi), 'CHARBEL' (restaurant clasic), 'PISCINA AURORA' (snack-bar), 'LA COSTA I' (braserie sau bistrou). 🍽️",
+                "Mun. Constanţa, Loc. Mamaia are 214 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (69), bar de zi (61), restaurant-autoservire (14), terasă (13). Vrei să afli mai multe? 📍",
+                "Mun. Constanţa, Loc. Mamaia (CONSTANŢA) has 214 classified food establishments! Types: restaurant clasic (69), bar de zi (61), restaurant-autoservire (14), terasă (13). Some popular ones: 'JIJO BEACH BAR' (bar de zi), 'CHARBEL' (restaurant clasic), 'PISCINA AURORA' (snack-bar), 'LA COSTA I' (braserie sau bistrou). 🌟",
+                "Am găsit 214 locuri de mâncare în Mun. Constanţa, Loc. Mamaia! Exemple: 'JIJO BEACH BAR' (bar de zi), 'CHARBEL' (restaurant clasic), 'PISCINA AURORA' (snack-bar), 'LA COSTA I' (braserie sau bistrou). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_arad",
+            "patterns": [
+                "Restaurante in Mun. Arad",
+                "Unde mananc in Mun. Arad",
+                "Ce locuri de mancat sunt in Mun. Arad",
+                "Recomandari mancare Mun. Arad",
+                "Baruri in Mun. Arad",
+                "Unde iesim in Mun. Arad",
+                "Localuri Mun. Arad",
+                "Restaurants in Mun. Arad",
+                "Where to eat in Mun. Arad",
+                "Food in Mun. Arad",
+                "Dining in Mun. Arad",
+                "Bars in Mun. Arad"
+            ],
+            "responses": [
+                "În Mun. Arad (ARAD) sunt 211 locuri clasificate! Tipuri: bar de zi (76), restaurant clasic (42), cafe-bar sau cafenea (32), bufet-bar (14). Exemple: 'MIKY' (restaurant-autoservire), 'PIZZA MIA' (pizzerie), 'LA CASA DI GIAN MARCO' (restaurant clasic), 'GIO' (bar de zi). 🍽️",
+                "Mun. Arad are 211 unități de alimentație! Cele mai multe sunt de tip: bar de zi (76), restaurant clasic (42), cafe-bar sau cafenea (32), bufet-bar (14). Vrei să afli mai multe? 📍",
+                "Mun. Arad (ARAD) has 211 classified food establishments! Types: bar de zi (76), restaurant clasic (42), cafe-bar sau cafenea (32), bufet-bar (14). Some popular ones: 'MIKY' (restaurant-autoservire), 'PIZZA MIA' (pizzerie), 'LA CASA DI GIAN MARCO' (restaurant clasic), 'GIO' (bar de zi). 🌟",
+                "Am găsit 211 locuri de mâncare în Mun. Arad! Exemple: 'MIKY' (restaurant-autoservire), 'PIZZA MIA' (pizzerie), 'LA CASA DI GIAN MARCO' (restaurant clasic), 'GIO' (bar de zi). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_constanţa",
+            "patterns": [
+                "Restaurante in Mun. Constanţa",
+                "Unde mananc in Mun. Constanţa",
+                "Ce locuri de mancat sunt in Mun. Constanţa",
+                "Recomandari mancare Mun. Constanţa",
+                "Baruri in Mun. Constanţa",
+                "Unde iesim in Mun. Constanţa",
+                "Localuri Mun. Constanţa",
+                "Restaurants in Mun. Constanţa",
+                "Where to eat in Mun. Constanţa",
+                "Food in Mun. Constanţa",
+                "Dining in Mun. Constanţa",
+                "Bars in Mun. Constanţa"
+            ],
+            "responses": [
+                "În Mun. Constanţa (CONSTANŢA) sunt 208 locuri clasificate! Tipuri: restaurant clasic (70), bar de zi (65), fast-food (12), braserie sau bistrou (11). Exemple: 'CASA DOBROGEANA' (restaurant clasic), 'BAR DIZZY LOUNGE & PARTY' (bar de zi), 'BIUTIFUL BY THE SEA' (restaurant clasic), 'CASA HARGHITA' (restaurant clasic). 🍽️",
+                "Mun. Constanţa are 208 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (70), bar de zi (65), fast-food (12), braserie sau bistrou (11). Vrei să afli mai multe? 📍",
+                "Mun. Constanţa (CONSTANŢA) has 208 classified food establishments! Types: restaurant clasic (70), bar de zi (65), fast-food (12), braserie sau bistrou (11). Some popular ones: 'CASA DOBROGEANA' (restaurant clasic), 'BAR DIZZY LOUNGE & PARTY' (bar de zi), 'BIUTIFUL BY THE SEA' (restaurant clasic), 'CASA HARGHITA' (restaurant clasic). 🌟",
+                "Am găsit 208 locuri de mâncare în Mun. Constanţa! Exemple: 'CASA DOBROGEANA' (restaurant clasic), 'BAR DIZZY LOUNGE & PARTY' (bar de zi), 'BIUTIFUL BY THE SEA' (restaurant clasic), 'CASA HARGHITA' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_năvodari",
+            "patterns": [
+                "Restaurante in Oraş Năvodari",
+                "Unde mananc in Oraş Năvodari",
+                "Ce locuri de mancat sunt in Oraş Năvodari",
+                "Recomandari mancare Oraş Năvodari",
+                "Baruri in Oraş Năvodari",
+                "Unde iesim in Oraş Năvodari",
+                "Localuri Oraş Năvodari",
+                "Restaurants in Oraş Năvodari",
+                "Where to eat in Oraş Năvodari",
+                "Food in Oraş Năvodari",
+                "Dining in Oraş Năvodari",
+                "Bars in Oraş Năvodari"
+            ],
+            "responses": [
+                "În Oraş Năvodari (CONSTANŢA) sunt 142 locuri clasificate! Tipuri: restaurant clasic (45), bar de zi (33), terasă (17), restaurant-autoservire (13). Exemple: 'ARROSTICINI' (snack-bar), 'PHOENICIA HOLIDAY RESORT' (restaurant clasic), 'ALMAR' (restaurant clasic), 'COLONIAL CLUB' (restaurant clasic). 🍽️",
+                "Oraş Năvodari are 142 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (45), bar de zi (33), terasă (17), restaurant-autoservire (13). Vrei să afli mai multe? 📍",
+                "Oraş Năvodari (CONSTANŢA) has 142 classified food establishments! Types: restaurant clasic (45), bar de zi (33), terasă (17), restaurant-autoservire (13). Some popular ones: 'ARROSTICINI' (snack-bar), 'PHOENICIA HOLIDAY RESORT' (restaurant clasic), 'ALMAR' (restaurant clasic), 'COLONIAL CLUB' (restaurant clasic). 🌟",
+                "Am găsit 142 locuri de mâncare în Oraş Năvodari! Exemple: 'ARROSTICINI' (snack-bar), 'PHOENICIA HOLIDAY RESORT' (restaurant clasic), 'ALMAR' (restaurant clasic), 'COLONIAL CLUB' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_braşov",
+            "patterns": [
+                "Restaurante in Mun. Braşov",
+                "Unde mananc in Mun. Braşov",
+                "Ce locuri de mancat sunt in Mun. Braşov",
+                "Recomandari mancare Mun. Braşov",
+                "Baruri in Mun. Braşov",
+                "Unde iesim in Mun. Braşov",
+                "Localuri Mun. Braşov",
+                "Restaurants in Mun. Braşov",
+                "Where to eat in Mun. Braşov",
+                "Food in Mun. Braşov",
+                "Dining in Mun. Braşov",
+                "Bars in Mun. Braşov"
+            ],
+            "responses": [
+                "În Mun. Braşov (BRAŞOV) sunt 124 locuri clasificate! Tipuri: restaurant clasic (51), bar de zi (17), restaurant cu specific național (8), restaurant familial/pensiune (8). Exemple: 'CARPINIS' (bar de zi), 'PHOENIX' (restaurant familial/pensiune), 'OMV BRASOV RING ROAD' (snack-bar), 'RAPID' (restaurant clasic). 🍽️",
+                "Mun. Braşov are 124 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (51), bar de zi (17), restaurant cu specific național (8), restaurant familial/pensiune (8). Vrei să afli mai multe? 📍",
+                "Mun. Braşov (BRAŞOV) has 124 classified food establishments! Types: restaurant clasic (51), bar de zi (17), restaurant cu specific național (8), restaurant familial/pensiune (8). Some popular ones: 'CARPINIS' (bar de zi), 'PHOENIX' (restaurant familial/pensiune), 'OMV BRASOV RING ROAD' (snack-bar), 'RAPID' (restaurant clasic). 🌟",
+                "Am găsit 124 locuri de mâncare în Mun. Braşov! Exemple: 'CARPINIS' (bar de zi), 'PHOENIX' (restaurant familial/pensiune), 'OMV BRASOV RING ROAD' (snack-bar), 'RAPID' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_mangalia",
+            "patterns": [
+                "Restaurante in Mun. Mangalia",
+                "Unde mananc in Mun. Mangalia",
+                "Ce locuri de mancat sunt in Mun. Mangalia",
+                "Recomandari mancare Mun. Mangalia",
+                "Baruri in Mun. Mangalia",
+                "Unde iesim in Mun. Mangalia",
+                "Localuri Mun. Mangalia",
+                "Restaurants in Mun. Mangalia",
+                "Where to eat in Mun. Mangalia",
+                "Food in Mun. Mangalia",
+                "Dining in Mun. Mangalia",
+                "Bars in Mun. Mangalia"
+            ],
+            "responses": [
+                "În Mun. Mangalia (CONSTANŢA) sunt 107 locuri clasificate! Tipuri: snack-bar (23), bar de zi (21), restaurant clasic (14), terasă (8). Exemple: 'AL POSTO GIUSTO' (pizzerie), 'EL GRECO' (restaurant clasic), 'OVEN' (restaurant-autoservire), 'CIORBE ȘI PLACINTE' (bufet tip expres). 🍽️",
+                "Mun. Mangalia are 107 unități de alimentație! Cele mai multe sunt de tip: snack-bar (23), bar de zi (21), restaurant clasic (14), terasă (8). Vrei să afli mai multe? 📍",
+                "Mun. Mangalia (CONSTANŢA) has 107 classified food establishments! Types: snack-bar (23), bar de zi (21), restaurant clasic (14), terasă (8). Some popular ones: 'AL POSTO GIUSTO' (pizzerie), 'EL GRECO' (restaurant clasic), 'OVEN' (restaurant-autoservire), 'CIORBE ȘI PLACINTE' (bufet tip expres). 🌟",
+                "Am găsit 107 locuri de mâncare în Mun. Mangalia! Exemple: 'AL POSTO GIUSTO' (pizzerie), 'EL GRECO' (restaurant clasic), 'OVEN' (restaurant-autoservire), 'CIORBE ȘI PLACINTE' (bufet tip expres). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_bucureşti_sector_1",
+            "patterns": [
+                "Restaurante in Mun. Bucureşti, Sector 1",
+                "Unde mananc in Mun. Bucureşti, Sector 1",
+                "Ce locuri de mancat sunt in Mun. Bucureşti, Sector 1",
+                "Recomandari mancare Mun. Bucureşti, Sector 1",
+                "Baruri in Mun. Bucureşti, Sector 1",
+                "Unde iesim in Mun. Bucureşti, Sector 1",
+                "Localuri Mun. Bucureşti, Sector 1",
+                "Restaurants in Mun. Bucureşti, Sector 1",
+                "Where to eat in Mun. Bucureşti, Sector 1",
+                "Food in Mun. Bucureşti, Sector 1",
+                "Dining in Mun. Bucureşti, Sector 1",
+                "Bars in Mun. Bucureşti, Sector 1"
+            ],
+            "responses": [
+                "În Mun. Bucureşti, Sector 1 (MUNICIPIUL BUCUREŞTI) sunt 104 locuri clasificate! Tipuri: restaurant clasic (41), bar de zi (20), braserie sau bistrou (9), restaurant cu specific național (9). Exemple: 'BERTHELOT BUCURESTI' (cafe-bar sau cafenea), 'CASA CAPSA' (cofetărie), 'L'ARPEGE' (bar de zi), 'CAFEPEDIA' (cafe-bar sau cafenea). 🍽️",
+                "Mun. Bucureşti, Sector 1 are 104 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (41), bar de zi (20), braserie sau bistrou (9), restaurant cu specific național (9). Vrei să afli mai multe? 📍",
+                "Mun. Bucureşti, Sector 1 (MUNICIPIUL BUCUREŞTI) has 104 classified food establishments! Types: restaurant clasic (41), bar de zi (20), braserie sau bistrou (9), restaurant cu specific național (9). Some popular ones: 'BERTHELOT BUCURESTI' (cafe-bar sau cafenea), 'CASA CAPSA' (cofetărie), 'L'ARPEGE' (bar de zi), 'CAFEPEDIA' (cafe-bar sau cafenea). 🌟",
+                "Am găsit 104 locuri de mâncare în Mun. Bucureşti, Sector 1! Exemple: 'BERTHELOT BUCURESTI' (cafe-bar sau cafenea), 'CASA CAPSA' (cofetărie), 'L'ARPEGE' (bar de zi), 'CAFEPEDIA' (cafe-bar sau cafenea). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_eforie_loc_eforie_nord",
+            "patterns": [
+                "Restaurante in Oraş Eforie, Loc. Eforie Nord",
+                "Unde mananc in Oraş Eforie, Loc. Eforie Nord",
+                "Ce locuri de mancat sunt in Oraş Eforie, Loc. Eforie Nord",
+                "Recomandari mancare Oraş Eforie, Loc. Eforie Nord",
+                "Baruri in Oraş Eforie, Loc. Eforie Nord",
+                "Unde iesim in Oraş Eforie, Loc. Eforie Nord",
+                "Localuri Oraş Eforie, Loc. Eforie Nord",
+                "Restaurants in Oraş Eforie, Loc. Eforie Nord",
+                "Where to eat in Oraş Eforie, Loc. Eforie Nord",
+                "Food in Oraş Eforie, Loc. Eforie Nord",
+                "Dining in Oraş Eforie, Loc. Eforie Nord",
+                "Bars in Oraş Eforie, Loc. Eforie Nord"
+            ],
+            "responses": [
+                "În Oraş Eforie, Loc. Eforie Nord (CONSTANŢA) sunt 87 locuri clasificate! Tipuri: restaurant clasic (28), bar de zi (20), restaurant-autoservire (12), terasă (10). Exemple: 'NAO' (terasă), 'CLUB DUNAREA' (bar de zi), 'STEAUA DE MARE' (bar de zi), 'SHANHAY' (fast-food). 🍽️",
+                "Oraş Eforie, Loc. Eforie Nord are 87 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (28), bar de zi (20), restaurant-autoservire (12), terasă (10). Vrei să afli mai multe? 📍",
+                "Oraş Eforie, Loc. Eforie Nord (CONSTANŢA) has 87 classified food establishments! Types: restaurant clasic (28), bar de zi (20), restaurant-autoservire (12), terasă (10). Some popular ones: 'NAO' (terasă), 'CLUB DUNAREA' (bar de zi), 'STEAUA DE MARE' (bar de zi), 'SHANHAY' (fast-food). 🌟",
+                "Am găsit 87 locuri de mâncare în Oraş Eforie, Loc. Eforie Nord! Exemple: 'NAO' (terasă), 'CLUB DUNAREA' (bar de zi), 'STEAUA DE MARE' (bar de zi), 'SHANHAY' (fast-food). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_sinaia",
+            "patterns": [
+                "Restaurante in Oraş Sinaia",
+                "Unde mananc in Oraş Sinaia",
+                "Ce locuri de mancat sunt in Oraş Sinaia",
+                "Recomandari mancare Oraş Sinaia",
+                "Baruri in Oraş Sinaia",
+                "Unde iesim in Oraş Sinaia",
+                "Localuri Oraş Sinaia",
+                "Restaurants in Oraş Sinaia",
+                "Where to eat in Oraş Sinaia",
+                "Food in Oraş Sinaia",
+                "Dining in Oraş Sinaia",
+                "Bars in Oraş Sinaia"
+            ],
+            "responses": [
+                "În Oraş Sinaia (PRAHOVA) sunt 87 locuri clasificate! Tipuri: restaurant clasic (35), bar de zi (13), cafe-bar sau cafenea (10), snack-bar (6). Exemple: 'SADAS LA CLUB' (bar de zi), 'KUIB' (restaurant clasic), 'CABANA SCHIORILOR' (restaurant clasic), 'GREEN GRILL' (terasă). 🍽️",
+                "Oraş Sinaia are 87 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (35), bar de zi (13), cafe-bar sau cafenea (10), snack-bar (6). Vrei să afli mai multe? 📍",
+                "Oraş Sinaia (PRAHOVA) has 87 classified food establishments! Types: restaurant clasic (35), bar de zi (13), cafe-bar sau cafenea (10), snack-bar (6). Some popular ones: 'SADAS LA CLUB' (bar de zi), 'KUIB' (restaurant clasic), 'CABANA SCHIORILOR' (restaurant clasic), 'GREEN GRILL' (terasă). 🌟",
+                "Am găsit 87 locuri de mâncare în Oraş Sinaia! Exemple: 'SADAS LA CLUB' (bar de zi), 'KUIB' (restaurant clasic), 'CABANA SCHIORILOR' (restaurant clasic), 'GREEN GRILL' (terasă). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_predeal",
+            "patterns": [
+                "Restaurante in Oraş Predeal",
+                "Unde mananc in Oraş Predeal",
+                "Ce locuri de mancat sunt in Oraş Predeal",
+                "Recomandari mancare Oraş Predeal",
+                "Baruri in Oraş Predeal",
+                "Unde iesim in Oraş Predeal",
+                "Localuri Oraş Predeal",
+                "Restaurants in Oraş Predeal",
+                "Where to eat in Oraş Predeal",
+                "Food in Oraş Predeal",
+                "Dining in Oraş Predeal",
+                "Bars in Oraş Predeal"
+            ],
+            "responses": [
+                "În Oraş Predeal (BRAŞOV) sunt 82 locuri clasificate! Tipuri: restaurant clasic (41), bar de zi (12), restaurant familial/pensiune (9), bufet-bar (5). Exemple: 'DOR DE MUNTE' (bar de zi), 'LE CEDRE' (bar de zi), 'DAPA' (restaurant familial/pensiune), 'LOBBY BAR CARPATI' (bar de zi). 🍽️",
+                "Oraş Predeal are 82 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (41), bar de zi (12), restaurant familial/pensiune (9), bufet-bar (5). Vrei să afli mai multe? 📍",
+                "Oraş Predeal (BRAŞOV) has 82 classified food establishments! Types: restaurant clasic (41), bar de zi (12), restaurant familial/pensiune (9), bufet-bar (5). Some popular ones: 'DOR DE MUNTE' (bar de zi), 'LE CEDRE' (bar de zi), 'DAPA' (restaurant familial/pensiune), 'LOBBY BAR CARPATI' (bar de zi). 🌟",
+                "Am găsit 82 locuri de mâncare în Oraş Predeal! Exemple: 'DOR DE MUNTE' (bar de zi), 'LE CEDRE' (bar de zi), 'DAPA' (restaurant familial/pensiune), 'LOBBY BAR CARPATI' (bar de zi). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_timişoara",
+            "patterns": [
+                "Restaurante in Mun. Timişoara",
+                "Unde mananc in Mun. Timişoara",
+                "Ce locuri de mancat sunt in Mun. Timişoara",
+                "Recomandari mancare Mun. Timişoara",
+                "Baruri in Mun. Timişoara",
+                "Unde iesim in Mun. Timişoara",
+                "Localuri Mun. Timişoara",
+                "Restaurants in Mun. Timişoara",
+                "Where to eat in Mun. Timişoara",
+                "Food in Mun. Timişoara",
+                "Dining in Mun. Timişoara",
+                "Bars in Mun. Timişoara"
+            ],
+            "responses": [
+                "În Mun. Timişoara (TIMIŞ) sunt 74 locuri clasificate! Tipuri: restaurant clasic (36), bar de zi (18), bufet-bar (7), fast-food (3). Exemple: 'ALYSTRA' (bar de zi), 'ANGELLIS' (bar de zi), 'STRELITIA' (restaurant clasic), 'RESTAURANT-AUTOSERVIRE' (restaurant-autoservire). 🍽️",
+                "Mun. Timişoara are 74 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (36), bar de zi (18), bufet-bar (7), fast-food (3). Vrei să afli mai multe? 📍",
+                "Mun. Timişoara (TIMIŞ) has 74 classified food establishments! Types: restaurant clasic (36), bar de zi (18), bufet-bar (7), fast-food (3). Some popular ones: 'ALYSTRA' (bar de zi), 'ANGELLIS' (bar de zi), 'STRELITIA' (restaurant clasic), 'RESTAURANT-AUTOSERVIRE' (restaurant-autoservire). 🌟",
+                "Am găsit 74 locuri de mâncare în Mun. Timişoara! Exemple: 'ALYSTRA' (bar de zi), 'ANGELLIS' (bar de zi), 'STRELITIA' (restaurant clasic), 'RESTAURANT-AUTOSERVIRE' (restaurant-autoservire). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_mangalia_loc_neptun",
+            "patterns": [
+                "Restaurante in Mun. Mangalia, Loc. Neptun",
+                "Unde mananc in Mun. Mangalia, Loc. Neptun",
+                "Ce locuri de mancat sunt in Mun. Mangalia, Loc. Neptun",
+                "Recomandari mancare Mun. Mangalia, Loc. Neptun",
+                "Baruri in Mun. Mangalia, Loc. Neptun",
+                "Unde iesim in Mun. Mangalia, Loc. Neptun",
+                "Localuri Mun. Mangalia, Loc. Neptun",
+                "Restaurants in Mun. Mangalia, Loc. Neptun",
+                "Where to eat in Mun. Mangalia, Loc. Neptun",
+                "Food in Mun. Mangalia, Loc. Neptun",
+                "Dining in Mun. Mangalia, Loc. Neptun",
+                "Bars in Mun. Mangalia, Loc. Neptun"
+            ],
+            "responses": [
+                "În Mun. Mangalia, Loc. Neptun (CONSTANŢA) sunt 69 locuri clasificate! Tipuri: restaurant clasic (15), bar de zi (13), snack-bar (10), terasă (10). Exemple: 'IL FORTINO' (restaurant clasic), 'COCOR' (bar de noapte), 'SIGMA' (restaurant clasic), 'MURFATLAR' (cramă). 🍽️",
+                "Mun. Mangalia, Loc. Neptun are 69 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (15), bar de zi (13), snack-bar (10), terasă (10). Vrei să afli mai multe? 📍",
+                "Mun. Mangalia, Loc. Neptun (CONSTANŢA) has 69 classified food establishments! Types: restaurant clasic (15), bar de zi (13), snack-bar (10), terasă (10). Some popular ones: 'IL FORTINO' (restaurant clasic), 'COCOR' (bar de noapte), 'SIGMA' (restaurant clasic), 'MURFATLAR' (cramă). 🌟",
+                "Am găsit 69 locuri de mâncare în Mun. Mangalia, Loc. Neptun! Exemple: 'IL FORTINO' (restaurant clasic), 'COCOR' (bar de noapte), 'SIGMA' (restaurant clasic), 'MURFATLAR' (cramă). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_com_costineşti",
+            "patterns": [
+                "Restaurante in Com. Costineşti",
+                "Unde mananc in Com. Costineşti",
+                "Ce locuri de mancat sunt in Com. Costineşti",
+                "Recomandari mancare Com. Costineşti",
+                "Baruri in Com. Costineşti",
+                "Unde iesim in Com. Costineşti",
+                "Localuri Com. Costineşti",
+                "Restaurants in Com. Costineşti",
+                "Where to eat in Com. Costineşti",
+                "Food in Com. Costineşti",
+                "Dining in Com. Costineşti",
+                "Bars in Com. Costineşti"
+            ],
+            "responses": [
+                "În Com. Costineşti (CONSTANŢA) sunt 67 locuri clasificate! Tipuri: restaurant clasic (12), bar de zi (11), restaurant-autoservire (10), terasă (9). Exemple: 'MC BEACH' (restaurant clasic), 'GRAND BAHIA RELAXURY' (bar de zi), 'MARINA BEACH 1' (bar de zi), 'RAKADA BEACH BAR' (bar de zi). 🍽️",
+                "Com. Costineşti are 67 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (12), bar de zi (11), restaurant-autoservire (10), terasă (9). Vrei să afli mai multe? 📍",
+                "Com. Costineşti (CONSTANŢA) has 67 classified food establishments! Types: restaurant clasic (12), bar de zi (11), restaurant-autoservire (10), terasă (9). Some popular ones: 'MC BEACH' (restaurant clasic), 'GRAND BAHIA RELAXURY' (bar de zi), 'MARINA BEACH 1' (bar de zi), 'RAKADA BEACH BAR' (bar de zi). 🌟",
+                "Am găsit 67 locuri de mâncare în Com. Costineşti! Exemple: 'MC BEACH' (restaurant clasic), 'GRAND BAHIA RELAXURY' (bar de zi), 'MARINA BEACH 1' (bar de zi), 'RAKADA BEACH BAR' (bar de zi). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_iaşi",
+            "patterns": [
+                "Restaurante in Mun. Iaşi",
+                "Unde mananc in Mun. Iaşi",
+                "Ce locuri de mancat sunt in Mun. Iaşi",
+                "Recomandari mancare Mun. Iaşi",
+                "Baruri in Mun. Iaşi",
+                "Unde iesim in Mun. Iaşi",
+                "Localuri Mun. Iaşi",
+                "Restaurants in Mun. Iaşi",
+                "Where to eat in Mun. Iaşi",
+                "Food in Mun. Iaşi",
+                "Dining in Mun. Iaşi",
+                "Bars in Mun. Iaşi"
+            ],
+            "responses": [
+                "În Mun. Iaşi (IAŞI) sunt 55 locuri clasificate! Tipuri: restaurant clasic (26), bar de zi (11), fast-food (4), braserie sau bistrou (2). Exemple: 'SNACK BAR IASI 2' (fast-food), 'TUDOR PALACE' (restaurant clasic), 'BURGO' (cramă), 'CERAMICA' (bufet-bar). 🍽️",
+                "Mun. Iaşi are 55 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (26), bar de zi (11), fast-food (4), braserie sau bistrou (2). Vrei să afli mai multe? 📍",
+                "Mun. Iaşi (IAŞI) has 55 classified food establishments! Types: restaurant clasic (26), bar de zi (11), fast-food (4), braserie sau bistrou (2). Some popular ones: 'SNACK BAR IASI 2' (fast-food), 'TUDOR PALACE' (restaurant clasic), 'BURGO' (cramă), 'CERAMICA' (bufet-bar). 🌟",
+                "Am găsit 55 locuri de mâncare în Mun. Iaşi! Exemple: 'SNACK BAR IASI 2' (fast-food), 'TUDOR PALACE' (restaurant clasic), 'BURGO' (cramă), 'CERAMICA' (bufet-bar). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_galaţi",
+            "patterns": [
+                "Restaurante in Mun. Galaţi",
+                "Unde mananc in Mun. Galaţi",
+                "Ce locuri de mancat sunt in Mun. Galaţi",
+                "Recomandari mancare Mun. Galaţi",
+                "Baruri in Mun. Galaţi",
+                "Unde iesim in Mun. Galaţi",
+                "Localuri Mun. Galaţi",
+                "Restaurants in Mun. Galaţi",
+                "Where to eat in Mun. Galaţi",
+                "Food in Mun. Galaţi",
+                "Dining in Mun. Galaţi",
+                "Bars in Mun. Galaţi"
+            ],
+            "responses": [
+                "În Mun. Galaţi (GALAŢI) sunt 53 locuri clasificate! Tipuri: restaurant clasic (30), bar de zi (12), bar de noapte (2), cafe-bar sau cafenea (2). Exemple: 'ELDORADO' (bar de zi), 'KRETA' (restaurant clasic), 'YOUR EVENT' (restaurant clasic), 'CINA' (restaurant clasic). 🍽️",
+                "Mun. Galaţi are 53 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (30), bar de zi (12), bar de noapte (2), cafe-bar sau cafenea (2). Vrei să afli mai multe? 📍",
+                "Mun. Galaţi (GALAŢI) has 53 classified food establishments! Types: restaurant clasic (30), bar de zi (12), bar de noapte (2), cafe-bar sau cafenea (2). Some popular ones: 'ELDORADO' (bar de zi), 'KRETA' (restaurant clasic), 'YOUR EVENT' (restaurant clasic), 'CINA' (restaurant clasic). 🌟",
+                "Am găsit 53 locuri de mâncare în Mun. Galaţi! Exemple: 'ELDORADO' (bar de zi), 'KRETA' (restaurant clasic), 'YOUR EVENT' (restaurant clasic), 'CINA' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_sovata",
+            "patterns": [
+                "Restaurante in Oraş Sovata",
+                "Unde mananc in Oraş Sovata",
+                "Ce locuri de mancat sunt in Oraş Sovata",
+                "Recomandari mancare Oraş Sovata",
+                "Baruri in Oraş Sovata",
+                "Unde iesim in Oraş Sovata",
+                "Localuri Oraş Sovata",
+                "Restaurants in Oraş Sovata",
+                "Where to eat in Oraş Sovata",
+                "Food in Oraş Sovata",
+                "Dining in Oraş Sovata",
+                "Bars in Oraş Sovata"
+            ],
+            "responses": [
+                "În Oraş Sovata (MUREŞ) sunt 52 locuri clasificate! Tipuri: bar de zi (23), restaurant clasic (11), snack-bar (6), pizzerie (4). Exemple: 'ORHIDEEA CAFE & BAR' (cafe-bar sau cafenea), 'FABESCA' (restaurant clasic), 'KOVACS' (bar de zi), 'SYLVANIA' (restaurant familial/pensiune). 🍽️",
+                "Oraş Sovata are 52 unități de alimentație! Cele mai multe sunt de tip: bar de zi (23), restaurant clasic (11), snack-bar (6), pizzerie (4). Vrei să afli mai multe? 📍",
+                "Oraş Sovata (MUREŞ) has 52 classified food establishments! Types: bar de zi (23), restaurant clasic (11), snack-bar (6), pizzerie (4). Some popular ones: 'ORHIDEEA CAFE & BAR' (cafe-bar sau cafenea), 'FABESCA' (restaurant clasic), 'KOVACS' (bar de zi), 'SYLVANIA' (restaurant familial/pensiune). 🌟",
+                "Am găsit 52 locuri de mâncare în Oraş Sovata! Exemple: 'ORHIDEEA CAFE & BAR' (cafe-bar sau cafenea), 'FABESCA' (restaurant clasic), 'KOVACS' (bar de zi), 'SYLVANIA' (restaurant familial/pensiune). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_mangalia_loc_venus",
+            "patterns": [
+                "Restaurante in Mun. Mangalia, Loc. Venus",
+                "Unde mananc in Mun. Mangalia, Loc. Venus",
+                "Ce locuri de mancat sunt in Mun. Mangalia, Loc. Venus",
+                "Recomandari mancare Mun. Mangalia, Loc. Venus",
+                "Baruri in Mun. Mangalia, Loc. Venus",
+                "Unde iesim in Mun. Mangalia, Loc. Venus",
+                "Localuri Mun. Mangalia, Loc. Venus",
+                "Restaurants in Mun. Mangalia, Loc. Venus",
+                "Where to eat in Mun. Mangalia, Loc. Venus",
+                "Food in Mun. Mangalia, Loc. Venus",
+                "Dining in Mun. Mangalia, Loc. Venus",
+                "Bars in Mun. Mangalia, Loc. Venus"
+            ],
+            "responses": [
+                "În Mun. Mangalia, Loc. Venus (CONSTANŢA) sunt 50 locuri clasificate! Tipuri: restaurant clasic (14), bar de zi (12), restaurant-autoservire (5), snack-bar (4). Exemple: 'COMPLEX CARMEN AZZURO' (restaurant clasic), 'PESCARIA AMY S' (grădina de vară), 'CLAUDIA' (bar de zi), 'LARA' (bufet-bar). 🍽️",
+                "Mun. Mangalia, Loc. Venus are 50 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (14), bar de zi (12), restaurant-autoservire (5), snack-bar (4). Vrei să afli mai multe? 📍",
+                "Mun. Mangalia, Loc. Venus (CONSTANŢA) has 50 classified food establishments! Types: restaurant clasic (14), bar de zi (12), restaurant-autoservire (5), snack-bar (4). Some popular ones: 'COMPLEX CARMEN AZZURO' (restaurant clasic), 'PESCARIA AMY S' (grădina de vară), 'CLAUDIA' (bar de zi), 'LARA' (bufet-bar). 🌟",
+                "Am găsit 50 locuri de mâncare în Mun. Mangalia, Loc. Venus! Exemple: 'COMPLEX CARMEN AZZURO' (restaurant clasic), 'PESCARIA AMY S' (grădina de vară), 'CLAUDIA' (bar de zi), 'LARA' (bufet-bar). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_bucureşti_sector_3",
+            "patterns": [
+                "Restaurante in Mun. Bucureşti, Sector 3",
+                "Unde mananc in Mun. Bucureşti, Sector 3",
+                "Ce locuri de mancat sunt in Mun. Bucureşti, Sector 3",
+                "Recomandari mancare Mun. Bucureşti, Sector 3",
+                "Baruri in Mun. Bucureşti, Sector 3",
+                "Unde iesim in Mun. Bucureşti, Sector 3",
+                "Localuri Mun. Bucureşti, Sector 3",
+                "Restaurants in Mun. Bucureşti, Sector 3",
+                "Where to eat in Mun. Bucureşti, Sector 3",
+                "Food in Mun. Bucureşti, Sector 3",
+                "Dining in Mun. Bucureşti, Sector 3",
+                "Bars in Mun. Bucureşti, Sector 3"
+            ],
+            "responses": [
+                "În Mun. Bucureşti, Sector 3 (MUNICIPIUL BUCUREŞTI) sunt 45 locuri clasificate! Tipuri: restaurant clasic (17), cafe-bar sau cafenea (8), bar de zi (8), bufet-bar (4). Exemple: 'EUROPA ROYALE BUCHAREST' (bar de zi), 'ADIOR CAFFE & TEA LOUNGE' (cafe-bar sau cafenea), 'RUBY TUESDAY' (restaurant cu specific național), 'NEGRESCO' (restaurant clasic). 🍽️",
+                "Mun. Bucureşti, Sector 3 are 45 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (17), cafe-bar sau cafenea (8), bar de zi (8), bufet-bar (4). Vrei să afli mai multe? 📍",
+                "Mun. Bucureşti, Sector 3 (MUNICIPIUL BUCUREŞTI) has 45 classified food establishments! Types: restaurant clasic (17), cafe-bar sau cafenea (8), bar de zi (8), bufet-bar (4). Some popular ones: 'EUROPA ROYALE BUCHAREST' (bar de zi), 'ADIOR CAFFE & TEA LOUNGE' (cafe-bar sau cafenea), 'RUBY TUESDAY' (restaurant cu specific național), 'NEGRESCO' (restaurant clasic). 🌟",
+                "Am găsit 45 locuri de mâncare în Mun. Bucureşti, Sector 3! Exemple: 'EUROPA ROYALE BUCHAREST' (bar de zi), 'ADIOR CAFFE & TEA LOUNGE' (cafe-bar sau cafenea), 'RUBY TUESDAY' (restaurant cu specific național), 'NEGRESCO' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_braşov_loc_poiana_braşov",
+            "patterns": [
+                "Restaurante in Mun. Braşov, Loc. Poiana Braşov",
+                "Unde mananc in Mun. Braşov, Loc. Poiana Braşov",
+                "Ce locuri de mancat sunt in Mun. Braşov, Loc. Poiana Braşov",
+                "Recomandari mancare Mun. Braşov, Loc. Poiana Braşov",
+                "Baruri in Mun. Braşov, Loc. Poiana Braşov",
+                "Unde iesim in Mun. Braşov, Loc. Poiana Braşov",
+                "Localuri Mun. Braşov, Loc. Poiana Braşov",
+                "Restaurants in Mun. Braşov, Loc. Poiana Braşov",
+                "Where to eat in Mun. Braşov, Loc. Poiana Braşov",
+                "Food in Mun. Braşov, Loc. Poiana Braşov",
+                "Dining in Mun. Braşov, Loc. Poiana Braşov",
+                "Bars in Mun. Braşov, Loc. Poiana Braşov"
+            ],
+            "responses": [
+                "În Mun. Braşov, Loc. Poiana Braşov (BRAŞOV) sunt 44 locuri clasificate! Tipuri: restaurant clasic (22), bar de zi (14), restaurant familial/pensiune (3), club sau disco-bar (2). Exemple: 'MONTERAI' (restaurant clasic), 'MANEJ' (bufet-bar), 'ACASA LA DRACULA' (restaurant clasic), 'EL BACHA' (restaurant clasic). 🍽️",
+                "Mun. Braşov, Loc. Poiana Braşov are 44 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (22), bar de zi (14), restaurant familial/pensiune (3), club sau disco-bar (2). Vrei să afli mai multe? 📍",
+                "Mun. Braşov, Loc. Poiana Braşov (BRAŞOV) has 44 classified food establishments! Types: restaurant clasic (22), bar de zi (14), restaurant familial/pensiune (3), club sau disco-bar (2). Some popular ones: 'MONTERAI' (restaurant clasic), 'MANEJ' (bufet-bar), 'ACASA LA DRACULA' (restaurant clasic), 'EL BACHA' (restaurant clasic). 🌟",
+                "Am găsit 44 locuri de mâncare în Mun. Braşov, Loc. Poiana Braşov! Exemple: 'MONTERAI' (restaurant clasic), 'MANEJ' (bufet-bar), 'ACASA LA DRACULA' (restaurant clasic), 'EL BACHA' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_sibiu",
+            "patterns": [
+                "Restaurante in Mun. Sibiu",
+                "Unde mananc in Mun. Sibiu",
+                "Ce locuri de mancat sunt in Mun. Sibiu",
+                "Recomandari mancare Mun. Sibiu",
+                "Baruri in Mun. Sibiu",
+                "Unde iesim in Mun. Sibiu",
+                "Localuri Mun. Sibiu",
+                "Restaurants in Mun. Sibiu",
+                "Where to eat in Mun. Sibiu",
+                "Food in Mun. Sibiu",
+                "Dining in Mun. Sibiu",
+                "Bars in Mun. Sibiu"
+            ],
+            "responses": [
+                "În Mun. Sibiu (SIBIU) sunt 44 locuri clasificate! Tipuri: restaurant clasic (25), bar de zi (9), snack-bar (4), restaurant familial/pensiune (3). Exemple: 'HERMANIA' (restaurant clasic), 'PALTINIS' (restaurant clasic), 'MY STORY' (braserie sau bistrou), 'OŞENCUŢA' (restaurant familial/pensiune). 🍽️",
+                "Mun. Sibiu are 44 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (25), bar de zi (9), snack-bar (4), restaurant familial/pensiune (3). Vrei să afli mai multe? 📍",
+                "Mun. Sibiu (SIBIU) has 44 classified food establishments! Types: restaurant clasic (25), bar de zi (9), snack-bar (4), restaurant familial/pensiune (3). Some popular ones: 'HERMANIA' (restaurant clasic), 'PALTINIS' (restaurant clasic), 'MY STORY' (braserie sau bistrou), 'OŞENCUŢA' (restaurant familial/pensiune). 🌟",
+                "Am găsit 44 locuri de mâncare în Mun. Sibiu! Exemple: 'HERMANIA' (restaurant clasic), 'PALTINIS' (restaurant clasic), 'MY STORY' (braserie sau bistrou), 'OŞENCUŢA' (restaurant familial/pensiune). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_eforie_loc_eforie_sud",
+            "patterns": [
+                "Restaurante in Oraş Eforie, Loc. Eforie Sud",
+                "Unde mananc in Oraş Eforie, Loc. Eforie Sud",
+                "Ce locuri de mancat sunt in Oraş Eforie, Loc. Eforie Sud",
+                "Recomandari mancare Oraş Eforie, Loc. Eforie Sud",
+                "Baruri in Oraş Eforie, Loc. Eforie Sud",
+                "Unde iesim in Oraş Eforie, Loc. Eforie Sud",
+                "Localuri Oraş Eforie, Loc. Eforie Sud",
+                "Restaurants in Oraş Eforie, Loc. Eforie Sud",
+                "Where to eat in Oraş Eforie, Loc. Eforie Sud",
+                "Food in Oraş Eforie, Loc. Eforie Sud",
+                "Dining in Oraş Eforie, Loc. Eforie Sud",
+                "Bars in Oraş Eforie, Loc. Eforie Sud"
+            ],
+            "responses": [
+                "În Oraş Eforie, Loc. Eforie Sud (CONSTANŢA) sunt 43 locuri clasificate! Tipuri: restaurant clasic (11), bar de zi (7), restaurant-autoservire (4), terasă (3). Exemple: 'ÎNTRE APE' (restaurant clasic), 'CARLOS & DAVID' (braserie sau bistrou), 'LA PETRE PESCARUL' (restaurant pescăresc), 'PICOLO' (restaurant clasic). 🍽️",
+                "Oraş Eforie, Loc. Eforie Sud are 43 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (11), bar de zi (7), restaurant-autoservire (4), terasă (3). Vrei să afli mai multe? 📍",
+                "Oraş Eforie, Loc. Eforie Sud (CONSTANŢA) has 43 classified food establishments! Types: restaurant clasic (11), bar de zi (7), restaurant-autoservire (4), terasă (3). Some popular ones: 'ÎNTRE APE' (restaurant clasic), 'CARLOS & DAVID' (braserie sau bistrou), 'LA PETRE PESCARUL' (restaurant pescăresc), 'PICOLO' (restaurant clasic). 🌟",
+                "Am găsit 43 locuri de mâncare în Oraş Eforie, Loc. Eforie Sud! Exemple: 'ÎNTRE APE' (restaurant clasic), 'CARLOS & DAVID' (braserie sau bistrou), 'LA PETRE PESCARUL' (restaurant pescăresc), 'PICOLO' (restaurant clasic). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_oraş_băile_herculane",
+            "patterns": [
+                "Restaurante in Oraş Băile Herculane",
+                "Unde mananc in Oraş Băile Herculane",
+                "Ce locuri de mancat sunt in Oraş Băile Herculane",
+                "Recomandari mancare Oraş Băile Herculane",
+                "Baruri in Oraş Băile Herculane",
+                "Unde iesim in Oraş Băile Herculane",
+                "Localuri Oraş Băile Herculane",
+                "Restaurants in Oraş Băile Herculane",
+                "Where to eat in Oraş Băile Herculane",
+                "Food in Oraş Băile Herculane",
+                "Dining in Oraş Băile Herculane",
+                "Bars in Oraş Băile Herculane"
+            ],
+            "responses": [
+                "În Oraş Băile Herculane (CARAŞ-SEVERIN) sunt 38 locuri clasificate! Tipuri: restaurant clasic (22), bar de zi (6), restaurant familial/pensiune (3), bufet-bar (2). Exemple: 'ARTEMIS' (restaurant clasic), 'VERSANT' (snack-bar), 'TATA ȘI FIUL 2' (restaurant clasic), 'AFRODITA' (bar de zi). 🍽️",
+                "Oraş Băile Herculane are 38 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (22), bar de zi (6), restaurant familial/pensiune (3), bufet-bar (2). Vrei să afli mai multe? 📍",
+                "Oraş Băile Herculane (CARAŞ-SEVERIN) has 38 classified food establishments! Types: restaurant clasic (22), bar de zi (6), restaurant familial/pensiune (3), bufet-bar (2). Some popular ones: 'ARTEMIS' (restaurant clasic), 'VERSANT' (snack-bar), 'TATA ȘI FIUL 2' (restaurant clasic), 'AFRODITA' (bar de zi). 🌟",
+                "Am găsit 38 locuri de mâncare în Oraş Băile Herculane! Exemple: 'ARTEMIS' (restaurant clasic), 'VERSANT' (snack-bar), 'TATA ȘI FIUL 2' (restaurant clasic), 'AFRODITA' (bar de zi). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_com_limanu_sat_vama_veche",
+            "patterns": [
+                "Restaurante in Com. Limanu, Sat Vama Veche",
+                "Unde mananc in Com. Limanu, Sat Vama Veche",
+                "Ce locuri de mancat sunt in Com. Limanu, Sat Vama Veche",
+                "Recomandari mancare Com. Limanu, Sat Vama Veche",
+                "Baruri in Com. Limanu, Sat Vama Veche",
+                "Unde iesim in Com. Limanu, Sat Vama Veche",
+                "Localuri Com. Limanu, Sat Vama Veche",
+                "Restaurants in Com. Limanu, Sat Vama Veche",
+                "Where to eat in Com. Limanu, Sat Vama Veche",
+                "Food in Com. Limanu, Sat Vama Veche",
+                "Dining in Com. Limanu, Sat Vama Veche",
+                "Bars in Com. Limanu, Sat Vama Veche"
+            ],
+            "responses": [
+                "În Com. Limanu, Sat Vama Veche (CONSTANŢA) sunt 38 locuri clasificate! Tipuri: restaurant clasic (11), bar de zi (9), snack-bar (5), bufet-bar (4). Exemple: 'CAPRICE' (bufet-bar), 'CLUB D'OR' (restaurant clasic), 'SHOT FACTORY' (club sau disco-bar), 'BUFFALO' (bar de zi). 🍽️",
+                "Com. Limanu, Sat Vama Veche are 38 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (11), bar de zi (9), snack-bar (5), bufet-bar (4). Vrei să afli mai multe? 📍",
+                "Com. Limanu, Sat Vama Veche (CONSTANŢA) has 38 classified food establishments! Types: restaurant clasic (11), bar de zi (9), snack-bar (5), bufet-bar (4). Some popular ones: 'CAPRICE' (bufet-bar), 'CLUB D'OR' (restaurant clasic), 'SHOT FACTORY' (club sau disco-bar), 'BUFFALO' (bar de zi). 🌟",
+                "Am găsit 38 locuri de mâncare în Com. Limanu, Sat Vama Veche! Exemple: 'CAPRICE' (bufet-bar), 'CLUB D'OR' (restaurant clasic), 'SHOT FACTORY' (club sau disco-bar), 'BUFFALO' (bar de zi). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_loc_mun_reşiţa",
+            "patterns": [
+                "Restaurante in Mun. Reşiţa",
+                "Unde mananc in Mun. Reşiţa",
+                "Ce locuri de mancat sunt in Mun. Reşiţa",
+                "Recomandari mancare Mun. Reşiţa",
+                "Baruri in Mun. Reşiţa",
+                "Unde iesim in Mun. Reşiţa",
+                "Localuri Mun. Reşiţa",
+                "Restaurants in Mun. Reşiţa",
+                "Where to eat in Mun. Reşiţa",
+                "Food in Mun. Reşiţa",
+                "Dining in Mun. Reşiţa",
+                "Bars in Mun. Reşiţa"
+            ],
+            "responses": [
+                "În Mun. Reşiţa (CARAŞ-SEVERIN) sunt 37 locuri clasificate! Tipuri: restaurant clasic (13), bar de zi (8), snack-bar (6), cafe-bar sau cafenea (3). Exemple: 'DERBY PUB' (bar de zi), 'PUNGUTA CU DOI BANI' (snack-bar), 'THE OFFICE PUB' (cafe-bar sau cafenea), 'BASTILIA' (snack-bar). 🍽️",
+                "Mun. Reşiţa are 37 unități de alimentație! Cele mai multe sunt de tip: restaurant clasic (13), bar de zi (8), snack-bar (6), cafe-bar sau cafenea (3). Vrei să afli mai multe? 📍",
+                "Mun. Reşiţa (CARAŞ-SEVERIN) has 37 classified food establishments! Types: restaurant clasic (13), bar de zi (8), snack-bar (6), cafe-bar sau cafenea (3). Some popular ones: 'DERBY PUB' (bar de zi), 'PUNGUTA CU DOI BANI' (snack-bar), 'THE OFFICE PUB' (cafe-bar sau cafenea), 'BASTILIA' (snack-bar). 🌟",
+                "Am găsit 37 locuri de mâncare în Mun. Reşiţa! Exemple: 'DERBY PUB' (bar de zi), 'PUNGUTA CU DOI BANI' (snack-bar), 'THE OFFICE PUB' (cafe-bar sau cafenea), 'BASTILIA' (snack-bar). Cu ce te pot ajuta? 😊"
+            ]
+        },
+        {
+            "tag": "situr_recommend_any_city",
+            "patterns": [
+                "Recomanda-mi un restaurant in orasul meu",
+                "Unde mananc in orasul meu",
+                "Restaurante in zona mea",
+                "Ce restaurante sunt pe langa mine",
+                "Vreau sa mananc in alt oras",
+                "Restaurante in alte orase",
+                "Nu sunt in Bucuresti",
+                "Sunt intr-un alt oras",
+                "Locations outside Bucharest",
+                "Recommend restaurants in another city",
+                "I'm not in Bucharest",
+                "Restaurants in my city",
+                "Restaurante in provincia",
+                "Mancare buna in provincie",
+                "Ce restaurante sunt la tara",
+                "Locuri de mancare pe litoral",
+                "Restaurante la mare",
+                "Restaurante la munte"
+            ],
+            "responses": [
+                "Pot să te ajut cu restaurante din orice localitate din România! 🇷🇴 Am date oficiale pentru toate cele 41 de județe. Spune-mi orașul sau județul și îți dau recomandări!",
+                "Nu doar București — am informații despre restaurante, baruri, cofetării și alte locuri din TOATĂ România! Scrie-mi numele localității tale! 🗺️",
+                "I have data for food establishments across ALL of Romania, not just Bucharest! Tell me your city or county, and I'll help! 🌟",
+                "Am informații oficiale despre mii de restaurante din toată țara! De la București la Brașov, de la Cluj la Constanța. Unde ești? 📍",
+                "Fie că ești la mare, la munte sau în oraș — am date despre localuri din toată România! Spune-mi localitatea! 🏔️🏖️"
+            ],
+            "suggestions": [
+                "🏙️ București",
+                "🏔️ Brașov",
+                "🌊 Constanța",
+                "🏰 Sibiu",
+                "📍 Alt oraș"
+            ]
         }
     ]
 }
