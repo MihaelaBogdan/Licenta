@@ -53,8 +53,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         LatLng bucharest = new LatLng(44.4268, 26.1025);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bucharest, 14f));
 
-        // Add sample markers
-        addPlaceMarkers();
+        // Fetch places from real backend via Retrofit
+        loadPlacesFromBackend();
 
         // Enable location if permission granted
         if (ActivityCompat.checkSelfPermission(requireContext(),
@@ -63,22 +63,40 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void addPlaceMarkers() {
-        // Sample places
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(44.4323, 26.1037))
-                .title("Caru' cu Bere"));
+    private void loadPlacesFromBackend() {
+        com.example.licenta.data.SessionManager sessionManager = new com.example.licenta.data.SessionManager(
+                requireContext());
+        com.example.licenta.api.ApiService apiService = com.example.licenta.api.ApiClient.getClient()
+                .create(com.example.licenta.api.ApiService.class);
+        apiService.getPlaces().enqueue(new retrofit2.Callback<java.util.List<com.example.licenta.model.Place>>() {
+            @Override
+            public void onResponse(retrofit2.Call<java.util.List<com.example.licenta.model.Place>> call,
+                    retrofit2.Response<java.util.List<com.example.licenta.model.Place>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (com.example.licenta.model.Place place : response.body()) {
+                        // Check local session for favorite status
+                        boolean isFav = sessionManager.isPlaceFavorite(place.id);
 
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(44.4296, 26.1003))
-                .title("Origo Coffee Shop"));
+                        LatLng pos = new LatLng(place.latitude, place.longitude);
+                        MarkerOptions options = new MarkerOptions()
+                                .position(pos)
+                                .title(place.name)
+                                .snippet(place.type);
 
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(44.4412, 26.0958))
-                .title("Cișmigiu Park"));
+                        if (isFav) {
+                            options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
+                                    com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_YELLOW));
+                        }
 
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(44.4275, 26.0878))
-                .title("National Art Museum"));
+                        mMap.addMarker(options);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<java.util.List<com.example.licenta.model.Place>> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 }

@@ -33,17 +33,34 @@
                         android:id="@+id/text_greeting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Good evening, Alex"
+                        android:text=""
                         android:textColor="@color/text_primary"
                         android:textSize="22sp"
                         android:textStyle="bold" />
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Ready to explore Bucharest?"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/text_weather"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="..."
+                            android:textColor="@color/primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/ready_to_explore"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <ImageView
@@ -55,11 +72,28 @@
                     android:src="@drawable/ic_person" />
             </LinearLayout>
 
+            <!-- Itinerary Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_plan_day"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:text="✨ Planifică-mi ziua"
+                android:textAllCaps="false"
+                android:textColor="@color/background_dark"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:backgroundTint="@color/primary"
+                app:icon="@drawable/ic_calendar"
+                app:iconGravity="textStart"
+                app:iconTint="@color/background_dark" />
+
             <!-- Search Bar -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
                 app:cardBackgroundColor="@color/card_dark"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
@@ -82,7 +116,7 @@
                         android:layout_height="match_parent"
                         android:layout_marginStart="12dp"
                         android:background="@android:color/transparent"
-                        android:hint="Search places, events..."
+                        android:hint="@string/search_home_hint"
                         android:textColor="@color/text_primary"
                         android:textColorHint="@color/text_hint"
                         android:textSize="14sp" />
@@ -96,16 +130,16 @@
                 android:layout_marginTop="20dp"
                 android:scrollbars="none">
 
-                <LinearLayout
-                    android:id="@+id/categories_container"
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/category_chip_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    app:singleLine="true">
 
                     <com.google.android.material.chip.Chip
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="All"
+                        android:text="@string/category_all"
                         android:textColor="@color/background_dark"
                         app:chipBackgroundColor="@color/primary"
                         app:chipCornerRadius="20dp" />
@@ -114,7 +148,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Restaurants"
+                        android:text="@string/category_restaurants"
                         android:textColor="@color/text_primary"
                         app:chipBackgroundColor="@color/card_dark"
                         app:chipCornerRadius="20dp" />
@@ -123,7 +157,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Cafes"
+                        android:text="@string/category_cafes"
                         android:textColor="@color/text_primary"
                         app:chipBackgroundColor="@color/card_dark"
                         app:chipCornerRadius="20dp" />
@@ -132,7 +166,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Parks"
+                        android:text="@string/category_parks"
                         android:textColor="@color/text_primary"
                         app:chipBackgroundColor="@color/card_dark"
                         app:chipCornerRadius="20dp" />
@@ -141,11 +175,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Museums"
+                        android:text="@string/category_museums"
                         android:textColor="@color/text_primary"
                         app:chipBackgroundColor="@color/card_dark"
                         app:chipCornerRadius="20dp" />
-                </LinearLayout>
+                </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
             <!-- Map Preview Section -->
@@ -153,7 +187,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Explore Nearby"
+                android:text="@string/explore_nearby"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -180,14 +214,15 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/gradient_overlay" />
+                        android:background="@drawable/bg_gradient_overlay" />
 
                     <TextView
+                        android:id="@+id/text_location"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|start"
                         android:layout_margin="16dp"
-                        android:text="Bucharest"
+                        android:text="@string/bucharest"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -206,7 +241,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Near You"
+                    android:text="@string/near_you"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -214,7 +249,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="See all"
+                    android:text="@string/see_all"
                     android:textColor="@color/primary"
                     android:textSize="14sp" />
             </LinearLayout>
@@ -236,10 +271,11 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/trending_title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Trending Now"
+                    android:text="@string/trending_now"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -247,7 +283,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="See all"
+                    android:text="@string/see_all"
                     android:textColor="@color/primary"
                     android:textSize="14sp" />
             </LinearLayout>

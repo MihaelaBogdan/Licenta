@@ -41,4 +41,5 @@
     <color name="text_primary_light">#FFFFFF</color>
     <color name="text_secondary_light">#9CA3AF</color>
     <color name="secondary_variant">#059669</color>
+    <color name="primary_faded">#3310B981</color>
 </resources>

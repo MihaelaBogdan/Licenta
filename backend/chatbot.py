@@ -46,9 +46,15 @@ dropout_rate = model_data.get('dropout_rate', 0.3)
 tokenizer = DistilBertTokenizer.from_pretrained(SAVE_DIR)
 
 # Load model
-model = IntentClassifier(num_classes=num_classes, dropout_rate=dropout_rate).to(device)
-model.load_state_dict(model_data['model_state'])
-model.eval()
+model = None
+try:
+    model = IntentClassifier(num_classes=num_classes, dropout_rate=dropout_rate).to(device)
+    model.load_state_dict(model_data['model_state'], strict=False)
+    model.eval()
+    print("✅ Chatbot model loaded successfully!")
+except Exception as e:
+    print(f"⚠️ Warning: Chatbot model failed to load: {e}")
+    print("Fallback to basic response logic will be used.")
 
 bot_name = "MysticMinds"
 
@@ -168,6 +174,9 @@ def get_response(msg, language="ro"):
     if not msg or not msg.strip():
         return _get_empty_message(language)
     
+    if model is None:
+        return random.choice(_get_fallback_responses(language))
+    
     top_tag, confidence, _ = _predict_intent(msg)
     
     if confidence > CONFIDENCE_THRESHOLD:
@@ -187,6 +196,14 @@ def get_response_with_details(msg, language="ro"):
         return {
             "answer": _get_empty_message(language),
             "intent": "empty",
+            "confidence": 0.0,
+            "suggestions": _get_fallback_suggestions(language)
+        }
+    
+    if model is None:
+        return {
+            "answer": random.choice(_get_fallback_responses(language)),
+            "intent": "fallback",
             "confidence": 0.0,
             "suggestions": _get_fallback_suggestions(language)
         }

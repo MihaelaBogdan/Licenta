@@ -71,4 +71,8 @@
         <item name="checkedIconTint">@color/accent_green</item>
         <item name="chipSurfaceColor">@color/accent_green</item>
     </style>
+
+    <style name="RoundedSquare">
+        <item name="cornerSize">16dp</item>
+    </style>
 </resources>

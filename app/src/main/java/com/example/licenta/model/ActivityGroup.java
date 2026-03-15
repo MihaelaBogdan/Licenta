@@ -2,23 +2,27 @@ package com.example.licenta.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
 
 @Entity(tableName = "activity_groups")
 public class ActivityGroup {
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    @PrimaryKey(autoGenerate = false)
+    @NonNull
+    public String id;
 
-    public int activityId;
-    public int creatorId;
+    public String activityId;
+    public String creatorId;
     public String groupName;
     public String groupCode; // Unique code for sharing
     public long createdAt;
     public int maxMembers;
 
     public ActivityGroup() {
+        this.id = java.util.UUID.randomUUID().toString();
     }
 
-    public ActivityGroup(int activityId, int creatorId, String groupName) {
+    public ActivityGroup(String activityId, String creatorId, String groupName) {
+        this.id = java.util.UUID.randomUUID().toString();
         this.activityId = activityId;
         this.creatorId = creatorId;
         this.groupName = groupName;
@@ -37,7 +41,4 @@ public class ActivityGroup {
         return code.toString();
     }
 
-    public String getShareLink() {
-        return "https://mysticminds.app/group/" + groupCode;
-    }
 }

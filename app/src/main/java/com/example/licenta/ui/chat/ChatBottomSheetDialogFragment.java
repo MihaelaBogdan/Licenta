@@ -1,5 +1,6 @@
 package com.example.licenta.ui.chat;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import com.example.licenta.api.ApiClient;
 import com.example.licenta.api.ApiService;
 import com.example.licenta.api.ChatRequest;
 import com.example.licenta.api.ChatResponse;
+import com.example.licenta.data.LocaleHelper;
 import com.example.licenta.model.ChatMessage;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import java.util.ArrayList;
@@ -28,12 +30,20 @@ import retrofit2.Response;
 
 public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
+    private static final String TAG = "ChatBotFragment";
+
     private RecyclerView recyclerView;
     private ChatAdapter adapter;
     private List<ChatMessage> messages = new ArrayList<>();
     private EditText inputField;
     private ImageButton sendButton;
     private ApiService apiService;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Apply saved locale to the fragment's context
+        super.onAttach(LocaleHelper.applyLocale(context));
+    }
 
     @Nullable
     @Override
@@ -45,15 +55,18 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         inputField = view.findViewById(R.id.chat_input);
         sendButton = view.findViewById(R.id.chat_send_button);
 
-        apiService = ApiClient.getClient().create(ApiService.class);
+        try {
+            apiService = ApiClient.getClient().create(ApiService.class);
+        } catch (Exception e) {
+            Log.e(TAG, "Error creating API service", e);
+        }
 
         adapter = new ChatAdapter(messages);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // Initial welcome message
-        messages.add(new ChatMessage(
-                "Hi! I'm your Bucharest Guide AI. I can recommend places and things to do. How can I help?", false));
+        // Initial welcome message - using locale-aware string resource
+        messages.add(new ChatMessage(getString(R.string.chatbot_welcome), false));
         adapter.notifyDataSetChanged();
 
         sendButton.setOnClickListener(v -> sendMessage());
@@ -69,26 +82,39 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
             recyclerView.scrollToPosition(messages.size() - 1);
             inputField.setText("");
 
-            ChatRequest request = new ChatRequest(text);
+            if (apiService == null) {
+                messages.add(new ChatMessage(getString(R.string.chatbot_connection_error), false));
+                adapter.notifyItemInserted(messages.size() - 1);
+                recyclerView.scrollToPosition(messages.size() - 1);
+                return;
+            }
+
+            // Send with current language
+            String currentLanguage = LocaleHelper.getChatbotLanguage(requireContext());
+            ChatRequest request = new ChatRequest(text, currentLanguage);
             Call<ChatResponse> call = apiService.chat(request);
 
             call.enqueue(new Callback<ChatResponse>() {
                 @Override
                 public void onResponse(Call<ChatResponse> call, Response<ChatResponse> response) {
+                    if (getContext() == null)
+                        return; // Fragment detached
                     if (response.isSuccessful() && response.body() != null) {
                         String reply = response.body().answer;
                         messages.add(new ChatMessage(reply, false));
                         adapter.notifyItemInserted(messages.size() - 1);
                         recyclerView.scrollToPosition(messages.size() - 1);
                     } else {
-                        Toast.makeText(getContext(), "Failed to get response", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.chatbot_error), Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<ChatResponse> call, Throwable t) {
-                    Log.e("ChatBot", "Error sending message", t);
-                    messages.add(new ChatMessage("Sorry, I'm having trouble connecting to my brain right now.", false));
+                    if (getContext() == null)
+                        return; // Fragment detached
+                    Log.e(TAG, "Error sending message", t);
+                    messages.add(new ChatMessage(getString(R.string.chatbot_connection_error), false));
                     adapter.notifyItemInserted(messages.size() - 1);
                     recyclerView.scrollToPosition(messages.size() - 1);
                 }

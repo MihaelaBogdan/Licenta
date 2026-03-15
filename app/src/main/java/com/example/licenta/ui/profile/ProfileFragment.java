@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -15,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.licenta.R;
 import com.example.licenta.LoginActivity;
+import com.example.licenta.RegisterActivity;
+import com.example.licenta.SettingsActivity;
 import com.example.licenta.adapter.BadgeAdapter;
 import com.example.licenta.adapter.AchievementAdapter;
 import com.example.licenta.data.AppDatabase;
@@ -37,6 +41,10 @@ public class ProfileFragment extends Fragment {
     private SessionManager sessionManager;
     private AppDatabase db;
 
+    // Containers
+    private LinearLayout guestContainer;
+    private LinearLayout profileContent;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -46,18 +54,49 @@ public class ProfileFragment extends Fragment {
         sessionManager = new SessionManager(requireContext());
         db = AppDatabase.getInstance(requireContext());
 
-        initViews(view);
-        loadUserData();
-        setupBadges();
-        setupAchievements();
+        // Get containers
+        guestContainer = view.findViewById(R.id.guest_container);
+        profileContent = view.findViewById(R.id.profile_content);
 
-        // Logout on long press of avatar
-        profileAvatar.setOnLongClickListener(v -> {
-            sessionManager.logout();
-            startActivity(new Intent(requireContext(), LoginActivity.class));
-            requireActivity().finish();
-            return true;
-        });
+        if (sessionManager.isLoggedIn()) {
+            // Show profile
+            guestContainer.setVisibility(View.GONE);
+            profileContent.setVisibility(View.VISIBLE);
+
+            initViews(view);
+            loadUserData();
+            setupBadges();
+            setupAchievements();
+
+            // Settings button on long press of avatar
+            profileAvatar.setOnLongClickListener(v -> {
+                startActivity(new Intent(requireContext(), SettingsActivity.class));
+                return true;
+            });
+
+            // Settings button
+            View settingsButton = view.findViewById(R.id.btn_settings);
+            if (settingsButton != null) {
+                settingsButton.setOnClickListener(v -> {
+                    startActivity(new Intent(requireContext(), SettingsActivity.class));
+                });
+            }
+        } else {
+            // Show guest state
+            guestContainer.setVisibility(View.VISIBLE);
+            profileContent.setVisibility(View.GONE);
+
+            Button btnLogin = view.findViewById(R.id.btn_guest_login);
+            Button btnRegister = view.findViewById(R.id.btn_guest_register);
+
+            btnLogin.setOnClickListener(v -> {
+                startActivity(new Intent(requireContext(), LoginActivity.class));
+            });
+
+            btnRegister.setOnClickListener(v -> {
+                startActivity(new Intent(requireContext(), RegisterActivity.class));
+            });
+        }
 
         return view;
     }
@@ -65,9 +104,25 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadUserData();
-        setupBadges();
-        setupAchievements();
+        // Re-check login state on resume (user might have just logged in)
+        if (sessionManager.isLoggedIn()) {
+            if (guestContainer != null)
+                guestContainer.setVisibility(View.GONE);
+            if (profileContent != null) {
+                profileContent.setVisibility(View.VISIBLE);
+                if (profileName != null) {
+                    loadUserData();
+                    setupBadges();
+                    setupAchievements();
+                } else {
+                    // Views not yet initialized, init them
+                    initViews(profileContent);
+                    loadUserData();
+                    setupBadges();
+                    setupAchievements();
+                }
+            }
+        }
     }
 
     private void initViews(View view) {
@@ -87,7 +142,7 @@ public class ProfileFragment extends Fragment {
         User user = sessionManager.getCurrentUser();
         if (user != null) {
             profileName.setText(user.name);
-            profileTitle.setText("Explorer Level " + user.level);
+            profileTitle.setText(String.format(getString(R.string.explorer_level), user.level));
             levelBadge.setText(String.valueOf(user.level));
 
             int xpNeeded = user.getXpForNextLevel();

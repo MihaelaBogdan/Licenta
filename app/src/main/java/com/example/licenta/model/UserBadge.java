@@ -2,13 +2,15 @@ package com.example.licenta.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
 
 @Entity(tableName = "user_badges")
 public class UserBadge {
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    @PrimaryKey(autoGenerate = false)
+    @NonNull
+    public String id;
 
-    public int userId;
+    public String userId;
     public String badgeId;
     public String name;
     public String description;
@@ -17,9 +19,11 @@ public class UserBadge {
     public long unlockedAt;
 
     public UserBadge() {
+        this.id = java.util.UUID.randomUUID().toString();
     }
 
-    public UserBadge(int userId, String badgeId, String name, String description, String iconName) {
+    public UserBadge(String userId, String badgeId, String name, String description, String iconName) {
+        this.id = java.util.UUID.randomUUID().toString();
         this.userId = userId;
         this.badgeId = badgeId;
         this.name = name;

@@ -42,8 +42,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Restaurant"
+                android:textColor="@color/accent_green"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/place_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Bucharest, Romania"
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textSize="10sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <LinearLayout
                 android:layout_width="match_parent"

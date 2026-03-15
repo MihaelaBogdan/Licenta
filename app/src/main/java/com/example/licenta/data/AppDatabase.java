@@ -11,6 +11,7 @@ import com.example.licenta.model.PlannedActivity;
 import com.example.licenta.model.ActivityGroup;
 import com.example.licenta.model.GroupMember;
 import com.example.licenta.model.Invitation;
+import com.example.licenta.model.MemberSchedule;
 
 @Database(entities = {
         User.class,
@@ -19,8 +20,9 @@ import com.example.licenta.model.Invitation;
         PlannedActivity.class,
         ActivityGroup.class,
         GroupMember.class,
-        Invitation.class
-}, version = 2, exportSchema = false)
+        Invitation.class,
+        MemberSchedule.class
+}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
@@ -36,6 +38,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract GroupDao groupDao();
 
     public abstract InvitationDao invitationDao();
+
+    public abstract ScheduleDao scheduleDao();
 
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {

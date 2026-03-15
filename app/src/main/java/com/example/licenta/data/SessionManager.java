@@ -24,7 +24,7 @@ public class SessionManager {
     }
 
     public void createSession(User user) {
-        editor.putInt(KEY_USER_ID, user.id);
+        editor.putString(KEY_USER_ID, user.id);
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.apply();
 
@@ -36,13 +36,21 @@ public class SessionManager {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
     }
 
-    public int getUserId() {
-        return prefs.getInt(KEY_USER_ID, -1);
+    public String getUserId() {
+        try {
+            return prefs.getString(KEY_USER_ID, null);
+        } catch (ClassCastException e) {
+            // Legacy int ID detected, clear it to force a fresh login with Supabase UUID
+            editor.remove(KEY_USER_ID);
+            editor.remove(KEY_IS_LOGGED_IN);
+            editor.apply();
+            return null;
+        }
     }
 
     public User getCurrentUser() {
-        int userId = getUserId();
-        if (userId == -1)
+        String userId = getUserId();
+        if (userId == null)
             return null;
         return db.userDao().getUserById(userId);
     }
@@ -52,7 +60,7 @@ public class SessionManager {
         editor.apply();
     }
 
-    private void initializeBadgesForUser(int userId) {
+    private void initializeBadgesForUser(String userId) {
         // Check if badges already exist
         if (db.badgeDao().getBadgesForUser(userId).isEmpty()) {
             // Create default badges
@@ -74,8 +82,8 @@ public class SessionManager {
     }
 
     public void awardAchievement(String title, int xpReward) {
-        int userId = getUserId();
-        if (userId == -1)
+        String userId = getUserId();
+        if (userId == null)
             return;
 
         // Add achievement
@@ -90,8 +98,8 @@ public class SessionManager {
     }
 
     public void unlockBadge(String badgeId) {
-        int userId = getUserId();
-        if (userId == -1)
+        String userId = getUserId();
+        if (userId == null)
             return;
 
         UserBadge badge = db.badgeDao().getBadge(userId, badgeId);
@@ -112,8 +120,8 @@ public class SessionManager {
     }
 
     public void recordPlaceVisit(String placeName) {
-        int userId = getUserId();
-        if (userId == -1)
+        String userId = getUserId();
+        if (userId == null)
             return;
 
         User user = getCurrentUser();
@@ -132,5 +140,25 @@ public class SessionManager {
                 unlockBadge("explorer");
             }
         }
+    }
+
+    public boolean isPlaceFavorite(String placeId) {
+        return prefs.getBoolean("fav_" + placeId, false);
+    }
+
+    public void setPlaceFavorite(String placeId, boolean favorite) {
+        editor.putBoolean("fav_" + placeId, favorite);
+        editor.apply();
+    }
+
+    public java.util.Map<String, Integer> getPreferredCategories(
+            java.util.List<com.example.licenta.model.Place> allPlaces) {
+        java.util.Map<String, Integer> counts = new java.util.HashMap<>();
+        for (com.example.licenta.model.Place p : allPlaces) {
+            if (isPlaceFavorite(p.id)) {
+                counts.put(p.type, counts.getOrDefault(p.type, 0) + 1);
+            }
+        }
+        return counts;
     }
 }

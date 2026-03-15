@@ -14,10 +14,22 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Setup Maps API Key from local.properties
+        Properties properties = new Properties()
+        if (project.rootProject.file('local.properties').exists()) {
+            properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        }
+        manifestPlaceholders = [MAPS_API_KEY: properties.getProperty('MAPS_API_KEY', '')]
+
+        // Supabase config
+        buildConfigField "String", "SUPABASE_URL", "\"https://zbixeueymyxcimueobig.supabase.co\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiaXhldWV5bXl4Y2ltdWVvYmlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NzE2MTYsImV4cCI6MjA4OTA0NzYxNn0.XZRGmlp8g7FklZGsl7CfR-CeO7FMinop28LnojPLpNA\""
     }
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     buildTypes {
@@ -65,6 +77,14 @@ dependencies {
     // Lifecycle
     implementation libs.lifecycle.viewmodel
     implementation libs.lifecycle.livedata
+
+    // Credential Manager (Google Sign-In)
+    implementation libs.credentials
+    implementation libs.credentials.play.services
+    implementation libs.google.id
+    implementation libs.play.services.auth
+    implementation libs.work.runtime
+
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit

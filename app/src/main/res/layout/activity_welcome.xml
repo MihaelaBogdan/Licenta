@@ -11,128 +11,124 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:src="@drawable/bg_welcome"
-        android:alpha="0.6" />
+        android:src="@drawable/bg_welcome" />
 
-    <!-- Gradient Overlay -->
+    <!-- Gradient Overlay for better text readability and depth -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/gradient_overlay" />
+        android:background="@drawable/bg_gradient_overlay" />
 
     <!-- Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="32dp">
-
-        <!-- Logo Dots -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-            <View
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:background="@drawable/circle_green" />
-            <View
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/circle_white" />
-            <View
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/circle_green" />
-            <View
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/circle_white" />
-        </LinearLayout>
+        android:layout_marginBottom="48dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Your Pocket Guide"
-            android:textColor="@color/text_primary"
-            android:textSize="32sp"
-            android:textStyle="bold" />
+            android:text="@string/welcome_pocket_guide"
+            android:textColor="@color/white"
+            android:textSize="36sp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:alpha="0.9" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="to Bucharest"
-            android:textColor="@color/primary"
-            android:textSize="32sp"
-            android:textStyle="bold" />
+            android:text="@string/welcome_to_bucharest"
+            android:textColor="@color/accent_green"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.02" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Plan your perfect city escape with curated experiences, hidden gems, and personalized recommendations."
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp"
-            android:lineSpacingMultiplier="1.4" />
+            android:layout_marginTop="16dp"
+            android:text="@string/welcome_description"
+            android:textColor="#E0E0E0"
+            android:textSize="16sp"
+            android:lineSpacingMultiplier="1.5" />
 
-        <!-- Social Login Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="32dp">
-
-            <Button
-                android:id="@+id/btn_google"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Google"
-                android:textColor="@color/text_primary"
-                android:backgroundTint="@color/card_dark"
-                app:cornerRadius="8dp" />
-
-            <Button
-                android:id="@+id/btn_facebook"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Facebook"
-                android:textColor="@color/text_primary"
-                android:backgroundTint="@color/card_dark"
-                app:cornerRadius="8dp" />
-        </LinearLayout>
-
-        <!-- Get Started Button -->
-        <Button
+        <!-- Main Action Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_get_started"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="16dp"
-            android:text="Get Started"
+            android:layout_height="64dp"
+            android:layout_marginTop="40dp"
+            android:text="@string/btn_get_started"
             android:textColor="@color/background_dark"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:backgroundTint="@color/primary"
-            app:cornerRadius="12dp" />
+            app:cornerRadius="32dp"
+            app:backgroundTint="@color/accent_green"
+            app:elevation="8dp" />
+
+        <!-- Social Login Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="32dp"
+            android:text="@string/or_continue_with"
+            android:textColor="#B0B0B0"
+            android:textSize="12sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_google"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/google"
+                android:textColor="@color/white"
+                app:strokeColor="#40FFFFFF"
+                app:icon="@drawable/ic_google"
+                app:iconGravity="textStart"
+                app:iconTint="@null"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_facebook"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/facebook"
+                android:textColor="@color/white"
+                app:strokeColor="#40FFFFFF"
+                app:icon="@drawable/ic_facebook"
+                app:iconGravity="textStart"
+                app:iconTint="@null"
+                app:cornerRadius="16dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/text_already_account"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:text="Already have an account? Login"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:layout_marginTop="24dp"
+            android:text="@string/already_have_account_prompt"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:alpha="0.8" />
 
     </LinearLayout>
 
