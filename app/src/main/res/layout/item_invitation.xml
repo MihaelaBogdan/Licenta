@@ -3,80 +3,119 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="@color/card_dark"
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="@color/app_surface"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="12dp">
+        android:orientation="vertical"
+        android:padding="14dp">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/circle_primary"
-            android:padding="10dp"
-            android:src="@drawable/ic_person"
-            app:tint="@color/background_dark" />
-
+        <!-- Header -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <!-- Avatar circle -->
             <TextView
-                android:id="@+id/invitation_from"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="John invited you"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/circle_primary"
+                android:gravity="center"
+                android:text="👤"
+                android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/invitation_activity"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Coffee at Origo"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/invitation_from"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="User te-a invitat"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/invitation_activity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:drawableStart="@drawable/ic_location"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@color/primary"
+                    android:text="Activitate"
+                    android:textColor="@color/app_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Time Info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_rounded_surface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_clock"
+                app:tint="@color/app_text_hint" />
 
             <TextView
                 android:id="@+id/invitation_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Tomorrow at 10:00"
-                android:textColor="@color/text_hint"
+                android:layout_marginStart="6dp"
+                android:text="20 Mar la 10:00"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_accept"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="Accept"
-            android:textSize="12sp"
-            android:backgroundTint="@color/primary"
-            app:cornerRadius="8dp" />
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="end"
+            android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/btn_decline"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/circle_card"
-            android:padding="8dp"
-            android:src="@drawable/ic_close"
-            app:tint="@color/text_hint" />
+            <ImageView
+                android:id="@+id/btn_decline"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/circle_card"
+                android:padding="8dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/error" />
 
+            <Button
+                android:id="@+id/btn_accept"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:backgroundTint="@color/primary"
+                android:minWidth="100dp"
+                android:text="Acceptă"
+                android:textColor="@color/app_background"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:cornerRadius="10dp" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

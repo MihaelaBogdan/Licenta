@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/app_card"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/circle_primary"
+            android:padding="14dp"
+            android:src="@drawable/ic_group_add"
+            app:tint="@color/app_background" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Intră într-un grup"
+            android:textColor="@color/app_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Introdu codul primit de la prietenul tău pentru a te alătura grupului"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Code Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.CityScape.TextInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:hint="Cod grup">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_group_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:inputType="textCapCharacters"
+            android:letterSpacing="0.3"
+            android:maxLength="6"
+            android:textColor="@color/app_text_primary"
+            android:textColorHint="@color/app_text_hint"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Join Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_join_group"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="20dp"
+        app:backgroundTint="@color/primary"
+        android:text="Alătură-te grupului"
+        android:textColor="@color/app_background"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

@@ -4,3 +4,5 @@ torch
 transformers
 numpy
 nltk
+python-dotenv
+requests

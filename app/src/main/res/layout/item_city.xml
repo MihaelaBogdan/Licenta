@@ -43,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="București"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif-medium" />
 
@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Romania"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="13sp" />
         </LinearLayout>
 

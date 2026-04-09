@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/card_dark"
+    app:cardBackgroundColor="@color/app_card"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
 
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1h"
-                android:textColor="@color/text_hint"
+                android:textColor="@color/app_text_hint"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -58,7 +58,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Place Name"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Restaurant"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
             <!-- Group Info -->
@@ -96,52 +96,88 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
+            <!-- Budget Info -->
+            <LinearLayout
+                android:id="@+id/budget_info_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_wallet"
+                    app:tint="@color/accent_green" />
+
+                <TextView
+                    android:id="@+id/text_budget_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="50 RON"
+                    android:textColor="@color/accent_green"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/activity_notes"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Notes..."
-                android:textColor="@color/text_hint"
+                android:textColor="@color/app_text_hint"
                 android:textSize="12sp"
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Action Buttons -->
+        <!-- Action Buttons Row -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:orientation="vertical">
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <!-- Share Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_invite_friends_text"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:paddingHorizontal="4dp"
+                android:text="Invită Prieteni"
+                android:textAllCaps="false"
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_group_add"
+                app:iconSize="14dp" />
+
+            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
             <ImageView
                 android:id="@+id/btn_share"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
                 android:background="@drawable/circle_card"
                 android:padding="6dp"
                 android:src="@drawable/ic_share" />
 
-            <!-- Create Group Button -->
-            <ImageView
-                android:id="@+id/btn_create_group"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/circle_card"
-                android:padding="6dp"
-                android:src="@drawable/ic_group_add" />
-
-            <!-- Check Button -->
             <ImageView
                 android:id="@+id/btn_complete"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginTop="8dp"
                 android:background="@drawable/circle_card"
                 android:padding="6dp"
                 android:src="@drawable/ic_check" />
+                
+            <ImageView
+                android:id="@+id/btn_create_group"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 

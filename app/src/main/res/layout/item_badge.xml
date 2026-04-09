@@ -23,7 +23,7 @@
         android:gravity="center"
         android:maxLines="2"
         android:text="Badge"
-        android:textColor="@color/text_secondary"
+        android:textColor="@color/app_text_secondary"
         android:textSize="11sp" />
 
 </LinearLayout>

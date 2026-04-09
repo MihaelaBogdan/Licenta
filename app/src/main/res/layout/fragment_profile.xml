@@ -3,14 +3,87 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
+    android:background="@color/app_background"
     android:fillViewport="true">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
+
+        <!-- Guest State (shown when not logged in) -->
+        <LinearLayout
+            android:id="@+id/guest_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@drawable/circle_green"
+                android:padding="24dp"
+                android:src="@drawable/ic_person" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/login_to_see_profile"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="16sp"
+                android:gravity="center" />
+
+            <Button
+                android:id="@+id/btn_guest_login"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="24dp"
+                android:text="@string/login_prompt"
+                android:textSize="16sp"
+                android:backgroundTint="@color/primary"
+                app:cornerRadius="12dp" />
+
+            <Button
+                android:id="@+id/btn_guest_register"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="12dp"
+                android:text="@string/register_prompt"
+                android:textSize="16sp"
+                android:textColor="@color/primary"
+                app:strokeColor="@color/primary"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- Logged-in profile content -->
+        <LinearLayout
+            android:id="@+id/profile_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="visible">
+
+        <!-- Settings Button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_settings"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/app_text_secondary"
+                android:contentDescription="@string/settings" />
+        </LinearLayout>
 
         <!-- Profile Header -->
         <LinearLayout
@@ -40,8 +113,8 @@
                     android:layout_gravity="bottom|end"
                     android:background="@drawable/circle_primary"
                     android:gravity="center"
-                    android:text="24"
-                    android:textColor="@color/background_dark"
+                    android:text=""
+                    android:textColor="@color/app_background"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </FrameLayout>
@@ -51,8 +124,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Alex Dumitru"
-                android:textColor="@color/text_primary"
+                android:text=""
+                android:textColor="@color/app_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -61,7 +134,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Explorer Level 24"
+                android:text=""
                 android:textColor="@color/primary"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -71,7 +144,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/card_dark"
+            app:cardBackgroundColor="@color/app_card"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp">
 
@@ -90,8 +163,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Level Progress"
-                        android:textColor="@color/text_primary"
+                        android:text="@string/level_progress"
+                        android:textColor="@color/app_text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -99,7 +172,7 @@
                         android:id="@+id/xp_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2,450 / 3,000 XP"
+                        android:text=""
                         android:textColor="@color/primary"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -119,7 +192,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="550 XP to next level"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/app_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -137,7 +210,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                app:cardBackgroundColor="@color/card_dark"
+                app:cardBackgroundColor="@color/app_card"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp">
 
@@ -152,7 +225,7 @@
                         android:id="@+id/stat_places"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="47"
+                        android:text="0"
                         android:textColor="@color/primary"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -160,8 +233,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Places Visited"
-                        android:textColor="@color/text_secondary"
+                        android:text="@string/places_visited"
+                        android:textColor="@color/app_text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -172,7 +245,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                app:cardBackgroundColor="@color/card_dark"
+                app:cardBackgroundColor="@color/app_card"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp">
 
@@ -187,7 +260,7 @@
                         android:id="@+id/stat_badges"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="12"
+                        android:text="0"
                         android:textColor="@color/warning"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -195,8 +268,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Badges Earned"
-                        android:textColor="@color/text_secondary"
+                        android:text="@string/badges_earned"
+                        android:textColor="@color/app_text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -207,8 +280,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Your Badges"
-            android:textColor="@color/text_primary"
+            android:text="@string/your_badges"
+            android:textColor="@color/app_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -224,8 +297,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Recent Achievements"
-            android:textColor="@color/text_primary"
+            android:text="@string/recent_achievements"
+            android:textColor="@color/app_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -236,5 +309,7 @@
             android:layout_marginTop="12dp"
             android:layout_marginBottom="80dp" />
 
-    </LinearLayout>
+        </LinearLayout>
+
+    </FrameLayout>
 </ScrollView>

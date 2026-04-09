@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary_dark"
+    android:background="@color/app_background"
     android:orientation="vertical">
 
     <!-- Header -->
@@ -21,7 +21,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_back"
-            app:tint="@color/text_primary"
+            app:tint="@color/app_text_primary"
             android:contentDescription="Back" />
 
         <TextView
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="@string/settings"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="20sp"
             android:fontFamily="sans-serif-medium" />
     </LinearLayout>
@@ -48,8 +48,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Account"
-                android:textColor="@color/text_secondary"
+                android:text="@string/account"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="12sp"
                 android:textAllCaps="true" />
 
@@ -74,8 +74,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Edit Profile"
-                    android:textColor="@color/text_primary"
+                    android:text="@string/edit_profile"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
 
                 <ImageView
@@ -83,7 +83,7 @@
                     android:layout_height="20dp"
                     android:rotation="180"
                     android:src="@drawable/ic_back"
-                    app:tint="@color/text_hint" />
+                    app:tint="@color/app_text_hint" />
             </LinearLayout>
 
             <LinearLayout
@@ -107,7 +107,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
                     android:text="@string/select_city"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
 
                 <ImageView
@@ -115,7 +115,7 @@
                     android:layout_height="20dp"
                     android:rotation="180"
                     android:src="@drawable/ic_back"
-                    app:tint="@color/text_hint" />
+                    app:tint="@color/app_text_hint" />
             </LinearLayout>
 
             <!-- Preferences Section -->
@@ -123,15 +123,97 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Preferences"
-                android:textColor="@color/text_secondary"
+                android:text="@string/preferences"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="12sp"
                 android:textAllCaps="true" />
+
+            <!-- Personalize Options -->
+            <LinearLayout
+                android:id="@+id/personalizeItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/accent_green" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Preferințe și Recomandări"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:rotation="180"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/app_text_hint" />
+            </LinearLayout>
+
+            <!-- Language Selection -->
+            <LinearLayout
+                android:id="@+id/languageItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_language"
+                    app:tint="@color/accent_green" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/language"
+                        android:textColor="@color/app_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/currentLanguageText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/language_romanian"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:rotation="180"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/app_text_hint" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="12dp">
@@ -148,7 +230,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
                     android:text="@string/dark_mode"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -178,7 +260,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
                     android:text="@string/notifications"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -194,8 +276,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="About"
-                android:textColor="@color/text_secondary"
+                android:text="@string/about"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="12sp"
                 android:textAllCaps="true" />
 
@@ -214,7 +296,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/privacy_policy"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
             </LinearLayout>
 
@@ -232,7 +314,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/terms_of_service"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
             </LinearLayout>
 
@@ -249,19 +331,33 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="About CityScape"
-                    android:textColor="@color/text_primary"
+                    android:text="@string/about_app"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
             </LinearLayout>
+
+            <!-- Logout Button -->
+            <Button
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/logout"
+                android:textColor="#FF5252"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/app_card"
+                app:cornerRadius="12dp" />
 
             <!-- Version -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
                 android:gravity="center"
-                android:text="Version 1.0.0"
-                android:textColor="@color/text_hint"
+                android:text="@string/version"
+                android:textColor="@color/app_text_hint"
                 android:textSize="12sp" />
 
         </LinearLayout>

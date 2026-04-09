@@ -1,0 +1,51 @@
+﻿C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\MainActivity.java :         binding = ActivityMainBinding.inflate(getLayoutInflater());
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\AchievementAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\AchievementAdapter.java :         View view = LayoutInflater.from(parent.getContext())
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\AchievementAdapter.java :                 .inflate(R.layout.item_achievement, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\ActivityAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\ActivityAdapter.java :         View view = LayoutInflater.from(context).inflate(R.layout.item_planned_activity, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\BadgeAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\BadgeAdapter.java :         View view = LayoutInflater.from(parent.getContext())
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\BadgeAdapter.java :                 .inflate(R.layout.item_badge, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\ChatAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\ChatAdapter.java :         View view = LayoutInflater.from(parent.getContext())
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\ChatAdapter.java :                 .inflate(R.layout.item_chat_message, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\EventAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\EventAdapter.java :         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_event, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\GroupCardAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\GroupCardAdapter.java :         View view = LayoutInflater.from(context).inflate(R.layout.item_group_card, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\InvitationAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\InvitationAdapter.java :         View view = LayoutInflater.from(context).inflate(R.layout.item_invitation, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\MemberScheduleAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\MemberScheduleAdapter.java :         View view = LayoutInflater.from(context).inflate(R.layout.item_member_schedule, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\PlaceAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\PlaceAdapter.java :         View view = LayoutInflater.from(context).inflate(layoutRes, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\SuggestionAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\adapter\SuggestionAdapter.java :         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_group_suggestion, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View view = inflater.inflate(R.layout.fragment_calendar, container, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_group, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_group_voting, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_invitations, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_join_group, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_group_schedule, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\calendar\CalendarFragment.java :         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_activity, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\chat\ChatBottomSheetDialogFragment.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\chat\ChatBottomSheetDialogFragment.java :     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\chat\ChatBottomSheetDialogFragment.java :         View view = inflater.inflate(R.layout.fragment_chat_bottom_sheet, container, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\home\HomeFragment.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\home\HomeFragment.java :         public View onCreateView(@NonNull LayoutInflater inflater,
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\home\HomeFragment.java :                 binding = FragmentHomeBinding.inflate(inflater, container, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\home\HomeFragment.java :                         View dialogView = getLayoutInflater().inflate(R.layout.dialog_plan_itinerary, null);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\itinerary\ItineraryFragment.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\itinerary\ItineraryFragment.java :     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\itinerary\ItineraryFragment.java :         binding = FragmentItineraryBinding.inflate(inflater, container, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\itinerary\ItineraryStepAdapter.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\itinerary\ItineraryStepAdapter.java :         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_itinerary_step, parent, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\map\MapFragment.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\map\MapFragment.java :     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\map\MapFragment.java :         View view = inflater.inflate(R.layout.fragment_map, container, false);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\profile\ProfileFragment.java : import android.view.LayoutInflater;
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\profile\ProfileFragment.java :     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\ui\profile\ProfileFragment.java :         View view = inflater.inflate(R.layout.fragment_profile, container, false);

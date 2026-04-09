@@ -17,8 +17,8 @@ import com.example.licenta.model.ActivityGroup;
 import com.example.licenta.model.PlannedActivity;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
+import java.util.List;
 
 public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder> {
 
@@ -61,9 +61,10 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
     }
 
     class ActivityViewHolder extends RecyclerView.ViewHolder {
-        TextView time, placeName, placeType, notes, groupMemberCount;
+        TextView time, placeName, placeType, notes, groupMemberCount, budgetDisplay;
         ImageView btnComplete, btnShare, btnCreateGroup;
-        LinearLayout groupInfoContainer;
+        com.google.android.material.button.MaterialButton btnInviteFriendsText;
+        LinearLayout groupInfoContainer, budgetInfoContainer;
 
         ActivityViewHolder(View itemView) {
             super(itemView);
@@ -74,8 +75,11 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             btnComplete = itemView.findViewById(R.id.btn_complete);
             btnShare = itemView.findViewById(R.id.btn_share);
             btnCreateGroup = itemView.findViewById(R.id.btn_create_group);
+            btnInviteFriendsText = itemView.findViewById(R.id.btn_invite_friends_text);
             groupInfoContainer = itemView.findViewById(R.id.group_info_container);
             groupMemberCount = itemView.findViewById(R.id.group_member_count);
+            budgetInfoContainer = itemView.findViewById(R.id.budget_info_container);
+            budgetDisplay = itemView.findViewById(R.id.text_budget_display);
         }
 
         void bind(PlannedActivity activity, int position) {
@@ -88,6 +92,15 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                 notes.setVisibility(View.VISIBLE);
             } else {
                 notes.setVisibility(View.GONE);
+            }
+
+            // Budget Info
+            if (activity.budget > 0) {
+                budgetInfoContainer.setVisibility(View.VISIBLE);
+                String curr = activity.currency != null ? activity.currency : "RON";
+                budgetDisplay.setText(String.format(Locale.getDefault(), "%.2f %s", activity.budget, curr));
+            } else {
+                budgetInfoContainer.setVisibility(View.GONE);
             }
 
             // Check if activity has a group
@@ -125,6 +138,12 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             });
 
             btnCreateGroup.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onCreateGroupClick(activity);
+                }
+            });
+
+            btnInviteFriendsText.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onCreateGroupClick(activity);
                 }

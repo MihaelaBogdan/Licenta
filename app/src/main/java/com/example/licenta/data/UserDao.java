@@ -11,7 +11,7 @@ import java.util.List;
 @Dao
 public interface UserDao {
     @Insert
-    long insert(User user);
+    void insert(User user);
 
     @Update
     void update(User user);
@@ -20,7 +20,7 @@ public interface UserDao {
     void delete(User user);
 
     @Query("SELECT * FROM users WHERE id = :userId")
-    User getUserById(int userId);
+    User getUserById(String userId);
 
     @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
     User getUserByEmail(String email);

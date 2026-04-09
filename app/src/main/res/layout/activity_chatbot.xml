@@ -22,7 +22,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_back"
-            app:tint="@color/text_primary"
+            app:tint="@color/app_text_primary"
             android:contentDescription="Back" />
 
         <LinearLayout
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/ai_assistant"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-medium" />
 
@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/ask_anything"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:text="🍽️ Find restaurant"
                 app:chipBackgroundColor="@color/card_background"
-                app:chipStrokeColor="@color/text_hint"
+                app:chipStrokeColor="@color/app_text_hint"
                 app:chipStrokeWidth="1dp" />
 
             <com.google.android.material.chip.Chip
@@ -130,7 +130,7 @@
                 android:layout_marginStart="8dp"
                 android:text="☕ Cozy cafe"
                 app:chipBackgroundColor="@color/card_background"
-                app:chipStrokeColor="@color/text_hint"
+                app:chipStrokeColor="@color/app_text_hint"
                 app:chipStrokeWidth="1dp" />
 
             <com.google.android.material.chip.Chip
@@ -140,7 +140,7 @@
                 android:layout_marginStart="8dp"
                 android:text="🎲 Surprise me"
                 app:chipBackgroundColor="@color/card_background"
-                app:chipStrokeColor="@color/text_hint"
+                app:chipStrokeColor="@color/app_text_hint"
                 app:chipStrokeWidth="1dp" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -150,7 +150,7 @@
         android:id="@+id/inputContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/surface_dark"
+        android:background="@color/app_surface"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="12dp"
@@ -166,8 +166,8 @@
             android:imeOptions="actionSend"
             android:inputType="text"
             android:paddingHorizontal="16dp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
+            android:textColor="@color/app_text_primary"
+            android:textColorHint="@color/app_text_hint"
             android:textSize="14sp" />
 
         <ImageButton

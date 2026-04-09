@@ -28,7 +28,7 @@
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_message_bot"
             android:padding="12dp"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="14sp" />
     </LinearLayout>
 
@@ -41,7 +41,7 @@
         android:background="@drawable/bg_message_user"
         android:maxWidth="280dp"
         android:padding="12dp"
-        android:textColor="@color/background_dark"
+        android:textColor="@color/app_background"
         android:textSize="14sp"
         android:visibility="gone" />
 

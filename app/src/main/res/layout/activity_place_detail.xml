@@ -47,7 +47,7 @@
                     android:layout_height="40dp"
                     android:background="@drawable/bg_icon_circle"
                     android:src="@drawable/ic_back"
-                    app:tint="@color/text_primary"
+                    app:tint="@color/app_text_primary"
                     android:contentDescription="Back" />
 
                 <View
@@ -62,7 +62,7 @@
                     android:layout_marginEnd="8dp"
                     android:background="@drawable/bg_icon_circle"
                     android:src="@drawable/ic_favorite_outline"
-                    app:tint="@color/text_primary"
+                    app:tint="@color/app_text_primary"
                     android:contentDescription="Favorite" />
 
                 <ImageButton
@@ -71,7 +71,7 @@
                     android:layout_height="40dp"
                     android:background="@drawable/bg_icon_circle"
                     android:src="@drawable/ic_share"
-                    app:tint="@color/text_primary"
+                    app:tint="@color/app_text_primary"
                     android:contentDescription="Share" />
             </LinearLayout>
 
@@ -107,7 +107,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Place Name"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/app_text_primary"
                         android:textSize="24sp"
                         android:fontFamily="sans-serif-medium" />
 
@@ -131,14 +131,14 @@
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="8dp"
                             android:text="•"
-                            android:textColor="@color/text_secondary" />
+                            android:textColor="@color/app_text_secondary" />
 
                         <TextView
                             android:id="@+id/priceLevel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="$$"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="@color/app_text_secondary"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -157,7 +157,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="4.5"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/app_text_primary"
                         android:textSize="20sp"
                         android:fontFamily="sans-serif-medium" />
 
@@ -166,7 +166,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="(123)"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/app_text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -197,7 +197,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/your_compatibility"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="@color/app_text_secondary"
                             android:textSize="12sp" />
 
                         <TextView
@@ -250,7 +250,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_location"
-                    app:tint="@color/text_secondary" />
+                    app:tint="@color/app_text_secondary" />
 
                 <TextView
                     android:id="@+id/placeAddress"
@@ -259,7 +259,7 @@
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:text="123 Street Name, City"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -276,7 +276,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_clock"
-                    app:tint="@color/text_secondary" />
+                    app:tint="@color/app_text_secondary" />
 
                 <TextView
                     android:id="@+id/openingHours"
@@ -301,7 +301,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/about"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:fontFamily="sans-serif-medium" />
 
@@ -312,7 +312,7 @@
                     android:layout_marginTop="8dp"
                     android:lineSpacingMultiplier="1.3"
                     android:text="Description text here..."
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/app_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -328,7 +328,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/atmosphere"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:fontFamily="sans-serif-medium" />
 
@@ -376,7 +376,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/call"
-                            android:textColor="@color/text_primary"
+                            android:textColor="@color/app_text_primary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -408,7 +408,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/website"
-                            android:textColor="@color/text_primary"
+                            android:textColor="@color/app_text_primary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>

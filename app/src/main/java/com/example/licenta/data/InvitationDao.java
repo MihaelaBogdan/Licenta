@@ -11,7 +11,7 @@ import java.util.List;
 @Dao
 public interface InvitationDao {
     @Insert
-    long insert(Invitation invitation);
+    void insert(Invitation invitation);
 
     @Update
     void update(Invitation invitation);
@@ -20,16 +20,16 @@ public interface InvitationDao {
     void delete(Invitation invitation);
 
     @Query("SELECT * FROM invitations WHERE toUserId = :userId ORDER BY sentAt DESC")
-    List<Invitation> getInvitationsForUser(int userId);
+    List<Invitation> getInvitationsForUser(String userId);
 
     @Query("SELECT * FROM invitations WHERE toUserId = :userId AND status = 'pending' ORDER BY sentAt DESC")
-    List<Invitation> getPendingInvitations(int userId);
+    List<Invitation> getPendingInvitations(String userId);
 
     @Query("SELECT COUNT(*) FROM invitations WHERE toUserId = :userId AND status = 'pending'")
-    int getPendingCount(int userId);
+    int getPendingCount(String userId);
 
     @Query("SELECT * FROM invitations WHERE fromUserId = :userId ORDER BY sentAt DESC")
-    List<Invitation> getSentInvitations(int userId);
+    List<Invitation> getSentInvitations(String userId);
 
     @Query("SELECT * FROM invitations WHERE id = :invitationId")
     Invitation getInvitationById(int invitationId);

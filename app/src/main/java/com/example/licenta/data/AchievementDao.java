@@ -10,17 +10,17 @@ import java.util.List;
 @Dao
 public interface AchievementDao {
     @Insert
-    long insert(UserAchievement achievement);
+    void insert(UserAchievement achievement);
 
     @Delete
     void delete(UserAchievement achievement);
 
     @Query("SELECT * FROM user_achievements WHERE userId = :userId ORDER BY earnedAt DESC")
-    List<UserAchievement> getAchievementsForUser(int userId);
+    List<UserAchievement> getAchievementsForUser(String userId);
 
     @Query("SELECT * FROM user_achievements WHERE userId = :userId ORDER BY earnedAt DESC LIMIT :limit")
-    List<UserAchievement> getRecentAchievements(int userId, int limit);
+    List<UserAchievement> getRecentAchievements(String userId, int limit);
 
     @Query("SELECT SUM(xpReward) FROM user_achievements WHERE userId = :userId")
-    int getTotalXpEarned(int userId);
+    int getTotalXpEarned(String userId);
 }

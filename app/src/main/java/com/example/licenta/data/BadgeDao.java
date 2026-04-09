@@ -11,7 +11,7 @@ import java.util.List;
 @Dao
 public interface BadgeDao {
     @Insert
-    long insert(UserBadge badge);
+    void insert(UserBadge badge);
 
     @Update
     void update(UserBadge badge);
@@ -20,14 +20,14 @@ public interface BadgeDao {
     void delete(UserBadge badge);
 
     @Query("SELECT * FROM user_badges WHERE userId = :userId")
-    List<UserBadge> getBadgesForUser(int userId);
+    List<UserBadge> getBadgesForUser(String userId);
 
     @Query("SELECT * FROM user_badges WHERE userId = :userId AND isUnlocked = 1")
-    List<UserBadge> getUnlockedBadges(int userId);
+    List<UserBadge> getUnlockedBadges(String userId);
 
     @Query("SELECT COUNT(*) FROM user_badges WHERE userId = :userId AND isUnlocked = 1")
-    int getUnlockedBadgeCount(int userId);
+    int getUnlockedBadgeCount(String userId);
 
     @Query("SELECT * FROM user_badges WHERE userId = :userId AND badgeId = :badgeId LIMIT 1")
-    UserBadge getBadge(int userId, String badgeId);
+    UserBadge getBadge(String userId, String badgeId);
 }

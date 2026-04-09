@@ -2,14 +2,16 @@ package com.example.licenta.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
 
 @Entity(tableName = "planned_activities")
 public class PlannedActivity {
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    @PrimaryKey(autoGenerate = false)
+    @NonNull
+    public String id;
 
-    public int userId;
-    public int placeId;
+    public String userId;
+    public String placeId;
     public String placeName;
     public String placeType;
     public String placeImageUrl;
@@ -17,12 +19,16 @@ public class PlannedActivity {
     public String scheduledTime;
     public boolean isCompleted;
     public String notes;
+    public double budget;
+    public String currency;
 
     public PlannedActivity() {
+        this.id = java.util.UUID.randomUUID().toString();
     }
 
-    public PlannedActivity(int userId, int placeId, String placeName, String placeType,
+    public PlannedActivity(String userId, String placeId, String placeName, String placeType,
             String placeImageUrl, long scheduledDate, String scheduledTime) {
+        this.id = java.util.UUID.randomUUID().toString();
         this.userId = userId;
         this.placeId = placeId;
         this.placeName = placeName;

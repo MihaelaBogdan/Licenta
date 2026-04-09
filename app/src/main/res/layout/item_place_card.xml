@@ -4,7 +4,7 @@
     android:layout_width="160dp"
     android:layout_height="200dp"
     android:layout_marginEnd="12dp"
-    app:cardBackgroundColor="@color/card_dark"
+    app:cardBackgroundColor="@color/app_card"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp">
 
@@ -32,7 +32,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Place Name"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -42,8 +42,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Restaurant"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textColor="@color/accent_green"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/place_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Bucharest, Romania"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="10sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -64,7 +76,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:text="4.5"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
@@ -80,6 +92,6 @@
         android:background="@drawable/circle_dark_overlay"
         android:padding="6dp"
         android:src="@drawable/ic_favorite_border"
-        app:tint="@color/white" />
+        app:tint="@color/app_text_primary" />
 
 </androidx.cardview.widget.CardView>

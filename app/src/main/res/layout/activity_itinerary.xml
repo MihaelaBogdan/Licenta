@@ -22,7 +22,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_back"
-            app:tint="@color/text_primary"
+            app:tint="@color/app_text_primary"
             android:contentDescription="Back" />
 
         <TextView
@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="@string/perfect_day"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="20sp"
             android:fontFamily="sans-serif-medium" />
     </LinearLayout>
@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/create_itinerary"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-medium" />
 
@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/choose_theme"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
             <!-- Theme Chips -->
@@ -137,7 +137,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="My Itineraries"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-medium" />
 
@@ -155,14 +155,14 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:src="@drawable/ic_itinerary"
-                    app:tint="@color/text_hint" />
+                    app:tint="@color/app_text_hint" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="No itineraries yet"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
 
                 <TextView
@@ -171,7 +171,7 @@
                     android:layout_marginTop="4dp"
                     android:gravity="center"
                     android:text="Generate your first perfect day above!"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/app_text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
 

@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/tell_us"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="28sp"
             android:fontFamily="sans-serif-medium" />
 
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/setup_subtitle"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
         <!-- Categories Section -->
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="@string/what_interests_you"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="18sp"
             android:fontFamily="sans-serif-medium" />
 
@@ -102,7 +102,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/preferred_atmosphere"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="18sp"
             android:fontFamily="sans-serif-medium" />
 
@@ -162,7 +162,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/budget_preference"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/app_text_primary"
             android:textSize="18sp"
             android:fontFamily="sans-serif-medium" />
 
@@ -179,7 +179,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="💰 Budget"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:buttonTint="@color/accent_green" />
 
             <RadioButton
@@ -189,7 +189,7 @@
                 android:layout_weight="1"
                 android:checked="true"
                 android:text="💰💰 Moderate"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:buttonTint="@color/accent_green" />
 
             <RadioButton
@@ -198,7 +198,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="💰💰💰 Premium"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:buttonTint="@color/accent_green" />
         </RadioGroup>
 
@@ -229,7 +229,7 @@
             android:gravity="center"
             android:padding="16dp"
             android:text="@string/skip_for_now"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
     </LinearLayout>

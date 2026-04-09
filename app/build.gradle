@@ -14,10 +14,26 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Setup Keys from local.properties
+        Properties properties = new Properties()
+        if (project.rootProject.file('local.properties').exists()) {
+            properties.load(project.rootProject.file('local.properties').newDataInputStream())
+        }
+        
+        manifestPlaceholders = [MAPS_API_KEY: properties.getProperty('MAPS_API_KEY', '')]
+
+        buildConfigField "String", "GOOGLE_API_KEY", properties.getProperty('GOOGLE_API_KEY', '""')
+        buildConfigField "String", "SUPABASE_URL", properties.getProperty('SUPABASE_URL', '""')
+        buildConfigField "String", "SUPABASE_KEY", properties.getProperty('SUPABASE_KEY', '""')
+        buildConfigField "String", "SUPABASE_ANON_KEY", properties.getProperty('SUPABASE_KEY', '""')
+        buildConfigField "String", "OPENWEATHER_API_KEY", properties.getProperty('OPENWEATHER_API_KEY', '""')
+        buildConfigField "String", "TICKETMASTER_API_KEY", properties.getProperty('TICKETMASTER_API_KEY', '""')
     }
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     buildTypes {
@@ -65,6 +81,14 @@ dependencies {
     // Lifecycle
     implementation libs.lifecycle.viewmodel
     implementation libs.lifecycle.livedata
+
+    // Credential Manager (Google Sign-In)
+    implementation libs.credentials
+    implementation libs.credentials.play.services
+    implementation libs.google.id
+    implementation libs.play.services.auth
+    implementation libs.work.runtime
+
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit

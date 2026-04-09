@@ -1,0 +1,5 @@
+﻿C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\LoginActivity.java :         setContentView(R.layout.activity_login);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\MainActivity.java :         setContentView(binding.getRoot());
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\RegisterActivity.java :         setContentView(R.layout.activity_register);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\SettingsActivity.java :         setContentView(R.layout.activity_settings);
+C:\Users\mihab\Licenta\app\src\main\java\com\example\licenta\WelcomeActivity.java :         setContentView(R.layout.activity_welcome);

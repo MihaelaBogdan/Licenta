@@ -1,0 +1,91 @@
+git : remote: error: GH013: 
+Repository rule violations 
+found for refs/heads/main.   
+     
+At line:1 char:1
++ git push origin main 2>&1 
+| out-file -encoding ascii 
+push_error_final ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (remote:  
+   error: ...s/main.         
+   :String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+remote: 
+remote: - GITHUB PUSH 
+PROTECTION        
+remote:   ???????????????????
+?????????????????????????????
+?????????????????????????????
+?????????????????????????????
+?????????????????        
+remote:     Resolve the 
+following violations before 
+pushing again        
+remote: 
+remote:     - Push cannot 
+contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how 
+to resolve a blocked push    
+    
+remote:      https://docs.git
+hub.com/code-security/secret-
+scanning/working-with-secret-
+scanning-and-push-protection/
+working-with-push-protection-
+from-the-command-line#resolvi
+ng-a-blocked-push        
+remote:             
+remote:      (?) This 
+repository does not have 
+Secret Scanning enabled, but 
+is eligible. Enable Secret 
+Scanning to view and manage 
+detected secrets.        
+remote:      Visit the 
+repository settings page, htt
+ps://github.com/MihaelaBogdan
+/Licenta/settings/security_an
+alysis        
+remote:             
+remote:             
+remote:       ?????? 
+Openweather API Key ?????????
+?????????????????????????????
+?????????????????????????????
+??????????????????????????   
+     
+remote:        locations:    
+    
+remote:          - commit: e9
+0a18c974b44ea007764727ca899d6
+f5fa0f41c        
+remote:            path: 
+local.properties:14        
+remote:             
+remote:        (?) To push, 
+remove secret from commit(s) 
+or follow this URL to allow 
+the secret.        
+remote:        https://github
+.com/MihaelaBogdan/Licenta/se
+curity/secret-scanning/unbloc
+k-secret/3C8Ew4mEieCly0j5z37L
+OMMCmwi        
+remote:             
+remote: 
+remote: 
+To https://github.com/Mihaela
+Bogdan/Licenta.git
+ ! [remote rejected] main -> 
+main (push declined due to 
+repository rule violations)
+error: failed to push some 
+refs to 'https://github.com/M
+ihaelaBogdan/Licenta.git'

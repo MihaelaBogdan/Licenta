@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="@color/card_dark"
+    app:cardBackgroundColor="@color/app_card"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
 
@@ -21,7 +21,7 @@
             android:background="@drawable/circle_primary"
             android:padding="10dp"
             android:src="@drawable/ic_star"
-            app:tint="@color/background_dark" />
+            app:tint="@color/app_background" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Achievement Title"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="2 days ago"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 

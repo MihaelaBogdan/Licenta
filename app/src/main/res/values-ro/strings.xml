@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Licenta</string>
+
+    <!-- Auth strings -->
+    <string name="sign_in">Autentificare</string>
+    <string name="full_name">Nume Complet</string>
+    <string name="email">Email</string>
+    <string name="password">Parolă</string>
+    <string name="confirm_password">Confirmă Parola</string>
+    <string name="forgot_password">Ai uitat parola?</string>
+    <string name="or_continue_with">Sau continuă cu</string>
+    <string name="google">Google</string>
+    <string name="facebook">Facebook</string>
+    <string name="dont_have_account">Nu ai cont? Înregistrează-te</string>
+    <string name="welcome_back">Bine ai revenit</string>
+    <string name="sign_in_to_continue">Conectează-te pentru a continua explorarea</string>
+    <string name="login">Autentificare</string>
+    <string name="start_exploring">Începe Explorarea</string>
+    <string name="create_account_subtitle">Creează-ți contul pentru a descoperi Bucureștiul</string>
+    <string name="or_sign_up_with_email">sau înregistrează-te cu email</string>
+    <string name="sign_up">Înregistrare</string>
+    <string name="already_have_account">Ai deja cont? Autentifică-te</string>
+    <string name="sign_in_with_google">Conectare cu Google</string>
+
+    <!-- Calendar strings -->
+    <string name="close">Închide</string>
+    <string name="planned_activities">Activități Planificate</string>
+    <string name="no_planned_activities">Nicio activitate planificată</string>
+
+    <!-- Chatbot strings -->
+    <string name="ai_assistant">Asistent AI</string>
+    <string name="ask_anything">Întreabă-mă orice despre locuri de vizitat!</string>
+    <string name="type_message">Scrie un mesaj…</string>
+    <string name="chatbot_welcome">Salut! Sunt ghidul tău AI pentru București. Pot să-ți recomand locuri și activități. Cu ce te pot ajuta?</string>
+    <string name="chatbot_error">Nu am reușit să obțin un răspuns</string>
+    <string name="chatbot_connection_error">Îmi pare rău, am probleme de conectare momentan.</string>
+    <string name="please_type_something">Te rog scrie ceva!</string>
+
+    <!-- City select strings -->
+    <string name="select_city">Selectează Orașul</string>
+    <string name="search_cities">Caută orașe…</string>
+
+    <!-- Itinerary strings -->
+    <string name="perfect_day">Planifică-ți Ziua Perfectă</string>
+    <string name="create_itinerary">Creează Itinerariu</string>
+    <string name="choose_theme">Alege o Temă</string>
+    <string name="generate_personalized">Generează Itinerariu Personalizat</string>
+
+    <!-- Place detail strings -->
+    <string name="your_compatibility">Compatibilitatea Ta</string>
+    <string name="about">Despre</string>
+    <string name="atmosphere">Atmosferă</string>
+    <string name="call">Apelează</string>
+    <string name="website">Website</string>
+    <string name="directions">Direcții</string>
+    <string name="write_review">Scrie o Recenzie</string>
+
+    <!-- Profile setup strings -->
+    <string name="tell_us">Spune-ne Despre Tine</string>
+    <string name="setup_subtitle">Ajută-ne să-ți personalizăm experiența</string>
+    <string name="what_interests_you">Ce te interesează?</string>
+    <string name="preferred_atmosphere">Atmosfera Preferată</string>
+    <string name="budget_preference">Preferință de Buget</string>
+    <string name="get_started">Începe</string>
+    <string name="skip_for_now">Sari Peste</string>
+
+    <!-- Settings strings -->
+    <string name="settings">Setări</string>
+    <string name="dark_mode">Mod Întunecat</string>
+    <string name="notifications">Notificări</string>
+    <string name="privacy_policy">Politica de Confidențialitate</string>
+    <string name="terms_of_service">Termeni și Condiții</string>
+    <string name="language">Limbă</string>
+    <string name="language_romanian">Română</string>
+    <string name="language_english">Engleză</string>
+    <string name="select_language">Selectează Limba</string>
+    <string name="account">Cont</string>
+    <string name="edit_profile">Editează Profilul</string>
+    <string name="preferences">Preferințe</string>
+    <string name="about_app">Despre CityScape</string>
+    <string name="version">Versiunea 1.0.0</string>
+    <string name="logout">Deconectare</string>
+    <string name="logout_confirm">Ești sigur că vrei să te deconectezi?</string>
+    <string name="yes">Da</string>
+    <string name="no">Nu</string>
+    <string name="cancel">Anulează</string>
+
+    <!-- Explore strings -->
+    <string name="search_hint">Caută locuri…</string>
+    <string name="discover_nearby">Descoperă în Apropiere</string>
+
+    <!-- Favorites strings -->
+    <string name="favorites">Favorite</string>
+    <string name="no_favorites">Încă nu ai favorite</string>
+    <string name="add_favorites_hint">Începe să explorezi și adaugă locuri la favorite!</string>
+
+    <!-- Profile strings -->
+    <string name="explorer_level">Explorator Nivel %d</string>
+    <string name="level_progress">Progresul Nivelului</string>
+    <string name="xp_to_next_level">%d XP până la nivelul următor</string>
+    <string name="places_visited">Locuri Vizitate</string>
+    <string name="badges_earned">Insigne Câștigate</string>
+    <string name="your_badges">Insignele Tale</string>
+    <string name="recent_achievements">Realizări Recente</string>
+
+    <!-- Welcome strings -->
+    <string name="welcome_title">Descoperă Bucureștiul</string>
+    <string name="welcome_subtitle">Ghidul tău personal de explorare</string>
+    <string name="btn_get_started">Începe</string>
+    <string name="already_have_account_prompt">Ai deja un cont? Autentifică-te</string>
+
+    <!-- Toast messages -->
+    <string name="please_fill_all_fields">Te rog completează toate câmpurile</string>
+    <string name="invalid_credentials">Email sau parolă invalidă</string>
+    <string name="welcome_user">Bine ai revenit, %s!</string>
+    <string name="email_already_registered">Email-ul este deja înregistrat</string>
+    <string name="welcome_new_user">Bine ai venit, %s!</string>
+    <string name="google_sign_in_failed">Autentificarea cu Google a eșuat</string>
+    <string name="language_changed">Limba a fost schimbată</string>
+
+    <!-- Welcome page titles -->
+    <string name="welcome_pocket_guide">Ghidul Tău de Buzunar</string>
+    <string name="welcome_to_bucharest">pentru București</string>
+    <string name="welcome_description">Planifică-ți escapada perfectă în oraș cu experiențe selectate, locuri ascunse și recomandări personalizate.</string>
+
+    <!-- Group & Schedule strings -->
+    <string name="my_groups">Grupurile Mele</string>
+    <string name="create_group">Creează Grup</string>
+    <string name="join_group">Intră în Grup</string>
+    <string name="group_code">Cod Grup</string>
+    <string name="group_created">Grup creat!</string>
+    <string name="joined_group">Te-ai alăturat grupului %s!</string>
+    <string name="group_not_found">Grup negăsit. Verifică codul!</string>
+    <string name="already_in_group">Ești deja în acest grup!</string>
+    <string name="group_full">Grupul este plin!</string>
+    <string name="schedule_saved">Programul tău a fost salvat!</string>
+    <string name="no_schedules_yet">Nimeni nu și-a setat programul încă</string>
+    <string name="member_availability">Disponibilitatea Membrilor</string>
+    <string name="share_via_whatsapp">Partajează pe WhatsApp</string>
+    <string name="share_invite">Partajează Invitația</string>
+    <string name="pending_invitations">Invitații în Așteptare</string>
+    <string name="invitation_accepted">Invitație acceptată!</string>
+    <string name="invitation_declined">Invitația a fost refuzată</string>
+    <string name="enter_group_code">Introdu codul primit de la prietenul tău pentru a te alătura grupului</string>
+    <string name="set_availability">Setează când ești disponibil pentru această activitate</string>
+    <string name="i_am_available">Sunt disponibil</string>
+    <string name="from_time">De la</string>
+    <string name="to_time">Până la</string>
+    <string name="schedules">Programe</string>
+    <string name="view">Vezi</string>
+    <string name="save">Salvează</string>
+    <string name="members">membri</string>
+    <string name="member">membru</string>
+    <string name="groups">grupuri</string>
+    <string name="group_label">grup</string>
+    <string name="no_groups_yet">Niciun grup încă</string>
+    <string name="create_group_from_activity">Creează un grup dintr-o activitate sau intră cu un cod</string>
+    <string name="add_activity">Adaugă Activitate</string>
+    <string name="todays_activities">Activitățile de Azi</string>
+    <string name="tap_plus_to_add">Apasă + pentru a adăuga o activitate</string>
+    <string name="enter_place_name">Introdu numele locului</string>
+    <string name="enter_group_name">Introdu un nume de grup</string>
+    <string name="code_must_be_6">Codul trebuie să aibă 6 caractere</string>
+    <string name="you_have_invitations">Ai %d invitații în așteptare</string>
+
+    <!-- Navigation strings -->
+    <string name="nav_home">Acasă</string>
+    <string name="nav_map">Hartă</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- Search hints -->
+    <string name="search_map_hint">Caută pe hartă…</string>
+    <string name="search_home_hint">Caută locuri, evenimente…</string>
+
+    <!-- Home section strings -->
+    <string name="greeting_template">Bună, %s</string>
+    <string name="ready_to_explore">Gata să explorezi Bucureștiul?</string>
+    <string name="category_all">Toate</string>
+    <string name="category_restaurants">Restaurante</string>
+    <string name="category_cafes">Cafenele</string>
+    <string name="category_parks">Parcuri</string>
+    <string name="category_museums">Muzee</string>
+    <string name="explore_nearby">În Apropiere</string>
+    <string name="bucharest">București</string>
+    <string name="near_you">Lângă Tine</string>
+    <string name="see_all">Vezi tot</string>
+    <string name="trending_now">În Trend</string>
+
+    <!-- HomeFragment strings -->
+    <string name="visited_place">Vizitat: %s (+50 XP)</string>
+    <string name="failed_load_places">Nu s-au putut încărca locurile</string>
+    <string name="error_connecting">Eroare la conectarea cu serverul</string>
+    <string name="greeting_morning">Bună dimineața</string>
+    <string name="greeting_afternoon">Bună ziua</string>
+    <string name="greeting_evening">Bună seara</string>
+    <string name="greeting_night">Noapte bună</string>
+
+    <!-- Profile guest strings -->
+    <string name="guest_user">Vizitator</string>
+    <string name="login_to_see_profile">Autentifică-te pentru a vedea profilul</string>
+    <string name="login_prompt">Autentificare</string>
+    <string name="register_prompt">Creează Cont</string>
+</resources>

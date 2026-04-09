@@ -8,9 +8,34 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 public interface ApiService {
-    @GET("places")
-    Call<List<Place>> getPlaces();
+        @GET("places")
+        Call<List<Place>> getPlaces();
 
-    @POST("predict")
-    Call<ChatResponse> chat(@Body ChatRequest request);
+        @GET("nearby")
+        Call<List<Place>> getNearby(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("type") String type);
+
+        @POST("predict")
+        Call<ChatResponse> chat(@Body ChatRequest request);
+
+        @GET("weather")
+        Call<WeatherResponse> getWeather(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng);
+
+        @GET("itinerary")
+        Call<List<ItineraryItem>> getItinerary(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("scope") String scope,
+                        @retrofit2.http.Query("radius") Integer radius,
+                        @retrofit2.http.Query("type") String type);
+
+        @GET("events")
+        Call<List<com.example.licenta.model.Event>> getEvents(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("interests") String interests);
 }

@@ -2,21 +2,25 @@ package com.example.licenta.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
 
 @Entity(tableName = "user_achievements")
 public class UserAchievement {
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    @PrimaryKey(autoGenerate = false)
+    @NonNull
+    public String id;
 
-    public int userId;
+    public String userId;
     public String title;
     public int xpReward;
     public long earnedAt;
 
     public UserAchievement() {
+        this.id = java.util.UUID.randomUUID().toString();
     }
 
-    public UserAchievement(int userId, String title, int xpReward) {
+    public UserAchievement(String userId, String title, int xpReward) {
+        this.id = java.util.UUID.randomUUID().toString();
         this.userId = userId;
         this.title = title;
         this.xpReward = xpReward;
