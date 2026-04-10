@@ -9,7 +9,8 @@ load_dotenv()
 
 # Configurations - Hardcoded for environment stability
 # Configurations - Loaded from environment variables
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = None  # Comentat temporar pentru a evita costurile
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 

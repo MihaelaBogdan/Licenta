@@ -33,6 +33,8 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         void onShareClick(PlannedActivity activity);
 
         void onCreateGroupClick(PlannedActivity activity);
+        
+        void onExportClick(PlannedActivity activity);
     }
 
     public ActivityAdapter(Context context, List<PlannedActivity> activities, OnActivityActionListener listener) {
@@ -62,7 +64,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
 
     class ActivityViewHolder extends RecyclerView.ViewHolder {
         TextView time, placeName, placeType, notes, groupMemberCount, budgetDisplay;
-        ImageView btnComplete, btnShare, btnCreateGroup;
+        ImageView btnComplete, btnShare, btnCreateGroup, btnExport;
         com.google.android.material.button.MaterialButton btnInviteFriendsText;
         LinearLayout groupInfoContainer, budgetInfoContainer;
 
@@ -75,6 +77,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             btnComplete = itemView.findViewById(R.id.btn_complete);
             btnShare = itemView.findViewById(R.id.btn_share);
             btnCreateGroup = itemView.findViewById(R.id.btn_create_group);
+            btnExport = itemView.findViewById(R.id.btn_export);
             btnInviteFriendsText = itemView.findViewById(R.id.btn_invite_friends_text);
             groupInfoContainer = itemView.findViewById(R.id.group_info_container);
             groupMemberCount = itemView.findViewById(R.id.group_member_count);
@@ -140,6 +143,12 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             btnCreateGroup.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onCreateGroupClick(activity);
+                }
+            });
+
+            btnExport.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onExportClick(activity);
                 }
             });
 

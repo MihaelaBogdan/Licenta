@@ -31,11 +31,19 @@ public interface ApiService {
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("scope") String scope,
                         @retrofit2.http.Query("radius") Integer radius,
-                        @retrofit2.http.Query("type") String type);
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("budget") Integer budget,
+                        @retrofit2.http.Query("interests") String interests);
 
         @GET("events")
         Call<List<com.example.licenta.model.Event>> getEvents(
                         @retrofit2.http.Query("lat") double lat,
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("interests") String interests);
+
+        @POST("visit")
+        Call<Void> recordVisit(@Body VisitRequest request);
+
+        @GET("visited")
+        Call<List<Place>> getVisited(@retrofit2.http.Query("user_id") String userId);
 }

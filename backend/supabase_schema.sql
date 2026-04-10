@@ -11,6 +11,17 @@ CREATE TABLE IF NOT EXISTS public.places (
     address TEXT
 );
 
+-- Visited Places (Recorded manually or through activity completion)
+CREATE TABLE IF NOT EXISTS public.visited_places (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    place_id INTEGER, -- If it's a static place from Supabase
+    google_place_id TEXT, -- If it's a real-time place from Google
+    place_name TEXT NOT NULL,
+    place_type TEXT,
+    visited_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- User Profiles (Extends Supabase Auth Auth.users)
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,

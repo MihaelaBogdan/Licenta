@@ -25,6 +25,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         void onPlaceClick(Place place);
 
         void onFavoriteClick(Place place);
+        void onVisitedClick(Place place);
     }
 
     public PlaceAdapter(Context context, List<Place> placeList, boolean isHorizontal, OnPlaceClickListener listener) {
@@ -69,6 +70,18 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             placeType = itemView.findViewById(isHorizontal ? R.id.place_type : R.id.placeCategory);
             placeRating = itemView.findViewById(isHorizontal ? R.id.place_rating : R.id.placeRating);
             placeAddress = itemView.findViewById(isHorizontal ? R.id.place_address : R.id.placeAddress);
+
+            View btnVisited = itemView.findViewById(isHorizontal ? R.id.btn_visited : R.id.btnVisited);
+            if (btnVisited != null) {
+                btnVisited.setOnClickListener(v -> {
+                    if (listener != null) {
+                        int pos = getAdapterPosition();
+                        if (pos != RecyclerView.NO_POSITION) {
+                            listener.onVisitedClick(placeList.get(pos));
+                        }
+                    }
+                });
+            }
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {

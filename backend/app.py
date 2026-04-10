@@ -54,7 +54,8 @@ import requests
 import os
 
 # API Keys - Loaded from environment variables (.env)
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = None  # Comentat temporar pentru a evita costurile
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
@@ -177,6 +178,9 @@ def get_events():
         print(f"⚠️ Ticketmaster error: {ex}")
 
     # Fallback to Google Maps if Ticketmaster completely fails or gets rate limited
+    if not GOOGLE_API_KEY:
+        return jsonify([])
+
     try:
         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
         params = {
@@ -208,6 +212,106 @@ def get_events():
 
     return jsonify([])
 
+@app.post("/visit")
+def record_visit():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    place_id = data.get("place_id")
+    google_place_id = data.get("google_place_id")
+    place_name = data.get("place_name")
+    place_type = data.get("place_type", "General")
+
+    if not user_id or not place_name:
+        return jsonify({"error": "Missing user_id or place_name"}), 400
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
+
+    visit_data = {
+        "user_id": user_id,
+        "place_id": place_id,
+        "google_place_id": google_place_id,
+        "place_name": place_name,
+        "place_type": place_type
+    }
+
+    url = f"{SUPABASE_URL}/rest/v1/visited_places"
+    requests.post(url, headers=headers, json=visit_data)
+
+    profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
+    try:
+        p_res = requests.get(profile_url, headers=headers).json()
+        if p_res:
+            profile = p_res[0]
+            new_visited_count = profile.get("places_visited", 0) + 1
+            new_xp = profile.get("current_xp", 0) + 20
+            
+            update_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}"
+            requests.patch(update_url, headers=headers, json={
+                "places_visited": new_visited_count,
+                "current_xp": new_xp,
+                "total_xp": profile.get("total_xp", 0) + 20
+            })
+            check_and_unlock_badges(user_id, new_visited_count, place_type)
+    except Exception as e:
+        print(f"Error updating profile: {e}")
+
+    return jsonify({"status": "success", "message": "Vizită înregistrată!"})
+
+@app.get("/visited")
+def get_visited():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&select=*"
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return jsonify(response.json())
+    return jsonify([])
+
+def check_and_unlock_badges(user_id, total_visits, last_type):
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    badges_to_check = []
+    if total_visits >= 1: badges_to_check.append({"id": "first_visit", "name": "Prima Aventură", "desc": "Ai vizitat prima ta locație!"})
+    if total_visits >= 5: badges_to_check.append({"id": "explorer", "name": "Explorator", "desc": "Ai vizitat 5 locații diferite!"})
+    if total_visits >= 10: badges_to_check.append({"id": "pro_traveler", "name": "Călător Pro", "desc": "Ești deja un expert al orașului!"})
+    
+    if last_type:
+        lt = last_type.lower()
+        if any(x in lt for x in ["rest", "mâncare", "food", "cafe"]):
+            badges_to_check.append({"id": "foodie", "name": "Gourmet", "desc": "Pasionat de restaurante și cafenele."})
+        elif any(x in lt for x in ["parc", "park", "nature", "grădină"]):
+            badges_to_check.append({"id": "nature", "name": "Iubitor de Natură", "desc": "Îți plac parcurile și aerul curat!"})
+        elif any(x in lt for x in ["muz", "mus", "art", "gal"]):
+            badges_to_check.append({"id": "culture", "name": "Rafinat", "desc": "Apreciezi arta și cultura."})
+
+    for b in badges_to_check:
+        badge_data = {
+            "user_id": user_id,
+            "badge_id": b["id"],
+            "name": b["name"],
+            "description": b["desc"],
+            "is_unlocked": True,
+            "unlocked_at": "now()"
+        }
+        url = f"{SUPABASE_URL}/rest/v1/user_badges"
+        requests.post(url, headers=headers, json=badge_data)
+
 @app.get("/places")
 def get_places():
     headers = {
@@ -231,6 +335,9 @@ def get_places():
 @app.get("/nearby")
 def get_nearby_realtime():
     """Fetches real-time recommendations from Google Places based on user coordinates."""
+    if not GOOGLE_API_KEY:
+        return jsonify([])
+
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     place_type = request.args.get("type", "restaurant")
@@ -316,24 +423,82 @@ def get_weather():
 
 @app.get("/itinerary")
 def get_itinerary():
-    lat = request.args.get("lat")
-    lng = request.args.get("lng")
-    if not lat or not lng:
-        return jsonify({"error": "Missing coordinates"}), 400
+    if not GOOGLE_API_KEY:
+        return jsonify([])
 
+    lat = float(request.args.get("lat"))
+    lng = float(request.args.get("lng"))
+    style = request.args.get("type", "exploration").lower()
+    budget = int(request.args.get("budget", 250))
+    interests = request.args.get("interests", "").lower()
+    
     import random
     
-    # Randomize slot types for maximum variety
-    explorations = ["museum", "tourist_attraction", "art_gallery", "zoo", "aquarium"]
-    relaxations = ["park", "shopping_mall", "movie_theater", "bowling_alley", "book_store"]
-    venues = ["restaurant", "meal_takeaway", "food", "bar"]
+    # Randomly offset the center slightly for variety between calls
+    # This ensures that "Plan 1", "Plan 2", "Plan 3" don't always pick the same "closest" place
+    lat += random.uniform(-0.005, 0.005)
+    lng += random.uniform(-0.005, 0.005)
 
-    slots = [
-        {"type": "cafe", "label": "Mic Dejun"},
-        {"type": random.choice(explorations), "label": "Explorare"},
-        {"type": random.choice(venues), "label": "Prânz"},
-        {"type": random.choice(relaxations), "label": "Relaxare"}
-    ]
+    # Calculate max allowed price level based on budget
+    max_price = 4
+    if budget < 100: max_price = 1
+    elif budget < 300: max_price = 2
+    
+    # Category pool
+    culture_pool = ["museum", "art_gallery", "church", "library", "university"]
+    explore_pool = ["tourist_attraction", "zoo", "aquarium", "stadium", "city_hall"]
+    relax_pool = ["park", "shopping_mall", "movie_theater", "bowling_alley", "book_store", "spa"]
+    food_pool = ["restaurant", "cafe", "bakery", "bar", "meal_takeaway"]
+
+    # Inject preferences into pools if they match
+    if "art" in interests or "cultur" in interests:
+        culture_pool *= 2 # Increase probability
+    if "natur" in interests:
+        relax_pool = ["park", "park", "garden"] + relax_pool
+    if "food" in interests or "mancare" in interests:
+        food_pool = ["restaurant", "restaurant"] + food_pool
+
+    # Build targeted slots based on style
+    if "cultural" in style:
+        slots = [
+            {"type": "cafe", "label": "Mic Dejun"},
+            {"type": random.choice(culture_pool), "label": "Activitate Culturală"},
+            {"type": "restaurant", "label": "Prânz"},
+            {"type": random.choice(culture_pool), "label": "Explorare Istorică"}
+        ]
+    elif "relax" in style:
+        slots = [
+            {"type": "cafe", "label": "Mic Dejun"},
+            {"type": random.choice(relax_pool), "label": "Moment de Relaxare"},
+            {"type": "restaurant", "label": "Prânz"},
+            {"type": "park", "label": "Plimbare Liniștită"}
+        ]
+    elif "gastronomic" in style or "foodie" in style:
+        slots = [
+            {"type": "bakery", "label": "Mic Dejun & Patiserie"},
+            {"type": "cafe", "label": "Degustare Cafea"},
+            {"type": "restaurant", "label": "Prânz Gourmet"},
+            {"type": "bar", "label": "Aperitiv de Seară"}
+        ]
+    elif "night" in style or "nocturn" in style:
+        night_pool = ["bar", "night_club", "casino", "movie_theater"]
+        slots = [
+            {"type": "restaurant", "label": "Cină Elegantă"},
+            {"type": random.choice(night_pool), "label": "Distracție de Noapte"},
+            {"type": "bar", "label": "Cocktail Bar"},
+            {"type": random.choice(night_pool), "label": "After-party"}
+        ]
+    else: # Default: Explorare
+        slots = [
+            {"type": "cafe", "label": "Mic Dejun"},
+            {"type": random.choice(explore_pool), "label": "Aventură Urbană"},
+            {"type": "restaurant", "label": "Prânz"},
+            {"type": random.choice(relax_pool), "label": "Relaxare"}
+        ]
+    
+    # Preference Injection: If user likes art but chose "Relaxation", swap one slot
+    if ("art" in interests or "cultur" in interests) and len(slots) > 1:
+        slots[1] = {"type": random.choice(culture_pool), "label": "Preferința Ta: Cultură"}
     
     plan = []
     current_lat, current_lng = lat, lng
@@ -344,15 +509,18 @@ def get_itinerary():
             "location": f"{current_lat},{current_lng}",
             "radius": "3000",
             "type": slot["type"],
-            "key": GOOGLE_API_KEY
+            "key": GOOGLE_API_KEY,
+            "maxprice": max_price
         }
         try:
             print(f"📍 Fetching {slot['type']} near {current_lat}, {current_lng}")
             res = requests.get(url, params=params).json()
             results = res.get("results", [])
             if results:
-                # Pick a random one from the top 10 available results for variety
-                best = random.choice(results[:min(len(results), 10)])
+                # Shuffle ALL results to ensure maximum diversity across calls
+                random.shuffle(results)
+                # Pick the first one from the shuffled list
+                best = results[0]
                 # Safer photo extraction
                 photos = best.get("photos", [])
                 photo_ref = photos[0].get("photo_reference", "") if photos else ""
@@ -374,7 +542,9 @@ def get_itinerary():
                     "imageUrl": img_url,
                     "latitude": best["geometry"]["location"]["lat"],
                     "longitude": best["geometry"]["location"]["lng"],
-                    "estimatedCost": est_cost
+                    "estimatedCost": est_cost,
+                    "placeId": best.get("place_id"),
+                    "type": slot["type"]
                 })
                 # Update next center
                 current_lat = best["geometry"]["location"]["lat"]

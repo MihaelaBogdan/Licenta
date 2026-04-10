@@ -227,11 +227,13 @@ public class ItineraryFragment extends Fragment {
         String scope = args.getString("scope", "nearby");
         String type = args.getString("itinerary_type", "exploration");
         int radius = "city".equalsIgnoreCase(scope) ? 20000 : 3000;
+        int budget = args.getInt("itinerary_budget", 200);
+        String interests = args.getString("itinerary_interests", "");
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         // Fetch 2 more to have a total of 3
         for (int i = 0; i < 2; i++) {
-            apiService.getItinerary(lat, lng, scope, radius, type).enqueue(new Callback<List<ItineraryItem>>() {
+            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests).enqueue(new Callback<List<ItineraryItem>>() {
                 @Override
                 public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                     if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -258,60 +260,51 @@ public class ItineraryFragment extends Fragment {
         String scope = args.getString("scope", "nearby");
         String type = args.getString("itinerary_type", "exploration");
         int radius = "city".equalsIgnoreCase(scope) ? 20000 : 3000;
+        int budget = args.getInt("itinerary_budget", 200);
+        String interests = args.getString("itinerary_interests", "");
 
         // Visual feedback
         binding.btnRegenerate.setEnabled(false);
         binding.btnRegenerate.animate().rotationBy(720).setDuration(1000).start();
         Toast.makeText(getContext(), "Generăm planuri noi...", Toast.LENGTH_SHORT).show();
 
-        variants.clear();
+        int currentTabIndex = binding.itineraryTabs.getSelectedTabPosition();
+        
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
 
-        final int[] successCount = { 0 };
-        for (int i = 0; i < 3; i++) {
-            apiService.getItinerary(lat, lng, scope, radius, type).enqueue(new Callback<List<ItineraryItem>>() {
-                @Override
-                public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
-                    if (isAdded() && binding != null) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            synchronized (variants) {
+        apiService.getItinerary(lat, lng, scope, radius, type, budget, interests).enqueue(new Callback<List<ItineraryItem>>() {
+            @Override
+            public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
+                if (isAdded() && binding != null) {
+                    binding.btnRegenerate.setEnabled(true);
+                    if (response.isSuccessful() && response.body() != null) {
+                        synchronized (variants) {
+                            if (currentTabIndex < variants.size()) {
+                                variants.set(currentTabIndex, response.body());
+                            } else {
                                 variants.add(response.body());
-                                successCount[0]++;
-
-                                if (successCount[0] == 1) {
-                                    // Set current items and update UI
-                                    itineraryItems = response.body();
-                                    if (adapter != null) {
-                                        adapter.updateItems(itineraryItems);
-                                    } else {
-                                        setupList();
-                                    }
-                                    setupMap();
-                                    calculateAndDisplayBudget();
-
-                                    // Reset to first tab when regenerating
-                                    if (binding.itineraryTabs.getSelectedTabPosition() != 0) {
-                                        binding.itineraryTabs.getTabAt(0).select();
-                                    }
-                                }
-
-                                if (successCount[0] >= 3) {
-                                    binding.btnRegenerate.setEnabled(true);
-                                }
                             }
+                            
+                            // Update current view since it's the current tab
+                            itineraryItems = response.body();
+                            if (adapter != null) {
+                                adapter.updateItems(itineraryItems);
+                            }
+                            setupMap();
+                            calculateAndDisplayBudget();
                         }
                     }
                 }
+            }
 
-                @Override
-                public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {
-                    if (isAdded() && binding != null) {
-                        // Allow retry if at least one fails but some might have succeeded
-                        binding.btnRegenerate.setEnabled(true);
-                    }
+            @Override
+            public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {
+                if (isAdded() && binding != null) {
+                    binding.btnRegenerate.setEnabled(true);
+                    Toast.makeText(getContext(), "Regenerare eșuată", Toast.LENGTH_SHORT).show();
                 }
-            });
-        }
+            }
+        });
     }
 
     private void saveToCalendar() {
@@ -350,9 +343,9 @@ public class ItineraryFragment extends Fragment {
                 for (ItineraryItem item : itineraryItems) {
                     PlannedActivity activity = new PlannedActivity(
                             userId,
-                            null, // placeId unknown for AI generated ones
+                            item.placeId,
                             item.name,
-                            "Generat",
+                            item.type,
                             item.imageUrl,
                             date,
                             item.slot);

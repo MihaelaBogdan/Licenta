@@ -63,6 +63,7 @@ public class HomeFragment extends Fragment {
         private Location currentLocation;
         private List<Place> allPlacesList = new ArrayList<>(); // For Trending (whole city)
         private List<Place> nearbyPlacesList = new ArrayList<>(); // For Near You (real-time)
+        private List<Place> visitedPlacesList = new ArrayList<>(); // NEW: Visited Section
         private List<com.example.licenta.model.Event> eventsList = new ArrayList<>();
         private String currentCategory = "All";
         private String searchQuery = "";
@@ -109,8 +110,16 @@ public class HomeFragment extends Fragment {
 
                         com.google.android.material.button.MaterialButtonToggleGroup toggleScope = dialogView
                                         .findViewById(R.id.dialog_toggle_scope);
-                        com.google.android.material.button.MaterialButtonToggleGroup toggleType = dialogView
-                                        .findViewById(R.id.dialog_toggle_type);
+                        com.google.android.material.chip.ChipGroup styleChips = dialogView
+                                        .findViewById(R.id.dialog_style_chips);
+                        com.google.android.material.slider.Slider budgetSlider = dialogView
+                                        .findViewById(R.id.dialog_budget_slider);
+                        TextView tvBudgetValue = dialogView.findViewById(R.id.tv_budget_value);
+
+                        budgetSlider.addOnChangeListener((slider, value, fromUser) -> {
+                                tvBudgetValue.setText(String.format("%.0f RON", value));
+                        });
+
                         View btnPlan = dialogView.findViewById(R.id.btn_generate_itinerary);
 
                         btnPlan.setOnClickListener(v1 -> {
@@ -118,13 +127,17 @@ public class HomeFragment extends Fragment {
                                                 : "nearby";
                                                 
                                 String type = "exploration";
-                                int typeId = toggleType.getCheckedButtonId();
-                                if (typeId == R.id.btn_type_relaxation) type = "relaxation";
-                                else if (typeId == R.id.btn_type_cultural) type = "cultural";
-                                else if (typeId == R.id.btn_type_gastronomic) type = "gastronomic";
+                                int checkedChipId = styleChips.getCheckedChipId();
+                                
+                                if (checkedChipId == R.id.chip_type_relaxation) type = "relaxation";
+                                else if (checkedChipId == R.id.chip_type_cultural) type = "cultural";
+                                else if (checkedChipId == R.id.chip_type_gastronomic) type = "gastronomic";
+                                else if (checkedChipId == R.id.chip_type_nightlife) type = "nightlife";
+
+                                int budget = (int) budgetSlider.getValue();
 
                                 dialog.dismiss();
-                                fetchItinerary(scope, type);
+                                fetchItinerary(scope, type, budget);
                         });
 
                         dialog.show();
@@ -362,7 +375,7 @@ public class HomeFragment extends Fragment {
                 }
         }
 
-        private void fetchItinerary(String scope, String type) {
+        private void fetchItinerary(String scope, String type, int budget) {
                 if (currentLocation == null) {
                         Toast.makeText(getContext(), "Locația nu este setată încă. Încercăm să o găsim...",
                                         Toast.LENGTH_SHORT).show();
@@ -398,7 +411,7 @@ public class HomeFragment extends Fragment {
                 final double finalLng = lng;
 
                 Toast.makeText(getContext(),
-                                "Generăm un itinerariu de " + type + "...",
+                                "Generăm un itinerariu de " + type + " cu buget " + budget + " RON...",
                                 Toast.LENGTH_SHORT).show();
 
                 android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getContext());
@@ -406,14 +419,17 @@ public class HomeFragment extends Fragment {
                 progressDialog.setCancelable(false);
                 progressDialog.show();
 
-                apiService.getItinerary(finalLat, finalLng, scope, radius, type)
+                com.example.licenta.model.User user = sessionManager.getCurrentUser();
+                String interests = (user != null && user.interests != null) ? user.interests : "";
+
+                apiService.getItinerary(finalLat, finalLng, scope, radius, type, budget, interests)
                                 .enqueue(new Callback<List<com.example.licenta.api.ItineraryItem>>() {
                                         @Override
                                         public void onResponse(Call<List<com.example.licenta.api.ItineraryItem>> call,
                                                         Response<List<com.example.licenta.api.ItineraryItem>> response) {
                                                 progressDialog.dismiss();
                                                 if (response.isSuccessful() && response.body() != null) {
-                                                        showItineraryDialog(response.body(), scope, finalLat, finalLng, type);
+                                                        showItineraryDialog(response.body(), scope, finalLat, finalLng, type, budget);
                                                 } else {
                                                         Toast.makeText(getContext(),
                                                                         "Eroare Server: " + response.code(),
@@ -433,7 +449,7 @@ public class HomeFragment extends Fragment {
         }
 
         private void showItineraryDialog(List<com.example.licenta.api.ItineraryItem> items, String scope,
-                        double lat, double lng, String type) {
+                        double lat, double lng, String type, int budget) {
                 if (getContext() == null || binding == null)
                         return;
 
@@ -446,6 +462,9 @@ public class HomeFragment extends Fragment {
                         return;
                 }
 
+                User user = sessionManager.getCurrentUser();
+                String interests = (user != null && user.interests != null) ? user.interests : "";
+
                 // Navigate to the pro itinerary fragment
                 String json = new com.google.gson.Gson().toJson(items);
                 Bundle args = new Bundle();
@@ -454,6 +473,8 @@ public class HomeFragment extends Fragment {
                 args.putDouble("lng", lng);
                 args.putString("scope", scope);
                 args.putString("itinerary_type", type);
+                args.putInt("itinerary_budget", budget);
+                args.putString("itinerary_interests", interests);
                 Navigation.findNavController(binding.getRoot()).navigate(R.id.navigation_itinerary, args);
         }
 
@@ -612,9 +633,12 @@ public class HomeFragment extends Fragment {
                                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 binding.recyclerEvents.setLayoutManager(
                                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                binding.recyclerVisited.setLayoutManager(
+                                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext()));
                 fetchPlaces(false);
                 fetchEvents();
+                fetchVisitedPlaces();
         }
 
         private void setupCategoryChips() {
@@ -941,8 +965,93 @@ public class HomeFragment extends Fragment {
                                         public void onFavoriteClick(Place place) {
                                                 sessionManager.setPlaceFavorite(place.id, place.isFavorite);
                                         }
+
+                                        @Override
+                                        public void onVisitedClick(Place place) {
+                                                handleVisitedClick(place);
+                                        }
                                 });
                 binding.recyclerNearYou.setAdapter(adapter);
+        }
+
+        private void handleVisitedClick(Place place) {
+            User user = sessionManager.getCurrentUser();
+            if (user == null) return;
+
+            com.example.licenta.api.VisitRequest request = new com.example.licenta.api.VisitRequest(
+                user.id,
+                (place.id != null && place.id.length() < 10) ? place.id : null,
+                (place.googlePlaceId != null) ? place.googlePlaceId : ((place.id != null && place.id.length() >= 10) ? place.id : null),
+                place.name,
+                place.type
+            );
+
+            apiService.recordVisit(request).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), "Bravo! Vizită înregistrată. 🎉", Toast.LENGTH_SHORT).show();
+                        fetchVisitedPlaces(); // Refresh the visited list on feed
+                        showFeedbackDialog(place);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Toast.makeText(getContext(), "Eroare la înregistrarea vizitei.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        private void showFeedbackDialog(Place place) {
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setTitle("Feedback pentru " + place.name)
+                .setMessage("Cum a fost vizita ta aici? Ajută-ți prietenii cu o recomandare!")
+                .setPositiveButton("Grozav! ⭐", (d, w) -> Toast.makeText(getContext(), "Mulțumim!", Toast.LENGTH_SHORT).show())
+                .setNeutralButton("E OK", (d, w) -> Toast.makeText(getContext(), "Mulțumim!", Toast.LENGTH_SHORT).show())
+                .setNegativeButton("Slab", (d, w) -> Toast.makeText(getContext(), "Ne pare rău!", Toast.LENGTH_SHORT).show())
+                .show();
+        }
+
+        private void fetchVisitedPlaces() {
+            User user = sessionManager.getCurrentUser();
+            if (user == null || binding == null) return;
+
+            apiService.getVisited(user.id).enqueue(new Callback<List<Place>>() {
+                @Override
+                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+                    if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        visitedPlacesList = response.body();
+                        binding.sectionVisited.setVisibility(View.VISIBLE);
+                        binding.recyclerVisited.setVisibility(View.VISIBLE);
+                        updateVisitedAdapter();
+                    } else {
+                        if (binding != null) {
+                            binding.sectionVisited.setVisibility(View.GONE);
+                            binding.recyclerVisited.setVisibility(View.GONE);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<Place>> call, Throwable t) {
+                    Log.e("HomeFragment", "Error fetching visited", t);
+                }
+            });
+        }
+
+        private void updateVisitedAdapter() {
+            if (binding == null) return;
+            PlaceAdapter adapter = new PlaceAdapter(getContext(), visitedPlacesList, true, 
+                new PlaceAdapter.OnPlaceClickListener() {
+                    @Override
+                    public void onPlaceClick(Place place) { }
+                    @Override
+                    public void onFavoriteClick(Place place) { }
+                    @Override
+                    public void onVisitedClick(Place place) { }
+                });
+            binding.recyclerVisited.setAdapter(adapter);
         }
 
         private void updateRecommendedAdapter(List<Place> list) {
@@ -953,15 +1062,16 @@ public class HomeFragment extends Fragment {
                                         @Override
                                         public void onPlaceClick(Place place) {
                                                 sessionManager.recordPlaceVisit(place.name);
-                                                Toast.makeText(getContext(),
-                                                                String.format(getString(R.string.visited_place),
-                                                                                place.name),
-                                                                Toast.LENGTH_SHORT).show();
                                         }
 
                                         @Override
                                         public void onFavoriteClick(Place place) {
                                                 sessionManager.setPlaceFavorite(place.id, place.isFavorite);
+                                        }
+
+                                        @Override
+                                        public void onVisitedClick(Place place) {
+                                                handleVisitedClick(place);
                                         }
                                 });
                 binding.recyclerRecommended.setAdapter(adapter);

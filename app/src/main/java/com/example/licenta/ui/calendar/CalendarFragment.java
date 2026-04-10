@@ -58,6 +58,7 @@ public class CalendarFragment extends Fragment {
     private ImageView btnAddActivity;
     private ImageView btnJoinGroup;
     private ImageView btnSyncCalendar;
+    private ImageView btnExportCalendar;
     private CardView bannerInvitations;
     private TextView textInvitationCount;
     private TextView btnViewInvitations;
@@ -142,6 +143,7 @@ public class CalendarFragment extends Fragment {
         btnAddActivity = view.findViewById(R.id.btn_add_activity);
         btnJoinGroup = view.findViewById(R.id.btn_join_group);
         btnSyncCalendar = view.findViewById(R.id.btn_sync_calendar);
+        btnExportCalendar = view.findViewById(R.id.btn_export_calendar);
         bannerInvitations = view.findViewById(R.id.banner_invitations);
         textInvitationCount = view.findViewById(R.id.text_invitation_count);
         btnViewInvitations = view.findViewById(R.id.btn_view_invitations);
@@ -168,6 +170,65 @@ public class CalendarFragment extends Fragment {
                 requestPermissionLauncher.launch(android.Manifest.permission.READ_CALENDAR);
             }
         });
+        btnExportCalendar.setOnClickListener(v -> exportDayToExternalCalendar());
+    }
+
+    private void exportDayToExternalCalendar() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) return;
+        
+        List<PlannedActivity> dayActivities = db.activityDao().getActivitiesForDate(userId, selectedDate);
+        if (dayActivities.isEmpty()) {
+            Toast.makeText(getContext(), "Nu ai activități planificate pentru această zi.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show a dialog to confirm exporting all or first one
+        new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+            .setTitle("Export în Calendar")
+            .setMessage("Vrei să exporți toate cele " + dayActivities.size() + " activități în calendarul telefonului?")
+            .setPositiveButton("Exportă Tot", (d, w) -> {
+                for (PlannedActivity activity : dayActivities) {
+                    exportActivityToPhone(activity);
+                }
+                Toast.makeText(getContext(), "Am deschis exportul pentru activitățile tale!", Toast.LENGTH_LONG).show();
+            })
+            .setNegativeButton("Anulează", null)
+            .show();
+    }
+
+    private void exportActivityToPhone(PlannedActivity activity) {
+        try {
+            // Parse time
+            int hour = 9, minute = 0;
+            if (activity.scheduledTime != null && activity.scheduledTime.contains(":")) {
+                String[] parts = activity.scheduledTime.split(":");
+                hour = Integer.parseInt(parts[0]);
+                minute = Integer.parseInt(parts[1]);
+            }
+
+            Calendar beginTime = Calendar.getInstance();
+            beginTime.setTimeInMillis(activity.scheduledDate);
+            beginTime.set(Calendar.HOUR_OF_DAY, hour);
+            beginTime.set(Calendar.MINUTE, minute);
+
+            Calendar endTime = (Calendar) beginTime.clone();
+            endTime.add(Calendar.HOUR_OF_DAY, 2); // Default duration 2h
+
+            Intent intent = new Intent(Intent.ACTION_INSERT)
+                    .setData(android.provider.CalendarContract.Events.CONTENT_URI)
+                    .putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+                    .putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+                    .putExtra(android.provider.CalendarContract.Events.TITLE, activity.placeName)
+                    .putExtra(android.provider.CalendarContract.Events.DESCRIPTION, "Planificat via Antigravity App. " + activity.notes)
+                    .putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, activity.placeName)
+                    .putExtra(android.provider.CalendarContract.Events.AVAILABILITY, android.provider.CalendarContract.Events.AVAILABILITY_BUSY);
+            
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e("CalendarFragment", "Export failed", e);
+            Toast.makeText(getContext(), "Eroare la export: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupCalendar() {
@@ -317,10 +378,29 @@ public class CalendarFragment extends Fragment {
                             db.activityDao().update(activity);
                             com.example.licenta.data.SupabaseSyncManager.getInstance(requireContext())
                                     .updateActivityInCloud(activity);
+                            
+                            // Record visit in Cloud
+                            User user = sessionManager.getCurrentUser();
+                            if (user != null) {
+                                com.example.licenta.api.VisitRequest req = new com.example.licenta.api.VisitRequest(
+                                    user.id,
+                                    null,
+                                    activity.placeId != null ? String.valueOf(activity.placeId) : null,
+                                    activity.placeName,
+                                    activity.placeType
+                                );
+                                apiService.recordVisit(req).enqueue(new retrofit2.Callback<Void>() {
+                                    @Override public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {}
+                                    @Override public void onFailure(retrofit2.Call<Void> call, Throwable t) {}
+                                });
+                            }
+
                             sessionManager.recordPlaceVisit(activity.placeName);
                             Toast.makeText(getContext(),
                                     activity.placeName + " completat (+50 XP)",
                                     Toast.LENGTH_SHORT).show();
+                            
+                            showFeedbackDialog(activity.placeName);
                             loadActivitiesForDate(selectedDate);
                         }
 
@@ -338,9 +418,23 @@ public class CalendarFragment extends Fragment {
                                 showCreateGroupDialog(activity);
                             }
                         }
+
+                        @Override
+                        public void onExportClick(PlannedActivity activity) {
+                            exportActivityToPhone(activity);
+                        }
                     });
             recyclerActivities.setAdapter(activityAdapter);
         }
+    }
+
+    private void showFeedbackDialog(String placeName) {
+        new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+            .setTitle("Feedback pentru " + placeName)
+            .setMessage("Cum a fost activitatea? Feedback-ul tău ne ajută să-ți oferim planuri mai bune!")
+            .setPositiveButton("Minunat! ⭐", (d, w) -> Toast.makeText(getContext(), "Mulțumim!", Toast.LENGTH_SHORT).show())
+            .setNegativeButton("Nu prea", (d, w) -> Toast.makeText(getContext(), "Vom ține cont!", Toast.LENGTH_SHORT).show())
+            .show();
     }
 
     private void loadUserGroups() {

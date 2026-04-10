@@ -63,69 +63,88 @@
         android:textColor="@color/app_text_secondary"
         android:textSize="14sp" />
 
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/dialog_toggle_type"
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/dialog_style_chips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        app:checkedButton="@+id/btn_type_exploration"
-        app:selectionRequired="true"
-        app:singleSelection="true">
+        app:singleSelection="true"
+        app:selectionRequired="true">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_type_exploration"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_type_exploration"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="Explorare"
-            android:padding="0dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:textSize="11sp"
-            android:textAllCaps="false"
-            android:textColor="@color/app_text_primary"
-            app:strokeColor="@color/primary" />
+            android:checked="true" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_type_relaxation"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_type_relaxation"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Relaxare" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_type_cultural"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cultural" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_type_gastronomic"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gastronomic" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_type_nightlife"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nocturn" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Relaxare"
-            android:padding="0dp"
-            android:textSize="11sp"
-            android:textAllCaps="false"
-            android:textColor="@color/app_text_primary"
-            app:strokeColor="@color/primary" />
+            android:text="Buget Maxim"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_type_cultural"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/tv_budget_value"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Cultural"
-            android:padding="0dp"
-            android:textSize="11sp"
-            android:textAllCaps="false"
-            android:textColor="@color/app_text_primary"
-            app:strokeColor="@color/primary" />
+            android:text="250 RON"
+            android:textColor="@color/primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_type_gastronomic"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Foodie"
-            android:padding="0dp"
-            android:textSize="11sp"
-            android:textAllCaps="false"
-            android:textColor="@color/app_text_primary"
-            app:strokeColor="@color/primary" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
+    <com.google.android.material.slider.Slider
+        android:id="@+id/dialog_budget_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:value="250"
+        android:valueFrom="50"
+        android:valueTo="1000"
+        android:stepSize="50"
+        app:thumbColor="@color/primary"
+        app:trackColorActive="@color/primary"
+        app:labelBehavior="gone" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_generate_itinerary"

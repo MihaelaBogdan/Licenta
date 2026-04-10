@@ -8,5 +8,7 @@ public class ItineraryItem {
     public double latitude;
     public double longitude;
     public double estimatedCost;
+    public String placeId;
+    public String type;
     public String duration;
 }

@@ -52,6 +52,17 @@
                 android:src="@drawable/ic_calendar"
                 app:tint="@color/primary" />
 
+            <!-- Export Calendar -->
+            <ImageView
+                android:id="@+id/btn_export_calendar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/circle_card"
+                android:padding="10dp"
+                android:src="@drawable/ic_share"
+                app:tint="@color/primary" />
+
             <!-- Add Activity -->
             <ImageView
                 android:id="@+id/btn_add_activity"
