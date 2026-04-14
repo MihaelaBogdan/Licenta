@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Dark overrides - Base now handles most switching via semantic colors -->
-    <style name="Base.Theme.Licenta" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.CityScape" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Any specific DARK-ONLY system bar colors can go here if different from semantic app_background -->
         <item name="android:statusBarColor">@color/app_background</item>
         <item name="android:navigationBarColor">@color/app_surface</item>

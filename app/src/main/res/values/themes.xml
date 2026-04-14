@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Main DayNight Application Theme -->
-    <style name="Base.Theme.Licenta" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.CityScape" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_variant</item>
         <item name="colorSecondary">@color/secondary</item>
@@ -18,8 +18,7 @@
     </style>
 
     <!-- App Theme Wrapper -->
-    <style name="Theme.Licenta" parent="Base.Theme.Licenta" />
-    <style name="Theme.CityScape" parent="Theme.Licenta" />
+    <style name="Theme.CityScape" parent="Base.Theme.CityScape" />
 
     <!-- Adaptive Dialog Theme (Switches between light/dark automatically) -->
     <style name="CityScapeDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
@@ -88,5 +87,14 @@
 
     <style name="RoundedSquare">
         <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="TransparentBottomSheetDialogTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="android:windowIsFloating">false</item>
     </style>
 </resources>

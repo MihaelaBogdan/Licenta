@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Licenta</string>
+    <string name="app_name">CityScape</string>
 
+    <string name="google_web_client_id">295858702969-pkn50ei09o97cmb69018dss6gdlv9j6q.apps.googleusercontent.com</string>
     <!-- Auth strings -->
     <string name="sign_in">Autentificare</string>
     <string name="full_name">Nume Complet</string>

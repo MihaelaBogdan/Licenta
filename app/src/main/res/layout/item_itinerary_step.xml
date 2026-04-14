@@ -105,13 +105,24 @@
                     android:textColor="@color/app_text_hint" />
 
                 <TextView
-                    android:id="@+id/text_step_duration"
+                    android:id="@+id/text_step_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1h 30m"
+                    android:text="09:00 - 10:30"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/badge_closed_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="⚠️ S-ar putea să fie închis"
+                android:textColor="#FF5252"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
         <ImageView

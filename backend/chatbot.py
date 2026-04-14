@@ -11,7 +11,7 @@ import os
 import random
 import json
 import torch
-from transformers import DistilBertTokenizer
+from transformers import DistilBertTokenizerFast
 from model import IntentClassifier
 
 # ============================================================
@@ -25,9 +25,8 @@ import google.generativeai as genai
 import os
 
 # Initialize Gemini
-# genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-genai.configure(api_key=None) # Dezactivat temporar conform cerinței
-gemini_model = genai.GenerativeModel("gemini-1.5-flash") # Use flash for speed
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+gemini_model = genai.GenerativeModel("gemini-2.0-flash") # Reset to 2.0 with the new key
 
 # Load intents
 with open('data/intents.json', 'r', encoding='utf-8') as f:
@@ -51,7 +50,7 @@ MAX_LENGTH = model_data['max_length']
 dropout_rate = model_data.get('dropout_rate', 0.3)
 
 # Load tokenizer (saved locally during training)
-tokenizer = DistilBertTokenizer.from_pretrained(SAVE_DIR)
+tokenizer = DistilBertTokenizerFast.from_pretrained(SAVE_DIR)
 
 # Load model
 model = None
@@ -186,6 +185,7 @@ def _predict_intent(msg):
     Internal: Run the DistilBERT model on a message.
     Returns (top_tag, top_probability, all_probs).
     """
+    msg = msg.lower()
     encoding = tokenizer(
         msg,
         padding='max_length',
@@ -209,59 +209,110 @@ def _predict_intent(msg):
     return top_tag, top_probability, probs
 
 
-def get_response(msg, language="ro"):
+def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro"):
     """
-    Process user message and return an appropriate response.
-    Uses DistilBERT for intent classification, with Gemini fallback.
-    """
-    if not msg or not msg.strip():
-        return _get_empty_message(language)
-    
-    if model is not None:
-        top_tag, confidence, _ = _predict_intent(msg)
-        if confidence > CONFIDENCE_THRESHOLD:
-            if top_tag in intent_lookup:
-                return _get_response_for_intent(intent_lookup[top_tag], language)
-    
-    # Low confidence or missing model: Use Gemini for 100% accuracy
-    ans, _ = _get_gemini_response(msg, language)
-    return ans
-
-
-def get_response_with_details(msg, language="ro"):
-    """
-    Extended version that returns response with intent, confidence,
-    and optional suggestions for conversational flow.
-    Uses Gemini flash for high-quality intelligence.
+    PREMIUM RAG LOGIC:
+    1. Retrieve User Profile (Interests/History) from Supabase.
+    2. Retrieve Nearby Places from Google.
+    3. Feed context + question to Gemini.
     """
     if not msg or not msg.strip():
+        return {"answer": _get_empty_message(language), "intent": "empty", "suggestions": _get_fallback_suggestions(language)}
+
+    # Context collection
+    user_context = "Nu avem date despre preferințele utilizatorului."
+    nearby_context = "Nu avem date despre locațiile din apropiere."
+    
+    # 1. Fetch Supabase Profile
+    if user_id:
+        try:
+            from app import SUPABASE_URL, SUPABASE_KEY
+            import requests
+            headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
+            p_res = requests.get(profile_url, headers=headers).json()
+            if p_res:
+                p = p_res[0]
+                user_context = f"Utilizatorul se numește {p.get('full_name', 'Călător')}. Interese: {p.get('interests', 'generale')}. Buget: {p.get('budget_range', 'mediu')}."
+        except Exception as e:
+            print(f"⚠️ RAG Profile Error: {e}")
+
+    # 2. Fetch Nearby Places (Mini-RAG)
+    if lat and lng:
+        try:
+            from app import MAPS_API_KEY
+            import requests
+            search_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+            params = {"location": f"{lat},{lng}", "radius": "2000", "type": "tourist_attraction", "key": MAPS_API_KEY}
+            places = requests.get(search_url, params=params).json().get("results", [])[:5]
+            if places:
+                places_str = ", ".join([p.get("name") for p in places])
+                nearby_context = f"Locații din apropiere: {places_str}."
+        except Exception as e:
+            print(f"⚠️ RAG Nearby Error: {e}")
+
+    # 3. Create Rich Prompt
+    system_prompt = (
+        "Ești 'MysticMinds', ghidul AI inteligent din CityScape. Locația: București. "
+        f"Context Utilizator: {user_context} "
+        f"Context Locație: {nearby_context} "
+        f"Limba: {'română' if language == 'ro' else 'engleză'}. "
+        "Fii personal, folosește datele primite pentru a oferi recomandări specifice. "
+        "La final, pune [SUGGESTIONS: Sugestie 1 | Sugestie 2 | Sugestie 3]"
+    )
+
+    # Try Gemini, if fails, use local model
+    try:
+        chat = gemini_model.start_chat()
+        full_msg = f"{system_prompt}\n\nÎntrebare utilizator: {msg}"
+        response = chat.send_message(full_msg)
+        text = response.text
+        
+        # Parse suggestions
+        suggestions = []
+        if "[SUGGESTIONS:" in text:
+            parts = text.split("[SUGGESTIONS:")
+            text = parts[0].strip()
+            raw_sug = parts[1].replace("]", "").strip()
+            suggestions = [s.strip() for s in raw_sug.split("|")][:3]
+        else:
+            suggestions = _get_fallback_suggestions(language)[:3]
+            
         return {
-            "answer": _get_empty_message(language),
-            "intent": "empty",
-            "confidence": 0.0,
+            "answer": text,
+            "intent": "rag_gemini",
+            "confidence": 1.0,
+            "suggestions": suggestions
+        }
+    except Exception as e:
+        print(f"⚠️ RAG Gemini Error: {e}. Falling back to local model.")
+        
+        # LOCAL FALLBACK LOGIC (DistilBERT)
+        if model is not None:
+            top_tag, confidence, _ = _predict_intent(msg)
+            if confidence > CONFIDENCE_THRESHOLD:
+                if top_tag in intent_lookup:
+                    intent_data = intent_lookup[top_tag]
+                    response = _get_response_for_intent(intent_data, language)
+                    suggestions = _get_suggestions_for_intent(intent_data, language)
+                    return {
+                        "answer": response + " (Notă: Folosesc modelul de rezervă până activezi Gemini)",
+                        "intent": top_tag,
+                        "confidence": round(confidence, 4),
+                        "suggestions": suggestions
+                    }
+        
+        return {
+            "answer": "Momentan întâmpin o mică dificultate tehnică, dar sunt aici să te ajut cu restul funcțiilor din București! 😊",
+            "intent": "error_fallback",
             "suggestions": _get_fallback_suggestions(language)
         }
-    
-    # 1. Try DistilBERT first for speed and local context
-    if model is not None:
-        top_tag, confidence, _ = _predict_intent(msg)
-        if confidence > 0.6: # High confidence for local intents
-            if top_tag in intent_lookup:
-                intent_data = intent_lookup[top_tag]
-                response = _get_response_for_intent(intent_data, language)
-                suggestions = _get_suggestions_for_intent(intent_data, language)
-                return {
-                    "answer": response,
-                    "intent": top_tag,
-                    "confidence": round(confidence, 4),
-                    "suggestions": suggestions
-                }
-    
-    # 2. Case: Low confidence or model missing -> Use Gemini
-    ans, suggestions = _get_gemini_response(msg, language)
-    return {
-        "answer": ans,
-        "intent": "gemini",
-        "confidence": 1.0, 
-        "suggestions": suggestions
-    }
+
+def get_response(msg, language="ro"):
+    # Legacy wrapper
+    res = get_response_with_details(msg, language)
+    return res["answer"]
+
+def get_response_with_details(msg, language="ro"):
+    # Wrap with RAG (simplified for direct calls)
+    return get_response_with_rag(msg, language=language)

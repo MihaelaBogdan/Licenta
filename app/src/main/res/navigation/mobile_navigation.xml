@@ -7,31 +7,31 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.licenta.ui.home.HomeFragment"
+        android:name="com.cityscape.app.ui.home.HomeFragment"
         android:label="@string/nav_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_map"
-        android:name="com.example.licenta.ui.map.MapFragment"
+        android:name="com.cityscape.app.ui.map.MapFragment"
         android:label="@string/nav_map"
         tools:layout="@layout/fragment_map" />
 
     <fragment
         android:id="@+id/navigation_calendar"
-        android:name="com.example.licenta.ui.calendar.CalendarFragment"
+        android:name="com.cityscape.app.ui.calendar.CalendarFragment"
         android:label="@string/nav_calendar"
         tools:layout="@layout/fragment_calendar" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.example.licenta.ui.profile.ProfileFragment"
+        android:name="com.cityscape.app.ui.profile.ProfileFragment"
         android:label="@string/nav_profile"
         tools:layout="@layout/fragment_profile" />
 
     <fragment
         android:id="@+id/navigation_itinerary"
-        android:name="com.example.licenta.ui.itinerary.ItineraryFragment"
+        android:name="com.cityscape.app.ui.itinerary.ItineraryFragment"
         android:label="Itinerariu">
         <argument
             android:name="itinerary_json"

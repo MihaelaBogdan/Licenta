@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.licenta'
+    namespace 'com.cityscape.app'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.example.licenta"
+        applicationId "com.cityscape.app"
         minSdk 24
         targetSdk 36
         versionCode 1
@@ -21,14 +21,23 @@ android {
             properties.load(project.rootProject.file('local.properties').newDataInputStream())
         }
         
-        manifestPlaceholders = [MAPS_API_KEY: properties.getProperty('MAPS_API_KEY', '')]
+        // Helper to strip quotes if they somehow get in
+        def getProp = { name, defaultValue ->
+            def value = properties.getProperty(name, defaultValue)
+            if (value != null && value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
+                value = value.substring(1, value.length() - 1)
+            }
+            return value
+        }
 
-        buildConfigField "String", "GOOGLE_API_KEY", properties.getProperty('GOOGLE_API_KEY', '""')
-        buildConfigField "String", "SUPABASE_URL", properties.getProperty('SUPABASE_URL', '""')
-        buildConfigField "String", "SUPABASE_KEY", properties.getProperty('SUPABASE_KEY', '""')
-        buildConfigField "String", "SUPABASE_ANON_KEY", properties.getProperty('SUPABASE_KEY', '""')
-        buildConfigField "String", "OPENWEATHER_API_KEY", properties.getProperty('OPENWEATHER_API_KEY', '""')
-        buildConfigField "String", "TICKETMASTER_API_KEY", properties.getProperty('TICKETMASTER_API_KEY', '""')
+        manifestPlaceholders = [MAPS_API_KEY: getProp('MAPS_API_KEY', '')]
+
+        buildConfigField "String", "GOOGLE_API_KEY", "\"${getProp('GOOGLE_API_KEY', '')}\""
+        buildConfigField "String", "SUPABASE_URL", "\"${getProp('SUPABASE_URL', '')}\""
+        buildConfigField "String", "SUPABASE_KEY", "\"${getProp('SUPABASE_KEY', '')}\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"${getProp('SUPABASE_KEY', '')}\""
+        buildConfigField "String", "OPENWEATHER_API_KEY", "\"${getProp('OPENWEATHER_API_KEY', '')}\""
+        buildConfigField "String", "TICKETMASTER_API_KEY", "\"${getProp('TICKETMASTER_API_KEY', '')}\""
     }
 
     buildFeatures {

@@ -6,9 +6,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-        android:name=".LicentaApp"
+        android:name=".CityScapeApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -17,7 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.Licenta">
+        android:theme="@style/Theme.CityScape">
         
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -50,6 +51,18 @@
 
         <activity
             android:name=".SettingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.home.EventDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".LeaderboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ARExplorerActivity"
             android:exported="false" />
     </application>
 
