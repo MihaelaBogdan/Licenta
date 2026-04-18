@@ -32,9 +32,7 @@ import com.cityscape.app.databinding.FragmentHomeBinding;
 import com.cityscape.app.model.Place;
 import com.cityscape.app.model.User;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.material.chip.Chip;
@@ -45,7 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
+
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
@@ -784,9 +782,10 @@ public class HomeFragment extends Fragment {
                         type = "tourist_attraction";
                 }
 
+                String userId = sessionManager.getUserId();
                 if (isNearbyOnly) {
-                    // 1. Fetch NEARBY (Strictly 5km)
-                    apiService.getNearby(currentLocation.getLatitude(), currentLocation.getLongitude(), type)
+                    // 1. Fetch NEARBY (Strictly 2km) with personalization
+                    apiService.getNearby(currentLocation.getLatitude(), currentLocation.getLongitude(), type, sessionManager.getUserId())
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -803,7 +802,7 @@ public class HomeFragment extends Fragment {
                         });
                 } else {
                     // Trending / Recommended Section (Whole City)
-                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 15000)
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 15000, userId)
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -1409,7 +1408,8 @@ public class HomeFragment extends Fragment {
                 }
 
                 long eventTimeMillis = System.currentTimeMillis();
-                String displayTime = event.time != null ? event.time.trim() : "TBA";
+                String displayTime = (event.time != null && !event.time.isEmpty()) ? event.time.trim() : 
+                                    (event.date_str != null ? event.date_str.trim() : "TBA");
                 try {
                         java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
                         java.util.Date d = fmt.parse(displayTime);

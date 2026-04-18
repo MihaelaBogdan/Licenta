@@ -121,9 +121,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadNearby(double lat, double lng) {
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
         com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
-        apiService.getNearby(lat, lng, "mixed").enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
+        apiService.getNearby(lat, lng, "mixed", sessionManager.getUserId()).enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
                     retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> response) {

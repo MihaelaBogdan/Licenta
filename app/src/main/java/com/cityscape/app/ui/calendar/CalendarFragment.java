@@ -1,5 +1,6 @@
 package com.cityscape.app.ui.calendar;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -39,6 +40,8 @@ import com.cityscape.app.model.PlannedActivity;
 import com.cityscape.app.model.User;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.navigation.Navigation;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -59,12 +62,9 @@ public class CalendarFragment extends Fragment {
     private ImageView btnJoinGroup;
     private ImageView btnSyncCalendar;
     private ImageView btnExportCalendar;
-    private CardView bannerInvitations;
-    private TextView textInvitationCount;
-    private TextView btnViewInvitations;
 
     private final androidx.activity.result.ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(), isGranted -> {
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     syncGoogleCalendar();
                 } else {
@@ -132,10 +132,18 @@ public class CalendarFragment extends Fragment {
         checkPendingInvitations();
     }
 
+    private RecyclerView recyclerHorizontalCalendar;
+    private com.cityscape.app.adapter.CalendarDateAdapter horizontalAdapter;
+    private List<com.cityscape.app.model.CalendarDate> dateItems = new ArrayList<>();
+    private CardView cardMonthlyCalendar;
+    private boolean isMonthlyCalendarExpanded = false;
+
     private void initViews(View view) {
         calendarView = view.findViewById(R.id.calendar_view);
         recyclerActivities = view.findViewById(R.id.recycler_activities);
         recyclerGroups = view.findViewById(R.id.recycler_groups);
+        recyclerHorizontalCalendar = view.findViewById(R.id.recycler_horizontal_calendar);
+        cardMonthlyCalendar = view.findViewById(R.id.card_monthly_calendar);
         emptyState = view.findViewById(R.id.empty_state);
         emptyGroupsState = view.findViewById(R.id.empty_groups_state);
         textSelectedDate = view.findViewById(R.id.text_selected_date);
@@ -144,15 +152,22 @@ public class CalendarFragment extends Fragment {
         btnJoinGroup = view.findViewById(R.id.btn_join_group);
         btnSyncCalendar = view.findViewById(R.id.btn_sync_calendar);
         btnExportCalendar = view.findViewById(R.id.btn_export_calendar);
-        bannerInvitations = view.findViewById(R.id.banner_invitations);
-        textInvitationCount = view.findViewById(R.id.text_invitation_count);
-        btnViewInvitations = view.findViewById(R.id.btn_view_invitations);
+
+        // UI Collapsing Logic
+        calendarView.setVisibility(View.GONE);
+        view.findViewById(R.id.btn_expand_calendar).setOnClickListener(v -> {
+            isMonthlyCalendarExpanded = !isMonthlyCalendarExpanded;
+            calendarView.setVisibility(isMonthlyCalendarExpanded ? View.VISIBLE : View.GONE);
+            v.animate().rotation(isMonthlyCalendarExpanded ? 180 : 0).setDuration(300).start();
+        });
+
+        setupHorizontalCalendar();
 
         com.google.android.material.button.MaterialButton btnReturnHome = view.findViewById(R.id.btn_return_home);
         if (getArguments() != null && getArguments().containsKey("target_date")) {
             btnReturnHome.setVisibility(View.VISIBLE);
             btnReturnHome.setOnClickListener(v -> {
-                androidx.navigation.Navigation.findNavController(view).navigate(R.id.navigation_home);
+                Navigation.findNavController(view).navigate(R.id.navigation_home);
             });
         }
 
@@ -160,8 +175,15 @@ public class CalendarFragment extends Fragment {
         recyclerGroups.setLayoutManager(new LinearLayoutManager(getContext()));
 
         btnAddActivity.setOnClickListener(v -> showAddActivityDialog());
-        btnJoinGroup.setOnClickListener(v -> showJoinGroupDialog());
-        btnViewInvitations.setOnClickListener(v -> showPendingInvitationsDialog());
+        // Map the new quick action banner buttons to existing logic
+        view.findViewById(R.id.action_invitations).setOnClickListener(v -> showPendingInvitationsDialog());
+        view.findViewById(R.id.action_groups).setOnClickListener(v -> {
+            // Scroll to groups section
+            View groupsLabel = view.findViewById(R.id.recycler_groups);
+            groupsLabel.getParent().requestChildFocus(groupsLabel, groupsLabel);
+        });
+        view.findViewById(R.id.action_export).setOnClickListener(v -> exportDayToExternalCalendar());
+
         btnSyncCalendar.setOnClickListener(v -> {
             if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.READ_CALENDAR)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -170,7 +192,53 @@ public class CalendarFragment extends Fragment {
                 requestPermissionLauncher.launch(android.Manifest.permission.READ_CALENDAR);
             }
         });
-        btnExportCalendar.setOnClickListener(v -> exportDayToExternalCalendar());
+    }
+
+    private void setupHorizontalCalendar() {
+        dateItems.clear();
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -7); // Start 1 week ago
+        
+        long todayNormalized = normalizeDate(System.currentTimeMillis());
+        
+        for (int i = 0; i < 45; i++) {
+            long time = normalizeDate(cal.getTimeInMillis());
+            boolean isSelected = time == selectedDate;
+            // Check if there are events for this date (placeholder or actual check)
+            boolean hasEvents = false; 
+            
+            dateItems.add(new com.cityscape.app.model.CalendarDate(new Date(time), isSelected, hasEvents));
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        horizontalAdapter = new com.cityscape.app.adapter.CalendarDateAdapter(dateItems, date -> {
+            selectedDate = normalizeDate(date.date.getTime());
+            updateDateSelectionUI();
+            calendarView.setDate(selectedDate); // Sync with monthly grid
+            loadActivitiesForDate(selectedDate);
+        });
+
+        recyclerHorizontalCalendar.setAdapter(horizontalAdapter);
+        
+        // Scroll to selected date
+        scrollToSelectedDate();
+    }
+
+    private void updateDateSelectionUI() {
+        for (com.cityscape.app.model.CalendarDate item : dateItems) {
+            item.isSelected = normalizeDate(item.date.getTime()) == selectedDate;
+        }
+        horizontalAdapter.notifyDataSetChanged();
+        scrollToSelectedDate();
+    }
+
+    private void scrollToSelectedDate() {
+        for (int i = 0; i < dateItems.size(); i++) {
+            if (dateItems.get(i).isSelected) {
+                recyclerHorizontalCalendar.smoothScrollToPosition(i);
+                break;
+            }
+        }
     }
 
     private void exportDayToExternalCalendar() {
@@ -362,6 +430,10 @@ public class CalendarFragment extends Fragment {
 
         List<PlannedActivity> activities = db.activityDao()
                 .getActivitiesForDate(sessionManager.getUserId(), date);
+
+        // Animation for "Pro" feel
+        recyclerActivities.setAlpha(0f);
+        recyclerActivities.animate().alpha(1f).setDuration(400).start();
 
         if (activities.isEmpty()) {
             recyclerActivities.setVisibility(View.GONE);
@@ -559,7 +631,7 @@ public class CalendarFragment extends Fragment {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_group, null);
 
         EditText inputGroupName = dialogView.findViewById(R.id.input_group_name);
-        EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
         TextView btnShareLink = dialogView.findViewById(R.id.btn_share_link);
         
         // Following list
@@ -816,20 +888,15 @@ public class CalendarFragment extends Fragment {
 
     private void checkPendingInvitations() {
         int pendingCount = db.invitationDao().getPendingCount(sessionManager.getUserId());
-        if (pendingCount > 0) {
-            bannerInvitations.setVisibility(View.VISIBLE);
-            textInvitationCount.setText("Ai " + pendingCount +
-                    (pendingCount == 1 ? " invitație nouă" : " invitații noi"));
-        } else {
-            bannerInvitations.setVisibility(View.GONE);
-        }
+        // For the new design, we might want a badge on action_invitations
+        // But for now, we'll just handle the dialog trigger via action_invitations click
     }
 
     private void showPendingInvitationsDialog() {
         List<Invitation> pending = db.invitationDao().getPendingInvitations(sessionManager.getUserId());
 
         if (pending.isEmpty()) {
-            bannerInvitations.setVisibility(View.GONE);
+            Toast.makeText(getContext(), "Nu ai invitații în așteptare.", Toast.LENGTH_SHORT).show();
             return;
         }
 

@@ -141,8 +141,9 @@ public class ARExplorerActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void loadNearbyPlaces(double lat, double lng) {
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(this);
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getNearby(lat, lng, "all").enqueue(new Callback<List<Place>>() {
+        apiService.getNearby(lat, lng, "all", sessionManager.getUserId()).enqueue(new Callback<List<Place>>() {
             @Override
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().size() > 0) {

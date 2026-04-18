@@ -55,14 +55,20 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     <!-- Invite by email Section -->
-    <TextView
-        android:layout_width="wrap_content"
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.CityScape.TextInput"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="👥 Alte invitații (Email)"
-        android:textColor="@color/app_text_primary"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+        android:layout_marginTop="12dp"
+        android:hint="Email utilizator">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_search_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:textColor="@color/app_text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Divider -->
     <View

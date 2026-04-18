@@ -64,7 +64,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
 
     class ActivityViewHolder extends RecyclerView.ViewHolder {
         TextView time, placeName, placeType, notes, groupMemberCount, budgetDisplay;
-        ImageView btnComplete, btnShare, btnCreateGroup, btnExport;
+        ImageView btnComplete, btnShare, btnCreateGroup, btnExport, activityImage;
         com.google.android.material.button.MaterialButton btnInviteFriendsText;
         LinearLayout groupInfoContainer, budgetInfoContainer;
 
@@ -74,6 +74,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             placeName = itemView.findViewById(R.id.activity_place_name);
             placeType = itemView.findViewById(R.id.activity_place_type);
             notes = itemView.findViewById(R.id.activity_notes);
+            activityImage = itemView.findViewById(R.id.activity_image);
             btnComplete = itemView.findViewById(R.id.btn_complete);
             btnShare = itemView.findViewById(R.id.btn_share);
             btnCreateGroup = itemView.findViewById(R.id.btn_create_group);
@@ -90,6 +91,13 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             placeName.setText(activity.placeName);
             placeType.setText(activity.placeType);
 
+            // Load Image
+            if (activity.placeImageUrl != null && !activity.placeImageUrl.isEmpty()) {
+                Glide.with(context).load(activity.placeImageUrl).placeholder(R.drawable.vibe_placeholder).into(activityImage);
+            } else {
+                activityImage.setImageResource(R.drawable.vibe_placeholder);
+            }
+
             if (activity.notes != null && !activity.notes.isEmpty()) {
                 notes.setText(activity.notes);
                 notes.setVisibility(View.VISIBLE);
@@ -101,7 +109,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             if (activity.budget > 0) {
                 budgetInfoContainer.setVisibility(View.VISIBLE);
                 String curr = activity.currency != null ? activity.currency : "RON";
-                budgetDisplay.setText(String.format(Locale.getDefault(), "%.2f %s", activity.budget, curr));
+                budgetDisplay.setText(String.format(Locale.getDefault(), "%.0f %s", activity.budget, curr));
             } else {
                 budgetInfoContainer.setVisibility(View.GONE);
             }
@@ -111,19 +119,21 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             if (group != null) {
                 groupInfoContainer.setVisibility(View.VISIBLE);
                 int memberCount = db.groupDao().getAcceptedMemberCount(group.id);
-                groupMemberCount.setText(memberCount + " friend" + (memberCount != 1 ? "s" : ""));
-                btnCreateGroup.setImageResource(R.drawable.ic_group);
+                groupMemberCount.setText("Grup activ (" + memberCount + " " + (memberCount == 1 ? "pers" : "pers") + ")");
+                btnInviteFriendsText.setText("Vezi Grup");
             } else {
                 groupInfoContainer.setVisibility(View.GONE);
-                btnCreateGroup.setImageResource(R.drawable.ic_group_add);
+                btnInviteFriendsText.setText("Invită");
             }
 
             // Update completion state
             if (activity.isCompleted) {
-                btnComplete.setBackgroundResource(R.drawable.circle_primary);
+                btnComplete.setImageResource(R.drawable.ic_check);
+                btnComplete.setAlpha(0.5f);
                 itemView.setAlpha(0.6f);
             } else {
-                btnComplete.setBackgroundResource(R.drawable.circle_card);
+                btnComplete.setImageResource(R.drawable.ic_check);
+                btnComplete.setAlpha(1.0f);
                 itemView.setAlpha(1.0f);
             }
 
@@ -135,27 +145,19 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             });
 
             btnShare.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onShareClick(activity);
-                }
+                if (listener != null) listener.onShareClick(activity);
             });
 
             btnCreateGroup.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onCreateGroupClick(activity);
-                }
+                if (listener != null) listener.onCreateGroupClick(activity);
             });
 
             btnExport.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onExportClick(activity);
-                }
+                if (listener != null) listener.onExportClick(activity);
             });
 
             btnInviteFriendsText.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onCreateGroupClick(activity);
-                }
+                if (listener != null) listener.onCreateGroupClick(activity);
             });
         }
     }

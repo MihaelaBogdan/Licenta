@@ -162,41 +162,113 @@ def format_google_place(place, user_lat=None, user_lng=None):
         "imageUrl": img_url,
         "latitude": geo.get("lat"),
         "longitude": geo.get("lng"),
-        "type": (place.get("types", [""])[0] or "").replace("_", " ").capitalize()
+        "type": (place.get("types", [""])[0] or "").replace("_", " ").capitalize(),
+        "relevance_score": 0 # Will be populated by scoring engine
     }
+
+# ==================== PERSONALIZATION ENGINE ====================
+
+def get_user_context(user_id):
+    """Fetches user interests and history from Supabase to provide context for recommendations."""
+    if not user_id:
+        return {"interests": [], "history_weights": {}}
+        
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    
+    # 1. Fetch interests from user profile
+    # Table name might be 'users' based on User.java @Entity
+    user_url = f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}&select=interests"
+    interests = []
+    try:
+        res = requests.get(user_url, headers=headers)
+        if res.status_code == 200 and res.json():
+            interests_str = res.json()[0].get("interests", "")
+            interests = [i.strip().lower() for i in interests_str.split(",") if i.strip()]
+    except: pass
+    
+    # 2. Fetch history to detect preferred categories
+    history_weights = {}
+    history_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&select=place_type"
+    try:
+        res = requests.get(history_url, headers=headers)
+        if res.status_code == 200:
+            for visit in res.json():
+                ptype = visit.get("place_type", "").lower()
+                if ptype:
+                    history_weights[ptype] = history_weights.get(ptype, 0) + 1
+    except: pass
+    
+    return {"interests": interests, "history_weights": history_weights}
+
+def score_item(item, context):
+    """Calculates a compatibility score (0-100) based on title, type, and user context."""
+    score = 0
+    title = item.get("name", item.get("title", "")).lower()
+    item_type = item.get("type", item.get("category", "")).lower()
+    
+    # 1. Interest Matching (High priority)
+    for interest in context["interests"]:
+        if interest in title or interest in item_type:
+            score += 25
+            
+    # 2. History Matching (Reflects habits)
+    history_weight = context["history_weights"].get(item_type, 0)
+    score += min(history_weight * 5, 30) # Max 30 points for habits
+    
+    # 3. Quality Factor
+    rating = float(item.get("rating", 4.0))
+    score += (rating - 3.0) * 5 # E.g. 5.0 rating gives 10 points
+    
+    return int(min(score, 100))
 
 # --------------------------------
 
 @app.get("/nearby")
 def get_nearby_realtime():
-    """Nearby places within 2km using Google Places API."""
+    """Nearby places within 2km with personalization."""
     lat = request.args.get("lat")
     lng = request.args.get("lng")
+    user_id = request.args.get("user_id")
     place_type = request.args.get("type", "restaurant")
 
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
 
-    print(f"🔍 [GET /nearby] Google Places 2KM for {place_type} at {lat},{lng}")
     results = google_nearby_search(lat, lng, place_type, radius=2000)
     formatted = [format_google_place(p, lat, lng) for p in results if p.get("name")]
+    
+    if user_id:
+        context = get_user_context(user_id)
+        for p in formatted:
+            p["relevance_score"] = score_item(p, context)
+        formatted.sort(key=lambda x: x["relevance_score"], reverse=True)
+            
     return jsonify(formatted[:15])
 
 @app.get("/places/search")
 def search_places():
-    """Trending / Discovery search using Google Places API (wider radius)."""
+    """Trending / Discovery search with personalization."""
     lat = request.args.get("lat")
     lng = request.args.get("lng")
+    user_id = request.args.get("user_id")
     place_type = request.args.get("type", "restaurant")
 
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
 
-    print(f"📈 [GET /places/search] Google Places 15KM for {place_type} at {lat},{lng}")
     results = google_nearby_search(lat, lng, place_type, radius=15000)
-    # Sort by rating for trending
-    results.sort(key=lambda x: x.get("rating", 0), reverse=True)
     formatted = [format_google_place(p, lat, lng) for p in results if p.get("name")]
+    
+    if user_id:
+        context = get_user_context(user_id)
+        for p in formatted:
+            p["relevance_score"] = score_item(p, context)
+        # Sort by relevance primary, rating secondary
+        formatted.sort(key=lambda x: (x["relevance_score"], x["rating"]), reverse=True)
+    else:
+        # Sort by rating only if no user context
+        formatted.sort(key=lambda x: x.get("rating", 0), reverse=True)
+        
     return jsonify(formatted[:25])
 
 @app.get("/places/autocomplete")
@@ -363,9 +435,10 @@ def get_weather():
 
 @app.get("/itinerary")
 def get_itinerary():
-    """Generates a day plan using Google Places API."""
+    """Generates a day plan using personalized sorting."""
     lat_str = request.args.get("lat")
     lng_str = request.args.get("lng")
+    user_id = request.args.get("user_id")
     if not lat_str or not lng_str:
         return jsonify([])
 
@@ -374,6 +447,8 @@ def get_itinerary():
     style = request.args.get("type", "exploration").lower()
     duration = int(request.args.get("duration", 6))
     points_count = int(request.args.get("points", 4))
+
+    context = get_user_context(user_id) if user_id else {"interests": [], "history_weights": {}}
 
     import random
     from datetime import datetime, timedelta
@@ -445,13 +520,19 @@ def get_itinerary():
     for slot in slots:
         try:
             results = google_nearby_search(current_lat, current_lng, slot["type"], radius=5000)
-            # Shuffle and filter out already-used places
-            random.shuffle(results)
             available = [r for r in results if r.get("place_id") not in used_place_ids and r.get("name")]
-            if not available:
-                available = results
+            if not available: available = results
+            
             if available:
-                best = available[0]  # Already shuffled, so first = random
+                # Score each available place based on user context
+                for r in available:
+                    # Temporary mapping for scoring
+                    temp_item = {"name": r.get("name"), "type": slot["type"], "rating": r.get("rating", 4.0)}
+                    r["_score"] = score_item(temp_item, context)
+                
+                # Sort by score descending and pick the best one
+                available.sort(key=lambda x: x.get("_score", 0), reverse=True)
+                best = available[0]
                 used_place_ids.add(best.get("place_id"))
                 
                 img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
@@ -638,6 +719,149 @@ def toggle_like(post_id):
         return jsonify({"status": "liked"})
 
 # ==================== USERS & SOCIAL ====================
+
+def fetch_ticketmaster_events(lat, lng):
+    """Fetches global events from Ticketmaster API based on coordinates."""
+    if not TICKETMASTER_API_KEY:
+        return []
+    
+    # Radius in KM
+    url = f"https://app.ticketmaster.com/discovery/v2/events.json"
+    params = {
+        "apikey": TICKETMASTER_API_KEY,
+        "latlong": f"{lat},{lng}",
+        "radius": "50",
+        "unit": "km",
+        "size": 25,
+        "sort": "date,asc"
+    }
+    
+    try:
+        res = requests.get(url, params=params, timeout=10)
+        if res.status_code != 200:
+            return []
+            
+        data = res.json()
+        raw_events = data.get("_embedded", {}).get("events", [])
+        
+        formatted_events = []
+        for e in raw_events:
+            img = e.get("images", [{}])[0].get("url", "")
+            venue = e.get("_embedded", {}).get("venues", [{}])[0]
+            
+            formatted_events.append({
+                "title": e.get("name"),
+                "location": venue.get("name", "Various"),
+                "date_str": e.get("dates", {}).get("start", {}).get("localDate"),
+                "image_url": img,
+                "event_url": e.get("url"),
+                "source": "ticketmaster",
+                "category": e.get("classifications", [{}])[0].get("segment", {}).get("name", "Social")
+            })
+        return formatted_events
+    except Exception as e:
+        print(f"⚠️ Ticketmaster Error: {e}")
+        return []
+
+def fetch_foursquare_trending(lat, lng):
+    """Fallback: Finds popular venues and 'events' using Foursquare Trending/Popularity."""
+    if not FOURSQUARE_API_KEY:
+        return []
+        
+    url = "https://api.foursquare.com/v3/places/search"
+    # Categories: Arts & Ent (10000), Music Venue (10039), Nightlife (10032), Festival (10010)
+    params = {
+        "ll": f"{lat},{lng}",
+        "categories": "10000,10010,10032,10039",
+        "sort": "POPULARITY",
+        "limit": 15
+    }
+    headers = {
+        "Accept": "application/json",
+        "Authorization": FOURSQUARE_API_KEY
+    }
+    
+    try:
+        res = requests.get(url, params=params, headers=headers, timeout=10)
+        if res.status_code != 200:
+            return []
+            
+        places = res.json().get("results", [])
+        formatted = []
+        for p in places:
+            # Map place to event-like structure
+            cat = p.get("categories", [{}])[0].get("name", "Social")
+            img = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800" # Event placeholder
+            
+            formatted.append({
+                "title": f"Spotlight: {p.get('name')}",
+                "location": p.get("location", {}).get("address", "Nearby"),
+                "date_str": "Trending Now",
+                "image_url": img,
+                "event_url": f"https://foursquare.com/v/{p.get('fsq_id')}",
+                "source": "foursquare",
+                "category": cat
+            })
+        return formatted
+    except Exception as e:
+        print(f"⚠️ Foursquare Fallback Error: {e}")
+        return []
+
+@app.get("/events")
+def get_events():
+    """Returns events for ANY location, balancing local scraping, global API, and trending spots."""
+    lat = request.args.get("lat", 44.4268)
+    lng = request.args.get("lng", 26.1025)
+    interests = request.args.get("interests", "").lower()
+    
+    # Tier 1: Global Ticketmaster (Concerts, Sports)
+    events = fetch_ticketmaster_events(lat, lng)
+    
+    # Tier 2: Local Scraped (Specialty Bucharest)
+    dist_to_bucu = ((float(lat) - 44.4268)**2 + (float(lng) - 26.1025)**2)**0.5
+    if dist_to_bucu < 0.5:
+        headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        url = f"{SUPABASE_URL}/rest/v1/scraped_events?order=created_at.desc&limit=30"
+        try:
+            res = requests.get(url, headers=headers)
+            if res.status_code == 200:
+                events.extend(res.json())
+        except: pass
+
+    # Tier 3: Universal Fallback (Foursquare Trending)
+    # If we have very few events, fill the gaps with popular places
+    if len(events) < 5:
+        trending = fetch_foursquare_trending(lat, lng)
+        events.extend(trending)
+
+    # Personalization & Deduplication
+    seen_titles = set()
+    unique_events = []
+    interest_list = [i.strip() for i in interests.split(",") if i.strip()] if interests else []
+    
+    for event in events:
+        title = event.get('title')
+        if not title or title in seen_titles: continue
+        seen_titles.add(title)
+        
+        # Scoring
+        score = 0
+        title_lower = title.lower()
+        cat_lower = event.get('category', '').lower()
+        for interest in interest_list:
+            if interest in title_lower or interest in cat_lower:
+                score += 30
+        
+        # Source priority: iabilet > ticketmaster > foursquare
+        source_score = 0
+        if event.get('source') == 'iabilet': source_score = 10
+        elif event.get('source') == 'ticketmaster': source_score = 5
+        
+        event['relevance_score'] = score + source_score
+        unique_events.append(event)
+    
+    unique_events.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+    return jsonify(unique_events[:40])
 
 @app.get("/users/search")
 def search_users():

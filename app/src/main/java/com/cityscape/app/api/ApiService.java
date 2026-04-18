@@ -6,6 +6,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public interface ApiService {
         @GET("places")
@@ -13,9 +14,9 @@ public interface ApiService {
 
         @GET("nearby")
         Call<List<Place>> getNearby(
-                        @retrofit2.http.Query("lat") double lat,
-                        @retrofit2.http.Query("lng") double lng,
-                        @retrofit2.http.Query("type") String type);
+                @Query("lat") double lat,
+                @Query("lng") double lng,
+                @Query("type") String type, String userId);
 
         @GET("places/search")
         Call<List<Place>> getPlacesSearch(
@@ -23,7 +24,8 @@ public interface ApiService {
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("query") String query,
                         @retrofit2.http.Query("type") String type,
-                        @retrofit2.http.Query("radius") Integer radius);
+                        @retrofit2.http.Query("radius") Integer radius,
+                        @retrofit2.http.Query("user_id") String userId);
 
         @GET("places/autocomplete")
         Call<List<java.util.Map<String, String>>> getAutocomplete(
@@ -49,7 +51,8 @@ public interface ApiService {
                         @retrofit2.http.Query("budget") Integer budget,
                         @retrofit2.http.Query("interests") String interests,
                         @retrofit2.http.Query("duration") Integer duration,
-                        @retrofit2.http.Query("points") Integer points);
+                        @retrofit2.http.Query("points") Integer points,
+                        @retrofit2.http.Query("user_id") String userId);
 
         @GET("events")
         Call<List<com.cityscape.app.model.Event>> getEvents(

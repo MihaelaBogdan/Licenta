@@ -12,137 +12,205 @@
         android:orientation="vertical">
 
         <!-- Header -->
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp">
+            android:paddingTop="20dp"
+            android:paddingBottom="12dp">
 
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/planned_activities"
-                android:textColor="@color/app_text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <!-- Join Group -->
-            <ImageView
-                android:id="@+id/btn_join_group"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/circle_card"
-                android:padding="10dp"
-                android:src="@drawable/ic_link"
-                app:tint="@color/primary" />
+                <TextView
+                    android:id="@+id/text_month_year"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aprilie 2026"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+                
+                <TextView
+                    android:id="@+id/text_activity_summary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ai 3 activități planificate azi"
+                    android:textColor="@color/primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
 
-            <!-- Sync Calendar -->
-            <ImageView
-                android:id="@+id/btn_sync_calendar"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/circle_card"
-                android:padding="10dp"
-                android:src="@drawable/ic_calendar"
-                app:tint="@color/primary" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal">
 
-            <!-- Export Calendar -->
-            <ImageView
-                android:id="@+id/btn_export_calendar"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/circle_card"
-                android:padding="10dp"
-                android:src="@drawable/ic_share"
-                app:tint="@color/primary" />
+                <ImageView
+                    android:id="@+id/btn_sync_calendar"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/circle_card"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="@color/primary" />
 
-            <!-- Add Activity -->
-            <ImageView
-                android:id="@+id/btn_add_activity"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/circle_primary"
-                android:padding="10dp"
-                android:src="@drawable/ic_add"
-                app:tint="@color/app_background" />
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/btn_add_activity"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/circle_primary"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/app_background" />
+            </LinearLayout>
+        </RelativeLayout>
 
-        <!-- Pending Invitations Banner -->
+        <!-- Horizontal Date Scroller (PRO FEATURE) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_horizontal_calendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="12dp"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- Quick Actions Banner -->
         <androidx.cardview.widget.CardView
-            android:id="@+id/banner_invitations"
+            android:id="@+id/banner_actions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
-            android:visibility="gone"
-            app:cardBackgroundColor="#1A10B981"
-            app:cardCornerRadius="12dp"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="@color/app_surface"
+            app:cardCornerRadius="16dp"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:gravity="center"
                 android:orientation="horizontal"
-                android:padding="12dp">
+                android:padding="8dp">
 
-                <TextView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/circle_primary"
-                    android:gravity="center"
-                    android:text="📬"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/text_invitation_count"
+                <LinearLayout
+                    android:id="@+id/action_invitations"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:text="Ai 2 invitații noi"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📬"
+                        android:textSize="20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Invitații"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/btn_view_invitations"
-                    android:layout_width="wrap_content"
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:background="#20FFFFFF" />
+
+                <LinearLayout
+                    android:id="@+id/action_groups"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/circle_primary"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="6dp"
-                    android:text="Vezi"
-                    android:textColor="@color/app_background"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👥"
+                        android:textSize="20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Grupuri"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:background="#20FFFFFF" />
+
+                <LinearLayout
+                    android:id="@+id/action_export"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📤"
+                        android:textSize="20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Export"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Calendar View -->
+        <!-- Monthly Grid (Collapsible/Secondary) -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/card_monthly_calendar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/app_card"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
 
-            <CalendarView
-                android:id="@+id/calendar_view"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:dateTextAppearance="@style/CalendarDateStyle"
-                android:weekDayTextAppearance="@style/CalendarWeekDayStyle" />
+                android:orientation="vertical">
+                
+                <LinearLayout
+                    android:id="@+id/btn_expand_calendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:padding="8dp">
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="4dp"
+                        android:background="#20FFFFFF"
+                        app:cornerRadius="2dp" />
+                </LinearLayout>
 
+                <CalendarView
+                    android:id="@+id/calendar_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:theme="@style/Theme.CityScape"
+                    android:dateTextAppearance="@style/CalendarDateStyle"
+                    android:weekDayTextAppearance="@style/CalendarWeekDayStyle" />
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <!-- Selected Date Label -->

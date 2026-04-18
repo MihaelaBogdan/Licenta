@@ -257,10 +257,12 @@ public class ItineraryFragment extends Fragment {
         int duration = args.getInt("itinerary_duration", 6);
         int points = args.getInt("itinerary_points", 4);
 
+        SessionManager sessionManager = new SessionManager(requireContext());
+        String userId = sessionManager.getUserId();
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         // Fetch 2 more to have a total of 3
         for (int i = 0; i < 2; i++) {
-            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points).enqueue(new Callback<List<ItineraryItem>>() {
+            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId).enqueue(new Callback<List<ItineraryItem>>() {
                 @Override
                 public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                     if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -299,9 +301,11 @@ public class ItineraryFragment extends Fragment {
 
         int currentTabIndex = binding.itineraryTabs.getSelectedTabPosition();
         
+        SessionManager sessionManager = new SessionManager(requireContext());
+        String userId = sessionManager.getUserId();
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
 
-        apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points).enqueue(new Callback<List<ItineraryItem>>() {
+        apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId).enqueue(new Callback<List<ItineraryItem>>() {
             @Override
             public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                 if (isAdded() && binding != null) {

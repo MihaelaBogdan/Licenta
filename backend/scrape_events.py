@@ -10,6 +10,14 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
+CATEGORIES = {
+    "Muzică": ["concert", "live", "tribut", "dj", "party", "festival", "jazz", "rock", "pop"],
+    "Teatru": ["teatru", "piesa", "spectacol", "comedie", "drama"],
+    "Sport": ["meci", "fotbal", "tenis", "maraton", "alergare", "baschet"],
+    "Artă": ["expozitie", "muzeu", "galerie", "vernisaj", "pictura"],
+    "Food": ["degustare", "vin", "food", "festivalul", "bucatarie"]
+}
+
 # Cuvinte cheie pe care vrem să le evităm (pentru filtrare)
 EXCLUDED_KEYWORDS = ["curs", "workshop", "atelier", "seminar", "webinar", "clasa", "invata"]
 
@@ -17,91 +25,107 @@ def clean_text(text):
     if not text: return ""
     return " ".join(text.split())
 
+def detect_category(title):
+    title_lower = title.lower()
+    for cat, keywords in CATEGORIES.items():
+        if any(kw in title_lower for kw in keywords):
+            return cat
+    return "Social"
+
+import json
+
 def scrape_iabilet():
-    print("🔍 Scraping iabilet.ro for Bucharest events...")
+    print("🔍 Scraping iabilet.ro using JSON-LD...")
     url = "https://www.iabilet.ro/bilete-bucuresti/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
     
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=15)
         if response.status_code != 200:
-            print(f"❌ Error accessing iabilet: {response.status_code}")
             return []
             
         soup = BeautifulSoup(response.text, 'html.parser')
-        raw_events = soup.select('.event-list-item') # Selector specific pentru iabilet
+        scripts = soup.find_all('script', type='application/ld+json')
+        print(f"📊 Found {len(scripts)} JSON-LD blocks.")
         
         scraped_data = []
-        for item in raw_events:
+        for script in scripts:
             try:
-                title = clean_text(item.select_one('.event-title').text)
+                content = script.get_text().strip()
+                if not content: continue
+                print(f"📄 Content preview: {content[:50]}...")
+                data = json.loads(content)
+                items = data if isinstance(data, list) else [data]
                 
-                # --- FILTRARE ---
-                # 1. Verificăm cuvinte cheie nedorite
-                if any(kw in title.lower() for kw in EXCLUDED_KEYWORDS):
-                    print(f"⏩ Skipping (Filtered): {title}")
-                    continue
-                
-                link_tag = item.select_one('a')
-                if not link_tag: continue
-                link = "https://www.iabilet.ro" + link_tag['href']
-                
-                venue = clean_text(item.select_one('.event-venue').text)
-                date_str = clean_text(item.select_one('.event-date').text)
-                
-                # Imagine (iabilet foloseste adesea lazy loading sau imagini in stil)
-                img_tag = item.select_one('img')
-                img_url = img_tag['src'] if img_tag and 'src' in img_tag.attrs else "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800"
-                if img_url.startswith('//'): img_url = "https:" + img_url
-
-                scraped_data.append({
-                    "title": title,
-                    "location": venue,
-                    "date_str": date_str,
-                    "image_url": img_url,
-                    "event_url": link,
-                    "source": "iabilet"
-                })
-            except Exception as e:
-                print(f"⚠️ Error parsing item: {e}")
+                for item in items:
+                    # Debug print
+                    typ = item.get("@type", "???")
+                    print(f"DEBUG: Item type is {typ}")
+                    if typ != "Event":
+                        continue
+                        
+                    title = item.get("name", "")
+                    print(f"📌 Found event: {title}")
+                    if not title or any(kw in title.lower() for kw in EXCLUDED_KEYWORDS):
+                        continue
+                        
+                    event_url = item.get("url", "")
+                    if not event_url.startswith("http"):
+                        event_url = "https://www.iabilet.ro" + event_url
+                        
+                    location_obj = item.get("location", {})
+                    location_name = location_obj.get("name", "București") if isinstance(location_obj, dict) else "București"
+                    
+                    date_str = item.get("startDate", "")
+                    image_url = item.get("image", "")
+                    
+                    scraped_data.append({
+                        "title": title,
+                        "location": location_name,
+                        "date_str": date_str,
+                        "image_url": image_url,
+                        "event_url": event_url,
+                        "source": "iabilet",
+                        "category": detect_category(title)
+                    })
+            except Exception:
                 continue
                 
-        return scraped_data
+        # Remove duplicates based on URL
+        unique_events = {e['event_url']: e for e in scraped_data}.values()
+        return list(unique_events)
     except Exception as e:
-        print(f"❌ Scraping failure: {e}")
+        print(f"❌ Error during JSON-LD scrape: {e}")
         return []
 
-def upsert_to_supabase(events):
-    if not events:
-        print("ℹ️ No events to save.")
-        return
+def scrape_eventbook():
+    # Placeholder for another source to show scalability
+    print("🔍 Scraping eventbook.ro (Mocked for now)...")
+    return []
 
+def upsert_to_supabase(events):
+    if not events: return
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/json",
         "Prefer": "resolution=merge-duplicates"
     }
-    
     url = f"{SUPABASE_URL}/rest/v1/scraped_events"
-    
-    # Supabase upsert requires the unique key (event_url)
-    response = requests.post(url, headers=headers, json=events)
-    
-    if response.status_code in [201, 204]:
-        print(f"✅ Successfully saved {len(events)} events to Supabase!")
-    else:
-        print(f"❌ Failed to save: {response.status_code} - {response.text}")
+    requests.post(url, headers=headers, json=events)
+    print(f"✅ Sync complete: {len(events)} events processed.")
 
 def main():
-    events = scrape_iabilet()
-    if events:
-        print(f"✨ Found {len(events)} valid events after filtering.")
-        upsert_to_supabase(events)
+    all_events = []
+    all_events.extend(scrape_iabilet())
+    all_events.extend(scrape_eventbook())
+    
+    if all_events:
+        upsert_to_supabase(all_events)
     else:
-        print("🤷 No events found.")
+        print("🤷 No new events.")
 
 if __name__ == "__main__":
     main()

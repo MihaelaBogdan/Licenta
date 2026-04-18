@@ -43,7 +43,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = events.get(position);
         holder.title.setText(event.title);
-        holder.time.setText(event.time);
+        holder.time.setText((event.time != null && !event.time.isEmpty()) ? event.time : event.date_str);
         holder.location.setText(event.location);
 
         if (event.imageUrl != null && !event.imageUrl.isEmpty()) {
@@ -58,8 +58,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         });
 
         // Highlight if matches interests
-        boolean isRecommended = false;
-        if (!userInterests.isEmpty()) {
+        boolean isRecommended = event.relevance_score > 0;
+        if (!isRecommended && !userInterests.isEmpty()) {
             String[] splitInterests = userInterests.split(",");
             for (String interest : splitInterests) {
                 String trimInt = interest.trim();
