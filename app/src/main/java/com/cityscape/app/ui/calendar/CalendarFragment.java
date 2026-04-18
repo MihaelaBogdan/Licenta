@@ -561,6 +561,29 @@ public class CalendarFragment extends Fragment {
         EditText inputGroupName = dialogView.findViewById(R.id.input_group_name);
         EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
         TextView btnShareLink = dialogView.findViewById(R.id.btn_share_link);
+        
+        // Following list
+        RecyclerView rvFollowing = dialogView.findViewById(R.id.rv_following_to_invite);
+        View labelFollowing = dialogView.findViewById(R.id.text_following_label);
+        
+        com.cityscape.app.adapter.SmallUserAdapter followingAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
+        if (rvFollowing != null) {
+            rvFollowing.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvFollowing.setAdapter(followingAdapter);
+            
+            // Fetch following from API
+            apiService.getFollowing(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
+                @Override
+                public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        labelFollowing.setVisibility(View.VISIBLE);
+                        rvFollowing.setVisibility(View.VISIBLE);
+                        followingAdapter.setUsers(response.body());
+                    }
+                }
+                @Override public void onFailure(retrofit2.Call<List<User>> call, Throwable t) {}
+            });
+        }
 
         inputGroupName.setText(activity.placeName + " - Grup");
 
@@ -588,13 +611,21 @@ public class CalendarFragment extends Fragment {
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
                         .pushMemberToCloud(creatorMember);
 
-                // Check if user typed an email to invite
+                // 1. Invite selected users from Following list
+                List<User> selectedUsers = followingAdapter.getSelectedUsers();
+                for (User targetUser : selectedUsers) {
+                    sendInvitation(group, activity, targetUser);
+                }
+
+                // 2. Check if user typed an email to invite
                 String email = inputSearchEmail.getText().toString().trim();
                 if (!email.isEmpty()) {
-                    User targetUser = db.userDao().getUserByEmail(email);
-                    if (targetUser != null) {
-                        sendInvitation(group, activity, targetUser);
-                    }
+                    new Thread(() -> {
+                        User targetUser = db.userDao().getUserByEmail(email);
+                        if (targetUser != null && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> sendInvitation(group, activity, targetUser));
+                        }
+                    }).start();
                 }
 
                 Toast.makeText(getContext(), "Grup creat! Cod: " + group.groupCode, Toast.LENGTH_LONG).show();

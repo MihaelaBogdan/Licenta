@@ -19,6 +19,8 @@ public class User {
     public int placesVisited;
     public int badgesEarned;
     public String interests;
+    public String avatar;
+    public boolean isFollowing;
 
     public User() {
         this.id = java.util.UUID.randomUUID().toString();

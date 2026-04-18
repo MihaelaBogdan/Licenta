@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/navigation_feed"
+        android:icon="@drawable/ic_globe"
+        android:title="Feed" />
+    <item
         android:id="@+id/navigation_home"
         android:icon="@android:drawable/ic_menu_today"
         android:title="@string/nav_home" />

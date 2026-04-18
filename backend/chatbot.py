@@ -18,7 +18,8 @@ from model import IntentClassifier
 # Load model and data
 # ============================================================
 
-SAVE_DIR = "distilbert_model"
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+SAVE_DIR = os.path.join(BASE_PATH, "distilbert_model")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 import google.generativeai as genai
@@ -29,7 +30,8 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-2.0-flash") # Reset to 2.0 with the new key
 
 # Load intents
-with open('data/intents.json', 'r', encoding='utf-8') as f:
+intents_path = os.path.join(BASE_PATH, 'data', 'intents.json')
+with open(intents_path, 'r', encoding='utf-8') as f:
     intents = json.load(f)
 
 # Build a quick lookup: tag -> intent data
@@ -240,14 +242,25 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro"):
     # 2. Fetch Nearby Places (Mini-RAG)
     if lat and lng:
         try:
-            from app import MAPS_API_KEY
+            from app import FOURSQUARE_API_KEY
             import requests
-            search_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-            params = {"location": f"{lat},{lng}", "radius": "2000", "type": "tourist_attraction", "key": MAPS_API_KEY}
-            places = requests.get(search_url, params=params).json().get("results", [])[:5]
+            url = "https://api.foursquare.com/v3/places/search"
+            headers = {
+                "Accept": "application/json",
+                "Authorization": FOURSQUARE_API_KEY
+            }
+            params = {
+                "ll": f"{lat},{lng}",
+                "radius": "2000",
+                "categories": "16000,10000,13000", # Sights, Arts, Dining
+                "limit": 5,
+                "fields": "name"
+            }
+            res = requests.get(url, params=params, headers=headers).json()
+            places = res.get("results", [])
             if places:
                 places_str = ", ".join([p.get("name") for p in places])
-                nearby_context = f"Locații din apropiere: {places_str}."
+                nearby_context = f"Locații din apropiere (via Foursquare): {places_str}."
         except Exception as e:
             print(f"⚠️ RAG Nearby Error: {e}")
 

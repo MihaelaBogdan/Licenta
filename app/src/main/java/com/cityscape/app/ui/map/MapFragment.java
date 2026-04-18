@@ -89,7 +89,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         LatLng userLoc = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLoc, 14f));
         loadPlacesFromBackend(); // Get static supabase
-        loadNearby(location.getLatitude(), location.getLongitude()); // Get google API
+        loadNearby(location.getLatitude(), location.getLongitude()); // Get Foursquare data
         loadEvents(location.getLatitude(), location.getLongitude()); // Get Ticketmaster
     }
 
@@ -133,7 +133,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         MarkerOptions options = new MarkerOptions()
                                 .position(pos)
                                 .title(place.name)
-                                .snippet(place.type != null ? place.type : "Google Places")
+                                .snippet(place.type != null ? place.type : "Foursquare")
                                 .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
                                         com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE));
                         mMap.addMarker(options);

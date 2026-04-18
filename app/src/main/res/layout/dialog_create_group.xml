@@ -33,37 +33,36 @@
             android:textColorHint="@color/app_text_hint" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Invite Section -->
+    <!-- Invite Following Section -->
+    <TextView
+        android:id="@+id/text_following_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Urmărești și poți invita:"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_following_to_invite"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <!-- Invite by email Section -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="👥 Invită Prieteni"
+        android:text="👥 Alte invitații (Email)"
         android:textColor="@color/app_text_primary"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.CityScape.TextInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:hint="Email-ul prietenului">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_search_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"
-            android:textColor="@color/app_text_primary"
-            android:textColorHint="@color/app_text_hint" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_selected_users"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" />
 
     <!-- Divider -->
     <View

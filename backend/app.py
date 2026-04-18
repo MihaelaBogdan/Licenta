@@ -19,7 +19,8 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+env_path = os.path.join(current_dir, '.env')
+load_dotenv(dotenv_path=env_path)
 
 app = Flask(__name__)
 CORS(app)
@@ -66,259 +67,156 @@ import os
 # API Keys - Loaded from environment variables (.env)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MAPS_API_KEY = os.getenv("MAPS_API_KEY")
+FOURSQUARE_API_KEY = os.getenv("FOURSQUARE_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 PREDICTHQ_API_KEY = os.getenv("PREDICTHQ_API_KEY")
 TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
 
-def get_fallback_events():
-    return [
-        {"title": "Concert Live: Rock în Parc", "location": "Parcul Central", "time": "Mâine 19:00", "imageUrl": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", "url": "https://google.com"},
-        {"title": "Festival Gastronomic", "location": "Piața Victoriei", "time": "Azi 12:00", "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800", "url": "https://google.com"},
-        {"title": "Expoziție de Artă", "location": "Muzeul Național", "time": "Zilnic 10:00", "imageUrl": "https://images.unsplash.com/photo-1518998053502-53cc8de431d8?w=800", "url": "https://google.com"}
-    ]
+# Foursquare Category Mapping
+FSQ_CATEGORIES = {
+    "restaurant": "13065",
+    "cafe": "13032",
+    "park": "16032",
+    "museum": "10027",
+    "art_gallery": "10004",
+    "bakery": "13002",
+    "bar": "13003",
+    "night_club": "10032",
+    "movie_theater": "10024",
+    "spa": "11044",
+    "tourist_attraction": "16000",
+    "zoo": "10051",
+    "aquarium": "10001",
+    "stadium": "10051", # Best match
+    "shopping_mall": "17114",
+    "landmark": "16026",
+    "historic": "16026"
+}
 
-def get_fallback_nearby(lat, lng):
-    return [
-        {"id": "fb1", "name": "Grădina Eden", "address": "Calea Victoriei 107", "rating": 4.5, "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800", "latitude": float(lat), "longitude": float(lng), "type": "Grădină"},
-        {"id": "fb2", "name": "The Artist", "address": "Calea Victoriei 147", "rating": 4.9, "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800", "latitude": float(lat)+0.001, "longitude": float(lng)+0.001, "type": "Restaurant"},
-        {"id": "fb3", "name": "M60 Cafe", "address": "Strada Mendeleev 2", "rating": 4.7, "imageUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800", "latitude": float(lat)-0.001, "longitude": float(lng)-0.001, "type": "Cafenea"}
-    ]
+def google_nearby_search(lat, lng, place_type, radius=5000, keyword=None):
+    """Searches Google Places API for nearby places."""
+    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    params = {
+        "location": f"{lat},{lng}",
+        "radius": str(radius),
+        "type": place_type,
+        "key": MAPS_API_KEY,
+        "language": "ro"
+    }
+    if keyword:
+        params["keyword"] = keyword
+    try:
+        res = requests.get(url, params=params, timeout=10).json()
+        return res.get("results", [])
+    except Exception as e:
+        print(f"Google Places Error: {e}")
+        return []
+
+def google_autocomplete(query, lat=None, lng=None):
+    """Fetches autocomplete suggestions from Google Places API."""
+    url = "https://maps.googleapis.com/maps/api/place/autocomplete/json"
+    params = {
+        "input": query,
+        "key": MAPS_API_KEY,
+        "language": "ro",
+        "types": "establishment"
+    }
+    if lat and lng:
+        params["location"] = f"{lat},{lng}"
+        params["radius"] = "20000"
+    
+    try:
+        res = requests.get(url, params=params, timeout=5).json()
+        return res.get("predictions", [])
+    except Exception as e:
+        print(f"Google Autocomplete Error: {e}")
+        return []
+
+def format_google_place(place, user_lat=None, user_lng=None):
+    """Formats a Google Places result into our app's Place model."""
+    # Photo URL
+    img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+    if place.get("photos"):
+        ref = place["photos"][0]["photo_reference"]
+        img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
+
+    geo = place.get("geometry", {}).get("location", {})
+    
+    # Distance calculation
+    dist_str = ""
+    if user_lat and user_lng and geo.get("lat") and geo.get("lng"):
+        try:
+            from math import radians, cos, sin, asin, sqrt
+            lon1, lat1, lon2, lat2 = map(radians, [float(user_lng), float(user_lat), float(geo["lng"]), float(geo["lat"])])
+            d = 2 * 6371 * asin(sqrt(sin((lat2-lat1)/2)**2 + cos(lat1)*cos(lat2)*sin((lon2-lon1)/2)**2))
+            dist_str = f" ({int(d*1000)}m)" if d < 1 else f" ({d:.1f}km)"
+        except: pass
+
+    return {
+        "id": place.get("place_id", ""),
+        "name": place.get("name", "Locație"),
+        "address": place.get("vicinity", "București") + dist_str,
+        "rating": place.get("rating", 4.2),
+        "imageUrl": img_url,
+        "latitude": geo.get("lat"),
+        "longitude": geo.get("lng"),
+        "type": (place.get("types", [""])[0] or "").replace("_", " ").capitalize()
+    }
 
 # --------------------------------
 
-@app.get("/events")
-def get_events():
-    lat = request.args.get("lat")
-    lng = request.args.get("lng")
-    interests = request.args.get("interests", "")
-    if not lat or not lng:
-        return jsonify({"error": "Missing coordinates"}), 400
-
-    print(f"🎭 Fetching Ticketmaster events near: {lat}, {lng}. Interests: {interests}")
-
-    # Map user interests to Ticketmaster keywords/segments dynamically
-    keyword = ""
-    if interests:
-        mapping = []
-        interests_lower = interests.lower()
-        if "muzic" in interests_lower or "music" in interests_lower or "concert" in interests_lower: mapping.append("Music")
-        if "arta" in interests_lower or "art" in interests_lower or "cultur" in interests_lower: mapping.append("Arts")
-        if "sport" in interests_lower: mapping.append("Sports")
-        if "film" in interests_lower: mapping.append("Film")
-        
-        if mapping:
-            keyword = mapping[0] # Pick primary mapped interest
-
-    # --- PREMIUM TICKETMASTER STRATEGY ---
-    url = "https://app.ticketmaster.com/discovery/v2/events.json"
-    
-    # Discovery segments
-    music_seg = "KZFzniwnSyZfZ7v7n1"
-    arts_seg = "KZFzniwnSyZfZ7v7na"
-    sports_seg = "KZFzniwnSyZfZ7v7nE"
-
-    # 1. Build optimized params
-    params = {
-        "apikey": TICKETMASTER_API_KEY,
-        "latlong": f"{lat},{lng}",
-        "radius": "300",
-        "unit": "km",
-        "countryCode": "RO",
-        "sort": "relevance,desc", # Relevance first for better quality
-        "size": 30
-    }
-    
-    # Multi-category discovery if interests are missing
-    if not interests:
-        params["segmentId"] = f"{music_seg},{arts_seg},{sports_seg}"
-    else:
-        if keyword: params["keyword"] = keyword
-
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-        
-        # --- 1. PREMIUM MANUAL DISCOVERY (Bucharest 2026) ---
-        premium_events = [
-            {"title": "Metallica: M72 World Tour", "location": "National Arena, București", "time": "2026-05-13", "imageUrl": "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800", "url": "https://www.metallica.com", "lat": 44.4372, "lng": 26.1511},
-            {"title": "Iron Maiden: Run for Your Lives", "location": "National Arena, București", "time": "2026-05-28", "imageUrl": "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=800", "url": "https://www.ironmaiden.com", "lat": 44.4372, "lng": 26.1511},
-            {"title": "Summer Well Festival", "location": "Domeniul Știrbey, Buftea", "time": "2026-08-07", "imageUrl": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800", "url": "https://summerwell.ro", "lat": 44.5644, "lng": 25.9522},
-            {"title": "Saga Festival 2026", "location": "Romaero, București", "time": "2026-06-25", "imageUrl": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", "url": "https://sagafestival.com", "lat": 44.4936, "lng": 26.1039},
-            {"title": "Eros Ramazzotti Live", "location": "Laminor Arena, București", "time": "2026-04-22", "imageUrl": "https://images.unsplash.com/photo-1501612780327-45045538702b?w=800", "url": "https://ramazzotti.com", "lat": 44.4172, "lng": 26.1755},
-            {"title": "Skillet: Dominion Tour", "location": "Arenele Romane, București", "time": "2026-05-12", "imageUrl": "https://images.unsplash.com/photo-1459749411177-042180ce673c?w=800", "url": "https://skillet.com", "lat": 44.4116, "lng": 26.0956},
-            {"title": "Neversea Kapital", "location": "National Arena, București", "time": "2026-07-03", "imageUrl": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800", "url": "https://neversea.com", "lat": 44.4372, "lng": 26.1511},
-            {"title": "George Enescu Festival", "location": "Sala Palatului, București", "time": "2026-08-23", "imageUrl": "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=800", "url": "https://festivalenescu.ro", "lat": 44.4398, "lng": 26.0958},
-            {"title": "Russel Crowe: Indoor Garden Party", "location": "Sala Palatului, București", "time": "2026-07-04", "imageUrl": "https://images.unsplash.com/photo-1521334885634-95b42c053b01?w=800", "url": "https://bilete.ro", "lat": 44.4398, "lng": 26.0958}
-        ]
-
-        formatted = []
-        
-        # Add premium events if in Bucharest (lat/lng approx)
-        try:
-            if 44.3 <= float(lat) <= 44.6 and 25.9 <= float(lng) <= 26.3:
-                for pe in premium_events:
-                    formatted.append({
-                        "title": pe["title"],
-                        "location": pe["location"],
-                        "time": pe["time"],
-                        "imageUrl": pe["imageUrl"],
-                        "url": pe["url"],
-                        "latitude": pe["lat"],
-                        "longitude": pe["lng"],
-                        "source": "Local Discovery"
-                    })
-        except: pass
-
-        # --- 2. TICKETMASTER DISCOVERY ---
-        tm_events = data.get("_embedded", {}).get("events", [])
-        for e in tm_events:
-            images = sorted(e.get("images", []), key=lambda i: i.get('width', 0), reverse=True)
-            img_url = images[0]["url"] if images else "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800"
-            venues = e.get("_embedded", {}).get("venues", [])
-            venue_name = venues[0].get("name", "Locație") if venues else "România"
-            display_location = f"{venue_name}, {venues[0].get('city', {}).get('name', '')}".strip(", ")
-            ev_lat = float(venues[0]["location"].get("latitude", 0.0)) if venues and venues[0].get("location") else 0.0
-            ev_lng = float(venues[0]["location"].get("longitude", 0.0)) if venues and venues[0].get("location") else 0.0
-
-            formatted.append({
-                "title": e.get("name", "Premium Event"),
-                "location": display_location,
-                "time": e.get("dates", {}).get("start", {}).get("localDate", "Vom anunța"),
-                "imageUrl": img_url,
-                "url": e.get("url", ""),
-                "latitude": ev_lat,
-                "longitude": ev_lng,
-                "source": "Ticketmaster"
-            })
-
-        # --- 3. SEATGEEK DISCOVERY (Global Fallback) ---
-        if len(formatted) < 15:
-            try:
-                sg_url = f"https://api.seatgeek.com/2/events?lat={lat}&lon={lng}&range=50mi&client_id=MzExNjEwMzh8MTY3MTkxNjY0Mi4zOTY3NTg5"
-                sg_res = requests.get(sg_url).json()
-                for sg_e in sg_res.get("events", []):
-                    img_url = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800"
-                    if sg_e.get("performers"):
-                        img_url = sg_e["performers"][0].get("image", img_url)
-                    
-                    formatted.append({
-                        "title": sg_e.get("short_title", sg_e.get("title", "Event")),
-                        "location": sg_e.get("venue", {}).get("name", "Venue"),
-                        "time": sg_e.get("datetime_local", "").split("T")[0],
-                        "imageUrl": img_url,
-                        "url": sg_e.get("url", ""),
-                        "latitude": sg_e.get("venue", {}).get("location", {}).get("lat", 0.0),
-                        "longitude": sg_e.get("venue", {}).get("location", {}).get("lon", 0.0),
-                        "source": "SeatGeek"
-                    })
-            except: pass
-
-        # --- 4. PREDICTHQ (Premium Events & Festivals) ---
-        if PREDICTHQ_API_KEY and len(formatted) < 25:
-            try:
-                phq_url = "https://api.predicthq.com/v1/events/"
-                ph_headers = {"Authorization": f"Bearer {PREDICTHQ_API_KEY}", "Accept": "application/json"}
-                ph_params = {
-                    "location_around.origin": f"{lat},{lng}",
-                    "location_around.scale": "10km",
-                    "category": "festivals,concerts,sports",
-                    "limit": 10
-                }
-                ph_res = requests.get(phq_url, headers=ph_headers, params=ph_params).json()
-                for ph_e in ph_res.get("results", []):
-                    formatted.append({
-                        "title": ph_e.get("title", "Premium Event"),
-                        "location": ph_e.get("location", [0,0]), # PHQ returns [lng, lat] usually or has a dedicated field
-                        "time": ph_e.get("start", "").split("T")[0],
-                        "imageUrl": "https://images.unsplash.com/photo-1514525253361-bee8a816d9db?w=800",
-                        "url": "https://www.predicthq.com",
-                        "latitude": ph_e.get("location", [0,0])[1],
-                        "longitude": ph_e.get("location", [0,0])[0],
-                        "source": "PredictHQ"
-                    })
-            except: pass
-
-        return jsonify(formatted[:40])
-
-    except Exception as ex:
-        print(f"⚠️ Event Discovery Failure: {ex}")
-        return jsonify([])
-
 @app.get("/nearby")
 def get_nearby_realtime():
-    """Fetches real-time recommendations from Google Places based on user coordinates."""
+    """Nearby places within 2km using Google Places API."""
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     place_type = request.args.get("type", "restaurant")
-    
+
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
 
-    if not MAPS_API_KEY or MAPS_API_KEY == "None":
-        print(f"⚠️ [GET /nearby] No Google API Key. Returning 3 fallback places.")
-        return jsonify(get_fallback_nearby(lat, lng))
+    print(f"🔍 [GET /nearby] Google Places 2KM for {place_type} at {lat},{lng}")
+    results = google_nearby_search(lat, lng, place_type, radius=2000)
+    formatted = [format_google_place(p, lat, lng) for p in results if p.get("name")]
+    return jsonify(formatted[:15])
 
-    print(f"🔍 [GET /nearby] Searching via Google Maps for {lat}, {lng}")
+@app.get("/places/search")
+def search_places():
+    """Trending / Discovery search using Google Places API (wider radius)."""
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    place_type = request.args.get("type", "restaurant")
 
-    types_to_fetch = [place_type]
-    if place_type == "mixed" or place_type == "tourist_attraction":
-        types_to_fetch = ["restaurant", "cafe", "park", "museum", "tourist_attraction"]
+    if not lat or not lng:
+        return jsonify({"error": "Missing coordinates"}), 400
 
-    all_results = []
-    seen_ids = set()
+    print(f"📈 [GET /places/search] Google Places 15KM for {place_type} at {lat},{lng}")
+    results = google_nearby_search(lat, lng, place_type, radius=15000)
+    # Sort by rating for trending
+    results.sort(key=lambda x: x.get("rating", 0), reverse=True)
+    formatted = [format_google_place(p, lat, lng) for p in results if p.get("name")]
+    return jsonify(formatted[:25])
 
-    for t in types_to_fetch:
-        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-        params = {
-            "location": f"{lat},{lng}",
-            "radius": "5000",
-            "type": t,
-            "key": MAPS_API_KEY
-        }
-        
-        try:
-            response = requests.get(url, params=params)
-            data = response.json()
-            
-            if data.get("status") != "OK" and data.get("status") != "ZERO_RESULTS":
-                print(f"❌ Google API Error for type {t}: {data.get('status')} - {data.get('error_message', 'No message')}")
-            
-            results = data.get("results", [])
-            print(f"📍 Found {len(results)} results for type {t}")
-            for p in results:
-                p_id = p.get("place_id")
-                if p_id not in seen_ids:
-                    p["detected_type"] = t.replace("_", " ").capitalize()
-                    all_results.append(p)
-                    seen_ids.add(p_id)
-        except Exception as e:
-            print(f"⚠️ Error fetching type {t}: {e}")
-
+@app.get("/places/autocomplete")
+def get_autocomplete():
+    query = request.args.get("query")
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    if not query:
+        return jsonify([])
+    
+    results = google_autocomplete(query, lat, lng)
+    # Simple formatting: just name and place_id
     formatted = []
-    for p in all_results:
-        photo_ref = p.get("photos", [{}])[0].get("photo_reference", "")
-        img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={photo_ref}&key={MAPS_API_KEY}" if photo_ref else "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
-        
+    for r in results:
         formatted.append({
-            "id": p.get("place_id"),
-            "name": p.get("name"),
-            "address": p.get("vicinity"),
-            "rating": p.get("rating", 0.0),
-            "imageUrl": img_url,
-            "latitude": p.get("geometry", {}).get("location", {}).get("lat"),
-            "longitude": p.get("geometry", {}).get("location", {}).get("lng"),
-            "type": p.get("detected_type", place_type.capitalize())
+            "name": r.get("structured_formatting", {}).get("main_text"),
+            "full_name": r.get("description"),
+            "place_id": r.get("place_id")
         })
-    
-    formatted.sort(key=lambda x: x.get('rating', 0), reverse=True)
-    
-    if not formatted:
-        print(f"⚠️ [GET /nearby] Google returned ZERO results for {lat}, {lng}. Returning fallbacks.")
-        return jsonify(get_fallback_nearby(lat, lng))
-
-    return jsonify(formatted[:40])
+    return jsonify(formatted)
 
 @app.post("/visit")
 def record_visit():
@@ -433,10 +331,9 @@ def get_places():
     if response.status_code == 200:
         places = response.json()
         print(f"✅ [GET /places] Successfully fetched {len(places)} places from Supabase.")
-        # Fallback images for Supabase places that might have broken links
         for p in places:
             if not p.get("imageUrl") or "placeholder" in p.get("imageUrl"):
-                p["imageUrl"] = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
+                p["imageUrl"] = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
         return jsonify(places)
     else:
         return jsonify({"error": "Failed to fetch from Supabase"}), 500
@@ -456,7 +353,7 @@ def get_weather():
         if response.status_code == 200:
             return jsonify({
                 "temp": data["main"]["temp"],
-                "condition": data["weather"][0]["main"], # Rain, Clouds, Clear
+                "condition": data["weather"][0]["main"],
                 "description": data["weather"][0]["description"],
                 "icon": data["weather"][0]["icon"]
             })
@@ -466,65 +363,39 @@ def get_weather():
 
 @app.get("/itinerary")
 def get_itinerary():
-    if not MAPS_API_KEY:
+    """Generates a day plan using Google Places API."""
+    lat_str = request.args.get("lat")
+    lng_str = request.args.get("lng")
+    if not lat_str or not lng_str:
         return jsonify([])
 
-    lat = float(request.args.get("lat"))
-    lng = float(request.args.get("lng"))
+    lat = float(lat_str)
+    lng = float(lng_str)
     style = request.args.get("type", "exploration").lower()
-    budget = int(request.args.get("budget", 250))
-    interests = request.args.get("interests", "").lower()
     duration = int(request.args.get("duration", 6))
     points_count = int(request.args.get("points", 4))
-    
+
     import random
-    
-    # Randomly offset the center slightly for variety between calls
-    # This ensures that "Plan 1", "Plan 2", "Plan 3" don't always pick the same "closest" place
-    lat += random.uniform(-0.005, 0.005)
-    lng += random.uniform(-0.005, 0.005)
+    from datetime import datetime, timedelta
 
-    # Calculate max allowed price level based on budget
-    max_price = 4
-    if budget < 150: max_price = 1
-    elif budget < 400: max_price = 2
-    elif budget < 800: max_price = 3
-    
-    # Category pool
-    culture_pool = ["museum", "art_gallery", "church", "library", "university"]
-    explore_pool = ["tourist_attraction", "zoo", "aquarium", "stadium", "city_hall"]
-    relax_pool = ["park", "shopping_mall", "movie_theater", "bowling_alley", "book_store", "spa"]
-    food_pool = ["restaurant", "cafe", "bakery", "bar", "meal_takeaway"]
-
-    # Inject preferences into pools if they match
-    if "art" in interests or "cultur" in interests:
-        culture_pool *= 2 # Increase probability
-    if "natur" in interests:
-        relax_pool = ["park", "park", "garden"] + relax_pool
-    if "food" in interests or "mancare" in interests:
-        food_pool = ["restaurant", "restaurant"] + food_pool
-
-    # Build dynamic slots based on points_count and style
-    # We define a "Cycle" for each style and repeat it until we reach points_count
-    
-    pattern = []
+    # Patterns for different styles
     if "cultural" in style:
         pattern = [
             {"type": "cafe", "label": "Mic Dejun"},
-            {"type": random.choice(culture_pool), "label": "Activitate Culturală"},
+            {"type": "museum", "label": "Activitate Culturală"},
             {"type": "restaurant", "label": "Prânz"},
-            {"type": random.choice(culture_pool), "label": "Explorare Istorică"},
+            {"type": "museum", "label": "Explorare Istorică"},
             {"type": "cafe", "label": "Pauză de Ceai"},
             {"type": "museum", "label": "Muzeu Seară"}
         ]
     elif "relax" in style:
         pattern = [
             {"type": "cafe", "label": "Mic Dejun"},
-            {"type": random.choice(relax_pool), "label": "Moment de Relaxare"},
+            {"type": "park", "label": "Moment de Relaxare"},
             {"type": "restaurant", "label": "Prânz"},
             {"type": "park", "label": "Plimbare Liniștită"},
             {"type": "spa", "label": "Răsfăț"},
-            {"type": "movie_theater", "label": "Seară la Film"}
+            {"type": "restaurant", "label": "Cină Relaxantă"}
         ]
     elif "gastronomic" in style or "foodie" in style:
         pattern = [
@@ -536,123 +407,335 @@ def get_itinerary():
             {"type": "cafe", "label": "Desert Târziu"}
         ]
     elif "night" in style or "nocturn" in style:
-        night_pool = ["bar", "night_club", "casino", "movie_theater"]
         pattern = [
             {"type": "restaurant", "label": "Cină Elegantă"},
-            {"type": random.choice(night_pool), "label": "Distracție de Noapte"},
-            {"type": "bar", "label": "Cocktail Bar"},
-            {"type": random.choice(night_pool), "label": "After-party"},
+            {"type": "bar", "label": "Distracție de Noapte"},
+            {"type": "night_club", "label": "Cocktail Bar"},
+            {"type": "bar", "label": "After-party"},
             {"type": "night_club", "label": "Clubbing"},
             {"type": "bakery", "label": "Mic Dejun de Dimineață"}
         ]
-    else: # Default: Explorare
+    else:
         pattern = [
             {"type": "cafe", "label": "Mic Dejun"},
-            {"type": random.choice(explore_pool), "label": "Aventură Urbană"},
+            {"type": "tourist_attraction", "label": "Aventură Urbană"},
             {"type": "restaurant", "label": "Prânz"},
             {"type": "park", "label": "Relaxare în Natură"},
             {"type": "tourist_attraction", "label": "Punct de Interes"},
             {"type": "restaurant", "label": "Cină Locală"}
         ]
 
-    # Construct the final slots list by repeating the pattern to reach points_count
     slots = []
     for i in range(points_count):
-        item_template = pattern[i % len(pattern)]
-        # Add index to label if repeating
-        label = item_template["label"]
+        item = pattern[i % len(pattern)]
+        label = item["label"]
         if i >= len(pattern):
-            label += f" { (i // len(pattern)) + 1 }"
-        
-        slots.append({"type": item_template["type"], "label": label})
-    
-    # Preference Injection: If user likes art but chose "Relaxation", swap one slot
-    if ("art" in interests or "cultur" in interests) and len(slots) > 1:
-        slots[1] = {"type": random.choice(culture_pool), "label": "Preferința Ta: Cultură"}
-    
+            label += f" {(i // len(pattern)) + 1}"
+        slots.append({"type": item["type"], "label": label})
+
     plan = []
-    current_lat, current_lng = lat, lng
-    
-    # Time calculation
-    from datetime import datetime, timedelta
-    start_hour = 9 # Start the day at 9 AM
-    current_time = datetime.now().replace(hour=start_hour, minute=0, second=0, microsecond=0)
-    slot_duration_mins = (duration * 60) // len(slots) if len(slots) > 0 else 60
+    # Add jitter so each request starts from a slightly different spot
+    current_lat = lat + random.uniform(-0.008, 0.008)
+    current_lng = lng + random.uniform(-0.008, 0.008)
+    current_time = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
+    slot_duration_mins = (duration * 60) // len(slots) if slots else 60
+
+    used_place_ids = set()  # Prevent duplicates across slots
 
     for slot in slots:
-        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-        params = {
-            "location": f"{current_lat},{current_lng}",
-            "radius": "5000",
-            "type": slot["type"],
-            "key": MAPS_API_KEY,
-            "maxprice": max_price
-        }
         try:
-            print(f"📍 Fetching {slot['type']} near {current_lat}, {current_lng} (Max Price: {max_price})")
-            res = requests.get(url, params=params).json()
-            results = res.get("results", [])
-            
-            # Fallback: If no results found with price constraint, try without it
-            if not results and max_price < 4:
-                print(f"🔄 Retrying {slot['type']} without price constraint...")
-                params["radius"] = "5000" # Also expand radius on retry
-                del params["maxprice"]
-                res = requests.get(url, params=params).json()
-                results = res.get("results", [])
+            results = google_nearby_search(current_lat, current_lng, slot["type"], radius=5000)
+            # Shuffle and filter out already-used places
+            random.shuffle(results)
+            available = [r for r in results if r.get("place_id") not in used_place_ids and r.get("name")]
+            if not available:
+                available = results
+            if available:
+                best = available[0]  # Already shuffled, so first = random
+                used_place_ids.add(best.get("place_id"))
+                
+                img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+                if best.get("photos"):
+                    ref = best["photos"][0]["photo_reference"]
+                    img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
 
-            if results:
-                # Shuffle ALL results to ensure maximum diversity across calls
-                random.shuffle(results)
-                # Pick the first one from the shuffled list
-                best = results[0]
-                # Safer photo extraction
-                photos = best.get("photos", [])
-                photo_ref = photos[0].get("photo_reference", "") if photos else ""
-                
-                img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={photo_ref}&key={MAPS_API_KEY}" if photo_ref else "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
-                
-                # Estimate cost
-                price_level = best.get("price_level", (1 if slot["type"] in ["cafe", "park"] else 2))
-                price_map = {0: 0, 1: 35, 2: 85, 3: 175, 4: 400}
-                est_cost = price_map.get(price_level, 85)
-                
+                level = best.get("price_level", 2)
+                price_map = {0: 0, 1: 30, 2: 70, 3: 150, 4: 350}
+                est_cost = price_map.get(level, 70)
                 if slot["type"] == "park": est_cost = 0
-                if slot["type"] == "museum": est_cost = 30 # Entry fee
+                if slot["type"] == "museum": est_cost = 30
 
-                # Calculate time string
-                time_start = current_time.strftime("%H:%M")
+                t_start = current_time.strftime("%H:%M")
                 current_time += timedelta(minutes=slot_duration_mins)
-                time_end = current_time.strftime("%H:%M")
-                time_str = f"{time_start} - {time_end}"
+                t_end = current_time.strftime("%H:%M")
 
-                opening_info = best.get("opening_hours", {})
-                is_open = opening_info.get("open_now", True) # Default to true if not provided
-
+                geo = best.get("geometry", {}).get("location", {})
                 plan.append({
                     "slot": slot["label"],
                     "name": best["name"],
-                    "address": best.get("vicinity"),
+                    "address": best.get("vicinity", "București"),
                     "imageUrl": img_url,
-                    "latitude": best["geometry"]["location"]["lat"],
-                    "longitude": best["geometry"]["location"]["lng"],
+                    "latitude": geo.get("lat"),
+                    "longitude": geo.get("lng"),
                     "estimatedCost": est_cost,
                     "placeId": best.get("place_id"),
                     "type": slot["type"],
-                    "time": time_str,
-                    "is_open": is_open
+                    "time": f"{t_start} - {t_end}",
+                    "is_open": True
                 })
-                # Update next center
-                current_lat = best["geometry"]["location"]["lat"]
-                current_lng = best["geometry"]["location"]["lng"]
-                print(f"✅ Found: {best['name']} (Est. Cost: {est_cost} RON)")
-            else:
-                print(f"❌ No results for {slot['type']}")
+                current_lat = geo.get("lat", current_lat)
+                current_lng = geo.get("lng", current_lng)
         except Exception as e:
-            print(f"⚠️ Error in itinerary loop: {e}")
+            print(f"⚠️ Itinerary Error: {e}")
             continue
 
     return jsonify(plan)
+
+# ==================== SOCIAL FEED ====================
+
+@app.get("/feed")
+def get_feed():
+    """Returns all posts for the social feed, sorted by newest first."""
+    user_id = request.args.get("user_id", "")
+    
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    
+    # Logic: Get posts and enrich with interactions
+    url = f"{SUPABASE_URL}/rest/v1/feed_posts?select=*&order=created_at.desc&limit=30"
+    
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            return jsonify([])
+            
+        posts = res.json()
+        for post in posts:
+            p_id = post.get("id")
+            # Get comment count
+            c_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_comments?post_id=eq.{p_id}&select=id", headers=headers)
+            post["comments_count"] = len(c_res.json()) if c_res.status_code == 200 else 0
+            # Get likes and user participation
+            l_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_likes?post_id=eq.{p_id}&select=user_id", headers=headers)
+            likes = l_res.json() if l_res.status_code == 200 else []
+            post["likes_count"] = len(likes)
+            post["is_liked"] = any(l.get("user_id") == user_id for l in likes)
+            
+        return jsonify(posts)
+    except Exception as e:
+        print(f"❌ Feed Error: {e}")
+        return jsonify([])
+
+@app.post("/feed")
+def create_post():
+    """Creates a new feed post with UUID validation."""
+    data = request.get_json()
+    
+    # Validation for UUID: if it's not a valid UUID, use a fallback
+    # to avoid Supabase NOT NULL UUID constraint violation
+    user_id = data.get("user_id")
+    import uuid
+    try:
+        uuid.UUID(str(user_id))
+    except:
+        # Fallback to a fixed user ID if invalid
+        user_id = "00000000-0000-0000-0000-000000000000"
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    
+    post_data = {
+        "user_id": user_id,
+        "user_name": data.get("user_name", "Explorer"),
+        "user_avatar": data.get("user_avatar", ""),
+        "place_name": data.get("place_name", ""),
+        "image_url": data.get("image_url", ""),
+        "caption": data.get("caption", ""),
+        "rating": data.get("rating", 0),
+        "latitude": data.get("latitude", 0),
+        "longitude": data.get("longitude", 0)
+    }
+    
+    url = f"{SUPABASE_URL}/rest/v1/feed_posts"
+    try:
+        res = requests.post(url, headers=headers, json=post_data)
+        if res.status_code in [200, 201]:
+            return jsonify({"status": "success", "post": res.json()})
+        print(f"❌ Supabase Insert Error: {res.text}")
+        return jsonify({"error": "Failed to create post"}), 500
+    except Exception as e:
+        print(f"❌ Create Post Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.get("/feed/<post_id>/comments")
+def get_comments(post_id):
+    """Returns all comments for a given post."""
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    url = f"{SUPABASE_URL}/rest/v1/feed_comments?post_id=eq.{post_id}&select=*&order=created_at.asc"
+    res = requests.get(url, headers=headers)
+    return jsonify(res.json() if res.status_code == 200 else [])
+
+@app.post("/feed/<post_id>/comments")
+def add_comment(post_id):
+    """Adds a comment to a post."""
+    data = request.get_json()
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    
+    comment_data = {
+        "post_id": post_id,
+        "user_id": data.get("user_id"),
+        "user_name": data.get("user_name", "Explorer"),
+        "comment_text": data.get("comment_text", "")
+    }
+    
+    url = f"{SUPABASE_URL}/rest/v1/feed_comments"
+    res = requests.post(url, headers=headers, json=comment_data)
+    
+    if res.status_code in [200, 201]:
+        return jsonify({"status": "success"})
+    return jsonify({"error": "Failed to add comment"}), 500
+
+@app.post("/feed/<post_id>/like")
+def toggle_like(post_id):
+    """Toggles like on a post for the given user."""
+    data = request.get_json()
+    user_id = data.get("user_id")
+    
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    # Check if already liked
+    check_url = f"{SUPABASE_URL}/rest/v1/feed_likes?post_id=eq.{post_id}&user_id=eq.{user_id}&select=id"
+    existing = requests.get(check_url, headers=headers).json()
+    
+    if existing:
+        # Unlike - delete
+        del_url = f"{SUPABASE_URL}/rest/v1/feed_likes?post_id=eq.{post_id}&user_id=eq.{user_id}"
+        requests.delete(del_url, headers=headers)
+        return jsonify({"status": "unliked"})
+    else:
+        # Like - insert
+        like_data = {"post_id": post_id, "user_id": user_id}
+        ins_url = f"{SUPABASE_URL}/rest/v1/feed_likes"
+        requests.post(ins_url, headers=headers, json=like_data)
+        return jsonify({"status": "liked"})
+
+# ==================== USERS & SOCIAL ====================
+
+@app.get("/users/search")
+def search_users():
+    query = request.args.get("query", "")
+    current_user_id = request.args.get("current_user_id", "")
+    
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    
+    # Search for users by name or email
+    url = f"{SUPABASE_URL}/rest/v1/user_profiles?or=(name.ilike.*{query}*,email.ilike.*{query}*)&limit=20"
+    
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            return jsonify([])
+        
+        users = res.json()
+        # Enrich with follow status
+        for user in users:
+            u_id = user.get("id")
+            if u_id == current_user_id:
+                user["is_me"] = True
+                continue
+                
+            check_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{current_user_id}&following_id=eq.{u_id}&select=id"
+            follow_res = requests.get(check_url, headers=headers).json()
+            user["is_following"] = len(follow_res) > 0
+            
+        return jsonify(users)
+    except Exception as e:
+        print(f"❌ User Search Error: {e}")
+        return jsonify([])
+
+@app.post("/users/follow")
+def toggle_follow():
+    data = request.get_json()
+    f_id = data.get("follower_id")
+    t_id = data.get("following_id")
+    
+    if not f_id or not t_id:
+        return jsonify({"error": "Missing IDs"}), 400
+        
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    # Check if exists
+    check_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{f_id}&following_id=eq.{t_id}&select=id"
+    existing = requests.get(check_url, headers=headers).json()
+    
+    if existing:
+        # Unfollow
+        del_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{f_id}&following_id=eq.{t_id}"
+        requests.delete(del_url, headers=headers)
+        return jsonify({"status": "unfollowed"})
+    else:
+        # Follow
+        ins_data = {"follower_id": f_id, "following_id": t_id}
+        url = f"{SUPABASE_URL}/rest/v1/user_follows"
+        requests.post(url, headers=headers, json=ins_data)
+        return jsonify({"status": "followed"})
+
+@app.get("/users/<user_id>/following")
+def get_following(user_id):
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    
+    # Get all user IDs the subject follows
+    url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{user_id}&select=following_id"
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            return jsonify([])
+            
+        following_ids = [r.get("following_id") for r in res.json()]
+        if not following_ids:
+            return jsonify([])
+            
+        # Bulk fetch profiles
+        ids_str = ",".join(following_ids)
+        profiles_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=in.({ids_str})"
+        profiles_res = requests.get(profiles_url, headers=headers)
+        
+        profiles = profiles_res.json() if profiles_res.status_code == 200 else []
+        for p in profiles:
+            p["is_following"] = True # By definition in this list
+            
+        return jsonify(profiles)
+    except Exception as e:
+        print(f"❌ Get Following Error: {e}")
+        return jsonify([])
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

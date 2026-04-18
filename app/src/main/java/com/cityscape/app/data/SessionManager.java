@@ -58,6 +58,11 @@ public class SessionManager {
         return db.userDao().getUserById(userId);
     }
 
+    public String getUserName() {
+        User user = getCurrentUser();
+        return user != null ? user.name : "Explorer";
+    }
+
     public void logout() {
         editor.clear();
         editor.apply();

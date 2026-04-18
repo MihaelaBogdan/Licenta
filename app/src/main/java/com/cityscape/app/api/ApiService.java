@@ -17,6 +17,20 @@ public interface ApiService {
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("type") String type);
 
+        @GET("places/search")
+        Call<List<Place>> getPlacesSearch(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("query") String query,
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("radius") Integer radius);
+
+        @GET("places/autocomplete")
+        Call<List<java.util.Map<String, String>>> getAutocomplete(
+                        @retrofit2.http.Query("query") String query,
+                        @retrofit2.http.Query("lat") Double lat,
+                        @retrofit2.http.Query("lng") Double lng);
+
         @POST("predict")
         Call<ChatResponse> chat(@Body ChatRequest request);
 
@@ -48,4 +62,40 @@ public interface ApiService {
 
         @GET("visited")
         Call<List<Place>> getVisited(@retrofit2.http.Query("user_id") String userId);
+
+        // ===== SOCIAL FEED =====
+        @GET("feed")
+        Call<List<com.cityscape.app.model.FeedPost>> getFeed(
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("user_id") String userId);
+
+        @POST("feed")
+        Call<com.google.gson.JsonObject> createPost(@Body java.util.Map<String, Object> post);
+
+        @GET("feed/{postId}/comments")
+        Call<List<com.cityscape.app.model.FeedComment>> getComments(
+                        @retrofit2.http.Path("postId") String postId);
+
+        @POST("feed/{postId}/comments")
+        Call<com.google.gson.JsonObject> addComment(
+                        @retrofit2.http.Path("postId") String postId,
+                        @Body java.util.Map<String, String> comment);
+
+        @POST("feed/{postId}/like")
+        Call<com.google.gson.JsonObject> toggleLike(
+                        @retrofit2.http.Path("postId") String postId,
+                        @Body java.util.Map<String, String> data);
+
+        // ===== USERS & SOCIAL =====
+        @GET("users/search")
+        Call<List<com.cityscape.app.model.User>> searchUsers(
+                        @retrofit2.http.Query("query") String query,
+                        @retrofit2.http.Query("current_user_id") String currentUserId);
+
+        @POST("users/follow")
+        Call<com.google.gson.JsonObject> followUser(@Body java.util.Map<String, String> data);
+
+        @GET("users/{userId}/following")
+        Call<List<com.cityscape.app.model.User>> getFollowing(
+                        @retrofit2.http.Path("userId") String userId);
 }

@@ -186,7 +186,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginHorizontal="24dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             android:text="Salvează Planul în Calendar"
             android:textAllCaps="false"
             android:textColor="@color/white"
@@ -196,6 +196,22 @@
             app:icon="@drawable/ic_calendar"
             app:iconGravity="textStart"
             app:iconPadding="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_export_calendar"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginBottom="16dp"
+            android:text="Exportă în Google Calendar / Teams"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_share"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:strokeColor="@color/primary" />
 
     </LinearLayout>
 

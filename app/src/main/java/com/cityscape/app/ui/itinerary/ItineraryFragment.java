@@ -89,6 +89,8 @@ public class ItineraryFragment extends Fragment {
 
         binding.btnSaveItinerary.setOnClickListener(v -> saveToCalendar());
 
+        binding.btnExportCalendar.setOnClickListener(v -> exportToICS());
+
         binding.itineraryToggleCurrency.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
                 boolean isEur = checkedId == R.id.itinerary_btn_eur;
@@ -405,5 +407,93 @@ public class ItineraryFragment extends Fragment {
                 }
             }
         }).start();
+    }
+
+    /**
+     * Exports the current itinerary as an .ics file that can be opened by
+     * Google Calendar, Microsoft Teams/Outlook, Apple Calendar, etc.
+     */
+    private void exportToICS() {
+        if (itineraryItems == null || itineraryItems.isEmpty()) {
+            Toast.makeText(getContext(), "Generează un itinerariu mai întâi!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Let user pick the date first
+        Calendar cal = Calendar.getInstance();
+        new DatePickerDialog(requireContext(), (view, year, month, day) -> {
+            try {
+                // Build ICS content (RFC 5545)
+                StringBuilder ics = new StringBuilder();
+                ics.append("BEGIN:VCALENDAR\r\n");
+                ics.append("VERSION:2.0\r\n");
+                ics.append("PRODID:-//CityScape//Itinerary//RO\r\n");
+                ics.append("CALSCALE:GREGORIAN\r\n");
+                ics.append("METHOD:PUBLISH\r\n");
+
+                for (ItineraryItem item : itineraryItems) {
+                    // Parse time from slot like "09:00 - 10:30"
+                    String timeSlot = item.time != null ? item.time : "09:00 - 10:00";
+                    String[] parts = timeSlot.split(" - ");
+                    String startTime = parts.length > 0 ? parts[0].trim() : "09:00";
+                    String endTime = parts.length > 1 ? parts[1].trim() : "10:00";
+
+                    String[] startParts = startTime.split(":");
+                    String[] endParts = endTime.split(":");
+
+                    int startH = Integer.parseInt(startParts[0]);
+                    int startM = Integer.parseInt(startParts[1]);
+                    int endH = Integer.parseInt(endParts[0]);
+                    int endM = Integer.parseInt(endParts[1]);
+
+                    // Format: YYYYMMDDTHHMMSS
+                    String dateStr = String.format("%04d%02d%02d", year, month + 1, day);
+                    String dtStart = String.format("%sT%02d%02d00", dateStr, startH, startM);
+                    String dtEnd = String.format("%sT%02d%02d00", dateStr, endH, endM);
+
+                    ics.append("BEGIN:VEVENT\r\n");
+                    ics.append("DTSTART:").append(dtStart).append("\r\n");
+                    ics.append("DTEND:").append(dtEnd).append("\r\n");
+                    ics.append("SUMMARY:").append(item.slot).append(" - ").append(item.name).append("\r\n");
+                    ics.append("DESCRIPTION:").append(item.name)
+                       .append(" | ").append(item.address != null ? item.address : "")
+                       .append(" | Cost: ~").append(item.estimatedCost).append(" RON")
+                       .append("\r\n");
+                    ics.append("LOCATION:").append(item.address != null ? item.address : item.name).append("\r\n");
+                    if (item.latitude != 0 && item.longitude != 0) {
+                        ics.append("GEO:").append(item.latitude).append(";").append(item.longitude).append("\r\n");
+                    }
+                    ics.append("STATUS:CONFIRMED\r\n");
+                    ics.append("UID:").append(java.util.UUID.randomUUID().toString()).append("@cityscape.app\r\n");
+                    ics.append("END:VEVENT\r\n");
+                }
+
+                ics.append("END:VCALENDAR\r\n");
+
+                // Write to a temp file
+                java.io.File cacheDir = requireContext().getCacheDir();
+                java.io.File icsFile = new java.io.File(cacheDir, "CityScape_Itinerary.ics");
+                java.io.FileWriter writer = new java.io.FileWriter(icsFile);
+                writer.write(ics.toString());
+                writer.close();
+
+                // Share via Android Intent
+                android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                        requireContext(),
+                        requireContext().getPackageName() + ".fileprovider",
+                        icsFile);
+
+                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                intent.setType("text/calendar");
+                intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
+                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, "CityScape - Itinerariu");
+                intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(android.content.Intent.createChooser(intent, "Exportă în Calendar"));
+
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Eroare la export: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("ItineraryFragment", "ICS Export Error", e);
+            }
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
     }
 }

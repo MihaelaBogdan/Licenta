@@ -81,6 +81,7 @@ dependencies {
     // Glide
     implementation libs.glide
     implementation libs.navigation.fragment
+    implementation libs.swiperefreshlayout
     annotationProcessor libs.glide.compiler
     
     // Room
@@ -97,6 +98,7 @@ dependencies {
     implementation libs.google.id
     implementation libs.play.services.auth
     implementation libs.work.runtime
+    implementation libs.circleimageview
 
 
     testImplementation libs.junit

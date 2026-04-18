@@ -94,6 +94,7 @@ public class HomeFragment extends Fragment {
                 setupCrystalBall();
                 setupLocationReset();
                 
+                binding.textLocation.setOnClickListener(v -> showCitySelectionDialog());
                 checkLocationPermission();
                 showPreviousSessionPromptIfAvailable();
 
@@ -546,6 +547,7 @@ public class HomeFragment extends Fragment {
                 binding.textLocation.setOnClickListener(v -> {
                         showCitySelectionDialog();
                 });
+
         }
 
         private void showCitySelectionDialog() {
@@ -782,7 +784,7 @@ public class HomeFragment extends Fragment {
                         type = "tourist_attraction";
                 }
 
-                if (isNearbyOnly && !isManualLocation) {
+                if (isNearbyOnly) {
                     // 1. Fetch NEARBY (Strictly 5km)
                     apiService.getNearby(currentLocation.getLatitude(), currentLocation.getLongitude(), type)
                         .enqueue(new Callback<List<Place>>() {
@@ -799,35 +801,48 @@ public class HomeFragment extends Fragment {
                                 Log.e("HomeFragment", "Nearby fetch failed", t);
                             }
                         });
-                } else if (!isNearbyOnly) {
-                    // "Be in the know" algorithm: Major landmarks + Fresh shuffle
-                    String trendingTypes = currentCategory.equals("All") ? "tourist_attraction|museum|park|point_of_interest|church|monument" : type;
-                    apiService.getItinerary(currentLocation.getLatitude(), currentLocation.getLongitude(), "global", 30000, trendingTypes, null, null, null, 20)
-                        .enqueue(new Callback<List<com.cityscape.app.api.ItineraryItem>>() {
+                } else {
+                    // Trending / Recommended Section (Whole City)
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 15000)
+                        .enqueue(new Callback<List<Place>>() {
                             @Override
-                            public void onResponse(Call<List<com.cityscape.app.api.ItineraryItem>> call, Response<List<com.cityscape.app.api.ItineraryItem>> response) {
+                            public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                                 if (response.isSuccessful() && response.body() != null) {
                                     allPlacesList.clear();
-                                    for (com.cityscape.app.api.ItineraryItem item : response.body()) {
-                                        Place p = new Place();
-                                        p.id = item.placeId != null ? item.placeId : java.util.UUID.randomUUID().toString();
-                                        p.name = item.name;
-                                        p.address = item.address;
-                                        p.imageUrl = item.imageUrl;
-                                        p.latitude = item.latitude;
-                                        p.longitude = item.longitude;
-                                        p.type = item.type;
-                                        p.rating = 4.5f; // Itinerary items are usually top-rated
-                                        allPlacesList.add(p);
-                                    }
-                                    // Shuffle the top 20 slightly to keep it "Fresh" like Google Maps
-                                    Collections.shuffle(allPlacesList);
+                                    allPlacesList.addAll(response.body());
+                                    // Feed the Crystal Ball (Oracol) with ALL important city places
+                                    combinedPlacesList.clear();
+                                    combinedPlacesList.addAll(response.body());
                                     updateFilters();
                                 }
                             }
-                            @Override public void onFailure(Call<List<com.cityscape.app.api.ItineraryItem>> call, Throwable t) {}
+                            @Override
+                            public void onFailure(Call<List<Place>> call, Throwable t) {
+                                Log.e("HomeFragment", "Trending fetch failed", t);
+                            }
                         });
                 }
+        }
+
+        private boolean isDuplicate(String id) {
+            if (id == null) return false;
+            for (Place p : allPlacesList) {
+                if (id.equals(p.id)) return true;
+            }
+            return false;
+        }
+
+        private Place mapToPlace(com.cityscape.app.api.ItineraryItem item) {
+            Place p = new Place();
+            p.id = item.placeId != null ? item.placeId : java.util.UUID.randomUUID().toString();
+            p.name = item.name;
+            p.address = item.address;
+            p.imageUrl = item.imageUrl;
+            p.latitude = item.latitude;
+            p.longitude = item.longitude;
+            p.type = item.type;
+            p.rating = 4.7f; // "Be in the know" places are top quality
+            return p;
         }
 
         private void fetchStaticPlaces() {
@@ -856,25 +871,26 @@ public class HomeFragment extends Fragment {
 
                 // 1. Manage Trending Visibility and Location Title
                 if (currentLocation != null) {
+                    String city = binding.textLocation.getText().toString();
+                    
+                    // Only geocode if NOT in manual mode (to keep manual selection stable)
+                    if (!isManualLocation) {
                         try {
-                                Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-                                List<Address> addresses = geocoder.getFromLocation(
-                                                currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
-                                if (addresses != null && !addresses.isEmpty()) {
-                                        String city = addresses.get(0).getLocality();
-                                        binding.textLocation.setText(city != null ? city : "Locație generală");
-                                        binding.sectionTrending.setVisibility(View.VISIBLE);
-                                        binding.recyclerRecommended.setVisibility(View.VISIBLE);
-                                        binding.trendingTitle.setText("Fii la curent din " + (city != null ? city : "București"));
-                                } else {
-                                        binding.sectionTrending.setVisibility(View.GONE);
-                                        binding.recyclerRecommended.setVisibility(View.GONE);
-                                }
+                            Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+                            List<Address> addresses = geocoder.getFromLocation(
+                                            currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
+                            if (addresses != null && !addresses.isEmpty()) {
+                                city = addresses.get(0).getLocality();
+                                if (city != null) binding.textLocation.setText(city);
+                            }
                         } catch (Exception e) {
-                                Log.e("HomeFragment", "Geocoder fail", e);
-                                binding.sectionTrending.setVisibility(View.GONE);
-                                binding.recyclerRecommended.setVisibility(View.GONE);
+                            Log.e("HomeFragment", "Geocoder fail", e);
                         }
+                    }
+
+                    binding.sectionTrending.setVisibility(View.VISIBLE);
+                    binding.recyclerRecommended.setVisibility(View.VISIBLE);
+                    binding.trendingTitle.setText("Fii la curent din " + (city != null && !city.isEmpty() ? city : "București"));
                 } else {
                         binding.sectionTrending.setVisibility(View.GONE);
                         binding.recyclerRecommended.setVisibility(View.GONE);
@@ -882,37 +898,65 @@ public class HomeFragment extends Fragment {
 
                 // 2. Manage Near You Visibility
                 if (currentLocation != null) {
-                        if (isManualLocation) {
-                                binding.sectionNearYou.setVisibility(View.GONE);
-                                binding.recyclerNearYou.setVisibility(View.GONE);
-                                binding.btnResetLocation.setVisibility(View.VISIBLE);
-                        } else {
-                                binding.sectionNearYou.setVisibility(View.VISIBLE);
-                                binding.recyclerNearYou.setVisibility(View.VISIBLE);
-                                binding.btnResetLocation.setVisibility(View.GONE);
-                        }
+                    // Show Near You always if we have a location (GPS or Manual)
+                    binding.sectionNearYou.setVisibility(View.VISIBLE);
+                    binding.recyclerNearYou.setVisibility(View.VISIBLE);
+                    
+                    if (isManualLocation) {
+                        binding.btnResetLocation.setVisibility(View.VISIBLE);
+                        binding.nearYouTitle.setText("În apropiere de locația aleasă");
+                    } else {
+                        binding.btnResetLocation.setVisibility(View.GONE);
+                        binding.nearYouTitle.setText(getString(R.string.near_you));
+                    }
                 } else {
                         binding.sectionNearYou.setVisibility(View.GONE);
                         binding.recyclerNearYou.setVisibility(View.GONE);
                 }
 
 
-                // 1. Show Near You (Unfiltered GPS results)
+                // 1. Show Near You (Foursquare search results)
                 List<Place> filteredNearby = new ArrayList<>(nearbyPlacesList);
-                // We only show nearby if NOT in manual mode
-                if (isManualLocation) {
-                    filteredNearby.clear();
-                }
                 updateNearYouAdapter(filteredNearby);
 
                 Map<String, Integer> preferences = sessionManager.getPreferredCategories(allPlacesList);
                 com.cityscape.app.model.User user = sessionManager.getCurrentUser();
                 String userInterests = (user != null && user.interests != null) ? user.interests.toLowerCase() : "";
 
-                // 2. Filter Trending (City wide - respects all filters)
+                // 2. Filter Trending (City wide - respects all filters + Quality Gate)
                 List<Place> stageFiltered = new ArrayList<>();
+                String[] blacklist = {"mcdonald", "kfc", "subway", "5 to go", "five to go", "mc donald"};
+                
                 for (Place p : allPlacesList) {
-                    if (matchesCategoryAndFilters(p)) stageFiltered.add(p);
+                    if (matchesCategoryAndFilters(p)) {
+                        String nameLower = p.name != null ? p.name.toLowerCase() : "";
+                        boolean isBlacklisted = false;
+                        for (String term : blacklist) {
+                            if (nameLower.contains(term)) {
+                                isBlacklisted = true;
+                                break;
+                            }
+                        }
+                        // 1. Blacklist check
+                        if (isBlacklisted) continue;
+
+                        // 2. Proximity Check: If it's already in 'Near You', don't repeat it in 'Trending'
+                        boolean alreadyNearby = false;
+                        for (Place nearby : nearbyPlacesList) {
+                            if (p.id.equals(nearby.id)) {
+                                alreadyNearby = true;
+                                break;
+                            }
+                        }
+                        if (alreadyNearby) continue;
+
+                        // 3. Quality Gate for "Be in the know": Must be reasonable quality
+                        if (p.rating >= 4.0 || p.type.toLowerCase().contains("museum") || p.type.toLowerCase().contains("landmark") || p.type.toLowerCase().contains("historic")) {
+                            stageFiltered.add(p);
+                        } else if (p.rating == 0) {
+                            stageFiltered.add(p);
+                        }
+                    }
                 }
 
                 // 2. Filter by Category and Search
@@ -929,6 +973,16 @@ public class HomeFragment extends Fragment {
                         double score1 = p1.rating != 0 ? p1.rating : 3.0;
                         double score2 = p2.rating != 0 ? p2.rating : 3.0;
                         
+                        // ICONIC BOOST: Prioritize "The Greats" (National Museums, Palaces, Parks)
+                        String n1 = p1.name != null ? p1.name.toLowerCase() : "";
+                        String n2 = p2.name != null ? p2.name.toLowerCase() : "";
+                        String[] iconicTerms = {"national", "muzeul", "palatul", "parcul", "ateneul", "carturesti", "famous"};
+                        
+                        for (String term : iconicTerms) {
+                            if (n1.contains(term)) score1 += 5.0; // Massive boost for icons
+                            if (n2.contains(term)) score2 += 5.0;
+                        }
+
                         String t1 = p1.type != null ? p1.type.toLowerCase() : "";
                         String t2 = p2.type != null ? p2.type.toLowerCase() : "";
 
@@ -1025,28 +1079,22 @@ public class HomeFragment extends Fragment {
                 for (Place p : stageFiltered) {
                         if (p.imageUrl == null || p.imageUrl.isEmpty()) p.imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400";
                 }
-                // Near You - Strictly Nearby (within 3km)
-                List<Place> nearYou = new ArrayList<>();
-                for (Place p : nearbyPlacesList) {
-                    float[] results = new float[1];
-                    android.location.Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.latitude, p.longitude, results);
-                    if (results[0] < 3000) nearYou.add(p);
-                }
-                if (nearYou.isEmpty()) nearYou = new ArrayList<>(nearbyPlacesList);
+                
+                // Show Nearby (Already sorted by backend distance)
+                updateNearYouAdapter(nearbyPlacesList);
 
-                // Trending - Global City results (Exclude those ALREADY in nearYou to ensure variety)
+                // Show Trending (Exclude those already in nearby to ensure variety)
                 List<Place> realTrending = new ArrayList<>();
                 for (Place p : stageFiltered) {
-                    boolean isAlreadyNearby = false;
-                    for (Place ny : nearYou) {
-                        if (ny.id.equals(p.id)) { isAlreadyNearby = true; break; }
+                    boolean alreadyNearby = false;
+                    for (Place ny : nearbyPlacesList) {
+                        if (ny.id.equals(p.id)) { alreadyNearby = true; break; }
                     }
-                    if (!isAlreadyNearby) realTrending.add(p);
+                    if (!alreadyNearby) realTrending.add(p);
                 }
                 if (realTrending.isEmpty()) realTrending = stageFiltered;
 
                 updateRecommendedAdapter(realTrending);
-                updateNearYouAdapter(nearYou);
         }
 
         private boolean isAllCategory(String cat) {
@@ -1296,6 +1344,7 @@ public class HomeFragment extends Fragment {
                                                         applyIntentScoring(filteredEvents);
                                                         eventsList = filteredEvents;
                                                         updateEventsAdapter();
+
                                                 }
                                         }
 
