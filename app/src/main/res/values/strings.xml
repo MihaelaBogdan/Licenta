@@ -31,14 +31,14 @@
     <string name="planned_activities">Planned Activities</string>
     <string name="no_planned_activities">No planned activities</string>
 
-    <!-- Chatbot strings -->
-    <string name="ai_assistant">AI Assistant</string>
-    <string name="ask_anything">Ask me anything about places to visit!</string>
-    <string name="type_message">Type a message…</string>
-    <string name="chatbot_welcome">Hi! I\'m your Bucharest Guide AI. I can recommend places and things to do. How can I help?</string>
-    <string name="chatbot_error">Failed to get response</string>
-    <string name="chatbot_connection_error">Sorry, I\'m having trouble connecting to my brain right now.</string>
-    <string name="please_type_something">Please type something!</string>
+    <!-- Guide strings (Formerly AI) -->
+    <string name="ai_assistant">Ghid Local</string>
+    <string name="ask_anything">Întreabă-mă orice despre locuri de vizitat!</string>
+    <string name="type_message">Scrie un mesaj…</string>
+    <string name="chatbot_welcome">Salut! Sunt ghidul tău personal în București. Te pot ajuta cu recomandări de locații. Cu ce te pot ajuta?</string>
+    <string name="chatbot_error">Eroare la primirea răspunsului</string>
+    <string name="chatbot_connection_error">Momentan am probleme de conexiune. Revin imediat!</string>
+    <string name="please_type_something">Te rugăm să scrii un mesaj!</string>
 
     <!-- City select strings -->
     <string name="select_city">Select City</string>
@@ -188,7 +188,9 @@
     <string name="category_restaurants">Restaurants</string>
     <string name="category_cafes">Cafes</string>
     <string name="category_parks">Parks</string>
-    <string name="category_museums">Museums</string>
+    <string name="category_museums">Muzee</string>
+    <string name="category_culture">Cultură</string>
+    <string name="category_commerce">Comercial</string>
     <string name="explore_nearby">Explore Nearby</string>
     <string name="bucharest">Bucharest</string>
     <string name="near_you">Near You</string>

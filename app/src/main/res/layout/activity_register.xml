@@ -29,6 +29,13 @@
             android:orientation="vertical"
             android:padding="32dp">
 
+            <ImageView
+                android:id="@+id/imgLogo"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:src="@drawable/ic_duck_logo"
+                android:layout_marginBottom="16dp" />
+
             <TextView
                 android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
@@ -136,6 +143,33 @@
                     app:cornerRadius="16dp"
                     android:background="@drawable/bg_button_premium"
                     app:backgroundTint="@null" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginVertical="16dp"
+                    android:text="— SAU —"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.2" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_google_sign_in"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Înregistrare cu Google"
+                    android:textAllCaps="false"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="16dp"
+                    app:backgroundTint="@color/white"
+                    app:icon="@drawable/ic_google"
+                    app:iconGravity="textStart"
+                    app:iconPadding="12dp"
+                    app:iconTint="@null"
+                    app:elevation="4dp" />
 
             </LinearLayout>
 

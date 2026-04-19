@@ -28,6 +28,11 @@
     <color name="card_background">#FFFFFF</color>
     <color name="overlay_dark">#80000000</color>
 
+    <!-- Glassmorphism Tokens (Light Mode) -->
+    <color name="glass_background">#E6FFFFFF</color>
+    <color name="glass_center">#B3FFFFFF</color>
+    <color name="glass_stroke">#26000000</color>
+
     <!-- Legacy / Backup pointers to avoid breaking existing styles -->
     <color name="background_light">#F8FAFC</color>
     <color name="surface_light">#FFFFFF</color>

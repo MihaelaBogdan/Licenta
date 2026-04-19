@@ -403,7 +403,8 @@ public class HomeFragment extends Fragment {
                 com.google.android.gms.tasks.CancellationTokenSource cts = new com.google.android.gms.tasks.CancellationTokenSource();
                 try {
                         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
-                                        .addOnSuccessListener(requireActivity(), location -> {
+                                        .addOnSuccessListener(location -> {
+                                                if (!isAdded()) return;
                                                 if (location != null) {
                                                         currentLocation = location;
                                                         sessionManager.saveLastLocation(location.getLatitude(), location.getLongitude());
@@ -416,7 +417,8 @@ public class HomeFragment extends Fragment {
                                                         onLocationNotFound();
                                                 }
                                         })
-                                        .addOnFailureListener(requireActivity(), e -> {
+                                        .addOnFailureListener(e -> {
+                                                if (!isAdded()) return;
                                                 Log.e("HomeFragment", "Fetch failed", e);
                                                 onLocationNotFound();
                                         });
@@ -768,7 +770,7 @@ public class HomeFragment extends Fragment {
 
 
         private void fetchPlaces(boolean isNearbyOnly) {
-                if (currentLocation == null) return;
+                if (!isAdded() || currentLocation == null) return;
 
                 String type = "restaurant";
                 if (currentCategory.equalsIgnoreCase(getString(R.string.category_cafes)) || currentCategory.equalsIgnoreCase("Cafenele"))
@@ -777,9 +779,18 @@ public class HomeFragment extends Fragment {
                         type = "park";
                 else if (currentCategory.equalsIgnoreCase(getString(R.string.category_museums)) || currentCategory.equalsIgnoreCase("Muzee"))
                         type = "museum";
+                else if (currentCategory.equalsIgnoreCase(getString(R.string.category_culture)) || currentCategory.equalsIgnoreCase("Cultură"))
+                        type = "culture"; // Maps to custom logic or landmark
+                else if (currentCategory.equalsIgnoreCase(getString(R.string.category_commerce)) || currentCategory.equalsIgnoreCase("Comercial"))
+                        type = "shopping"; // Maps to shopping_mall
                 
                 if (isAllCategory(currentCategory)) {
-                        type = "tourist_attraction";
+                        type = "mixed";
+                }
+                
+                // If we changed category, we should also refresh NEARBY to filter by that category
+                if (!isNearbyOnly) {
+                    fetchPlaces(true); 
                 }
 
                 String userId = sessionManager.getUserId();

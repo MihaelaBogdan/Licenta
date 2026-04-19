@@ -196,6 +196,24 @@
                         android:textColor="@color/app_text_primary"
                         app:chipBackgroundColor="@color/app_card"
                         app:chipCornerRadius="20dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/category_culture"
+                        android:textColor="@color/app_text_primary"
+                        app:chipBackgroundColor="@color/app_card"
+                        app:chipCornerRadius="20dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/category_commerce"
+                        android:textColor="@color/app_text_primary"
+                        app:chipBackgroundColor="@color/app_card"
+                        app:chipCornerRadius="20dp" />
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 

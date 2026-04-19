@@ -39,7 +39,25 @@ public class SupabaseSyncManager {
             return;
 
         Log.d(TAG, "Starting Initial Sync with Supabase Cloud...");
+        syncUserProfile(userId);
         syncGroups(userId);
+    }
+
+    public void syncUserProfile(String userId) {
+        cloudData.getUserProfile(userId, new SupabaseDataManager.DataCallback<com.cityscape.app.model.User>() {
+            @Override
+            public void onSuccess(com.cityscape.app.model.User cloudUser) {
+                if (cloudUser != null) {
+                    db.userDao().insert(cloudUser); // insert/replace
+                    Log.d(TAG, "Successfully synced profile for: " + cloudUser.name);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Failed to sync profile: " + error);
+            }
+        });
     }
 
     private void syncGroups(String userId) {

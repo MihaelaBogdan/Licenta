@@ -18,7 +18,10 @@
     </style>
 
     <!-- App Theme Wrapper -->
-    <style name="Theme.CityScape" parent="Base.Theme.CityScape" />
+    <style name="Theme.CityScape" parent="Base.Theme.CityScape">
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o">true</item>
+    </style>
 
     <!-- Adaptive Dialog Theme (Switches between light/dark automatically) -->
     <style name="CityScapeDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">

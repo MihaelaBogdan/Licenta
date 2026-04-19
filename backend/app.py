@@ -6,10 +6,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-# Add user's site-packages for Torch/Flask
-user_site = '/Users/mihaela/Library/Python/3.9/lib/python/site-packages'
-if user_site not in sys.path:
-    sys.path.append(user_site)
+# Add user's site-packages for Torch/Flask (optional, usually handled by pip)
+# user_site = '/Users/mihaela/Library/Python/3.9/lib/python/site-packages'
+# if user_site not in sys.path:
+#     sys.path.append(user_site)
 
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
@@ -92,7 +92,18 @@ FSQ_CATEGORIES = {
     "stadium": "10051", # Best match
     "shopping_mall": "17114",
     "landmark": "16026",
-    "historic": "16026"
+    "historic": "16026",
+    "culture": "10027",
+    "shopping": "17114"
+}
+
+# Categories to ALWAYS exclude from UI results
+BLACKLISTED_TYPES = {
+    "lodging", "health", "dentist", "locality", "political", 
+    "real_estate_agency", "lawyer", "accounting", "finance",
+    "insurance_agency", "doctor", "hospital", "clinic",
+    "neighborhood", "sublocality", "administrative_area_level_1",
+    "administrative_area_level_2"
 }
 
 def google_nearby_search(lat, lng, place_type, radius=5000, keyword=None):
@@ -154,6 +165,12 @@ def format_google_place(place, user_lat=None, user_lng=None):
             dist_str = f" ({int(d*1000)}m)" if d < 1 else f" ({d:.1f}km)"
         except: pass
 
+    # Blacklist check
+    types = place.get("types", [])
+    for t in types:
+        if t in BLACKLISTED_TYPES:
+            return None
+
     return {
         "id": place.get("place_id", ""),
         "name": place.get("name", "Locație"),
@@ -162,8 +179,8 @@ def format_google_place(place, user_lat=None, user_lng=None):
         "imageUrl": img_url,
         "latitude": geo.get("lat"),
         "longitude": geo.get("lng"),
-        "type": (place.get("types", [""])[0] or "").replace("_", " ").capitalize(),
-        "relevance_score": 0 # Will be populated by scoring engine
+        "type": (types[0] if types else "").replace("_", " ").capitalize(),
+        "relevance_score": 0 
     }
 
 # ==================== PERSONALIZATION ENGINE ====================
@@ -229,13 +246,33 @@ def get_nearby_realtime():
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     user_id = request.args.get("user_id")
-    place_type = request.args.get("type", "restaurant")
-
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
-
-    results = google_nearby_search(lat, lng, place_type, radius=2000)
-    formatted = [format_google_place(p, lat, lng) for p in results if p.get("name")]
+        
+    place_type = request.args.get("type", "tourist_attraction")
+    
+    # Translate custom types to Google/Foursquare standard types
+    type_map = {
+        "culture": "museum",
+        "shopping": "shopping_mall",
+        "mixed": None,
+        "tourist_attraction": None,
+        "All": None
+    }
+    actual_type = type_map.get(place_type, place_type)
+        
+    results = google_nearby_search(lat, lng, actual_type, radius=2000)
+    formatted = []
+    for p in results:
+        f = format_google_place(p, lat, lng)
+        if f:
+            # User request: No shops/malls in 'Nearby' GENERALLY.
+            # Only allow if user EXPLICITLY filtered for 'shopping'.
+            if actual_type != "shopping_mall":
+                p_types = p.get("types", [])
+                if "shopping_mall" in p_types or "store" in p_types:
+                    continue
+            formatted.append(f)
     
     if user_id:
         context = get_user_context(user_id)
@@ -251,13 +288,29 @@ def search_places():
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     user_id = request.args.get("user_id")
-    place_type = request.args.get("type", "restaurant")
+    place_type = request.args.get("type", "tourist_attraction")
 
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
 
-    results = google_nearby_search(lat, lng, place_type, radius=15000)
-    formatted = [format_google_place(p, lat, lng) for p in results if p.get("name")]
+    place_type = request.args.get("type", "tourist_attraction")
+    
+    # Translate custom types
+    type_map = {
+        "culture": "museum",
+        "shopping": "shopping_mall",
+        "mixed": None,
+        "tourist_attraction": None,
+        "All": None
+    }
+    actual_type = type_map.get(place_type, place_type)
+
+    results = google_nearby_search(lat, lng, actual_type, radius=15000)
+    formatted = []
+    for p in results:
+        f = format_google_place(p, lat, lng)
+        if f:
+            formatted.append(f)
     
     if user_id:
         context = get_user_context(user_id)
@@ -521,7 +574,12 @@ def get_itinerary():
         try:
             results = google_nearby_search(current_lat, current_lng, slot["type"], radius=5000)
             available = [r for r in results if r.get("place_id") not in used_place_ids and r.get("name")]
-            if not available: available = results
+            
+            # If no unique results in primary category, try a related better one instead of picking same place
+            if not available:
+                if slot["type"] in ["museum", "tourist_attraction"]:
+                    alt_results = google_nearby_search(current_lat, current_lng, "landmark", radius=5000)
+                    available = [r for r in alt_results if r.get("place_id") not in used_place_ids]
             
             if available:
                 # Score each available place based on user context

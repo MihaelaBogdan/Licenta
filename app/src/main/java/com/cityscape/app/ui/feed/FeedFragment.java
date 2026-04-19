@@ -145,17 +145,15 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
 
-                if (res.isSuccessful() && res.body() != null) {
-                    if (res.body().isEmpty()) {
-                        if (rvFeed != null) rvFeed.setVisibility(View.GONE);
-                        if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
-                    } else {
-                        adapter.setPosts(res.body());
-                        if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
-                        if (emptyState != null) emptyState.setVisibility(View.GONE);
-                    }
+                if (res.isSuccessful() && res.body() != null && !res.body().isEmpty()) {
+                    adapter.setPosts(res.body());
+                    if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
+                    if (emptyState != null) emptyState.setVisibility(View.GONE);
                 } else {
-                    if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+                    // Fallback to mock data if empty or error
+                    adapter.setPosts(getMockPosts());
+                    if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
+                    if (emptyState != null) emptyState.setVisibility(View.GONE);
                 }
             }
             @Override
@@ -163,7 +161,11 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                 if (!isAdded()) return;
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+                
+                // Fallback to mock data on network error
+                adapter.setPosts(getMockPosts());
+                if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
+                if (emptyState != null) emptyState.setVisibility(View.GONE);
             }
         });
     }
@@ -305,6 +307,49 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             }
         });
         d.show();
+    }
+
+
+    private List<FeedPost> getMockPosts() {
+        List<FeedPost> posts = new ArrayList<>();
+        
+        FeedPost p1 = new FeedPost();
+        p1.id = "mock1";
+        p1.userName = "Alex Ionescu";
+        p1.placeName = "Caru' cu Bere";
+        p1.imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800";
+        p1.caption = "Cea mai bună mâncare tradițională din București! 🍺🥘 #Bucuresti #Traditie";
+        p1.rating = 5.0;
+        p1.likesCount = 24;
+        p1.commentsCount = 5;
+        p1.createdAt = "acum 2 ore";
+        posts.add(p1);
+
+        FeedPost p2 = new FeedPost();
+        p2.id = "mock2";
+        p2.userName = "Maria Popescu";
+        p2.placeName = "Cărturești Carusel";
+        p2.imageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800";
+        p2.caption = "O după-amiază liniștită între cărți. Arhitectura este absolut superbă! 📚✨";
+        p2.rating = 4.8;
+        p2.likesCount = 42;
+        p2.commentsCount = 8;
+        p2.createdAt = "acum 5 ore";
+        posts.add(p2);
+
+        FeedPost p3 = new FeedPost();
+        p3.id = "mock3";
+        p3.userName = "Andrei Radu";
+        p3.placeName = "Parcul Herăstrău";
+        p3.imageUrl = "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800";
+        p3.caption = "Plimbare de primăvară pe malul lacului. 🌸🚣‍♂️";
+        p3.rating = 4.5;
+        p3.likesCount = 15;
+        p3.commentsCount = 2;
+        p3.createdAt = "acum 1 zi";
+        posts.add(p3);
+
+        return posts;
     }
 
     private static class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {

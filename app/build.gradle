@@ -38,6 +38,7 @@ android {
         buildConfigField "String", "SUPABASE_ANON_KEY", "\"${getProp('SUPABASE_KEY', '')}\""
         buildConfigField "String", "OPENWEATHER_API_KEY", "\"${getProp('OPENWEATHER_API_KEY', '')}\""
         buildConfigField "String", "TICKETMASTER_API_KEY", "\"${getProp('TICKETMASTER_API_KEY', '')}\""
+        buildConfigField "String", "FLASK_API_URL", "\"${getProp('FLASK_API_URL', 'http://10.0.2.2:5000/')}\""
     }
 
     buildFeatures {

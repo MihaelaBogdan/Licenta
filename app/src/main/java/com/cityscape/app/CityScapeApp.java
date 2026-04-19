@@ -20,6 +20,12 @@ public class CityScapeApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(this);
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+            sessionManager.isDarkMode() ? androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES : 
+                                         androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+        );
     }
 
     @Override

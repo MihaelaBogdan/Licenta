@@ -74,7 +74,7 @@ public class SessionManager {
     }
 
     public boolean isDarkMode() {
-        return prefs.getBoolean(KEY_DARK_MODE, true);
+        return prefs.getBoolean(KEY_DARK_MODE, false);
     }
 
     public void setPreferredCity(String city) {

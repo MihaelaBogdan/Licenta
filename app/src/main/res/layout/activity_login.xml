@@ -29,13 +29,28 @@
             android:orientation="vertical"
             android:padding="32dp">
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+
+                <ImageButton
+                    android:id="@+id/btn_back"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/white"
+                    android:padding="12dp"
+                    android:scaleType="centerInside" />
+            </RelativeLayout>
+
             <ImageView
                 android:id="@+id/imgLogo"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:src="@drawable/ic_logo"
-                android:alpha="0.9"
-                app:tint="@color/white" />
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:src="@drawable/ic_duck_logo"
+                android:alpha="0.95" />
 
             <TextView
                 android:id="@+id/txtTitle"
@@ -133,6 +148,33 @@
                     app:cornerRadius="16dp"
                     android:background="@drawable/bg_button_premium"
                     app:backgroundTint="@null" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginVertical="16dp"
+                    android:text="— SAU —"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.2" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_google_sign_in"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Continuă cu Google"
+                    android:textAllCaps="false"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="16dp"
+                    app:backgroundTint="@color/white"
+                    app:icon="@drawable/ic_google"
+                    app:iconGravity="textStart"
+                    app:iconPadding="12dp"
+                    app:iconTint="@null"
+                    app:elevation="4dp" />
             </LinearLayout>
 
             <TextView
@@ -156,6 +198,41 @@
                 android:textColor="#CCFFFFFF"
                 android:textSize="14sp"
                 app:rippleColor="#33FFFFFF" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFillAdmin"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Admin"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFillTest"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Test"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFillMihaela"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mihaela"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

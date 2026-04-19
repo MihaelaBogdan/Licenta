@@ -221,6 +221,37 @@ public class SupabaseDataManager {
     }
 
     // ==========================================================
+    // USER PROFILES
+    // ==========================================================
+
+    public void getUserProfile(String userId, DataCallback<com.cityscape.app.model.User> callback) {
+        executorService.execute(() -> {
+            try {
+                String url = "user_profiles?id=eq." + userId + "&limit=1";
+                Request request = getAuthenticatedRequestBuilder(url).get().build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (response.isSuccessful()) {
+                        String jsonResponse = response.body().string();
+                        List<com.cityscape.app.model.User> users = gson.fromJson(jsonResponse,
+                                new TypeToken<List<com.cityscape.app.model.User>>() {
+                                }.getType());
+                        if (users != null && !users.isEmpty()) {
+                            postSuccess(callback, users.get(0));
+                        } else {
+                            postError(callback, "Profil negăsit în cloud");
+                        }
+                    } else {
+                        postError(callback, "Eroare la preluare profil: " + response.code());
+                    }
+                }
+            } catch (Exception e) {
+                postError(callback, "Eroare rețea: " + e.getMessage());
+            }
+        });
+    }
+
+    // ==========================================================
     // UTILS
     // ==========================================================
 

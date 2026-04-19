@@ -25,6 +25,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.cityscape.app.data.AppDatabase;
 import com.cityscape.app.data.SessionManager;
 import com.cityscape.app.data.SupabaseAuthManager;
+import com.cityscape.app.data.SupabaseSyncManager;
 import com.cityscape.app.model.User;
 
 public class LoginActivity extends BaseActivity {
@@ -88,7 +89,7 @@ public class LoginActivity extends BaseActivity {
         passwordEditText = findViewById(R.id.passwordInput);
         loginButton = findViewById(R.id.btnLogin);
         registerPrompt = findViewById(R.id.btnRegister);
-        // btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
+        btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
@@ -139,15 +140,15 @@ public class LoginActivity extends BaseActivity {
 
         if (btnGoogleSignIn != null) {
             btnGoogleSignIn.setOnClickListener(v -> {
+                Log.d(TAG, "Google Sign-In button clicked");
                 try {
                     if (googleSignInClient != null) {
-                        // Sign out first to force the account picker popup to appear every time
                         googleSignInClient.signOut().addOnCompleteListener(task -> {
                             Intent signInIntent = googleSignInClient.getSignInIntent();
                             googleSignInLauncher.launch(signInIntent);
                         });
                     } else {
-                        Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Google Services not initialized", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching Google sign-in", e);
@@ -183,6 +184,20 @@ public class LoginActivity extends BaseActivity {
         findViewById(R.id.loginCard).startAnimation(fadeInUp);
         findViewById(R.id.btnRegister).startAnimation(fadeInUp);
         if (btnGuest != null) btnGuest.startAnimation(fadeInUp);
+
+        // Test Account Helpers
+        findViewById(R.id.btnFillAdmin).setOnClickListener(v -> {
+            emailEditText.setText("admin@cityscape.app");
+            passwordEditText.setText("Admin123!");
+        });
+        findViewById(R.id.btnFillTest).setOnClickListener(v -> {
+            emailEditText.setText("test@example.com");
+            passwordEditText.setText("Password123!");
+        });
+        findViewById(R.id.btnFillMihaela).setOnClickListener(v -> {
+            emailEditText.setText("mihaela@licenta.ro");
+            passwordEditText.setText("Mihaela2026!");
+        });
     }
 
     private void tryLocalLogin(String email, String password) {
@@ -269,6 +284,9 @@ public class LoginActivity extends BaseActivity {
                 sessionManager.createSession(newUser);
                 sessionManager.awardAchievement("Account Created", 100);
             }
+
+            // Always trigger a background sync to get full profile (XP, level, etc.)
+            SupabaseSyncManager.getInstance(this).syncUserProfile(supabaseId);
         } catch (Exception e) {
             Log.e(TAG, "Error creating session for user", e);
         }

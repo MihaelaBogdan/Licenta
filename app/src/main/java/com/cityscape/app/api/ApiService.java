@@ -16,7 +16,8 @@ public interface ApiService {
         Call<List<Place>> getNearby(
                 @Query("lat") double lat,
                 @Query("lng") double lng,
-                @Query("type") String type, String userId);
+                @Query("type") String type,
+                @Query("user_id") String userId);
 
         @GET("places/search")
         Call<List<Place>> getPlacesSearch(

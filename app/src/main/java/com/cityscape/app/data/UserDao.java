@@ -10,8 +10,11 @@ import java.util.List;
 
 @Dao
 public interface UserDao {
-    @Insert
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
     void insert(User user);
+
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
+    void insertAll(java.util.List<User> users);
 
     @Update
     void update(User user);

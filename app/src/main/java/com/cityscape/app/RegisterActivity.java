@@ -90,8 +90,7 @@ public class RegisterActivity extends BaseActivity {
         passwordEditText = findViewById(R.id.passwordInput);
         registerButton = findViewById(R.id.btnRegister);
         loginPrompt = findViewById(R.id.btnLogin);
-        // btnGoogle was removed from XML for a cleaner look
-        // btnGoogle = findViewById(R.id.btn_google);
+        btnGoogle = findViewById(R.id.btn_google_sign_in);
 
         @SuppressLint({"MissingInflatedId", "LocalSuppress"}) View btnBack = findViewById(R.id.btn_back);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
@@ -154,6 +153,7 @@ public class RegisterActivity extends BaseActivity {
 
         if (btnGoogle != null) {
             btnGoogle.setOnClickListener(v -> {
+                Log.d(TAG, "Google Sign-Up button clicked");
                 try {
                     if (googleSignInClient != null) {
                         googleSignInClient.signOut().addOnCompleteListener(task -> {
@@ -161,7 +161,7 @@ public class RegisterActivity extends BaseActivity {
                             googleSignInLauncher.launch(signInIntent);
                         });
                     } else {
-                        Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Google Services not initialized", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching Google sign-in", e);
