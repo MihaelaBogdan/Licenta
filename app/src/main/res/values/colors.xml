@@ -16,22 +16,32 @@
     <color name="gold_accent">#F59E0B</color>
     <color name="primary_green">#10B981</color>
     <color name="primary_dark">#0D1117</color>
+    <color name="app_border">#E2E8F0</color>
+    <color name="app_divider">#F1F5F9</color>
+    <color name="gradient_start">#D1FAE5</color>
+    <color name="gradient_center">#E6F2ED</color>
+    <color name="gradient_end">#F8FAFC</color>
 
-    <!-- Semantic Colors (LIGHT THEME VALUES) -->
-    <color name="app_background">#F8FAFC</color>
+    <!-- Semantic Colors (PREMIUM LIGHT THEME) -->
+    <color name="app_background">#FFFFFF</color>
     <color name="app_surface">#FFFFFF</color>
-    <color name="app_card">#FFFFFF</color>
-    <color name="app_text_primary">#1F2937</color>
+    <color name="app_card">#F8FAFC</color>
+    <color name="app_text_primary">#111827</color>
     <color name="app_text_secondary">#4B5563</color>
-    <color name="app_text_hint">#9CA3AF</color>
+    <color name="app_text_hint">#94A3B8</color>
     <color name="card_elevated">#FFFFFF</color>
     <color name="card_background">#FFFFFF</color>
-    <color name="overlay_dark">#80000000</color>
+    <color name="overlay_dark">#26000000</color>
 
-    <!-- Glassmorphism Tokens (Light Mode) -->
-    <color name="glass_background">#E6FFFFFF</color>
-    <color name="glass_center">#B3FFFFFF</color>
-    <color name="glass_stroke">#26000000</color>
+    <!-- Glassmorphism Tokens (Light Mode - More Premium) -->
+    <color name="glass_background">#CCFFFFFF</color>
+    <color name="glass_center">#99FFFFFF</color>
+    <color name="glass_stroke">#12000000</color>
+
+    <color name="login_overlay_start">#00FFFFFF</color>
+    <color name="login_overlay_end">#F8FAFC</color>
+
+
 
     <!-- Legacy / Backup pointers to avoid breaking existing styles -->
     <color name="background_light">#F8FAFC</color>

@@ -9,13 +9,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:src="@drawable/global_travel_bg" />
+        android:src="@drawable/login_background" />
 
     <!-- Dark Overlay to make text pop -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#99000000" />
+        android:background="@drawable/bg_login_overlay" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -58,7 +58,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="CityScape"
-                android:textColor="@color/white"
+                android:textColor="@color/app_text_primary"
                 android:textSize="36sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-condensed-medium"
@@ -70,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="40dp"
                 android:text="Destinații fără limite"
-                android:textColor="#CCFFFFFF"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-light" />
 
@@ -89,7 +89,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
                     android:text="Bine ai revenit"
-                    android:textColor="@color/white"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
@@ -97,20 +97,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:hintTextColor="#B3FFFFFF"
-                    app:boxStrokeColor="@color/white"
+                    app:hintTextColor="@color/app_text_hint"
+                    app:boxStrokeColor="@color/primary"
                     app:boxStrokeWidth="1.5dp"
                     android:hint="Email"
                     app:startIconDrawable="@drawable/ic_email"
-                    app:startIconTint="@color/white"
+                    app:startIconTint="@color/primary"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
+ 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/emailInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:textColor="@color/white"
+                        android:textColor="@color/app_text_primary"
                         android:paddingStart="12dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -118,22 +118,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    app:hintTextColor="#B3FFFFFF"
-                    app:boxStrokeColor="@color/white"
+                    app:hintTextColor="@color/app_text_hint"
+                    app:boxStrokeColor="@color/primary"
                     app:boxStrokeWidth="1.5dp"
                     android:hint="Parolă"
                     app:startIconDrawable="@drawable/ic_lock"
-                    app:startIconTint="@color/white"
+                    app:startIconTint="@color/primary"
                     app:passwordToggleEnabled="true"
-                    app:passwordToggleTint="@color/white"
+                    app:passwordToggleTint="@color/app_text_hint"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
+ 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/passwordInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
-                        android:textColor="@color/white"
+                        android:textColor="@color/app_text_primary"
                         android:paddingStart="12dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -183,7 +183,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="Nu ai cont? Înregistrează-te"
-                android:textColor="@color/white"
+                android:textColor="@color/app_text_primary"
                 android:textStyle="bold"
                 android:textSize="15sp" />
 
@@ -195,9 +195,9 @@
                 android:layout_marginTop="16dp"
                 android:text="Intră ca vizitator"
                 android:textAllCaps="false"
-                android:textColor="#CCFFFFFF"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="14sp"
-                app:rippleColor="#33FFFFFF" />
+                app:rippleColor="@color/primary_faded" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -212,7 +212,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Admin"
-                    android:textColor="#99FFFFFF"
+                    android:textColor="@color/app_text_hint"
                     android:textSize="12sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -221,7 +221,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Test"
-                    android:textColor="#99FFFFFF"
+                    android:textColor="@color/app_text_hint"
                     android:textSize="12sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -230,7 +230,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Mihaela"
-                    android:textColor="#99FFFFFF"
+                    android:textColor="@color/app_text_hint"
                     android:textSize="12sp" />
             </LinearLayout>
 

@@ -26,6 +26,8 @@ public class CityScapeApp extends Application {
             sessionManager.isDarkMode() ? androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES : 
                                          androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
         );
+
+
     }
 
     @Override

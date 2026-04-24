@@ -127,9 +127,21 @@ public class CalendarFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        refreshAllData();
+    }
+
+    private void refreshAllData() {
+        if (sessionManager.getUserId() == null) return;
+        
         loadActivitiesForDate(selectedDate);
         loadUserGroups();
         checkPendingInvitations();
+        
+        // Auto-sync external calendar if permission is already granted
+        if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.READ_CALENDAR)
+                == PackageManager.PERMISSION_GRANTED) {
+            syncGoogleCalendar();
+        }
     }
 
     private RecyclerView recyclerHorizontalCalendar;
@@ -204,12 +216,13 @@ public class CalendarFragment extends Fragment {
         for (int i = 0; i < 45; i++) {
             long time = normalizeDate(cal.getTimeInMillis());
             boolean isSelected = time == selectedDate;
-            // Check if there are events for this date (placeholder or actual check)
-            boolean hasEvents = false; 
+            boolean hasEventsLocal = db.activityDao().hasActivitiesForDate(sessionManager.getUserId(), time);
             
-            dateItems.add(new com.cityscape.app.model.CalendarDate(new Date(time), isSelected, hasEvents));
+            dateItems.add(new com.cityscape.app.model.CalendarDate(new Date(time), isSelected, hasEventsLocal));
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
+
+
 
         horizontalAdapter = new com.cityscape.app.adapter.CalendarDateAdapter(dateItems, date -> {
             selectedDate = normalizeDate(date.date.getTime());
@@ -270,10 +283,21 @@ public class CalendarFragment extends Fragment {
             // Parse time
             int hour = 9, minute = 0;
             if (activity.scheduledTime != null && activity.scheduledTime.contains(":")) {
-                String[] parts = activity.scheduledTime.split(":");
-                hour = Integer.parseInt(parts[0]);
-                minute = Integer.parseInt(parts[1]);
+                try {
+                    String timeStr = activity.scheduledTime;
+                    if (timeStr.contains("-")) timeStr = timeStr.split("-")[0].trim();
+                    String[] parts = timeStr.split(":");
+                    hour = Integer.parseInt(parts[0].trim());
+                    minute = Integer.parseInt(parts[1].trim());
+                } catch (Exception e) { hour = 9; }
+            } else if (activity.scheduledTime != null) {
+                String slot = activity.scheduledTime.toLowerCase();
+                if (slot.contains("mic")) hour = 8;
+                else if (slot.contains("prânz") || slot.contains("lunch")) hour = 13;
+                else if (slot.contains("cină") || slot.contains("dinner")) hour = 20;
+                else if (slot.contains("după")) hour = 16;
             }
+
 
             Calendar beginTime = Calendar.getInstance();
             beginTime.setTimeInMillis(activity.scheduledDate);
@@ -428,22 +452,27 @@ public class CalendarFragment extends Fragment {
             textSelectedDate.setText(formattedDate);
         }
 
-        List<PlannedActivity> activities = db.activityDao()
-                .getActivitiesForDate(sessionManager.getUserId(), date);
+        new Thread(() -> {
+            String userId = sessionManager.getUserId();
+            if (userId == null) return;
+            
+            List<PlannedActivity> activities = db.activityDao().getActivitiesForDate(userId, date);
+            
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    // Animation for "Pro" feel
+                    recyclerActivities.setAlpha(0f);
+                    recyclerActivities.animate().alpha(1f).setDuration(400).start();
 
-        // Animation for "Pro" feel
-        recyclerActivities.setAlpha(0f);
-        recyclerActivities.animate().alpha(1f).setDuration(400).start();
+                    if (activities.isEmpty()) {
+                        recyclerActivities.setVisibility(View.GONE);
+                        emptyState.setVisibility(View.VISIBLE);
+                    } else {
+                        recyclerActivities.setVisibility(View.VISIBLE);
+                        emptyState.setVisibility(View.GONE);
 
-        if (activities.isEmpty()) {
-            recyclerActivities.setVisibility(View.GONE);
-            emptyState.setVisibility(View.VISIBLE);
-        } else {
-            recyclerActivities.setVisibility(View.VISIBLE);
-            emptyState.setVisibility(View.GONE);
-
-            activityAdapter = new ActivityAdapter(requireContext(), activities,
-                    new ActivityAdapter.OnActivityActionListener() {
+                        activityAdapter = new ActivityAdapter(requireContext(), activities,
+                                new ActivityAdapter.OnActivityActionListener() {
                         @Override
                         public void onCompleteClick(PlannedActivity activity, int position) {
                             activity.isCompleted = true;

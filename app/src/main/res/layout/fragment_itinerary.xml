@@ -173,12 +173,28 @@
                 android:text="Plan 3" />
         </com.google.android.material.tabs.TabLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_location"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:paddingHorizontal="16dp"
+            android:text="+ Adaugă Locație Personalizată"
+            android:textAllCaps="false"
+            android:textColor="@color/primary"
+            app:icon="@drawable/ic_add"
+            app:iconTint="@color/primary" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_itinerary_steps"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:clipToPadding="false"
             android:paddingBottom="16dp" />
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_itinerary"

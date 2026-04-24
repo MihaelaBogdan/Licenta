@@ -21,6 +21,8 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
 
     public interface OnStepClickListener {
         void onStepClick(ItineraryItem item);
+        void onStepDelete(int position);
+        void onStepSwap(int position);
     }
 
     public ItineraryStepAdapter(List<ItineraryItem> items, OnStepClickListener listener) {
@@ -81,6 +83,9 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
                 .into(holder.imgStep);
 
         holder.itemView.setOnClickListener(v -> listener.onStepClick(item));
+        
+        holder.btnSwap.setOnClickListener(v -> listener.onStepSwap(position));
+        holder.btnDelete.setOnClickListener(v -> listener.onStepDelete(position));
     }
 
     @Override
@@ -102,6 +107,10 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             textTime = view.findViewById(R.id.text_step_time);
             badgeWarning = view.findViewById(R.id.badge_closed_warning);
             imgStep = view.findViewById(R.id.img_step);
+            btnSwap = view.findViewById(R.id.btn_step_swap);
+            btnDelete = view.findViewById(R.id.btn_step_delete);
         }
+
+        android.widget.ImageButton btnSwap, btnDelete;
     }
 }

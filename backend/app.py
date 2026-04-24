@@ -502,6 +502,13 @@ def get_itinerary():
     points_count = int(request.args.get("points", 4))
 
     context = get_user_context(user_id) if user_id else {"interests": [], "history_weights": {}}
+    personalized = request.args.get("personalized", "false").lower() == "true"
+    user_query = request.args.get("query", "") # Custom user input/interests
+
+    if personalized:
+        from chatbot import generate_personalized_itinerary
+        plan = generate_personalized_itinerary(lat, lng, style, duration, points_count, context, user_query)
+        return jsonify(plan)
 
     import random
     from datetime import datetime, timedelta
@@ -588,9 +595,10 @@ def get_itinerary():
                     temp_item = {"name": r.get("name"), "type": slot["type"], "rating": r.get("rating", 4.0)}
                     r["_score"] = score_item(temp_item, context)
                 
-                # Sort by score descending and pick the best one
+                # Sort by score descending and pick from TOP 3 candidates randomly for diversity
                 available.sort(key=lambda x: x.get("_score", 0), reverse=True)
-                best = available[0]
+                top_candidates = available[:3]
+                best = random.choice(top_candidates)
                 used_place_ids.add(best.get("place_id"))
                 
                 img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"

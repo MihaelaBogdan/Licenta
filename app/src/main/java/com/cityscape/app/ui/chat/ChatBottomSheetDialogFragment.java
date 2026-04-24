@@ -69,6 +69,13 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         messages.add(new ChatMessage(getString(R.string.chatbot_welcome), false));
         adapter.notifyDataSetChanged();
 
+        // Show welcome suggestions
+        List<String> welcomeSuggestions = new ArrayList<>();
+        welcomeSuggestions.add("🍽️ Restaurant bun");
+        welcomeSuggestions.add("☕ Cafenea cozy");
+        welcomeSuggestions.add("🎭 Ce vizităm?");
+        showSuggestions(welcomeSuggestions);
+
         sendButton.setOnClickListener(v -> sendMessage());
 
         return view;
@@ -108,6 +115,9 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                         messages.add(new ChatMessage(reply, false));
                         adapter.notifyItemInserted(messages.size() - 1);
                         recyclerView.scrollToPosition(messages.size() - 1);
+                        
+                        // Show suggestions if available
+                        showSuggestions(response.body().suggestions);
                     } else {
                         Toast.makeText(getContext(), getString(R.string.chatbot_error), Toast.LENGTH_SHORT).show();
                     }
@@ -124,5 +134,30 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 }
             });
         }
+    }
+
+    private void showSuggestions(List<String> suggestions) {
+        View view = getView();
+        if (view == null || suggestions == null || suggestions.isEmpty()) return;
+
+        com.google.android.material.chip.ChipGroup group = view.findViewById(R.id.chat_suggestions_group);
+        View scroll = view.findViewById(R.id.chat_suggestions_scroll);
+        
+        if (group == null || scroll == null) return;
+        
+        group.removeAllViews();
+        for (String suggestion : suggestions) {
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+            chip.setText(suggestion);
+            chip.setCheckable(false);
+            chip.setClickable(true);
+            chip.setOnClickListener(v -> {
+                inputField.setText(suggestion);
+                sendMessage();
+                scroll.setVisibility(View.GONE);
+            });
+            group.addView(chip);
+        }
+        scroll.setVisibility(View.VISIBLE);
     }
 }

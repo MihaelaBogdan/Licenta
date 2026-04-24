@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black">
+    android:background="@color/app_background">
 
     <TextureView
         android:id="@+id/camera_preview"
@@ -28,7 +28,7 @@
             android:layout_margin="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_back"
-            app:tint="@color/white" />
+            app:tint="@color/app_text_primary" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -56,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Rotește telefonul pentru a descoperi"
-                android:textColor="@color/white"
+                android:textColor="@color/app_text_primary"
                 android:textSize="14sp" />
         </LinearLayout>
 
@@ -66,7 +66,7 @@
             android:layout_centerInParent="true"
             android:src="@drawable/ic_search"
             android:alpha="0.2"
-            app:tint="@color/white" />
+            app:tint="@color/app_text_primary" />
 
     </RelativeLayout>
 

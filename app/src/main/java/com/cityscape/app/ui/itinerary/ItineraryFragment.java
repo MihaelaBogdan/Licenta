@@ -89,7 +89,10 @@ public class ItineraryFragment extends Fragment {
 
         binding.btnSaveItinerary.setOnClickListener(v -> saveToCalendar());
 
-        binding.btnExportCalendar.setOnClickListener(v -> exportToICS());
+        binding.btnExportCalendar.setOnClickListener(v -> exportToSystemCalendar());
+
+        binding.btnAddLocation.setOnClickListener(v -> showAddLocationPicker());
+
 
         binding.itineraryToggleCurrency.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
@@ -142,10 +145,28 @@ public class ItineraryFragment extends Fragment {
             itineraryItems = new java.util.ArrayList<>();
         }
         binding.rvItinerarySteps.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ItineraryStepAdapter(itineraryItems, item -> {
-            if (googleMap != null) {
-                googleMap.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(new LatLng(item.latitude, item.longitude), 15));
+        adapter = new ItineraryStepAdapter(itineraryItems, new ItineraryStepAdapter.OnStepClickListener() {
+            @Override
+            public void onStepClick(ItineraryItem item) {
+                if (googleMap != null) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(item.latitude, item.longitude), 15));
+                }
+            }
+
+            @Override
+            public void onStepDelete(int position) {
+                if (position >= 0 && position < itineraryItems.size()) {
+                    itineraryItems.remove(position);
+                    adapter.notifyItemRemoved(position);
+                    setupMap();
+                    calculateAndDisplayBudget();
+                    Toast.makeText(getContext(), "Locație eliminată", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onStepSwap(int position) {
+                showSwapOptions(position);
             }
         });
 
@@ -155,6 +176,80 @@ public class ItineraryFragment extends Fragment {
         binding.rvItinerarySteps.setAdapter(adapter);
     }
 
+    private void showSwapOptions(int position) {
+        if (position < 0 || position >= itineraryItems.size()) return;
+        ItineraryItem current = itineraryItems.get(position);
+        
+        Toast.makeText(getContext(), "Căutăm alternative pentru " + current.slot + "...", Toast.LENGTH_SHORT).show();
+        
+        // Use Api to get alternatives for this specific type
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        Bundle args = getArguments();
+        double lat = args != null ? args.getDouble("lat") : 0;
+        double lng = args != null ? args.getDouble("lng") : 0;
+        
+        apiService.getItinerary(lat, lng, "nearby", 5000, current.type, 200, "", 2, 3, null).enqueue(new Callback<List<ItineraryItem>>() {
+            @Override
+            public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    showReplacementDialog(position, response.body());
+                } else {
+                    Toast.makeText(getContext(), "Nu am găsit alternative potrivite acum.", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {}
+        });
+    }
+
+    private void showReplacementDialog(int position, List<ItineraryItem> alternatives) {
+        String[] names = new String[alternatives.size()];
+        for (int i = 0; i < alternatives.size(); i++) names[i] = alternatives.get(i).name;
+
+        new android.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+            .setTitle(position == -1 ? "Adaugă Locație" : "Schimbă Locația")
+            .setItems(names, (dialog, which) -> {
+                ItineraryItem replacement = alternatives.get(which);
+                
+                if (position == -1) {
+                    // ADD case
+                    replacement.slot = "Extra";
+                    replacement.time = "Selectează ora";
+                    itineraryItems.add(replacement);
+                    adapter.notifyItemInserted(itineraryItems.size() - 1);
+                } else {
+                    // REPLACE case
+                    replacement.slot = itineraryItems.get(position).slot;
+                    replacement.time = itineraryItems.get(position).time;
+                    itineraryItems.set(position, replacement);
+                    adapter.notifyItemChanged(position);
+                }
+                
+                setupMap();
+                calculateAndDisplayBudget();
+            })
+            .show();
+    }
+
+
+    private void showAddLocationPicker() {
+        Toast.makeText(getContext(), "Personalizare: Adaugă o locație din apropiere", Toast.LENGTH_SHORT).show();
+        // Simple mock for now: let user pick from a search
+        Bundle args = getArguments();
+        double lat = args != null ? args.getDouble("lat") : 0;
+        double lng = args != null ? args.getDouble("lng") : 0;
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getItinerary(lat, lng, "nearby", 5000, "mixed", 200, "", 4, 5, null).enqueue(new Callback<List<ItineraryItem>>() {
+            @Override
+            public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    showReplacementDialog(-1, response.body()); // -1 means ADD
+                }
+            }
+            @Override public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {}
+        });
+    }
+
     private void setupMap() {
         if (googleMap == null || itineraryItems == null || itineraryItems.isEmpty())
             return;
@@ -162,6 +257,16 @@ public class ItineraryFragment extends Fragment {
         googleMap.clear();
         googleMap.getUiSettings().setAllGesturesEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
+        
+        // Apply dynamic map style based on theme
+        try {
+            com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
+            int styleRes = sessionManager.isDarkMode() ? R.raw.map_style_dark : R.raw.map_style_light;
+            googleMap.setMapStyle(com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(requireContext(), styleRes));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
         final List<LatLng> points = new java.util.ArrayList<>();
@@ -414,90 +519,66 @@ public class ItineraryFragment extends Fragment {
     }
 
     /**
-     * Exports the current itinerary as an .ics file that can be opened by
-     * Google Calendar, Microsoft Teams/Outlook, Apple Calendar, etc.
+     * Directly exports the itinerary items to the system calendar (Google, Samsung, etc.)
+     * using Intents for a seamless user experience.
      */
-    private void exportToICS() {
+    private void exportToSystemCalendar() {
         if (itineraryItems == null || itineraryItems.isEmpty()) {
             Toast.makeText(getContext(), "Generează un itinerariu mai întâi!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Let user pick the date first
         Calendar cal = Calendar.getInstance();
         new DatePickerDialog(requireContext(), (view, year, month, day) -> {
-            try {
-                // Build ICS content (RFC 5545)
-                StringBuilder ics = new StringBuilder();
-                ics.append("BEGIN:VCALENDAR\r\n");
-                ics.append("VERSION:2.0\r\n");
-                ics.append("PRODID:-//CityScape//Itinerary//RO\r\n");
-                ics.append("CALSCALE:GREGORIAN\r\n");
-                ics.append("METHOD:PUBLISH\r\n");
-
-                for (ItineraryItem item : itineraryItems) {
-                    // Parse time from slot like "09:00 - 10:30"
-                    String timeSlot = item.time != null ? item.time : "09:00 - 10:00";
-                    String[] parts = timeSlot.split(" - ");
-                    String startTime = parts.length > 0 ? parts[0].trim() : "09:00";
-                    String endTime = parts.length > 1 ? parts[1].trim() : "10:00";
-
-                    String[] startParts = startTime.split(":");
-                    String[] endParts = endTime.split(":");
-
-                    int startH = Integer.parseInt(startParts[0]);
-                    int startM = Integer.parseInt(startParts[1]);
-                    int endH = Integer.parseInt(endParts[0]);
-                    int endM = Integer.parseInt(endParts[1]);
-
-                    // Format: YYYYMMDDTHHMMSS
-                    String dateStr = String.format("%04d%02d%02d", year, month + 1, day);
-                    String dtStart = String.format("%sT%02d%02d00", dateStr, startH, startM);
-                    String dtEnd = String.format("%sT%02d%02d00", dateStr, endH, endM);
-
-                    ics.append("BEGIN:VEVENT\r\n");
-                    ics.append("DTSTART:").append(dtStart).append("\r\n");
-                    ics.append("DTEND:").append(dtEnd).append("\r\n");
-                    ics.append("SUMMARY:").append(item.slot).append(" - ").append(item.name).append("\r\n");
-                    ics.append("DESCRIPTION:").append(item.name)
-                       .append(" | ").append(item.address != null ? item.address : "")
-                       .append(" | Cost: ~").append(item.estimatedCost).append(" RON")
-                       .append("\r\n");
-                    ics.append("LOCATION:").append(item.address != null ? item.address : item.name).append("\r\n");
-                    if (item.latitude != 0 && item.longitude != 0) {
-                        ics.append("GEO:").append(item.latitude).append(";").append(item.longitude).append("\r\n");
+            new android.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setTitle("Export în Calendar")
+                .setMessage("Vrei să adaugi cele " + itineraryItems.size() + " locații în calendarul telefonului?")
+                .setPositiveButton("Da, adaugă", (d, w) -> {
+                    for (ItineraryItem item : itineraryItems) {
+                        addEventToCalendar(item, year, month, day);
                     }
-                    ics.append("STATUS:CONFIRMED\r\n");
-                    ics.append("UID:").append(java.util.UUID.randomUUID().toString()).append("@cityscape.app\r\n");
-                    ics.append("END:VEVENT\r\n");
-                }
-
-                ics.append("END:VCALENDAR\r\n");
-
-                // Write to a temp file
-                java.io.File cacheDir = requireContext().getCacheDir();
-                java.io.File icsFile = new java.io.File(cacheDir, "CityScape_Itinerary.ics");
-                java.io.FileWriter writer = new java.io.FileWriter(icsFile);
-                writer.write(ics.toString());
-                writer.close();
-
-                // Share via Android Intent
-                android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
-                        requireContext(),
-                        requireContext().getPackageName() + ".fileprovider",
-                        icsFile);
-
-                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-                intent.setType("text/calendar");
-                intent.putExtra(android.content.Intent.EXTRA_STREAM, uri);
-                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, "CityScape - Itinerariu");
-                intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(android.content.Intent.createChooser(intent, "Exportă în Calendar"));
-
-            } catch (Exception e) {
-                Toast.makeText(getContext(), "Eroare la export: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("ItineraryFragment", "ICS Export Error", e);
-            }
+                    Toast.makeText(getContext(), "Am trimis cererile către calendarul tău!", Toast.LENGTH_LONG).show();
+                })
+                .setNegativeButton("Anulează", null)
+                .show();
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
     }
+
+    private void addEventToCalendar(ItineraryItem item, int year, int month, int day) {
+        try {
+            // Parse time from slot like "09:00 - 10:30"
+            String timeSlot = item.time != null ? item.time : "09:00 - 10:00";
+            String[] parts = timeSlot.split(" - ");
+            String startTimeStr = parts.length > 0 ? parts[0].trim() : "09:00";
+            String endTimeStr = parts.length > 1 ? parts[1].trim() : "10:30";
+
+            String[] startParts = startTimeStr.split(":");
+            String[] endParts = endTimeStr.split(":");
+
+            int startH = Integer.parseInt(startParts[0]);
+            int startM = Integer.parseInt(startParts[1]);
+            int endH = Integer.parseInt(endParts[0]);
+            int endM = Integer.parseInt(endParts[1]);
+
+            Calendar beginTime = Calendar.getInstance();
+            beginTime.set(year, month, day, startH, startM);
+
+            Calendar endTime = Calendar.getInstance();
+            endTime.set(year, month, day, endH, endM);
+
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_INSERT)
+                    .setData(android.provider.CalendarContract.Events.CONTENT_URI)
+                    .putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+                    .putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+                    .putExtra(android.provider.CalendarContract.Events.TITLE, "CityScape: " + item.name)
+                    .putExtra(android.provider.CalendarContract.Events.DESCRIPTION, "Planificat în aplicația CityScape.\nLăcație: " + item.address)
+                    .putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, item.address != null ? item.address : item.name)
+                    .putExtra(android.provider.CalendarContract.Events.AVAILABILITY, android.provider.CalendarContract.Events.AVAILABILITY_BUSY);
+
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e("ItineraryFragment", "Error adding to calendar", e);
+        }
+    }
+
 }

@@ -33,6 +33,8 @@ public interface ActivityDao {
 
     @Query("SELECT DISTINCT scheduledDate FROM planned_activities WHERE userId = :userId")
     List<Long> getDatesWithActivities(String userId);
+    @Query("SELECT COUNT(*) > 0 FROM planned_activities WHERE userId = :userId AND scheduledDate = :date")
+    boolean hasActivitiesForDate(String userId, long date);
 
     @Query("SELECT * FROM planned_activities WHERE id = :activityId LIMIT 1")
     PlannedActivity getActivityById(String activityId);

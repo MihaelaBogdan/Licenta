@@ -321,6 +321,67 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro"):
             "suggestions": _get_fallback_suggestions(language)
         }
 
+def generate_personalized_itinerary(lat, lng, style, duration, points_count, context, user_query):
+    """
+    Uses Gemini to generate a highly personalized itinerary based on real nearby places.
+    """
+    import requests
+    from os import getenv
+    MAPS_API_KEY = getenv("MAPS_API_KEY")
+    
+    # Simple nearby search helper inside the function to avoid circular imports
+    def quick_search(lat, lng, p_type):
+        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+        params = {"location": f"{lat},{lng}", "radius": "5000", "type": p_type, "key": MAPS_API_KEY, "language": "ro"}
+        try: return requests.get(url, params=params, timeout=10).json().get("results", [])
+        except: return []
+
+    # 1. Gather candidates
+    categories = ["tourist_attraction", "museum", "park", "restaurant", "cafe"]
+    unique_candidates = []
+    seen_ids = set()
+    for cat in categories:
+        for c in quick_search(lat, lng, cat)[:5]:
+            if c['place_id'] not in seen_ids:
+                unique_candidates.append(c)
+                seen_ids.add(c['place_id'])
+
+    candidates_context = json.dumps([
+        {"name": c['name'], "type": c.get('types', [])[0] if c.get('types') else 'place', "rating": c.get('rating', 0), "id": c['place_id']}
+        for c in unique_candidates
+    ])
+
+    prompt = (
+        f"Ești 'MysticMinds', expertul CityScape în București. Generează un plan de {duration} ore cu {points_count} puncte de oprire. "
+        f"Stil: {style}. Cerință specială: {user_query}. "
+        f"Interese utilizator: {context.get('interests', [])}. "
+        f"Locații REALE în apropiere: {candidates_context}. "
+        "Cerințe RĂSPUNS: EXCLUSIV un cod JSON formatat ca o listă de obiecte [{}, {}...], fără explicații. "
+        "Fiecare obiect TREBUIE să conțină: 'slot' (ex: 'Mic Dejun'), 'name' (numele locației REALE), 'type', "
+        "'time' (ex: '09:00 - 10:30'), 'estimatedCost' (preț în RON), 'address', 'latitude', 'longitude', 'placeId'. "
+        "Fii creativ, diversifică opțiunile pentru a fi DIFERITE de fiecare dată!"
+    )
+
+    try:
+        response = gemini_model.generate_content(prompt)
+        text = response.text
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
+        
+        plan = json.loads(text)
+        for item in plan:
+            matched = next((c for c in unique_candidates if c['place_id'] == item.get('placeId') or c['name'] == item['name']), None)
+            if matched and matched.get("photos") and not item.get("imageUrl"):
+                ref = matched["photos"][0]["photo_reference"]
+                item["imageUrl"] = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
+            elif not item.get("imageUrl"):
+                item["imageUrl"] = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+            item["is_open"] = True
+        return plan
+    except Exception as e:
+        print(f"⚠️ Gemini Itinerary Error: {e}")
+        return []
+
 def get_response(msg, language="ro"):
     # Legacy wrapper
     res = get_response_with_details(msg, language)

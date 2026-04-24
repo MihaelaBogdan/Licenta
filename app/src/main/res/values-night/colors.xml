@@ -18,12 +18,23 @@
     <color name="glass_background">#4DFFFFFF</color>
     <color name="glass_center">#26FFFFFF</color>
     <color name="glass_stroke">#80FFFFFF</color>
+
+    <color name="login_overlay_start">#99000000</color>
+    <color name="login_overlay_end">#0D1117</color>
+
     
-    <!-- Match base branding colors -->
+    <!-- Branding -->
     <color name="primary">#10B981</color>
     <color name="primary_variant">#059669</color>
     <color name="secondary">#6EE7B7</color>
     <color name="accent_green">#10B981</color>
     <color name="primary_green">#10B981</color>
     <color name="primary_dark">#0D1117</color>
+    <color name="app_border">#30363D</color>
+    <color name="app_divider">#21262D</color>
+    <color name="gradient_start">#0F3460</color>
+    <color name="gradient_center">#16213E</color>
+    <color name="gradient_end">#0D1117</color>
+
+
 </resources>

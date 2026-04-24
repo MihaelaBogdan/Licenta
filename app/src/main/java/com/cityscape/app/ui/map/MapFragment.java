@@ -42,9 +42,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Apply dark map style
+        // Apply dynamic map style based on theme
         try {
-            mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style_dark));
+            com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
+            int styleRes = sessionManager.isDarkMode() ? R.raw.map_style_dark : R.raw.map_style_light;
+            googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), styleRes));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -166,7 +168,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                                     .title(event.title)
                                     .snippet("Bilet / Eveniment")
                                     .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                            com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_VIOLET));
+                                            com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_MAGENTA));
+
                             mMap.addMarker(options);
                         }
                     }
@@ -252,8 +255,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                         if (isFav) {
                             options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                    com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_YELLOW));
+                                    com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_VIOLET));
                         }
+
 
                         mMap.addMarker(options);
                     }
