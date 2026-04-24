@@ -234,6 +234,10 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                         if (isAdded()) {
                             if (res.isSuccessful()) {
                                 Toast.makeText(getContext(), "✅ Postat!", Toast.LENGTH_SHORT).show();
+                                
+                                // Award badge for posting
+                                com.cityscape.app.util.BadgeManager.awardPostBadge(getContext(), sessionManager.getUserId());
+                                
                                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> loadFeed(), 500);
                             } else {
                                 Toast.makeText(getContext(), "Server error: " + res.code(), Toast.LENGTH_SHORT).show();

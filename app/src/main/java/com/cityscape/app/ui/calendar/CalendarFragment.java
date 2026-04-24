@@ -524,10 +524,14 @@ public class CalendarFragment extends Fragment {
                         public void onExportClick(PlannedActivity activity) {
                             exportActivityToPhone(activity);
                         }
-                    });
-            recyclerActivities.setAdapter(activityAdapter);
-        }
+                        });
+                        recyclerActivities.setAdapter(activityAdapter);
+                    }
+                });
+            }
+        }).start();
     }
+
 
     private void showFeedbackDialog(String placeName) {
         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
@@ -707,10 +711,16 @@ public class CalendarFragment extends Fragment {
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
 
                 User currentUser = sessionManager.getCurrentUser();
+                if (currentUser == null) {
+                    Toast.makeText(getContext(), "Trebuie să fii autentificat pentru a crea un grup", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
                 GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
                 db.groupDao().insertMember(creatorMember);
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
                         .pushMemberToCloud(creatorMember);
+
 
                 // 1. Invite selected users from Following list
                 List<User> selectedUsers = followingAdapter.getSelectedUsers();

@@ -14,10 +14,11 @@ public interface ApiService {
 
         @GET("nearby")
         Call<List<Place>> getNearby(
-                @Query("lat") double lat,
-                @Query("lng") double lng,
-                @Query("type") String type,
-                @Query("user_id") String userId);
+                @retrofit2.http.Query("lat") double lat,
+                @retrofit2.http.Query("lng") double lng,
+                @retrofit2.http.Query("type") String type,
+                @retrofit2.http.Query("user_id") String userId);
+
 
         @GET("places/search")
         Call<List<Place>> getPlacesSearch(
@@ -59,7 +60,9 @@ public interface ApiService {
         Call<List<com.cityscape.app.model.Event>> getEvents(
                         @retrofit2.http.Query("lat") double lat,
                         @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("radius") int radius,
                         @retrofit2.http.Query("interests") String interests);
+
 
         @POST("visit")
         Call<Void> recordVisit(@Body VisitRequest request);
@@ -72,6 +75,10 @@ public interface ApiService {
         Call<List<com.cityscape.app.model.FeedPost>> getFeed(
                         @retrofit2.http.Query("type") String type,
                         @retrofit2.http.Query("user_id") String userId);
+
+        @GET("users/{userId}/posts")
+        Call<List<com.cityscape.app.model.FeedPost>> getUserPosts(
+                        @retrofit2.http.Path("userId") String userId);
 
         @POST("feed")
         Call<com.google.gson.JsonObject> createPost(@Body java.util.Map<String, Object> post);

@@ -155,7 +155,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
-        apiService.getEvents(lat, lng, interests).enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Event>>() {
+        apiService.getEvents(lat, lng, 50, interests).enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Event>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Event>> call,
                     retrofit2.Response<java.util.List<com.cityscape.app.model.Event>> response) {

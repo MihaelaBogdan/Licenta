@@ -60,7 +60,9 @@ public class LocalApiInterceptor implements Interceptor {
                 double lat = parseDoubleOpt(request.url().queryParameter("lat"), 0);
                 double lng = parseDoubleOpt(request.url().queryParameter("lng"), 0);
                 String interests = request.url().queryParameter("interests");
-                jsonResponse = getEvents(lat, lng, interests != null ? interests : "");
+                int radius = Integer.parseInt(request.url().queryParameter("radius") != null ? request.url().queryParameter("radius") : "50");
+
+                jsonResponse = getEvents(lat, lng, radius, interests != null ? interests : "");
             } else if (path.contains("/predict")) {
                 JSONObject rep = new JSONObject();
                 rep.put("answer", "Salut! Cum nu vrem servere în fundal, modul complet de planificare direct de pe telefonul tău este activ. Cu ce destinație sau plan începem?");
@@ -202,7 +204,7 @@ public class LocalApiInterceptor implements Interceptor {
         return mapped.toString();
     }
 
-    private String getEvents(double lat, double lng, String interests) throws Exception {
+    private String getEvents(double lat, double lng, int radius, String interests) throws Exception {
         String keyword = "";
         String lc = interests.toLowerCase();
         if (lc.contains("muzic") || lc.contains("music") || lc.contains("concert")) keyword = "Music";

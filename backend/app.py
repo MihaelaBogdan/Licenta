@@ -305,7 +305,13 @@ def search_places():
     }
     actual_type = type_map.get(place_type, place_type)
 
-    results = google_nearby_search(lat, lng, actual_type, radius=15000)
+    radius = request.args.get("radius", 15000)
+    try:
+        radius = int(radius)
+    except:
+        radius = 15000
+    results = google_nearby_search(lat, lng, actual_type, radius=radius)
+
     formatted = []
     for p in results:
         f = format_google_place(p, lat, lng)
@@ -638,6 +644,27 @@ def get_itinerary():
 
     return jsonify(plan)
 
+@app.get("/users/<u_id>/posts")
+def get_user_posts(u_id):
+    """Returns posts created by a specific user."""
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    url = f"{SUPABASE_URL}/rest/v1/feed_posts?user_id=eq.{u_id}&order=created_at.desc"
+    
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            posts = res.json()
+            # Minimal enrichment for profile view
+            for p in posts:
+                p_id = p.get("id")
+                # Add basic count if needed
+                p["comments_count"] = 0 
+                p["likes_count"] = 0
+            return jsonify(posts)
+        return jsonify([])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ==================== SOCIAL FEED ====================
 
 @app.get("/feed")
@@ -690,9 +717,12 @@ def create_post():
         # Fallback to a fixed user ID if invalid
         user_id = "00000000-0000-0000-0000-000000000000"
 
+    # Use Service Role Key if available to bypass RLS for backend operations
+    key_to_use = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or SUPABASE_KEY
+    
     headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "apikey": key_to_use,
+        "Authorization": f"Bearer {key_to_use}",
         "Content-Type": "application/json",
         "Prefer": "return=representation"
     }
@@ -714,8 +744,14 @@ def create_post():
         res = requests.post(url, headers=headers, json=post_data)
         if res.status_code in [200, 201]:
             return jsonify({"status": "success", "post": res.json()})
-        print(f"❌ Supabase Insert Error: {res.text}")
-        return jsonify({"error": "Failed to create post"}), 500
+        
+        # Log the error for the developer
+        print(f"❌ Supabase Insert Error ({res.status_code}): {res.text}")
+        return jsonify({
+            "error": "Failed to create post", 
+            "details": res.json() if res.status_code != 404 else "Table not found. Please run create_feed_tables.py"
+        }), res.status_code
+
     except Exception as e:
         print(f"❌ Create Post Error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -786,7 +822,7 @@ def toggle_like(post_id):
 
 # ==================== USERS & SOCIAL ====================
 
-def fetch_ticketmaster_events(lat, lng):
+def fetch_ticketmaster_events(lat, lng, radius):
     """Fetches global events from Ticketmaster API based on coordinates."""
     if not TICKETMASTER_API_KEY:
         return []
@@ -796,7 +832,7 @@ def fetch_ticketmaster_events(lat, lng):
     params = {
         "apikey": TICKETMASTER_API_KEY,
         "latlong": f"{lat},{lng}",
-        "radius": "50",
+        "radius": str(radius),
         "unit": "km",
         "size": 25,
         "sort": "date,asc"
@@ -878,14 +914,16 @@ def get_events():
     """Returns events for ANY location, balancing local scraping, global API, and trending spots."""
     lat = request.args.get("lat", 44.4268)
     lng = request.args.get("lng", 26.1025)
+    radius = int(request.args.get("radius", 50))
     interests = request.args.get("interests", "").lower()
     
     # Tier 1: Global Ticketmaster (Concerts, Sports)
-    events = fetch_ticketmaster_events(lat, lng)
+    events = fetch_ticketmaster_events(lat, lng, radius)
     
     # Tier 2: Local Scraped (Specialty Bucharest)
+    # 50km radius check roughly... (each degree lat is 111km)
     dist_to_bucu = ((float(lat) - 44.4268)**2 + (float(lng) - 26.1025)**2)**0.5
-    if dist_to_bucu < 0.5:
+    if dist_to_bucu < (radius / 100.0): # 50km ~ 0.5 deg
         headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
         url = f"{SUPABASE_URL}/rest/v1/scraped_events?order=created_at.desc&limit=30"
         try:

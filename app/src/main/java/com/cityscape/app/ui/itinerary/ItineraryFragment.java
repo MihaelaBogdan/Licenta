@@ -109,12 +109,16 @@ public class ItineraryFragment extends Fragment {
                     @Override
                     public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
                         int pos = tab.getPosition();
-                        if (pos < variants.size()) {
-                            itineraryItems = variants.get(pos);
-                            if (adapter != null)
-                                adapter.updateItems(itineraryItems);
-                            setupMap();
-                            calculateAndDisplayBudget();
+                        synchronized (variants) {
+                            if (pos < variants.size()) {
+                                itineraryItems = variants.get(pos);
+                                if (adapter != null)
+                                    adapter.updateItems(itineraryItems);
+                                setupMap();
+                                calculateAndDisplayBudget();
+                            } else {
+                                Toast.makeText(getContext(), "Generăm planul " + (pos + 1) + "...", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
 
@@ -254,9 +258,10 @@ public class ItineraryFragment extends Fragment {
         if (googleMap == null || itineraryItems == null || itineraryItems.isEmpty())
             return;
 
+        // Visual smoothness: clear markers and stop existing animations if possible 
         googleMap.clear();
-        googleMap.getUiSettings().setAllGesturesEnabled(true);
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        
+        // ... apply style ...
         
         // Apply dynamic map style based on theme
         try {
@@ -266,6 +271,9 @@ public class ItineraryFragment extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        googleMap.getUiSettings().setAllGesturesEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
 
 
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
@@ -373,8 +381,20 @@ public class ItineraryFragment extends Fragment {
                     if (isAdded() && response.isSuccessful() && response.body() != null) {
                         synchronized (variants) {
                             variants.add(response.body());
+                            
+                            // If user is waiting on this tab, update it now
+                            int currentTab = binding.itineraryTabs.getSelectedTabPosition();
+                            if (currentTab == variants.size() - 1) {
+                                getActivity().runOnUiThread(() -> {
+                                    itineraryItems = response.body();
+                                    if (adapter != null) adapter.updateItems(itineraryItems);
+                                    setupMap();
+                                    calculateAndDisplayBudget();
+                                });
+                            }
                         }
                     }
+
                 }
 
                 @Override

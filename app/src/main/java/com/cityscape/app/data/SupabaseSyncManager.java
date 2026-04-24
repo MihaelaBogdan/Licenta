@@ -115,4 +115,8 @@ public class SupabaseSyncManager {
     public void updateInvitationInCloud(Invitation invitation) {
         Log.d(TAG, "Invitation updated");
     }
+
+    public void pushBadgeToCloud(com.cityscape.app.model.UserBadge badge) {
+        cloudData.insertBadge(badge, null);
+    }
 }

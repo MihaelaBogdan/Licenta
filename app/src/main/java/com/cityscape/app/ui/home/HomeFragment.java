@@ -812,8 +812,8 @@ public class HomeFragment extends Fragment {
                             }
                         });
                 } else {
-                    // Trending / Recommended Section (Whole City)
-                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 15000, userId)
+                    // Trending / Recommended Section (Whole City - Bucharest radius approx 30km)
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 30000, userId)
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -1026,10 +1026,10 @@ public class HomeFragment extends Fragment {
                             }
                         }
 
-                        // Vector 2: User Onboarding/Settings Explicit Interests
+                        // Vector 2: User Onboarding/Settings Explicit Interests (Personalization boost)
                         if (!userInterests.isEmpty() && !userInterests.equals("trending")) {
-                                if (isTypeMatchingInterests(p1, userInterests)) score1 += 6.0;
-                                if (isTypeMatchingInterests(p2, userInterests)) score2 += 6.0;
+                                if (isTypeMatchingInterests(p1, userInterests)) score1 += 12.0;
+                                if (isTypeMatchingInterests(p2, userInterests)) score2 += 12.0;
                         }
 
                         // Vector 3: Contextual Weather Filtering
@@ -1333,7 +1333,7 @@ public class HomeFragment extends Fragment {
                 User user = sessionManager.getCurrentUser();
                 String interests = user != null && user.interests != null ? user.interests : "";
 
-                apiService.getEvents(currentLocation.getLatitude(), currentLocation.getLongitude(), interests)
+                apiService.getEvents(currentLocation.getLatitude(), currentLocation.getLongitude(), 50, interests)
                                 .enqueue(new Callback<List<com.cityscape.app.model.Event>>() {
                                         @Override
                                         public void onResponse(Call<List<com.cityscape.app.model.Event>> call,

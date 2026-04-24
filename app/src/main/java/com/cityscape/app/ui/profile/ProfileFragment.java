@@ -33,13 +33,14 @@ import java.util.List;
 
 public class ProfileFragment extends Fragment {
 
-    private TextView profileName, profileTitle, xpText, levelBadge;
+    private TextView profileName, profileTitle, xpText, levelBadge, titleMyPosts;
     private TextView statPlaces, statBadges;
     private ProgressBar xpProgress;
-    private RecyclerView recyclerBadges, recyclerAchievements;
+    private RecyclerView recyclerBadges, recyclerAchievements, recyclerUserPosts;
     private ImageView profileAvatar;
     private SessionManager sessionManager;
     private AppDatabase db;
+    private com.cityscape.app.api.ApiService apiService;
 
     // Containers
     private LinearLayout guestContainer;
@@ -65,6 +66,7 @@ public class ProfileFragment extends Fragment {
 
             initViews(view);
             loadUserData();
+            loadUserPosts();
             setupBadges();
             setupAchievements();
 
@@ -135,7 +137,11 @@ public class ProfileFragment extends Fragment {
         xpProgress = view.findViewById(R.id.xp_progress);
         recyclerBadges = view.findViewById(R.id.recycler_badges);
         recyclerAchievements = view.findViewById(R.id.recycler_achievements);
+        recyclerUserPosts = view.findViewById(R.id.recycler_user_posts);
+        titleMyPosts = view.findViewById(R.id.title_my_posts);
         profileAvatar = view.findViewById(R.id.profile_avatar);
+        
+        apiService = com.cityscape.app.api.ApiClient.getClient().create(com.cityscape.app.api.ApiService.class);
     }
 
     private void loadUserData() {
@@ -181,6 +187,8 @@ public class ProfileFragment extends Fragment {
                 return R.drawable.ic_badge_night;
             case "ic_badge_explorer":
                 return R.drawable.ic_badge_explorer;
+            case "ic_badge_social":
+                return R.drawable.ic_badge_explorer; // Using explorer as fallback for social post badge
             default:
                 return R.drawable.ic_badge_default;
         }
@@ -198,5 +206,38 @@ public class ProfileFragment extends Fragment {
         AchievementAdapter adapter = new AchievementAdapter(achievements);
         recyclerAchievements.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerAchievements.setAdapter(adapter);
+    }
+
+    private void loadUserPosts() {
+
+        if (recyclerUserPosts == null) return;
+        
+        apiService.getUserPosts(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<com.cityscape.app.model.FeedPost>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, retrofit2.Response<List<com.cityscape.app.model.FeedPost>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    List<com.cityscape.app.model.Place> postsAsPlaces = new ArrayList<>();
+                    for (com.cityscape.app.model.FeedPost post : response.body()) {
+                        com.cityscape.app.model.Place p = new com.cityscape.app.model.Place();
+                        p.id = post.id;
+                        p.name = post.placeName;
+                        p.imageUrl = post.imageUrl;
+                        p.type = "Postare";
+                        p.rating = (float) post.rating;
+                        postsAsPlaces.add(p);
+                    }
+                    
+                    com.cityscape.app.adapter.PlaceAdapter adapter = new com.cityscape.app.adapter.PlaceAdapter(getContext(), postsAsPlaces, true, null);
+                    recyclerUserPosts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                    recyclerUserPosts.setAdapter(adapter);
+                    
+                    recyclerUserPosts.setVisibility(View.VISIBLE);
+                    if (titleMyPosts != null) titleMyPosts.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, Throwable t) { }
+        });
     }
 }

@@ -251,6 +251,28 @@ public class SupabaseDataManager {
         });
     }
 
+    public void insertBadge(com.cityscape.app.model.UserBadge badge, DataCallback<Void> callback) {
+        executorService.execute(() -> {
+            try {
+                String json = gson.toJson(badge);
+                RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+                Request request = getAuthenticatedRequestBuilder("user_badges")
+                        .post(body)
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (response.isSuccessful()) {
+                        postSuccess(callback, null);
+                    } else {
+                        postError(callback, "Eroare la deblocare badge in cloud: " + response.code());
+                    }
+                }
+            } catch (IOException e) {
+                postError(callback, "Eroare rețea badge: " + e.getMessage());
+            }
+        });
+    }
+
     // ==========================================================
     // UTILS
     // ==========================================================

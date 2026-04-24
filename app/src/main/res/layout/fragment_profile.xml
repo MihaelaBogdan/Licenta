@@ -292,7 +292,28 @@
             android:layout_marginTop="12dp"
             android:orientation="horizontal" />
 
+        <!-- User Posts Section -->
+        <TextView
+            android:id="@+id/title_my_posts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Postările tale"
+            android:textColor="@color/app_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_user_posts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
         <!-- Achievements Section -->
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
