@@ -135,8 +135,7 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         }
 
         if (swipeRefresh != null && !swipeRefresh.isRefreshing()) progressBar.setVisibility(View.VISIBLE);
-        if (emptyState != null) emptyState.setVisibility(View.GONE);
-
+        
         String uId = (sessionManager != null) ? sessionManager.getUserId() : "";
         apiService.getFeed(currentTab, uId != null ? uId : "").enqueue(new Callback<List<FeedPost>>() {
             @Override
@@ -150,10 +149,22 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                     if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
                     if (emptyState != null) emptyState.setVisibility(View.GONE);
                 } else {
-                    // Fallback to mock data if empty or error
-                    adapter.setPosts(getMockPosts());
-                    if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
-                    if (emptyState != null) emptyState.setVisibility(View.GONE);
+                    // Real empty state (no fallback to mock data unless desired)
+                    adapter.setPosts(new ArrayList<>());
+                    if (rvFeed != null) rvFeed.setVisibility(View.GONE);
+                    if (emptyState != null) {
+                        emptyState.setVisibility(View.VISIBLE);
+                        TextView emptyTitle = emptyState.findViewById(R.id.feed_empty_title);
+                        TextView emptySub = emptyState.findViewById(R.id.feed_empty_subtitle);
+                        
+                        if (currentTab.equals("friends")) {
+                            if (emptyTitle != null) emptyTitle.setText("Nicio postare de la prieteni");
+                            if (emptySub != null) emptySub.setText("Urmărește exploratori pentru a le vedea aventurile!");
+                        } else {
+                            if (emptyTitle != null) emptyTitle.setText("Nicio postare în comunitate");
+                            if (emptySub != null) emptySub.setText("Fii tu cel care dă startul!");
+                        }
+                    }
                 }
             }
             @Override
@@ -162,13 +173,14 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 
-                // Fallback to mock data on network error
-                adapter.setPosts(getMockPosts());
-                if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
-                if (emptyState != null) emptyState.setVisibility(View.GONE);
+                // Show empty state on error as well
+                adapter.setPosts(new ArrayList<>());
+                if (rvFeed != null) rvFeed.setVisibility(View.GONE);
+                if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
             }
         });
     }
+
 
     private void showNewPostDialog() {
         if (!isAdded()) return;
@@ -176,7 +188,13 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         View v = getLayoutInflater().inflate(R.layout.dialog_new_post, null);
         builder.setView(v);
 
+        TextView txtPostingAs = v.findViewById(R.id.txt_posting_as);
+        if (txtPostingAs != null) {
+            txtPostingAs.setText("Postezi ca " + sessionManager.getUserName());
+        }
+
         AutoCompleteTextView etPlace = v.findViewById(R.id.et_place_name);
+
         EditText etCapt = v.findViewById(R.id.et_caption);
         RatingBar rb = v.findViewById(R.id.rating_input);
         dialogImagePreview = v.findViewById(R.id.img_preview);
@@ -212,7 +230,10 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         builder.setPositiveButton("Publică", (dialog, which) -> {
             if (etPlace == null) return;
             String name = etPlace.getText().toString().trim();
-            if (name.isEmpty()) return;
+            if (name.isEmpty()) {
+                Toast.makeText(getContext(), "Introdu numele locului!", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             String img = (selectedImageUri != null) ? selectedImageUri.toString() : 
                 "https://source.unsplash.com/featured/800x600/?" + Uri.encode(name);

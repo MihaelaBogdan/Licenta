@@ -10,6 +10,7 @@ import java.util.List;
 public class SessionManager {
     private static final String PREF_NAME = "CityScapeSession";
     private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
     private static final String KEY_PREFERRED_CITY = "preferred_city";
@@ -28,12 +29,21 @@ public class SessionManager {
 
     public void createSession(User user) {
         editor.putString(KEY_USER_ID, user.id);
+        editor.putString(KEY_USER_NAME, user.name);
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.apply();
+
+        // Also ensure user is in local DB for offline access/session continuity
+        new Thread(() -> {
+            if (db.userDao().getUserById(user.id) == null) {
+                db.userDao().insert(user);
+            }
+        }).start();
 
         // Initialize badges for user if not exists
         initializeBadgesForUser(user.id);
     }
+
 
     public boolean isLoggedIn() {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
@@ -59,8 +69,24 @@ public class SessionManager {
     }
 
     public String getUserName() {
+        String name = prefs.getString(KEY_USER_NAME, null);
+        if (name != null && !name.isEmpty() && !name.equalsIgnoreCase("Explorer")) {
+            return name;
+        }
+        
         User user = getCurrentUser();
-        return user != null ? user.name : "Explorer";
+        if (user != null && user.name != null && !user.name.isEmpty()) {
+            // Update cache
+            editor.putString(KEY_USER_NAME, user.name).apply();
+            return user.name;
+        }
+        
+        // Fallback to email prefix if possible
+        if (user != null && user.email != null && user.email.contains("@")) {
+            return user.email.split("@")[0];
+        }
+        
+        return "Explorer";
     }
 
     public void logout() {

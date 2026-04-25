@@ -43,8 +43,10 @@ public class InterestsActivity extends BaseActivity {
             chip.setText(category);
             chip.setCheckable(true);
             chip.setChecked(activeInterests.contains(category));
-            chip.setTextColor(getResources().getColor(R.color.white));
-            chip.setChipBackgroundColorResource(R.color.app_background);
+            chip.setTextColor(getResources().getColor(R.color.app_text_primary));
+            chip.setChipBackgroundColorResource(R.color.app_card);
+            chip.setChipStrokeColorResource(R.color.primary);
+            chip.setChipStrokeWidth(2.0f);
             chipGroup.addView(chip);
         }
         

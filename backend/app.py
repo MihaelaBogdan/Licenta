@@ -16,6 +16,8 @@ from flask_cors import CORS
 from chatbot import get_response, get_response_with_details
 import json
 import os
+import random
+import requests
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -106,16 +108,36 @@ BLACKLISTED_TYPES = {
     "administrative_area_level_2"
 }
 
+def google_text_search(query, lat=None, lng=None, radius=50000):
+    """Searches Google Places Text Search API for high-relevance matches."""
+    url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    params = {
+        "query": query,
+        "key": MAPS_API_KEY,
+        "language": "ro"
+    }
+    if lat and lng:
+        params["location"] = f"{lat},{lng}"
+        params["radius"] = str(radius)
+    try:
+        res = requests.get(url, params=params, timeout=15).json()
+        return res.get("results", [])
+    except Exception as e:
+        print(f"Google Text Search Error: {e}")
+        return []
+
 def google_nearby_search(lat, lng, place_type, radius=5000, keyword=None):
     """Searches Google Places API for nearby places."""
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
         "location": f"{lat},{lng}",
         "radius": str(radius),
-        "type": place_type,
         "key": MAPS_API_KEY,
         "language": "ro"
     }
+    if place_type:
+        params["type"] = place_type
+
     if keyword:
         params["keyword"] = keyword
     try:
@@ -180,6 +202,7 @@ def format_google_place(place, user_lat=None, user_lng=None):
         "latitude": geo.get("lat"),
         "longitude": geo.get("lng"),
         "type": (types[0] if types else "").replace("_", " ").capitalize(),
+        "reviewCount": place.get("user_ratings_total", 0),
         "relevance_score": 0 
     }
 
@@ -310,25 +333,42 @@ def search_places():
         radius = int(radius)
     except:
         radius = 15000
-    results = google_nearby_search(lat, lng, actual_type, radius=radius)
+    results = []
+    if not actual_type or actual_type == "":
+        # 1. Start with high-relevance Text Search for "atractii" and "restaurante"
+        results.extend(google_text_search("Top atracții turistice și obiective", lat, lng, radius=radius))
+        results.extend(google_text_search("Restaurante faimoase și cafenele populare", lat, lng, radius=radius))
+        
+        # 2. Add some specific categories too for variety
+        categories = ["museum", "park"]
+        for cat in categories:
+            results.extend(google_nearby_search(lat, lng, cat, radius=radius))
+    else:
+        results = google_nearby_search(lat, lng, actual_type, radius=radius)
 
     formatted = []
+    seen_ids = set()
     for p in results:
-        f = format_google_place(p, lat, lng)
-        if f:
-            formatted.append(f)
+        pid = p.get("place_id")
+        if pid and pid not in seen_ids:
+            f = format_google_place(p, lat, lng)
+            if f:
+                formatted.append(f)
+                seen_ids.add(pid)
     
     if user_id:
         context = get_user_context(user_id)
         for p in formatted:
-            p["relevance_score"] = score_item(p, context)
-        # Sort by relevance primary, rating secondary
+            # Refresh feel: add random jitter to score
+            jitter = random.uniform(0, 2.0)
+            p["relevance_score"] = score_item(p, context) + jitter
         formatted.sort(key=lambda x: (x["relevance_score"], x["rating"]), reverse=True)
     else:
-        # Sort by rating only if no user context
-        formatted.sort(key=lambda x: x.get("rating", 0), reverse=True)
+        for p in formatted:
+            p["jitter_score"] = p.get("rating", 0) + random.uniform(0, 1.0)
+        formatted.sort(key=lambda x: x["jitter_score"], reverse=True)
         
-    return jsonify(formatted[:25])
+    return jsonify(formatted[:60])
 
 @app.get("/places/autocomplete")
 def get_autocomplete():
@@ -494,10 +534,12 @@ def get_weather():
 
 @app.get("/itinerary")
 def get_itinerary():
-    """Generates a day plan using personalized sorting."""
+    """Generates a day plan using personalized sorting with high entropy."""
     lat_str = request.args.get("lat")
     lng_str = request.args.get("lng")
     user_id = request.args.get("user_id")
+    scope = request.args.get("scope", "nearby").lower()
+    
     if not lat_str or not lng_str:
         return jsonify([])
 
@@ -509,7 +551,7 @@ def get_itinerary():
 
     context = get_user_context(user_id) if user_id else {"interests": [], "history_weights": {}}
     personalized = request.args.get("personalized", "false").lower() == "true"
-    user_query = request.args.get("query", "") # Custom user input/interests
+    user_query = request.args.get("query", "")
 
     if personalized:
         from chatbot import generate_personalized_itinerary
@@ -519,22 +561,25 @@ def get_itinerary():
     import random
     from datetime import datetime, timedelta
 
+    # Dynamic radius based on scope
+    search_radius = 5000 if scope == "nearby" else 30000
+
     # Patterns for different styles
     if "cultural" in style:
         pattern = [
             {"type": "cafe", "label": "Mic Dejun"},
             {"type": "museum", "label": "Activitate Culturală"},
             {"type": "restaurant", "label": "Prânz"},
-            {"type": "museum", "label": "Explorare Istorică"},
-            {"type": "cafe", "label": "Pauză de Ceai"},
+            {"type": "art_gallery", "label": "Explorare Istorică"},
+            {"type": "library", "label": "Pauză de Ceai"},
             {"type": "museum", "label": "Muzeu Seară"}
         ]
     elif "relax" in style:
         pattern = [
-            {"type": "cafe", "label": "Mic Dejun"},
+            {"type": "park", "label": "Mic Dejun în Natură"},
             {"type": "park", "label": "Moment de Relaxare"},
             {"type": "restaurant", "label": "Prânz"},
-            {"type": "park", "label": "Plimbare Liniștită"},
+            {"type": "spa", "label": "Plimbare Liniștită"},
             {"type": "spa", "label": "Răsfăț"},
             {"type": "restaurant", "label": "Cină Relaxantă"}
         ]
@@ -546,15 +591,6 @@ def get_itinerary():
             {"type": "bar", "label": "Aperitiv de Seară"},
             {"type": "restaurant", "label": "Cină Tasting"},
             {"type": "cafe", "label": "Desert Târziu"}
-        ]
-    elif "night" in style or "nocturn" in style:
-        pattern = [
-            {"type": "restaurant", "label": "Cină Elegantă"},
-            {"type": "bar", "label": "Distracție de Noapte"},
-            {"type": "night_club", "label": "Cocktail Bar"},
-            {"type": "bar", "label": "After-party"},
-            {"type": "night_club", "label": "Clubbing"},
-            {"type": "bakery", "label": "Mic Dejun de Dimineață"}
         ]
     else:
         pattern = [
@@ -575,36 +611,41 @@ def get_itinerary():
         slots.append({"type": item["type"], "label": label})
 
     plan = []
-    # Add jitter so each request starts from a slightly different spot
-    current_lat = lat + random.uniform(-0.008, 0.008)
-    current_lng = lng + random.uniform(-0.008, 0.008)
+    # SHAKE UP the start to prevent samey paths
+    current_lat = lat + random.uniform(-0.015, 0.015)
+    current_lng = lng + random.uniform(-0.015, 0.015)
     current_time = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
     slot_duration_mins = (duration * 60) // len(slots) if slots else 60
 
-    used_place_ids = set()  # Prevent duplicates across slots
+    used_place_ids = set()
 
     for slot in slots:
         try:
-            results = google_nearby_search(current_lat, current_lng, slot["type"], radius=5000)
+            # Randomize category slightly for fun
+            search_type = slot["type"]
+            results = google_nearby_search(current_lat, current_lng, search_type, radius=search_radius)
             available = [r for r in results if r.get("place_id") not in used_place_ids and r.get("name")]
             
-            # If no unique results in primary category, try a related better one instead of picking same place
+            # Shuffle results globally for randomness
+            random.shuffle(available)
+            
             if not available:
-                if slot["type"] in ["museum", "tourist_attraction"]:
-                    alt_results = google_nearby_search(current_lat, current_lng, "landmark", radius=5000)
-                    available = [r for r in alt_results if r.get("place_id") not in used_place_ids]
+                # Fallback to general attraction if specific fails
+                results = google_nearby_search(current_lat, current_lng, "tourist_attraction", radius=search_radius)
+                available = [r for r in results if r.get("place_id") not in used_place_ids]
+                random.shuffle(available)
             
             if available:
-                # Score each available place based on user context
+                # Score them but keep weight on randomness
                 for r in available:
-                    # Temporary mapping for scoring
-                    temp_item = {"name": r.get("name"), "type": slot["type"], "rating": r.get("rating", 4.0)}
-                    r["_score"] = score_item(temp_item, context)
+                    temp_item = {"name": r.get("name"), "type": search_type, "rating": r.get("rating", 4.0)}
+                    r["_score"] = score_item(temp_item, context) + random.uniform(0, 2) # Add Luck factor
                 
-                # Sort by score descending and pick from TOP 3 candidates randomly for diversity
+                # Sort and pick from a LARGER pool for more diversity (Top 8)
                 available.sort(key=lambda x: x.get("_score", 0), reverse=True)
-                top_candidates = available[:3]
+                top_candidates = available[:8]
                 best = random.choice(top_candidates)
+                
                 used_place_ids.add(best.get("place_id"))
                 
                 img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
@@ -615,8 +656,8 @@ def get_itinerary():
                 level = best.get("price_level", 2)
                 price_map = {0: 0, 1: 30, 2: 70, 3: 150, 4: 350}
                 est_cost = price_map.get(level, 70)
-                if slot["type"] == "park": est_cost = 0
-                if slot["type"] == "museum": est_cost = 30
+                if search_type in ["park", "natural_feature", "place_of_worship"]: est_cost = 0
+                if search_type in ["museum", "art_gallery"]: est_cost = 40
 
                 t_start = current_time.strftime("%H:%M")
                 current_time += timedelta(minutes=slot_duration_mins)
@@ -626,18 +667,22 @@ def get_itinerary():
                 plan.append({
                     "slot": slot["label"],
                     "name": best["name"],
-                    "address": best.get("vicinity", "București"),
+                    "address": best.get("vicinity", "Locație oraș"),
                     "imageUrl": img_url,
                     "latitude": geo.get("lat"),
                     "longitude": geo.get("lng"),
                     "estimatedCost": est_cost,
                     "placeId": best.get("place_id"),
-                    "type": slot["type"],
+                    "type": search_type,
                     "time": f"{t_start} - {t_end}",
                     "is_open": True
                 })
-                current_lat = geo.get("lat", current_lat)
-                current_lng = geo.get("lng", current_lng)
+                # Move slightly towards result but keep some center bias for better city coverage
+                next_lat = geo.get("lat", current_lat)
+                next_lng = geo.get("lng", current_lng)
+                current_lat = (current_lat + next_lat) / 2
+                current_lng = (current_lng + next_lng) / 2
+                
         except Exception as e:
             print(f"⚠️ Itinerary Error: {e}")
             continue
@@ -669,16 +714,29 @@ def get_user_posts(u_id):
 
 @app.get("/feed")
 def get_feed():
-    """Returns all posts for the social feed, sorted by newest first."""
+    """Returns posts for the social feed with community/friends filtering."""
     user_id = request.args.get("user_id", "")
+    feed_type = request.args.get("type", "foryou")
     
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
     
-    # Logic: Get posts and enrich with interactions
-    url = f"{SUPABASE_URL}/rest/v1/feed_posts?select=*&order=created_at.desc&limit=30"
+    # 1. Determine which posts to fetch
+    if feed_type == "friends" and user_id:
+        # Get list of following IDs
+        f_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{user_id}&select=following_id"
+        f_res = requests.get(f_url, headers=headers)
+        if f_res.status_code == 200:
+            following_ids = [f["following_id"] for f in f_res.json()]
+            if not following_ids:
+                return jsonify([]) # No friends, empty feed
+            # Filter posts by these IDs
+            ids_str = ",".join(following_ids)
+            url = f"{SUPABASE_URL}/rest/v1/feed_posts?user_id=in.({ids_str})&order=created_at.desc&limit=30"
+        else:
+            return jsonify([])
+    else:
+        # Community (foryou) - all posts
+        url = f"{SUPABASE_URL}/rest/v1/feed_posts?select=*&order=created_at.desc&limit=30"
     
     try:
         res = requests.get(url, headers=headers)
@@ -688,16 +746,17 @@ def get_feed():
         posts = res.json()
         for post in posts:
             p_id = post.get("id")
-            # Get comment count
+            # Enrichment
             c_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_comments?post_id=eq.{p_id}&select=id", headers=headers)
             post["comments_count"] = len(c_res.json()) if c_res.status_code == 200 else 0
-            # Get likes and user participation
+            
             l_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_likes?post_id=eq.{p_id}&select=user_id", headers=headers)
             likes = l_res.json() if l_res.status_code == 200 else []
             post["likes_count"] = len(likes)
             post["is_liked"] = any(l.get("user_id") == user_id for l in likes)
             
         return jsonify(posts)
+
     except Exception as e:
         print(f"❌ Feed Error: {e}")
         return jsonify([])
@@ -1064,6 +1123,110 @@ def get_following(user_id):
     except Exception as e:
         print(f"❌ Get Following Error: {e}")
         return jsonify([])
+
+@app.get("/users/recommended")
+def get_recommended_users():
+    user_id = request.args.get("user_id")
+    # For now, just return some other users from the mock database
+    # In a real app, this would be a complex ML recommendation or mutual friends logic
+    exclude = [user_id]
+    
+    # Get following to exclude them too
+    following_ids = [f["following_id"] for f in MOCK_DATA["follows"] if f["user_id"] == user_id]
+    exclude.extend(following_ids)
+    
+    recommended = [u for u in MOCK_DATA["users"] if u["id"] not in exclude]
+    random.shuffle(recommended)
+    
+    return jsonify(recommended[:10])
+
+@app.get("/recommendation/magic")
+def get_magic_recommendation():
+    """Generates a high-quality AI recommendation for a place with specific activities."""
+    lat_str = request.args.get("lat")
+    lng_str = request.args.get("lng")
+    user_id = request.args.get("user_id")
+
+    if not lat_str or not lng_str:
+        return jsonify({"error": "Missing location"}), 400
+
+    lat = float(lat_str)
+    lng = float(lng_str)
+    
+    # 1. Fetch some real places using google_nearby_search (multiple categories for diversity)
+    candidates = []
+    seen_ids = set()
+    for p_type in ["tourist_attraction", "museum", "park", "restaurant", "cafe"]:
+        res = google_nearby_search(lat, lng, p_type, radius=15000)
+        random.shuffle(res)
+        for c in res[:5]:
+            if c['place_id'] not in seen_ids:
+                candidates.append(c)
+                seen_ids.add(c['place_id'])
+    
+    if not candidates:
+        return jsonify({"error": "No candidates found"}), 404
+
+    random.shuffle(candidates)
+    subset = candidates[:15] # Give Gemini a good list to pick from
+
+    # 2. Use Gemini to pick the BEST one and generate activities
+    import google.generativeai as genai
+    from os import getenv
+    model = genai.GenerativeModel('gemini-flash-latest')
+    
+    candidates_data = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0)} for c in subset]
+    
+    prompt = (
+        f"Ești expertul 'MysticMinds' din CityScape. Din următoarele locații reale dintr-un oraș: {json.dumps(candidates_data)}, "
+        "alege EXACT UNA care ar fi cea mai interesantă recomandare de tip 'Destin' pentru un utilizator acum. "
+        "Pentru această locație, gândește-te la 3 activități specifice și creative pe care utilizatorul le poate face acolo. "
+        "RĂSPUNS: Un obiect JSON (fără explicații) cu formatul: "
+        '{"place_id": "...", "name": "...", "reason": "De ce am ales asta (max 20 cuvinte)", '
+        '"activities": ["Activitate 1", "Activitate 2", "Activitate 3"]}'
+    )
+
+    try:
+        response = model.generate_content(prompt)
+        text = response.text
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
+        
+        result = json.loads(text)
+        
+        # Enrich with real data (lat, lng, image)
+        matched = next((c for c in subset if c['place_id'] == result.get('place_id')), subset[0])
+        geo = matched.get("geometry", {}).get("location", {})
+        
+        img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+        if matched.get("photos"):
+            ref = matched["photos"][0]["photo_reference"]
+            img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
+
+        result.update({
+            "latitude": geo.get("lat"),
+            "longitude": geo.get("lng"),
+            "address": matched.get("vicinity", "Locație oraș"),
+            "imageUrl": img_url,
+            "rating": matched.get("rating", 4.0),
+            "type": matched.get("types", ["place"])[0]
+        })
+        
+        return jsonify(result)
+    except Exception as e:
+        print(f"⚠️ Magic Rec Error: {e}")
+        # Final fallback - pick first candidate
+        c = subset[0]
+        geo = c.get("geometry", {}).get("location", {})
+        return jsonify({
+            "place_id": c['place_id'],
+            "name": c['name'],
+            "reason": "O destinație plină de surprize pe care trebuie să o descoperi!",
+            "activities": ["Explorează arhitectura", "Fă fotografii", "Relaxează-te"],
+            "latitude": geo.get("lat"),
+            "longitude": geo.get("lng"),
+            "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+        })
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

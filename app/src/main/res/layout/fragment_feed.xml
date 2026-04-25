@@ -139,6 +139,7 @@
                     android:textSize="56sp" />
 
                 <TextView
+                    android:id="@+id/feed_empty_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
@@ -148,12 +149,14 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/feed_empty_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Fii tu cel care dă startul!"
                     android:textColor="@color/app_text_hint"
                     android:textSize="14sp" />
+
             </LinearLayout>
 
             <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

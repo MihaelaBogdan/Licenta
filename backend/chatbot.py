@@ -27,7 +27,7 @@ import os
 
 # Initialize Gemini
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-gemini_model = genai.GenerativeModel("gemini-2.0-flash") # Reset to 2.0 with the new key
+gemini_model = genai.GenerativeModel("gemini-flash-latest") # Using flash-latest alias
 
 # Load intents
 intents_path = os.path.join(BASE_PATH, 'data', 'intents.json')
@@ -239,39 +239,53 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro"):
         except Exception as e:
             print(f"⚠️ RAG Profile Error: {e}")
 
-    # 2. Fetch Nearby Places (Mini-RAG)
+    # 2. Fetch Rich City Context (RAG)
+    detected_city = "Oraș Necunoscut"
     if lat and lng:
         try:
-            from app import FOURSQUARE_API_KEY
+            from app import MAPS_API_KEY, google_nearby_search, google_text_search
             import requests
-            url = "https://api.foursquare.com/v3/places/search"
-            headers = {
-                "Accept": "application/json",
-                "Authorization": FOURSQUARE_API_KEY
-            }
-            params = {
-                "ll": f"{lat},{lng}",
-                "radius": "2000",
-                "categories": "16000,10000,13000", # Sights, Arts, Dining
-                "limit": 5,
-                "fields": "name"
-            }
-            res = requests.get(url, params=params, headers=headers).json()
-            places = res.get("results", [])
-            if places:
-                places_str = ", ".join([p.get("name") for p in places])
-                nearby_context = f"Locații din apropiere (via Foursquare): {places_str}."
-        except Exception as e:
-            print(f"⚠️ RAG Nearby Error: {e}")
+            
+            # Detect City Name
+            geo_url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={MAPS_API_KEY}&language=ro"
+            geo_res = requests.get(geo_url).json()
+            if geo_res.get("results"):
+                for comp in geo_res["results"][0].get("address_components", []):
+                    if "locality" in comp.get("types", []):
+                        detected_city = comp.get("long_name")
+                        break
 
-    # 3. Create Rich Prompt
+            # Fetch Highlights (Trending & Nearby)
+            highlights = []
+            # Nearby top spots
+            near_results = google_nearby_search(lat, lng, "tourist_attraction", radius=5000)
+            highlights.extend([{"name": r["name"], "rating": r.get("rating", 0), "type": "atracție"} for r in near_results[:5]])
+            
+            # City-wide top spots
+            city_results = google_text_search(f"top locații populare în {detected_city}")
+            highlights.extend([{"name": r["name"], "rating": r.get("rating", 0), "type": "popular"} for r in city_results[:5]])
+            
+            if highlights:
+                import random
+                random.shuffle(highlights)
+                nearby_context = f"Suntem în orașul {detected_city}. Locații de interes REAL: " + ", ".join([f"{h['name']} ({h['type']})" for h in highlights[:10]])
+            else:
+                nearby_context = f"Suntem în {detected_city}, dar nu pot accesa lista de locații acum."
+                
+        except Exception as e:
+            print(f"⚠️ RAG Enhanced Error: {e}")
+            nearby_context = f"Locația curentă: {lat}, {lng}."
+
+    # 3. Create High-Quality Prompt (FAST & BRIEF)
     system_prompt = (
-        "Ești 'MysticMinds', ghidul AI inteligent din CityScape. Locația: București. "
+        f"Ești 'MysticMinds', ghidul CityScape ultra-eficient. Locație: {detected_city}. "
         f"Context Utilizator: {user_context} "
-        f"Context Locație: {nearby_context} "
+        f"Context Locație (RAG): {nearby_context} "
         f"Limba: {'română' if language == 'ro' else 'engleză'}. "
-        "Fii personal, folosește datele primite pentru a oferi recomandări specifice. "
-        "La final, pune [SUGGESTIONS: Sugestie 1 | Sugestie 2 | Sugestie 3]"
+        "MISIUNE: Răspunde SCURT, la obiect și prietenos. Maxim 2-3 fraze. "
+        "Dă idei concrete imediat. Nu folosi introduceri lungi. "
+        "La final, pune OBLIGATORIU [SUGGESTIONS: Sugestie 1 | Sugestie 2 | Sugestie 3] "
+        "unde sugestiile sunt întrebări scurte pe care utilizatorul le-ar putea pune în continuare."
     )
 
     # Try Gemini, if fails, use local model
@@ -332,34 +346,41 @@ def generate_personalized_itinerary(lat, lng, style, duration, points_count, con
     # Simple nearby search helper inside the function to avoid circular imports
     def quick_search(lat, lng, p_type):
         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-        params = {"location": f"{lat},{lng}", "radius": "5000", "type": p_type, "key": MAPS_API_KEY, "language": "ro"}
+        params = {"location": f"{lat},{lng}", "radius": "10000", "type": p_type, "key": MAPS_API_KEY, "language": "ro"}
         try: return requests.get(url, params=params, timeout=10).json().get("results", [])
         except: return []
 
-    # 1. Gather candidates
-    categories = ["tourist_attraction", "museum", "park", "restaurant", "cafe"]
+    # 1. Gather candidates with larger radius and more diversity
+    categories = ["tourist_attraction", "museum", "park", "restaurant", "cafe", "art_gallery", "landmark"]
     unique_candidates = []
     seen_ids = set()
+    import random
+
     for cat in categories:
-        for c in quick_search(lat, lng, cat)[:5]:
+        results = quick_search(lat, lng, cat)
+        random.shuffle(results) # Randomize before picking top candidates
+        for c in results[:8]:
             if c['place_id'] not in seen_ids:
                 unique_candidates.append(c)
                 seen_ids.add(c['place_id'])
+    
+    # Shuffle the final pool so Gemini doesn't always see the same order
+    random.shuffle(unique_candidates)
 
     candidates_context = json.dumps([
         {"name": c['name'], "type": c.get('types', [])[0] if c.get('types') else 'place', "rating": c.get('rating', 0), "id": c['place_id']}
-        for c in unique_candidates
+        for c in unique_candidates[:25] # Limit context but keep it diverse
     ])
 
     prompt = (
-        f"Ești 'MysticMinds', expertul CityScape în București. Generează un plan de {duration} ore cu {points_count} puncte de oprire. "
-        f"Stil: {style}. Cerință specială: {user_query}. "
+        f"Ești 'MysticMinds', expertul CityScape în explorări urbane. Generează un plan de {duration} ore cu {points_count} puncte de oprire. "
+        f"Coordonate: {lat}, {lng}. Stil: {style}. Cerință specială: {user_query}. "
         f"Interese utilizator: {context.get('interests', [])}. "
-        f"Locații REALE în apropiere: {candidates_context}. "
+        f"Locații REALE în această zonă (folosește-le neapărat): {candidates_context}. "
         "Cerințe RĂSPUNS: EXCLUSIV un cod JSON formatat ca o listă de obiecte [{}, {}...], fără explicații. "
         "Fiecare obiect TREBUIE să conțină: 'slot' (ex: 'Mic Dejun'), 'name' (numele locației REALE), 'type', "
         "'time' (ex: '09:00 - 10:30'), 'estimatedCost' (preț în RON), 'address', 'latitude', 'longitude', 'placeId'. "
-        "Fii creativ, diversifică opțiunile pentru a fi DIFERITE de fiecare dată!"
+        "IMPORTANT: Fii extrem de creativ și alege combinații noi de fiecare dată pentru a evita monotonia!"
     )
 
     try:

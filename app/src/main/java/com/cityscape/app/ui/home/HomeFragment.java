@@ -60,6 +60,7 @@ public class HomeFragment extends Fragment {
         private SessionManager sessionManager;
         private FusedLocationProviderClient fusedLocationClient;
         private Location currentLocation;
+        private Location actualGpsLocation;
         private List<Place> nearbyPlacesList = new ArrayList<>(); // For Near You (real-time)
         private List<Place> allPlacesList = new ArrayList<>(); // For Trending (whole city)
         private List<Place> combinedPlacesList = new ArrayList<>(); // NEW: Combined/Filtered list for current city
@@ -246,55 +247,87 @@ public class HomeFragment extends Fragment {
 
                 dialog.show();
                 
-                // Fetch a random recommendation from the CURRENT city's places
-                if (!combinedPlacesList.isEmpty()) {
-                    com.cityscape.app.model.Place result = combinedPlacesList.get(new java.util.Random().nextInt(combinedPlacesList.size()));
-                    
-                    // Reveal with delay for dramatic effect
-                    textReveal.postDelayed(() -> {
-                        if (dialog.isShowing()) {
-                            textStatus.setText("Destinul tău este:");
-                            imgMist.animate().alpha(0.15f).setDuration(2500).start();
-                            textReveal.setText(result.name);
-                            textReveal.animate().alpha(1.0f).setDuration(2000).start();
-                            btnGo.setVisibility(View.VISIBLE);
-                            btnGo.setOnClickListener(v1 -> {
-                                dialog.dismiss();
-                                showRecommendationDialog(result);
-                            });
-                        }
-                    }, 2500);
-                } else {
-                    // Fallback to global if nothing found in current city
-                    apiService.getPlaces().enqueue(new retrofit2.Callback<List<com.cityscape.app.model.Place>>() {
+                // Fetch high-quality AI recommendation from backend
+                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId())
+                    .enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
                         @Override
-                        public void onResponse(retrofit2.Call<List<com.cityscape.app.model.Place>> call, retrofit2.Response<List<com.cityscape.app.model.Place>> response) {
-                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                                List<com.cityscape.app.model.Place> places = response.body();
-                                com.cityscape.app.model.Place result = places.get(new java.util.Random().nextInt(places.size()));
+                        public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                            if (isAdded() && response.isSuccessful() && response.body() != null) {
+                                com.google.gson.JsonObject result = response.body();
+                                String name = result.get("name").getAsString();
+                                String reason = result.get("reason").getAsString();
+                                com.google.gson.JsonArray activities = result.getAsJsonArray("activities");
+                                
+                                // Reveal with delay for dramatic effect
                                 textReveal.postDelayed(() -> {
                                     if (dialog.isShowing()) {
                                         textStatus.setText("Destinul tău este:");
                                         imgMist.animate().alpha(0.15f).setDuration(2500).start();
-                                        textReveal.setText(result.name);
+                                        textReveal.setText(name);
                                         textReveal.animate().alpha(1.0f).setDuration(2000).start();
+                                        
                                         btnGo.setVisibility(View.VISIBLE);
                                         btnGo.setOnClickListener(v1 -> {
                                             dialog.dismiss();
-                                            showRecommendationDialog(result);
+                                            showMagicDetailDialog(result);
                                         });
                                     }
                                 }, 2500);
+                            } else {
+                                fallbackToRandomPlace(dialog, textStatus, textReveal, imgMist, btnGo);
                             }
                         }
+
                         @Override
-                        public void onFailure(retrofit2.Call<List<com.cityscape.app.model.Place>> call, Throwable t) {
-                            if (dialog.isShowing()) {
-                                textStatus.setText("Ceața este prea densă...");
-                            }
+                        public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
+                            fallbackToRandomPlace(dialog, textStatus, textReveal, imgMist, btnGo);
                         }
                     });
-                }
+        }
+
+        private void fallbackToRandomPlace(androidx.appcompat.app.AlertDialog dialog, TextView textStatus, TextView textReveal, ImageView imgMist, View btnGo) {
+             if (!combinedPlacesList.isEmpty()) {
+                com.cityscape.app.model.Place result = combinedPlacesList.get(new java.util.Random().nextInt(combinedPlacesList.size()));
+                textReveal.postDelayed(() -> {
+                    if (dialog.isShowing()) {
+                        textStatus.setText("Destinul tău este:");
+                        imgMist.animate().alpha(0.15f).setDuration(2500).start();
+                        textReveal.setText(result.name);
+                        textReveal.animate().alpha(1.0f).setDuration(2000).start();
+                        btnGo.setVisibility(View.VISIBLE);
+                        btnGo.setOnClickListener(v1 -> {
+                            dialog.dismiss();
+                            showRecommendationDialog(result);
+                        });
+                    }
+                }, 2500);
+            }
+        }
+
+        private void showMagicDetailDialog(com.google.gson.JsonObject result) {
+             if (getContext() == null) return;
+             
+             String name = result.get("name").getAsString();
+             String reason = result.get("reason").getAsString();
+             com.google.gson.JsonArray activitiesArr = result.getAsJsonArray("activities");
+             
+             StringBuilder actStr = new StringBuilder();
+             if (activitiesArr != null) {
+                 for (int i = 0; i < activitiesArr.size(); i++) {
+                     actStr.append("• ").append(activitiesArr.get(i).getAsString()).append("\n");
+                 }
+             }
+
+             new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setTitle("🎲 " + name)
+                .setMessage(reason + "\n\nActivități recomandate:\n" + actStr.toString())
+                .setPositiveButton("Vreau să merg!", (d, w) -> {
+                    // Navigate to place details if needed, or just toast for now
+                    Toast.makeText(getContext(), "Pregătește-te de aventură!", Toast.LENGTH_SHORT).show();
+                })
+                .setNeutralButton("Inspiră-mă iar", (d, w) -> binding.btnRevealFate.performClick())
+                .setNegativeButton("Închide", null)
+                .show();
         }
 
         private void showRecommendationDialog(com.cityscape.app.model.Place place) {
@@ -312,7 +345,6 @@ public class HomeFragment extends Fragment {
                                         // Open detail
                                         Toast.makeText(getContext(), "Detalii pentru: " + place.name,
                                                         Toast.LENGTH_SHORT).show();
-                                        // In the future, navigate to place detail
                                 })
                                 .setNegativeButton("Mai dă o dată", (d, w) -> binding.btnRevealFate.performClick())
                                 .show();
@@ -407,6 +439,7 @@ public class HomeFragment extends Fragment {
                                                 if (!isAdded()) return;
                                                 if (location != null) {
                                                         currentLocation = location;
+                                                        actualGpsLocation = location; // Store real physical location
                                                         sessionManager.saveLastLocation(location.getLatitude(), location.getLongitude());
                                                         updateLocationUI();
                                                         fetchPlaces(true);
@@ -729,8 +762,6 @@ public class HomeFragment extends Fragment {
                 View view = getLayoutInflater().inflate(R.layout.dialog_filters, null);
                 dialog.setContentView(view);
 
-                TextView title = view.findViewById(android.R.id.text1); // Not really, it's custom
-                // In dialog_filters.xml it was just a TextView. I'll search for first TextView.
                 TextView titleTv = (TextView) ((LinearLayout)view).getChildAt(1); 
                 titleTv.setText(forEvents ? "Filtre Evenimente" : "Filtre Avansate");
 
@@ -767,8 +798,6 @@ public class HomeFragment extends Fragment {
                 dialog.show();
         }
 
-
-
         private void fetchPlaces(boolean isNearbyOnly) {
                 if (!isAdded() || currentLocation == null) return;
 
@@ -780,22 +809,20 @@ public class HomeFragment extends Fragment {
                 else if (currentCategory.equalsIgnoreCase(getString(R.string.category_museums)) || currentCategory.equalsIgnoreCase("Muzee"))
                         type = "museum";
                 else if (currentCategory.equalsIgnoreCase(getString(R.string.category_culture)) || currentCategory.equalsIgnoreCase("Cultură"))
-                        type = "culture"; // Maps to custom logic or landmark
+                        type = "culture"; 
                 else if (currentCategory.equalsIgnoreCase(getString(R.string.category_commerce)) || currentCategory.equalsIgnoreCase("Comercial"))
-                        type = "shopping"; // Maps to shopping_mall
+                        type = "shopping";
                 
                 if (isAllCategory(currentCategory)) {
-                        type = "mixed";
+                        type = "";
                 }
                 
-                // If we changed category, we should also refresh NEARBY to filter by that category
                 if (!isNearbyOnly) {
                     fetchPlaces(true); 
                 }
 
                 String userId = sessionManager.getUserId();
                 if (isNearbyOnly) {
-                    // 1. Fetch NEARBY (Strictly 2km) with personalization
                     apiService.getNearby(currentLocation.getLatitude(), currentLocation.getLongitude(), type, sessionManager.getUserId())
                         .enqueue(new Callback<List<Place>>() {
                             @Override
@@ -812,68 +839,33 @@ public class HomeFragment extends Fragment {
                             }
                         });
                 } else {
-                    // Trending / Recommended Section (Whole City - Bucharest radius approx 30km)
-                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 30000, userId)
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 50000, userId)
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                                 if (response.isSuccessful() && response.body() != null) {
+                                    List<Place> results = response.body();
                                     allPlacesList.clear();
-                                    allPlacesList.addAll(response.body());
-                                    // Feed the Crystal Ball (Oracol) with ALL important city places
+                                    allPlacesList.addAll(results);
                                     combinedPlacesList.clear();
-                                    combinedPlacesList.addAll(response.body());
+                                    combinedPlacesList.addAll(results);
+                                    
+                                    // DEBUG TOAST: Remove later once confirmed
+                                    if (isAdded()) Toast.makeText(getContext(), "Am găsit " + results.size() + " locații în Trending!", Toast.LENGTH_SHORT).show();
+                                    
                                     updateFilters();
+                                } else {
+                                    if (isAdded()) Toast.makeText(getContext(), "Server-ul nu a returnat date populare.", Toast.LENGTH_SHORT).show();
                                 }
                             }
+
                             @Override
                             public void onFailure(Call<List<Place>> call, Throwable t) {
                                 Log.e("HomeFragment", "Trending fetch failed", t);
+                                if (isAdded()) Toast.makeText(getContext(), "Eroare rețea Trending: " + t.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         });
                 }
-        }
-
-        private boolean isDuplicate(String id) {
-            if (id == null) return false;
-            for (Place p : allPlacesList) {
-                if (id.equals(p.id)) return true;
-            }
-            return false;
-        }
-
-        private Place mapToPlace(com.cityscape.app.api.ItineraryItem item) {
-            Place p = new Place();
-            p.id = item.placeId != null ? item.placeId : java.util.UUID.randomUUID().toString();
-            p.name = item.name;
-            p.address = item.address;
-            p.imageUrl = item.imageUrl;
-            p.latitude = item.latitude;
-            p.longitude = item.longitude;
-            p.type = item.type;
-            p.rating = 4.7f; // "Be in the know" places are top quality
-            return p;
-        }
-
-        private void fetchStaticPlaces() {
-                apiService.getPlaces().enqueue(new Callback<List<Place>>() {
-                        @Override
-                        public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                                if (response.isSuccessful() && response.body() != null) {
-                                        allPlacesList = response.body();
-                                        Log.d("HomeFragment", "Fetched " + allPlacesList.size() + " static places");
-                                        for (Place p : allPlacesList) {
-                                                p.isFavorite = sessionManager.isPlaceFavorite(p.id);
-                                        }
-                                        updateFilters();
-                                }
-                        }
-
-                        @Override
-                        public void onFailure(Call<List<Place>> call, Throwable t) {
-                                Log.e("HomeFragment", "Static fetch failed", t);
-                        }
-                });
         }
 
         private void updateFilters() {
@@ -882,13 +874,11 @@ public class HomeFragment extends Fragment {
                 // 1. Manage Trending Visibility and Location Title
                 if (currentLocation != null) {
                     String city = binding.textLocation.getText().toString();
-                    
-                    // Only geocode if NOT in manual mode (to keep manual selection stable)
                     if (!isManualLocation) {
                         try {
                             Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
                             List<Address> addresses = geocoder.getFromLocation(
-                                            currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
+                                             currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
                             if (addresses != null && !addresses.isEmpty()) {
                                 city = addresses.get(0).getLocality();
                                 if (city != null) binding.textLocation.setText(city);
@@ -902,13 +892,20 @@ public class HomeFragment extends Fragment {
                     binding.recyclerRecommended.setVisibility(View.VISIBLE);
                     binding.trendingTitle.setText("Fii la curent din " + (city != null && !city.isEmpty() ? city : "București"));
                 } else {
-                        binding.sectionTrending.setVisibility(View.GONE);
-                        binding.recyclerRecommended.setVisibility(View.GONE);
+                    binding.sectionTrending.setVisibility(View.GONE);
+                    binding.recyclerRecommended.setVisibility(View.GONE);
                 }
 
                 // 2. Manage Near You Visibility
-                if (currentLocation != null) {
-                    // Show Near You always if we have a location (GPS or Manual)
+                boolean isReallyNear = true;
+                if (actualGpsLocation != null && currentLocation != null) {
+                    float distance = actualGpsLocation.distanceTo(currentLocation);
+                    if (distance > 10000) { // More than 10km away
+                        isReallyNear = false;
+                    }
+                }
+
+                if (currentLocation != null && isReallyNear) {
                     binding.sectionNearYou.setVisibility(View.VISIBLE);
                     binding.recyclerNearYou.setVisibility(View.VISIBLE);
                     
@@ -920,191 +917,143 @@ public class HomeFragment extends Fragment {
                         binding.nearYouTitle.setText(getString(R.string.near_you));
                     }
                 } else {
-                        binding.sectionNearYou.setVisibility(View.GONE);
-                        binding.recyclerNearYou.setVisibility(View.GONE);
+                    binding.sectionNearYou.setVisibility(View.GONE);
+                    binding.recyclerNearYou.setVisibility(View.GONE);
+                    if (isManualLocation) {
+                        binding.btnResetLocation.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.btnResetLocation.setVisibility(View.GONE);
+                    }
                 }
 
-
-                // 1. Show Near You (Foursquare search results)
+                // 3. Populate Lists
                 List<Place> filteredNearby = new ArrayList<>(nearbyPlacesList);
                 updateNearYouAdapter(filteredNearby);
 
-                Map<String, Integer> preferences = sessionManager.getPreferredCategories(allPlacesList);
-                com.cityscape.app.model.User user = sessionManager.getCurrentUser();
-                String userInterests = (user != null && user.interests != null) ? user.interests.toLowerCase() : "";
+                com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                final String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests.toLowerCase() : "";
 
-                // 2. Filter Trending (City wide - respects all filters + Quality Gate)
                 List<Place> stageFiltered = new ArrayList<>();
-                String[] blacklist = {"mcdonald", "kfc", "subway", "5 to go", "five to go", "mc donald"};
+                String[] blacklist = {"mcdonald", "kfc", "subway", "5 to go", "amanet", "casino", "supermarket", "mega image", "lidl", "kaufland", "profi", "penny"};
                 
                 for (Place p : allPlacesList) {
+                    // EXCLUDE things already in "Near You" to ensure variety
+                    boolean alreadyInNearYou = false;
+                    for (Place np : nearbyPlacesList) {
+                        if (np.id.equals(p.id) || (np.googlePlaceId != null && np.googlePlaceId.equals(p.googlePlaceId))) {
+                            alreadyInNearYou = true;
+                            break;
+                        }
+                    }
+                    if (alreadyInNearYou) continue;
+
                     if (matchesCategoryAndFilters(p)) {
-                        String nameLower = p.name != null ? p.name.toLowerCase() : "";
-                        boolean isBlacklisted = false;
+                        String nameLower = (p.name != null) ? p.name.toLowerCase() : "";
+                        String typeLower = (p.type != null) ? p.type.toLowerCase() : "";
+                        
+                        boolean blocked = false;
                         for (String term : blacklist) {
-                            if (nameLower.contains(term)) {
-                                isBlacklisted = true;
+                            if (nameLower.contains(term) || typeLower.contains(term)) {
+                                blocked = true;
                                 break;
                             }
                         }
-                        // 1. Blacklist check
-                        if (isBlacklisted) continue;
+                        if (blocked) continue;
 
-                        // 2. Proximity Check: If it's already in 'Near You', don't repeat it in 'Trending'
-                        boolean alreadyNearby = false;
-                        for (Place nearby : nearbyPlacesList) {
-                            if (p.id.equals(nearby.id)) {
-                                alreadyNearby = true;
-                                break;
-                            }
-                        }
-                        if (alreadyNearby) continue;
-
-                        // 3. Quality Gate for "Be in the know": Must be reasonable quality
-                        if (p.rating >= 4.0 || p.type.toLowerCase().contains("museum") || p.type.toLowerCase().contains("landmark") || p.type.toLowerCase().contains("historic")) {
+                        // Allow high ratings OR curated types OR anything if needed
+                        if (p.rating >= 3.0 || typeLower.contains("museum") || typeLower.contains("park") || 
+                            typeLower.contains("cafe") || typeLower.contains("restaurant") || typeLower.contains("landmark") ||
+                            typeLower.contains("art") || typeLower.contains("historic") || typeLower.contains("attraction") ||
+                            typeLower.contains("landmark") || typeLower.contains("tourism") || typeLower.contains("entertainment")) {
                             stageFiltered.add(p);
-                        } else if (p.rating == 0) {
-                            stageFiltered.add(p);
+                        } else if (p.rating == 0 || stageFiltered.size() < 20) {
+                            stageFiltered.add(p); // Add more if we are desperate
                         }
                     }
                 }
-
-                // 2. Filter by Category and Search
-                // 3. Sort by Ultra-Personalized Engine
-                // stageFiltered now contains only trending results
-                // userInterests already defined earlier in this method
-                int currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
 
                 Collections.sort(stageFiltered, (p1, p2) -> {
-                        if (p1 == null && p2 == null) return 0;
-                        if (p1 == null) return 1;
-                        if (p2 == null) return -1;
-
-                        double score1 = p1.rating != 0 ? p1.rating : 3.0;
-                        double score2 = p2.rating != 0 ? p2.rating : 3.0;
+                        double score1 = (p1.rating != 0) ? p1.rating : 3.0;
+                        double score2 = (p2.rating != 0) ? p2.rating : 3.0;
                         
-                        // ICONIC BOOST: Prioritize "The Greats" (National Museums, Palaces, Parks)
-                        String n1 = p1.name != null ? p1.name.toLowerCase() : "";
-                        String n2 = p2.name != null ? p2.name.toLowerCase() : "";
-                        String[] iconicTerms = {"national", "muzeul", "palatul", "parcul", "ateneul", "carturesti", "famous"};
-                        
-                        for (String term : iconicTerms) {
-                            if (n1.contains(term)) score1 += 5.0; // Massive boost for icons
-                            if (n2.contains(term)) score2 += 5.0;
+                        // POPULARITY BOOST (Rating * normalized Review Count)
+                        // This is NOT hardcoded - it uses real crowd data
+                        score1 += (p1.reviewCount / 1000.0); 
+                        score2 += (p2.reviewCount / 1000.0);
+
+                        if (!userInterests.isEmpty()) {
+                                if (isTypeMatchingInterests(p1, userInterests)) score1 += 15.0;
+                                if (isTypeMatchingInterests(p2, userInterests)) score2 += 15.0;
                         }
+                        if (sessionManager.isPlaceFavorite(p1.id)) score1 += 20.0;
+                        if (sessionManager.isPlaceFavorite(p2.id)) score2 += 20.0;
 
-                        String t1 = p1.type != null ? p1.type.toLowerCase() : "";
-                        String t2 = p2.type != null ? p2.type.toLowerCase() : "";
-
-                        if (p1.type != null && preferences.containsKey(p1.type)) {
-                            Integer v1 = preferences.get(p1.type);
-                            if (v1 != null) score1 += v1 * 0.8;
-                        }
-                        if (p2.type != null && preferences.containsKey(p2.type)) {
-                            Integer v2 = preferences.get(p2.type);
-                            if (v2 != null) score2 += v2 * 0.8;
-                        }
-
-                        // Vector 2: Weather Context
-                        if (currentWeather != null) {
-                            String cond = currentWeather.condition != null ? currentWeather.condition.toLowerCase() : "";
-                            
-                            // It's raining/bad weather - push indoors (cafes, museums)
-                            if (cond.contains("rain") || cond.contains("snow")) {
-                                if (t1.contains("museum") || t1.contains("cafe") || t1.contains("store")) score1 += 1.5;
-                                if (t2.contains("museum") || t2.contains("cafe") || t2.contains("store")) score2 += 1.5;
-                            }
-                            // It's nice and sunny - push outdoors (parks, landmarks)
-                            else if (cond.contains("clear") || cond.contains("sun")) {
-                                if (t1.contains("park") || t1.contains("nature") || t1.contains("tourist")) score1 += 1.2;
-                                if (t2.contains("park") || t2.contains("nature") || t2.contains("tourist")) score2 += 1.2;
-                            }
-                            // It's cold - push warm places 
-                            if (currentWeather.temp < 15) {
-                                if (t1.contains("cafe") || t1.contains("restaurant") || t1.contains("shopping")) score1 += 0.8;
-                                if (t2.contains("cafe") || t2.contains("restaurant") || t2.contains("shopping")) score2 += 0.8;
-                            }
-                        }
-
-                        // Vector 2: User Onboarding/Settings Explicit Interests (Personalization boost)
-                        if (!userInterests.isEmpty() && !userInterests.equals("trending")) {
-                                if (isTypeMatchingInterests(p1, userInterests)) score1 += 12.0;
-                                if (isTypeMatchingInterests(p2, userInterests)) score2 += 12.0;
-                        }
-
-                        // Vector 3: Contextual Weather Filtering
-                        if (currentWeather != null) {
-                                boolean badWeather = (currentWeather.condition != null && (currentWeather.condition.equalsIgnoreCase("Rain") || currentWeather.condition.equalsIgnoreCase("Snow"))) || currentWeather.temp < 10;
-                                boolean hotWeather = currentWeather.temp > 25 && currentWeather.condition != null && currentWeather.condition.contains("Clear");
-
-                                if (badWeather) {
-                                        if (t1.contains("museum") || t1.contains("cafe") || t1.contains("shopping") || t1.contains("art") || t1.contains("food")) score1 += 2.5;
-                                        if (t2.contains("museum") || t2.contains("cafe") || t2.contains("shopping") || t2.contains("art") || t2.contains("food")) score2 += 2.5;
-                                        if (t1.contains("park") || t1.contains("nature")) score1 -= 2.0;
-                                        if (t2.contains("park") || t2.contains("nature")) score2 -= 2.0;
-                                }
-                                if (hotWeather) {
-                                        if (t1.contains("park") || t1.contains("nature") || t1.contains("water") || t1.contains("ice")) score1 += 2.0;
-                                        if (t2.contains("park") || t2.contains("nature") || t2.contains("water") || t2.contains("ice")) score2 += 2.0;
-                                }
-                        }
-
-                        // Vector 4: Contextual Time of Day
-                        if (currentHour >= 6 && currentHour <= 11) {
-                                if (t1.contains("cafe") || t1.contains("coffee") || t1.contains("bakery")) score1 += 2.0;
-                                if (t2.contains("cafe") || t2.contains("coffee") || t2.contains("bakery")) score2 += 2.0;
-                        } else if (currentHour >= 12 && currentHour <= 15) {
-                                if (t1.contains("restaurant") || t1.contains("food")) score1 += 1.5;
-                                if (t2.contains("restaurant") || t2.contains("food")) score2 += 1.5;
-                        } else if (currentHour >= 18 && currentHour <= 23) {
-                                if (t1.contains("bar") || t1.contains("night_club") || t1.contains("event") || t1.contains("restaurant")) score1 += 2.0;
-                                if (t2.contains("bar") || t2.contains("night_club") || t2.contains("event") || t2.contains("restaurant")) score2 += 2.0;
-                        } else if (currentHour >= 22 || currentHour <= 5) {
-                                if (t1.contains("museum") || t1.contains("park")) score1 -= 3.0;
-                                if (t2.contains("museum") || t2.contains("park")) score2 -= 3.0;
-                        }
-
-                        // Vector 5: Contextual Geo-Proximity
-                        if (currentLocation != null) {
-                                if (p1.latitude != 0 && p1.longitude != 0) {
-                                        float[] res1 = new float[1];
-                                        android.location.Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p1.latitude, p1.longitude, res1);
-                                        if (res1[0] < 1500) score1 += 2.0; else if (res1[0] < 5000) score1 += 0.5;
-                                }
-                                if (p2.latitude != 0 && p2.longitude != 0) {
-                                        float[] res2 = new float[1];
-                                        android.location.Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p2.latitude, p2.longitude, res2);
-                                        if (res2[0] < 1500) score2 += 2.0; else if (res2[0] < 5000) score2 += 0.5;
-                                }
-                        }
-
-                        // Vector 6: Retain user explicit favorites near the top
-                        if (sessionManager.isPlaceFavorite(p1.id)) score1 += 1.0;
-                        if (sessionManager.isPlaceFavorite(p2.id)) score2 += 1.0;
-
-                        return Double.compare(score2, score1); // Descending
+                        return Double.compare(score2, score1);
                 });
 
-                // Update UI
-                for (Place p : stageFiltered) {
-                        if (p.imageUrl == null || p.imageUrl.isEmpty()) p.imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400";
-                }
-                
-                // Show Nearby (Already sorted by backend distance)
-                updateNearYouAdapter(nearbyPlacesList);
 
-                // Show Trending (Exclude those already in nearby to ensure variety)
+                // FINAL CURATION PULL - HEAVILY SIMPLIFIED FOR RELIABILITY
                 List<Place> realTrending = new ArrayList<>();
                 for (Place p : stageFiltered) {
-                    boolean alreadyNearby = false;
-                    for (Place ny : nearbyPlacesList) {
-                        if (ny.id.equals(p.id)) { alreadyNearby = true; break; }
+                    if (isCuratedDiscoveryType(p)) {
+                        realTrending.add(p);
                     }
-                    if (!alreadyNearby) realTrending.add(p);
                 }
-                if (realTrending.isEmpty()) realTrending = stageFiltered;
+                
+                // If curated is empty, use any filtered
+                if (realTrending.isEmpty()) {
+                    realTrending.addAll(stageFiltered);
+                }
 
-                updateRecommendedAdapter(realTrending);
+                // If even stageFiltered is empty, use raw data unfiltered 
+                // but STILL exclude nearby ONLY if we have plenty of results
+                if (realTrending.isEmpty() && !allPlacesList.isEmpty()) {
+                    for (Place p : allPlacesList) {
+                        boolean alreadyInNearYou = false;
+                        for (Place np : nearbyPlacesList) {
+                            if (np.id.equals(p.id) || (np.googlePlaceId != null && np.googlePlaceId.equals(p.googlePlaceId))) {
+                                alreadyInNearYou = true;
+                                break;
+                            }
+                        }
+                        
+                        // Only exclude if we have enough items already, otherwise allow it to prevent empty screen
+                        if (!alreadyInNearYou || (realTrending.size() < 4 && allPlacesList.size() < 10)) {
+                             realTrending.add(p);
+                        }
+                    }
+                }
+
+                // Clean image placeholders for trending
+                for (Place p : realTrending) {
+                    if (p.imageUrl == null || p.imageUrl.isEmpty()) {
+                        p.imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400";
+                    }
+                }
+
+                if (!realTrending.isEmpty()) {
+                    java.util.Collections.shuffle(realTrending);
+                    updateRecommendedAdapter(realTrending);
+                    binding.sectionTrending.setVisibility(View.VISIBLE);
+                } else {
+                    // If absolutely nothing unique found in 50km (unlikely), hide section
+                    binding.sectionTrending.setVisibility(View.GONE);
+                }
+        }
+
+        private boolean isCuratedDiscoveryType(com.cityscape.app.model.Place p) {
+            String t = (p.type != null) ? p.type.toLowerCase() : "";
+            String n = (p.name != null) ? p.name.toLowerCase() : "";
+            
+            if (t.contains("casino") || t.contains("shopping") || t.contains("store") || t.contains("mall") || t.contains("kiosk") || t.contains("lodging")) return false;
+            if (n.contains("casino") || n.contains("amanet") || n.contains("supermarket") || n.contains("mega image") || n.contains("lidl") || n.contains("kaufland")) return false;
+
+            return t.contains("restaurant") || t.contains("cafe") || t.contains("coffee") ||
+                   t.contains("museum") || t.contains("park") || t.contains("nature") ||
+                   t.contains("landmark") || t.contains("attraction") || t.contains("art") ||
+                   t.contains("culture") || t.contains("point_of_interest") || t.contains("establishment") ||
+                   t.contains("food") || t.contains("bar") || t.contains("club") || t.contains("night") ||
+                   t.isEmpty();
         }
 
         private boolean isAllCategory(String cat) {
@@ -1121,7 +1070,6 @@ public class HomeFragment extends Fragment {
             String searchLower = searchQuery.toLowerCase().trim();
             boolean isAll = isAllCategory(currentCategory);
 
-            // Category check
             boolean matchesCat = isAll;
             if (!isAll) {
                 String currCatLower = currentCategory.toLowerCase();
@@ -1129,14 +1077,13 @@ public class HomeFragment extends Fragment {
                 else if (currCatLower.contains("caf") && (pType.contains("cafe") || pType.contains("coffee"))) matchesCat = true;
                 else if (currCatLower.contains("par") && (pType.contains("park") || pType.contains("nature"))) matchesCat = true;
                 else if (currCatLower.contains("mus") && (pType.contains("museum") || pType.contains("art"))) matchesCat = true;
+                else if (currCatLower.contains("cult") && (pType.contains("museum") || pType.contains("art") || pType.contains("historic") || pType.contains("landmark") || pType.contains("attraction"))) matchesCat = true;
+                else if (currCatLower.contains("com") && (pType.contains("shopping") || pType.contains("store") || pType.contains("mall"))) matchesCat = true;
             }
 
             if (!matchesCat) return false;
-
-            // Search check
             if (!searchLower.isEmpty() && !pName.contains(searchLower) && !pType.contains(searchLower)) return false;
 
-            // Music check
             if (!currentMusicFilter.equals("All") && !currentMusicFilter.equals("Oricare")) {
                 if (!pName.contains(currentMusicFilter.toLowerCase()) && !pType.contains(currentMusicFilter.toLowerCase())) return false;
             }
@@ -1145,8 +1092,7 @@ public class HomeFragment extends Fragment {
         }
 
         private void updateNearYouAdapter(List<Place> list) {
-                if (binding == null)
-                        return;
+                if (binding == null) return;
                 PlaceAdapter adapter = new PlaceAdapter(getContext(), list, true,
                                 new PlaceAdapter.OnPlaceClickListener() {
                                         @Override
@@ -1190,7 +1136,7 @@ public class HomeFragment extends Fragment {
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
                         Toast.makeText(getContext(), "Bravo! Vizită înregistrată. 🎉", Toast.LENGTH_SHORT).show();
-                        fetchVisitedPlaces(); // Refresh the visited list on feed
+                        fetchVisitedPlaces();
                         showFeedbackDialog(place);
                     }
                 }
@@ -1258,8 +1204,7 @@ public class HomeFragment extends Fragment {
         }
 
         private void updateRecommendedAdapter(List<Place> list) {
-                if (binding == null)
-                        return;
+                if (binding == null) return;
                 PlaceAdapter adapter = new PlaceAdapter(getContext(), list, false,
                                 new PlaceAdapter.OnPlaceClickListener() {
                                         @Override
@@ -1305,13 +1250,7 @@ public class HomeFragment extends Fragment {
             if (user == null) return;
 
             com.cityscape.app.model.PlannedActivity activity = new com.cityscape.app.model.PlannedActivity(
-                user.id,
-                null,
-                place.name,
-                "Atracție",
-                place.imageUrl,
-                dateMillis,
-                "Toată ziua"
+                user.id, null, place.name, "Atracție", place.imageUrl, dateMillis, "Toată ziua"
             );
             activity.notes = "Locație: " + place.address;
 
@@ -1327,9 +1266,7 @@ public class HomeFragment extends Fragment {
         }
 
         private void fetchEvents() {
-                if (currentLocation == null)
-                        return;
-
+                if (currentLocation == null) return;
                 User user = sessionManager.getCurrentUser();
                 String interests = user != null && user.interests != null ? user.interests : "";
 
@@ -1340,45 +1277,33 @@ public class HomeFragment extends Fragment {
                                                         Response<List<com.cityscape.app.model.Event>> response) {
                                                 if (response.isSuccessful() && response.body() != null) {
                                                         List<com.cityscape.app.model.Event> events = response.body();
-                                                        
-                                                        // Filter Events locally by Price/Music if set
                                                         List<com.cityscape.app.model.Event> filteredEvents = new ArrayList<>();
                                                         for (com.cityscape.app.model.Event e : events) {
                                                                 boolean mMusic = eventMusicFilter.equals("All") || eventMusicFilter.equals("Oricare") || 
-                                                                                (e.title != null && e.title.contains(eventMusicFilter)) || 
-                                                                                (e.musicType != null && e.musicType.contains(eventMusicFilter));
-                                                                
+                                                                                 (e.title != null && e.title.contains(eventMusicFilter)) || 
+                                                                                 (e.musicType != null && e.musicType.contains(eventMusicFilter));
                                                                 if (mMusic) filteredEvents.add(e);
                                                         }
-
                                                         applyIntentScoring(filteredEvents);
                                                         eventsList = filteredEvents;
                                                         updateEventsAdapter();
-
                                                 }
                                         }
 
                                         @Override
-                                        public void onFailure(Call<List<com.cityscape.app.model.Event>> call,
-                                                        Throwable t) {
+                                        public void onFailure(Call<List<com.cityscape.app.model.Event>> call, Throwable t) {
                                                 Log.e("HomeFragment", "Events fetch failed", t);
                                         }
                                 });
         }
 
-
-
         private void applyIntentScoring(List<com.cityscape.app.model.Event> events) {
             User user = sessionManager.getCurrentUser();
             if (user == null) return;
-
             String interests = user.interests != null ? user.interests.toLowerCase() : "";
             
-            // Basic intent scoring based on keywords in interests and titles
             java.util.Collections.sort(events, (e1, e2) -> {
-                int score1 = 0;
-                int score2 = 0;
-                
+                int score1 = 0; int score2 = 0;
                 if (!interests.isEmpty()) {
                     for (String interest : interests.split(",")) {
                         String trimInt = interest.trim();
@@ -1388,150 +1313,38 @@ public class HomeFragment extends Fragment {
                         }
                     }
                 }
-                
-                // Tie-breaker: lexicographical if same score
                 if (score1 == score2) return e1.title.compareTo(e2.title);
-                return Integer.compare(score2, score1); // Descending
+                return Integer.compare(score2, score1);
             });
         }
 
         private void updateEventsAdapter() {
-                if (binding == null)
-                        return;
+                if (binding == null) return;
                 com.cityscape.app.adapter.EventAdapter adapter = new com.cityscape.app.adapter.EventAdapter(
-                                eventsList, new com.cityscape.app.adapter.EventAdapter.OnEventClickListener() {
-                        @Override
-                        public void onEventClick(com.cityscape.app.model.Event event) {
+                                eventsList, event -> {
                                 Intent intent = new Intent(getContext(), com.cityscape.app.ui.home.EventDetailActivity.class);
                                 intent.putExtra("event_json", new com.google.gson.Gson().toJson(event));
                                 startActivity(intent);
-                        }
                 });
-                binding.recyclerEvents.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 binding.recyclerEvents.setAdapter(adapter);
-        }
-
-        private void handleEventInvite(com.cityscape.app.model.Event event) {
-                User user = sessionManager.getCurrentUser();
-                if (user == null) {
-                        Toast.makeText(getContext(), "Trebuie să fii autentificat!", Toast.LENGTH_SHORT).show();
-                        return;
-                }
-
-                long eventTimeMillis = System.currentTimeMillis();
-                String displayTime = (event.time != null && !event.time.isEmpty()) ? event.time.trim() : 
-                                    (event.date_str != null ? event.date_str.trim() : "TBA");
-                try {
-                        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
-                        java.util.Date d = fmt.parse(displayTime);
-                        if (d != null) {
-                                eventTimeMillis = d.getTime();
-                                displayTime = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(d);
-                        }
-                } catch (Exception e) {
-                        try {
-                                java.text.SimpleDateFormat fmt2 = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-                                java.util.Date d2 = fmt2.parse(displayTime.split(" ")[0]);
-                                if (d2 != null) {
-                                        eventTimeMillis = d2.getTime();
-                                        displayTime = "Toată ziua";
-                                }
-                        } catch(Exception ignored) {
-                                displayTime = "În curând";
-                        }
-                }
-
-                // Normalize time to midnight for database consistency (day-based lookup)
-                java.util.Calendar cal = java.util.Calendar.getInstance();
-                cal.setTimeInMillis(eventTimeMillis);
-                cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-                cal.set(java.util.Calendar.MINUTE, 0);
-                cal.set(java.util.Calendar.SECOND, 0);
-                cal.set(java.util.Calendar.MILLISECOND, 0);
-                long normalizedDate = cal.getTimeInMillis();
-
-                com.cityscape.app.data.AppDatabase db = com.cityscape.app.data.AppDatabase.getInstance(requireContext());
-                com.cityscape.app.model.PlannedActivity activity = new com.cityscape.app.model.PlannedActivity(
-                                user.id,
-                                null,
-                                event.title,
-                                "Eveniment",
-                                event.imageUrl,
-                                normalizedDate,
-                                displayTime);
-                activity.notes = "Locație: " + event.location + (event.url != null ? "\nBilete: " + event.url : "");
-
-                final long finalTargetDate = normalizedDate;
-                new Thread(() -> {
-                        db.activityDao().insert(activity);
-                        com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
-                                        .pushActivityToCloud(activity);
-
-                        if (getActivity() != null) {
-                                getActivity().runOnUiThread(() -> {
-                                        Toast.makeText(getContext(), "Eveniment salvat! Acum poți invita prieteni.",
-                                                        Toast.LENGTH_LONG).show();
-                                        
-                                        // Also offer to add to system calendar
-                                        try {
-                                            Intent intent = new Intent(Intent.ACTION_INSERT)
-                                                .setData(android.provider.CalendarContract.Events.CONTENT_URI)
-                                                .putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, finalTargetDate + (19 * 3600000)) // Default 19:00
-                                                .putExtra(android.provider.CalendarContract.Events.TITLE, event.title)
-                                                .putExtra(android.provider.CalendarContract.Events.DESCRIPTION, "Adăugat din CityScape\n" + event.url)
-                                                .putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, event.location)
-                                                .putExtra(android.provider.CalendarContract.Events.AVAILABILITY, android.provider.CalendarContract.Events.AVAILABILITY_BUSY);
-                                            startActivity(intent);
-                                        } catch (Exception e) {
-                                            Log.e("HomeFragment", "Could not open system calendar", e);
-                                        }
-
-                                        Bundle args = new Bundle();
-                                        args.putLong("target_date", finalTargetDate);
-                                        args.putBoolean("auto_create_group", true);
-                                        args.putString("target_activity_id", activity.id);
-                                        
-                                        Navigation.findNavController(binding.getRoot())
-                                                        .navigate(R.id.navigation_calendar, args);
-                                });
-                        }
-                }).start();
         }
 
         private boolean isTypeMatchingInterests(Place place, String userInterests) {
                 if (place == null || userInterests == null || userInterests.isEmpty()) return false;
-                
                 String pType = place.type != null ? place.type.toLowerCase() : "";
                 String pName = place.name != null ? place.name.toLowerCase() : "";
-                
                 for (String interest : userInterests.split(",")) {
                         String interestLower = interest.trim().toLowerCase();
                         if (interestLower.isEmpty()) continue;
-                        
-                        // Keyword based matching cross Name + Type
                         if (pType.contains(interestLower) || pName.contains(interestLower)) return true;
-
-                        // Semantic mappings
                         if ((interestLower.contains("muz") || interestLower.contains("mus") || interestLower.contains("artă")) && 
                             (pType.contains("museum") || pType.contains("art") || pType.contains("landmark") || pType.contains("culture"))) return true;
-                        
                         if ((interestLower.contains("rest") || interestLower.contains("food") || interestLower.contains("mânca")) && 
                             (pType.contains("restaurant") || pType.contains("food") || pType.contains("dining") || pType.contains("eat"))) return true;
-
                         if ((interestLower.contains("parc") || interestLower.contains("natur") || interestLower.contains("aer")) && 
                             (pType.contains("park") || pType.contains("nature") || pType.contains("garden") || pType.contains("outdoors"))) return true;
-
                         if ((interestLower.contains("caf") || interestLower.contains("cafe") || interestLower.contains("coffee")) && 
                             (pType.contains("cafe") || pType.contains("coffee") || pType.contains("bakery"))) return true;
-
-                        if ((interestLower.contains("shop") || interestLower.contains("mall") || interestLower.contains("cumpără")) && 
-                            (pType.contains("shop") || pType.contains("store") || pType.contains("mall") || pType.contains("market"))) return true;
-
-                        if ((interestLower.contains("sport") || interestLower.contains("stadium") || interestLower.contains("activ")) && 
-                            (pType.contains("sport") || pType.contains("stadium") || pType.contains("arena") || pType.contains("gym"))) return true;
-
-                        if ((interestLower.contains("viața") || interestLower.contains("noapt") || interestLower.contains("party")) && 
-                            (pType.contains("bar") || pType.contains("club") || pType.contains("night") || pType.contains("dance"))) return true;
                 }
                 return false;
         }

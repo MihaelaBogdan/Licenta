@@ -109,4 +109,14 @@ public interface ApiService {
         @GET("users/{userId}/following")
         Call<List<com.cityscape.app.model.User>> getFollowing(
                         @retrofit2.http.Path("userId") String userId);
+
+        @GET("users/recommended")
+        Call<List<com.cityscape.app.model.User>> getRecommendedUsers(
+                        @retrofit2.http.Query("user_id") String userId);
+
+        @GET("recommendation/magic")
+        Call<com.google.gson.JsonObject> getMagicRecommendation(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("user_id") String userId);
 }

@@ -22,6 +22,7 @@ public class Place implements Serializable {
     public String address;
     public boolean isFavorite;
     public int priceLevel; // 1 to 4
+    public int reviewCount; // user_ratings_total from Google
 
     public Place() {
         this.id = java.util.UUID.randomUUID().toString();

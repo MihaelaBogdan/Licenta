@@ -664,19 +664,39 @@ public class CalendarFragment extends Fragment {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_group, null);
 
         EditText inputGroupName = dialogView.findViewById(R.id.input_group_name);
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
+        EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
         TextView btnShareLink = dialogView.findViewById(R.id.btn_share_link);
         
+        // Recommended Friends section
+        RecyclerView rvRecommended = dialogView.findViewById(R.id.rv_recommended_friends);
+        View labelRecommended = dialogView.findViewById(R.id.text_recommended_label);
+        com.cityscape.app.adapter.SmallUserAdapter recommendedAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
+        if (rvRecommended != null) {
+            rvRecommended.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvRecommended.setAdapter(recommendedAdapter);
+            apiService.getRecommendedUsers(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
+                @Override
+                public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        labelRecommended.setVisibility(View.VISIBLE);
+                        rvRecommended.setVisibility(View.VISIBLE);
+                        recommendedAdapter.setUsers(response.body());
+                    } else {
+                        labelRecommended.setVisibility(View.GONE);
+                        rvRecommended.setVisibility(View.GONE);
+                    }
+                }
+                @Override public void onFailure(retrofit2.Call<List<User>> call, Throwable t) {}
+            });
+        }
+
         // Following list
         RecyclerView rvFollowing = dialogView.findViewById(R.id.rv_following_to_invite);
         View labelFollowing = dialogView.findViewById(R.id.text_following_label);
-        
         com.cityscape.app.adapter.SmallUserAdapter followingAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
         if (rvFollowing != null) {
             rvFollowing.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
             rvFollowing.setAdapter(followingAdapter);
-            
-            // Fetch following from API
             apiService.getFollowing(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
                 @Override
                 public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
@@ -692,77 +712,64 @@ public class CalendarFragment extends Fragment {
 
         inputGroupName.setText(activity.placeName + " - Grup");
 
-        AlertDialog dialog = builder.setView(dialogView)
-                .setTitle("Creează Grup")
-                .setPositiveButton("Creează", null)
-                .setNegativeButton("Anulează", null)
-                .create();
+        AlertDialog dialog = builder.setView(dialogView).create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
 
-        dialog.setOnShowListener(d -> {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                String groupName = inputGroupName.getText().toString().trim();
-                if (groupName.isEmpty()) {
-                    Toast.makeText(getContext(), "Introdu un nume de grup", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                ActivityGroup group = new ActivityGroup(activity.id, sessionManager.getUserId(), groupName);
-                db.groupDao().insertGroup(group);
-                com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
-
-                User currentUser = sessionManager.getCurrentUser();
-                if (currentUser == null) {
-                    Toast.makeText(getContext(), "Trebuie să fii autentificat pentru a crea un grup", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                
-                GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
-                db.groupDao().insertMember(creatorMember);
-                com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
-                        .pushMemberToCloud(creatorMember);
-
-
-                // 1. Invite selected users from Following list
-                List<User> selectedUsers = followingAdapter.getSelectedUsers();
-                for (User targetUser : selectedUsers) {
-                    sendInvitation(group, activity, targetUser);
-                }
-
-                // 2. Check if user typed an email to invite
-                String email = inputSearchEmail.getText().toString().trim();
-                if (!email.isEmpty()) {
-                    new Thread(() -> {
-                        User targetUser = db.userDao().getUserByEmail(email);
-                        if (targetUser != null && getActivity() != null) {
-                            getActivity().runOnUiThread(() -> sendInvitation(group, activity, targetUser));
-                        }
-                    }).start();
-                }
-
-                Toast.makeText(getContext(), "Grup creat! Cod: " + group.groupCode, Toast.LENGTH_LONG).show();
-                dialog.dismiss();
-                loadActivitiesForDate(selectedDate);
-                loadUserGroups();
-
-                // Offer to share on WhatsApp
-                shareOnWhatsApp(group);
-            });
-        });
-
-        btnShareLink.setOnClickListener(v -> {
+        dialogView.findViewById(R.id.btn_create_group_action).setOnClickListener(v -> {
             String groupName = inputGroupName.getText().toString().trim();
-            if (groupName.isEmpty())
-                groupName = activity.placeName + " - Grup";
+            if (groupName.isEmpty()) {
+                Toast.makeText(getContext(), "Introdu un nume de grup", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             ActivityGroup group = new ActivityGroup(activity.id, sessionManager.getUserId(), groupName);
             db.groupDao().insertGroup(group);
             com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
 
             User currentUser = sessionManager.getCurrentUser();
+            if (currentUser != null) {
+                GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
+                db.groupDao().insertMember(creatorMember);
+                com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
+            }
+
+            // Invite selected users
+            List<User> selectedUsers = new ArrayList<>();
+            selectedUsers.addAll(followingAdapter.getSelectedUsers());
+            selectedUsers.addAll(recommendedAdapter.getSelectedUsers());
+            for (User u : selectedUsers) {
+                sendInvitation(group, activity, u);
+            }
+
+            // Also check email if typed
+            String email = inputSearchEmail.getText().toString().trim();
+            if (!email.isEmpty()) {
+                new Thread(() -> {
+                    User targetUser = db.userDao().getUserByEmail(email);
+                    if (targetUser != null && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> sendInvitation(group, activity, targetUser));
+                    }
+                }).start();
+            }
+
+            Toast.makeText(getContext(), "Grup creat! Cod: " + group.groupCode, Toast.LENGTH_LONG).show();
+            dialog.dismiss();
+            loadActivitiesForDate(selectedDate);
+            loadUserGroups();
+        });
+
+        btnShareLink.setOnClickListener(v -> {
+            String groupName = inputGroupName.getText().toString().trim();
+            if (groupName.isEmpty()) groupName = activity.placeName + " - Grup";
+            ActivityGroup group = new ActivityGroup(activity.id, sessionManager.getUserId(), groupName);
+            db.groupDao().insertGroup(group);
+            com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
+            User currentUser = sessionManager.getCurrentUser();
             GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
             db.groupDao().insertMember(creatorMember);
             com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
-
             dialog.dismiss();
             loadUserGroups();
             shareOnWhatsApp(group);
