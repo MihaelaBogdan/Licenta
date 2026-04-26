@@ -149,6 +149,13 @@ public class CalendarFragment extends Fragment {
     private List<com.cityscape.app.model.CalendarDate> dateItems = new ArrayList<>();
     private CardView cardMonthlyCalendar;
     private boolean isMonthlyCalendarExpanded = false;
+    private android.content.Context appContext;
+
+    @Override
+    public void onAttach(@NonNull android.content.Context context) {
+        super.onAttach(context);
+        appContext = context.getApplicationContext();
+    }
 
     private void initViews(View view) {
         calendarView = view.findViewById(R.id.calendar_view);
@@ -211,18 +218,13 @@ public class CalendarFragment extends Fragment {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, -7); // Start 1 week ago
         
-        long todayNormalized = normalizeDate(System.currentTimeMillis());
-        
         for (int i = 0; i < 45; i++) {
             long time = normalizeDate(cal.getTimeInMillis());
-            boolean isSelected = time == selectedDate;
-            boolean hasEventsLocal = db.activityDao().hasActivitiesForDate(sessionManager.getUserId(), time);
-            
-            dateItems.add(new com.cityscape.app.model.CalendarDate(new Date(time), isSelected, hasEventsLocal));
+            boolean isSelected = (time == selectedDate);
+            // Default to false for indicators, fill via thread below
+            dateItems.add(new com.cityscape.app.model.CalendarDate(new Date(time), isSelected, false));
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
-
-
 
         horizontalAdapter = new com.cityscape.app.adapter.CalendarDateAdapter(dateItems, date -> {
             selectedDate = normalizeDate(date.date.getTime());
@@ -233,7 +235,25 @@ public class CalendarFragment extends Fragment {
 
         recyclerHorizontalCalendar.setAdapter(horizontalAdapter);
         
-        // Scroll to selected date
+        // Background update for dots/indicators
+        new Thread(() -> {
+            String userId = sessionManager.getUserId();
+            if (userId == null) return;
+            boolean changed = false;
+            for (com.cityscape.app.model.CalendarDate item : dateItems) {
+                boolean hasLocal = db.activityDao().hasActivitiesForDate(userId, normalizeDate(item.date.getTime()));
+                if (hasLocal != item.hasActivities) {
+                    item.hasActivities = hasLocal;
+                    changed = true;
+                }
+            }
+            if (changed && getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (isAdded()) horizontalAdapter.notifyDataSetChanged();
+                });
+            }
+        }).start();
+        
         scrollToSelectedDate();
     }
 
@@ -336,8 +356,10 @@ public class CalendarFragment extends Fragment {
     private void syncGoogleCalendar() {
         Toast.makeText(getContext(), "Citesc evenimentele din calendarul tău...", Toast.LENGTH_SHORT).show();
         
+        android.content.Context context = getContext();
+        if (context == null) return;
         new Thread(() -> {
-            android.content.ContentResolver contentResolver = requireContext().getContentResolver();
+            android.content.ContentResolver contentResolver = context.getContentResolver();
             
             java.util.Calendar startTime = java.util.Calendar.getInstance();
             java.util.Calendar endTime = java.util.Calendar.getInstance();
@@ -403,7 +425,7 @@ public class CalendarFragment extends Fragment {
                     
                     if (!exists) {
                         db.activityDao().insert(activity);
-                        com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushActivityToCloud(activity);
+                        com.cityscape.app.data.SupabaseSyncManager.getInstance(context).pushActivityToCloud(activity);
                         count++;
                     }
                 }
@@ -411,6 +433,7 @@ public class CalendarFragment extends Fragment {
                 final int finalCount = count;
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
+                        if (!isAdded()) return;
                         loadActivitiesForDate(selectedDate);
                         if (finalCount > 0) {
                             Toast.makeText(getContext(), "🎉 Magie! Am importat " + finalCount + " activități noi!", Toast.LENGTH_LONG).show();
@@ -423,9 +446,10 @@ public class CalendarFragment extends Fragment {
             } catch (Exception e) {
                 Log.e("CalendarFragment", "Error syncing calendar", e);
                 if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> 
-                        Toast.makeText(getContext(), "Eroare la sincronizare. Verifică permisiunile.", Toast.LENGTH_SHORT).show()
-                    );
+                    getActivity().runOnUiThread(() -> {
+                        if (isAdded() && getContext() != null)
+                             Toast.makeText(getContext(), "Eroare la sincronizare. Verifică permisiunile.", Toast.LENGTH_SHORT).show();
+                    });
                 }
             } finally {
                 if (cursor != null) cursor.close();
@@ -452,6 +476,8 @@ public class CalendarFragment extends Fragment {
             textSelectedDate.setText(formattedDate);
         }
 
+        android.content.Context context = getContext();
+        if (context == null) return;
         new Thread(() -> {
             String userId = sessionManager.getUserId();
             if (userId == null) return;
@@ -460,6 +486,7 @@ public class CalendarFragment extends Fragment {
             
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
+                    if (!isAdded()) return;
                     // Animation for "Pro" feel
                     recyclerActivities.setAlpha(0f);
                     recyclerActivities.animate().alpha(1f).setDuration(400).start();
@@ -471,13 +498,13 @@ public class CalendarFragment extends Fragment {
                         recyclerActivities.setVisibility(View.VISIBLE);
                         emptyState.setVisibility(View.GONE);
 
-                        activityAdapter = new ActivityAdapter(requireContext(), activities,
+                        activityAdapter = new ActivityAdapter(context, activities,
                                 new ActivityAdapter.OnActivityActionListener() {
                         @Override
                         public void onCompleteClick(PlannedActivity activity, int position) {
                             activity.isCompleted = true;
                             db.activityDao().update(activity);
-                            com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
+                            com.cityscape.app.data.SupabaseSyncManager.getInstance(context)
                                     .updateActivityInCloud(activity);
                             
                             // Record visit in Cloud
@@ -497,7 +524,7 @@ public class CalendarFragment extends Fragment {
                             }
 
                             sessionManager.recordPlaceVisit(activity.placeName);
-                            Toast.makeText(getContext(),
+                            if (getContext() != null) Toast.makeText(getContext(),
                                     activity.placeName + " completat (+50 XP)",
                                     Toast.LENGTH_SHORT).show();
                             
@@ -543,40 +570,56 @@ public class CalendarFragment extends Fragment {
     }
 
     private void loadUserGroups() {
-        List<ActivityGroup> groups = db.groupDao().getGroupsForUser(sessionManager.getUserId());
+        android.content.Context context = getContext();
+        if (context == null) return;
+        
+        new Thread(() -> {
+            String userId = sessionManager.getUserId();
+            if (userId == null) return;
+            List<ActivityGroup> groups = db.groupDao().getGroupsForUser(userId);
 
-        if (groups.isEmpty()) {
-            recyclerGroups.setVisibility(View.GONE);
-            emptyGroupsState.setVisibility(View.VISIBLE);
-            textGroupCount.setText("");
-        } else {
-            recyclerGroups.setVisibility(View.VISIBLE);
-            emptyGroupsState.setVisibility(View.GONE);
-            textGroupCount.setText(groups.size() + (groups.size() == 1 ? " grup" : " grupuri"));
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (!isAdded()) return;
+                    if (groups.isEmpty()) {
+                        recyclerGroups.setVisibility(View.GONE);
+                        emptyGroupsState.setVisibility(View.VISIBLE);
+                        textGroupCount.setText("");
+                    } else {
+                        recyclerGroups.setVisibility(View.VISIBLE);
+                        emptyGroupsState.setVisibility(View.GONE);
+                        textGroupCount.setText(groups.size() + (groups.size() == 1 ? " grup" : " grupuri"));
 
-            groupCardAdapter = new GroupCardAdapter(requireContext(), groups,
-                    new GroupCardAdapter.OnGroupActionListener() {
-                        @Override
-                        public void onViewSchedule(ActivityGroup group) {
-                            showGroupScheduleDialog(group);
-                        }
+                        groupCardAdapter = new GroupCardAdapter(context, groups,
+                                new GroupCardAdapter.OnGroupActionListener() {
+                                    @Override
+                                    public void onViewSchedule(ActivityGroup group) {
+                                        showGroupScheduleDialog(group);
+                                    }
 
-                        @Override
-                        public void onShareWhatsApp(ActivityGroup group) {
-                            shareOnWhatsApp(group);
-                        }
+                                    @Override
+                                    public void onShareWhatsApp(ActivityGroup group) {
+                                        shareOnWhatsApp(group);
+                                    }
 
-                        @Override
-                        public void onGroupClick(ActivityGroup group) {
-                            // Find the activity for this group
-                            PlannedActivity activity = findActivityForGroup(group);
-                            if (activity != null) {
-                                showGroupDetails(group, activity);
-                            }
-                        }
-                    });
-            recyclerGroups.setAdapter(groupCardAdapter);
-        }
+                                    @Override
+                                    public void onGroupClick(ActivityGroup group) {
+                                        // Find the activity for this group
+                                        new Thread(() -> {
+                                            PlannedActivity activity = findActivityForGroup(group);
+                                            if (activity != null && getActivity() != null) {
+                                                getActivity().runOnUiThread(() -> {
+                                                    if (isAdded()) showGroupDetails(group, activity);
+                                                });
+                                            }
+                                        }).start();
+                                    }
+                                });
+                        recyclerGroups.setAdapter(groupCardAdapter);
+                    }
+                });
+            }
+        }).start();
     }
 
     private PlannedActivity findActivityForGroup(ActivityGroup group) {
@@ -660,7 +703,8 @@ public class CalendarFragment extends Fragment {
     // ==================== CREATE GROUP ====================
 
     private void showCreateGroupDialog(PlannedActivity activity) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+        if (!isAdded() || getContext() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.DarkDialogTheme);
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_group, null);
 
         EditText inputGroupName = dialogView.findViewById(R.id.input_group_name);
@@ -746,12 +790,17 @@ public class CalendarFragment extends Fragment {
             // Also check email if typed
             String email = inputSearchEmail.getText().toString().trim();
             if (!email.isEmpty()) {
-                new Thread(() -> {
-                    User targetUser = db.userDao().getUserByEmail(email);
-                    if (targetUser != null && getActivity() != null) {
-                        getActivity().runOnUiThread(() -> sendInvitation(group, activity, targetUser));
-                    }
-                }).start();
+                android.content.Context context = getContext();
+                if (context != null) {
+                    new Thread(() -> {
+                        User targetUser = db.userDao().getUserByEmail(email);
+                        if (targetUser != null && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                if (isAdded()) sendInvitation(group, activity, targetUser);
+                            });
+                        }
+                    }).start();
+                }
             }
 
             Toast.makeText(getContext(), "Grup creat! Cod: " + group.groupCode, Toast.LENGTH_LONG).show();
@@ -1178,7 +1227,8 @@ public class CalendarFragment extends Fragment {
     }
 
     private void showAddActivityDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+        if (!isAdded() || getContext() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.DarkDialogTheme);
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_activity, null);
 
         android.widget.AutoCompleteTextView inputName = dialogView.findViewById(R.id.input_place_name);
@@ -1196,7 +1246,7 @@ public class CalendarFragment extends Fragment {
             placeNames.add(p.name);
         }
         android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
-                requireContext(), android.R.layout.simple_dropdown_item_1line, placeNames);
+                getContext(), android.R.layout.simple_dropdown_item_1line, placeNames);
         inputName.setAdapter(adapter);
         inputName.setDropDownBackgroundResource(R.color.app_card);
 
@@ -1296,8 +1346,11 @@ public class CalendarFragment extends Fragment {
             activity.currency = toggleCurrency.getCheckedButtonId() == R.id.btn_eur ? "EUR" : "RON";
 
             db.activityDao().insert(activity);
-            com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
-                    .pushActivityToCloud(activity);
+            android.content.Context context = getContext();
+            if (context != null) {
+                com.cityscape.app.data.SupabaseSyncManager.getInstance(context)
+                        .pushActivityToCloud(activity);
+            }
             loadActivitiesForDate(selectedDate);
 
             Toast.makeText(getContext(), "Activitate adăugată!", Toast.LENGTH_SHORT).show();

@@ -58,6 +58,13 @@ import java.util.Date;
 public class HomeFragment extends Fragment {
 
         private FragmentHomeBinding binding;
+        private android.content.Context appContext;
+
+        @Override
+        public void onAttach(@NonNull android.content.Context context) {
+            super.onAttach(context);
+            appContext = context.getApplicationContext();
+        }
         private ApiService apiService;
         private SessionManager sessionManager;
         private PlaceAdapter aiPicksAdapter;
@@ -920,12 +927,12 @@ public class HomeFragment extends Fragment {
                     .enqueue(new Callback<List<Place>>() {
                         @Override
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            if (binding != null && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                                 aiPicksList.clear();
                                 aiPicksList.addAll(response.body());
                                 if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
                                 binding.sectionAiPicks.setVisibility(View.VISIBLE);
-                            } else {
+                            } else if (binding != null) {
                                 binding.sectionAiPicks.setVisibility(View.GONE);
                             }
                         }
@@ -1204,8 +1211,8 @@ public class HomeFragment extends Fragment {
             apiService.recordVisit(request).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "Bravo! Vizită înregistrată. 🎉", Toast.LENGTH_SHORT).show();
+                    if (isAdded() && response.isSuccessful()) {
+                        if (getContext() != null) Toast.makeText(getContext(), "Bravo! Vizită înregistrată. 🎉", Toast.LENGTH_SHORT).show();
                         fetchVisitedPlaces();
                         showFeedbackDialog(place);
                     }
@@ -1235,12 +1242,12 @@ public class HomeFragment extends Fragment {
             apiService.getVisited(user.id).enqueue(new Callback<List<Place>>() {
                 @Override
                 public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                    if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    if (isAdded() && binding != null && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                         visitedPlacesList = response.body();
                         binding.sectionVisited.setVisibility(View.VISIBLE);
                         binding.recyclerVisited.setVisibility(View.VISIBLE);
                         updateVisitedAdapter();
-                    } else {
+                    } else if (isAdded() && binding != null) {
                         if (binding != null) {
                             binding.sectionVisited.setVisibility(View.GONE);
                             binding.recyclerVisited.setVisibility(View.GONE);
@@ -1324,12 +1331,14 @@ public class HomeFragment extends Fragment {
             );
             activity.notes = "Locație: " + place.address;
 
+            android.content.Context context = getContext();
+            if (context == null) return;
             new Thread(() -> {
-                com.cityscape.app.data.AppDatabase.getInstance(requireContext()).activityDao().insert(activity);
-                com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushActivityToCloud(activity);
+                com.cityscape.app.data.AppDatabase.getInstance(appContext).activityDao().insert(activity);
+                com.cityscape.app.data.SupabaseSyncManager.getInstance(appContext).pushActivityToCloud(activity);
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Adăugat la planul tău! 🎒", Toast.LENGTH_SHORT).show();
+                        if (getContext() != null) Toast.makeText(getContext(), "Adăugat la planul tău! 🎒", Toast.LENGTH_SHORT).show();
                     });
                 }
             }).start();
@@ -1345,7 +1354,7 @@ public class HomeFragment extends Fragment {
                                         @Override
                                         public void onResponse(Call<List<com.cityscape.app.model.Event>> call,
                                                         Response<List<com.cityscape.app.model.Event>> response) {
-                                                if (response.isSuccessful() && response.body() != null) {
+                                                if (isAdded() && response.isSuccessful() && response.body() != null) {
                                                         List<com.cityscape.app.model.Event> events = response.body();
                                                         List<com.cityscape.app.model.Event> filteredEvents = new ArrayList<>();
                                                         for (com.cityscape.app.model.Event e : events) {

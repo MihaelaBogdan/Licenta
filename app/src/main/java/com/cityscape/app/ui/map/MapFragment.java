@@ -40,19 +40,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
+        if (!isAdded()) return;
         mMap = googleMap;
 
         // Apply dynamic map style based on theme
         try {
-            com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
-            int styleRes = sessionManager.isDarkMode() ? R.raw.map_style_dark : R.raw.map_style_light;
-            googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), styleRes));
+            android.content.Context context = getContext();
+            if (context != null) {
+                com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(context);
+                int styleRes = sessionManager.isDarkMode() ? R.raw.map_style_dark : R.raw.map_style_light;
+                googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, styleRes));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // Enable location if permission granted
-        if (ActivityCompat.checkSelfPermission(requireContext(),
+        if (getContext() != null && ActivityCompat.checkSelfPermission(getContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
             
@@ -123,23 +127,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadNearby(double lat, double lng) {
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
+        if (!isAdded() || getContext() == null) return;
+        
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(getContext());
         com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
         apiService.getNearby(lat, lng, "mixed", sessionManager.getUserId()).enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
                     retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> response) {
-                if (response.isSuccessful() && response.body() != null && mMap != null) {
+                if (isAdded() && response.isSuccessful() && response.body() != null && mMap != null) {
                     for (com.cityscape.app.model.Place place : response.body()) {
-                        LatLng pos = new LatLng(place.latitude, place.longitude);
-                        MarkerOptions options = new MarkerOptions()
-                                .position(pos)
-                                .title(place.name)
-                                .snippet(place.type != null ? place.type : "Foursquare")
-                                .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                        com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE));
-                        mMap.addMarker(options);
+                        try {
+                            LatLng pos = new LatLng(place.latitude, place.longitude);
+                            MarkerOptions options = new MarkerOptions()
+                                    .position(pos)
+                                    .title(place.name != null ? place.name : "Locație")
+                                    .snippet(place.type != null ? place.type : "Explorare")
+                                    .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
+                                            com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE));
+                            mMap.addMarker(options);
+                        } catch (Exception ignored) {}
                     }
                 }
             }
@@ -149,7 +157,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadEvents(double lat, double lng) {
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
+        if (!isAdded() || getContext() == null) return;
+
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(getContext());
         com.cityscape.app.model.User user = sessionManager.getCurrentUser();
         String interests = user != null && user.interests != null ? user.interests : "";
 
@@ -159,18 +169,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Event>> call,
                     retrofit2.Response<java.util.List<com.cityscape.app.model.Event>> response) {
-                if (response.isSuccessful() && response.body() != null && mMap != null) {
+                if (isAdded() && response.isSuccessful() && response.body() != null && mMap != null) {
                     for (com.cityscape.app.model.Event event : response.body()) {
                         if (event.latitude != 0 && event.longitude != 0) {
-                            LatLng pos = new LatLng(event.latitude, event.longitude);
-                            MarkerOptions options = new MarkerOptions()
-                                    .position(pos)
-                                    .title(event.title)
-                                    .snippet("Bilet / Eveniment")
-                                    .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                            com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_MAGENTA));
+                            try {
+                                LatLng pos = new LatLng(event.latitude, event.longitude);
+                                MarkerOptions options = new MarkerOptions()
+                                        .position(pos)
+                                        .title(event.title != null ? event.title : "Eveniment")
+                                        .snippet("Bilet / Eveniment")
+                                        .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
+                                                com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_MAGENTA));
 
-                            mMap.addMarker(options);
+                                mMap.addMarker(options);
+                            } catch (Exception ignored) {}
                         }
                     }
                 }
@@ -181,85 +193,88 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadPlacesFromBackend() {
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(
-                requireContext());
+        if (!isAdded() || getContext() == null) return;
+
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(getContext());
         com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
         apiService.getPlaces().enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
                     retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                if (isAdded() && response.isSuccessful() && response.body() != null && mMap != null) {
                     
                     com.cityscape.app.model.User user = sessionManager.getCurrentUser();
                     String userInterests = (user != null && user.interests != null) ? user.interests : "";
 
                     for (com.cityscape.app.model.Place place : response.body()) {
-                        boolean isFav = sessionManager.isPlaceFavorite(place.id);
+                        try {
+                            boolean isFav = sessionManager.isPlaceFavorite(place.id);
 
-                        // --- LOGICĂ PENTRU RECOMANDĂRI ---
-                        if (userInterests.equals("TRENDING")) {
-                            // Dacă a dat "Skip" și vrea doar trending, arătăm doar locurile foarte populare / cu rating mare
-                            if (place.rating < 4.5f && !isFav) {
-                                continue; 
-                            }
-                        } else if (!userInterests.isEmpty()) {
-                            // Dacă și-a ales interese, verificăm dacă categoria locului se regăsește în preferințele lui
-                            boolean matchesInterest = false;
-                            String placeTypeLower = (place.type != null) ? place.type.toLowerCase() : "";
-                            
-                            for (String interest : userInterests.split(",")) {
-                                String interestLower = interest.trim().toLowerCase();
-                                boolean mappedMatch = false;
-
-                                if (placeTypeLower == null) placeTypeLower = "";
+                            // --- LOGICĂ PENTRU RECOMANDĂRI ---
+                            if (userInterests.equals("TRENDING")) {
+                                // Dacă a dat "Skip" și vrea doar trending, arătăm doar locurile foarte populare / cu rating mare
+                                if (place.rating < 4.5f && !isFav) {
+                                    continue; 
+                                }
+                            } else if (!userInterests.isEmpty()) {
+                                // Dacă și-a ales interese, verificăm dacă categoria locului se regăsește în preferințele lui
+                                boolean matchesInterest = false;
+                                String placeTypeLower = (place.type != null) ? place.type.toLowerCase() : "";
                                 
-                                if ((interestLower.contains("muz") || interestLower.contains("mus") || interestLower.contains("artă")) && 
-                                    (placeTypeLower.contains("museum") || placeTypeLower.contains("art") || placeTypeLower.contains("landmark"))) mappedMatch = true;
-                                else if ((interestLower.contains("rest") || interestLower.contains("food")) && 
-                                    (placeTypeLower.contains("restaurant") || placeTypeLower.contains("food") || placeTypeLower.contains("dining"))) mappedMatch = true;
-                                else if ((interestLower.contains("parc") || interestLower.contains("natur")) && 
-                                    (placeTypeLower.contains("park") || placeTypeLower.contains("nature") || placeTypeLower.contains("garden"))) mappedMatch = true;
-                                else if ((interestLower.contains("caf") || interestLower.contains("cafe") || interestLower.contains("coffee")) && 
-                                    (placeTypeLower.contains("cafe") || placeTypeLower.contains("coffee"))) mappedMatch = true;
-                                else if ((interestLower.contains("cultur") || interestLower.contains("istor") || interestLower.contains("locuri")) && 
-                                    (placeTypeLower.contains("landmark") || placeTypeLower.contains("historical") || placeTypeLower.contains("culture"))) mappedMatch = true;
-                                else if ((interestLower.contains("shop")) && 
-                                    (placeTypeLower.contains("shop") || placeTypeLower.contains("store") || placeTypeLower.contains("mall"))) mappedMatch = true;
-                                else if ((interestLower.contains("sport") || interestLower.contains("stadium")) && 
-                                    (placeTypeLower.contains("sport") || placeTypeLower.contains("stadium") || placeTypeLower.contains("arena"))) mappedMatch = true;
-                                else if ((interestLower.contains("viața") || interestLower.contains("noapt")) && 
-                                    (placeTypeLower.contains("bar") || placeTypeLower.contains("club") || placeTypeLower.contains("night"))) mappedMatch = true;
-                                else if ((interestLower.contains("evenim")) && 
-                                    (placeTypeLower.contains("event") || placeTypeLower.contains("concert") || placeTypeLower.contains("stadium"))) mappedMatch = true;
-                                else if (placeTypeLower.contains(interestLower)) mappedMatch = true; // Fallback exact match
+                                for (String interest : userInterests.split(",")) {
+                                    String interestLower = interest.trim().toLowerCase();
+                                    boolean mappedMatch = false;
 
-                                if (mappedMatch) {
-                                    matchesInterest = true;
-                                    break;
+                                    if (placeTypeLower == null) placeTypeLower = "";
+                                    
+                                    if ((interestLower.contains("muz") || interestLower.contains("mus") || interestLower.contains("artă")) && 
+                                        (placeTypeLower.contains("museum") || placeTypeLower.contains("art") || placeTypeLower.contains("landmark"))) mappedMatch = true;
+                                    else if ((interestLower.contains("rest") || interestLower.contains("food")) && 
+                                        (placeTypeLower.contains("restaurant") || placeTypeLower.contains("food") || placeTypeLower.contains("dining"))) mappedMatch = true;
+                                    else if ((interestLower.contains("parc") || interestLower.contains("natur")) && 
+                                        (placeTypeLower.contains("park") || placeTypeLower.contains("nature") || placeTypeLower.contains("garden"))) mappedMatch = true;
+                                    else if ((interestLower.contains("caf") || interestLower.contains("cafe") || interestLower.contains("coffee")) && 
+                                        (placeTypeLower.contains("cafe") || placeTypeLower.contains("coffee"))) mappedMatch = true;
+                                    else if ((interestLower.contains("cultur") || interestLower.contains("istor") || interestLower.contains("locuri")) && 
+                                        (placeTypeLower.contains("landmark") || placeTypeLower.contains("historical") || placeTypeLower.contains("culture"))) mappedMatch = true;
+                                    else if ((interestLower.contains("shop")) && 
+                                        (placeTypeLower.contains("shop") || placeTypeLower.contains("store") || placeTypeLower.contains("mall"))) mappedMatch = true;
+                                    else if ((interestLower.contains("sport") || interestLower.contains("stadium")) && 
+                                        (placeTypeLower.contains("sport") || placeTypeLower.contains("stadium") || placeTypeLower.contains("arena"))) mappedMatch = true;
+                                    else if ((interestLower.contains("viața") || interestLower.contains("noapt")) && 
+                                        (placeTypeLower.contains("bar") || placeTypeLower.contains("club") || placeTypeLower.contains("night"))) mappedMatch = true;
+                                    else if ((interestLower.contains("evenim")) && 
+                                        (placeTypeLower.contains("event") || placeTypeLower.contains("concert") || placeTypeLower.contains("stadium"))) mappedMatch = true;
+                                    else if (placeTypeLower.contains(interestLower)) mappedMatch = true; // Fallback exact match
+
+                                    if (mappedMatch) {
+                                        matchesInterest = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // Dacă nu îi place tipul acestui loc, nu e favorite și nici măcar nu e o locație ultra-premium, nu o arătăm
+                                if (!matchesInterest && !isFav && place.rating < 4.8f) {
+                                    continue;
                                 }
                             }
-                            
-                            // Dacă nu îi place tipul acestui loc, nu e favorite și nici măcar nu e o locație ultra-premium, nu o arătăm
-                            if (!matchesInterest && !isFav && place.rating < 4.8f) {
-                                continue;
+                            // -----------------------------------
+
+                            LatLng pos = new LatLng(place.latitude, place.longitude);
+                            MarkerOptions options = new MarkerOptions()
+                                    .position(pos)
+                                    .title(place.name != null ? place.name : "Locație")
+                                    .snippet(place.type != null ? place.type : "");
+
+                            if (isFav) {
+                                options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
+                                        com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_VIOLET));
                             }
-                        }
-                        // -----------------------------------
-
-                        LatLng pos = new LatLng(place.latitude, place.longitude);
-                        MarkerOptions options = new MarkerOptions()
-                                .position(pos)
-                                .title(place.name)
-                                .snippet(place.type);
-
-                        if (isFav) {
-                            options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                    com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_VIOLET));
-                        }
 
 
-                        mMap.addMarker(options);
+                            mMap.addMarker(options);
+                        } catch (Exception ignored) {}
                     }
                 }
             }
