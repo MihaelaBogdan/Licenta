@@ -235,7 +235,8 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro"):
             p_res = requests.get(profile_url, headers=headers).json()
             if p_res:
                 p = p_res[0]
-                user_context = f"Utilizatorul se numește {p.get('full_name', 'Călător')}. Interese: {p.get('interests', 'generale')}. Buget: {p.get('budget_range', 'mediu')}."
+                full_name = p.get('full_name', 'Explorator')
+                user_context = f"Utilizatorul se numește {full_name}. Interese: {p.get('interests', 'generale')}. Buget: {p.get('budget_range', 'mediu')}."
         except Exception as e:
             print(f"⚠️ RAG Profile Error: {e}")
 
@@ -278,14 +279,14 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro"):
 
     # 3. Create High-Quality Prompt (FAST & BRIEF)
     system_prompt = (
-        f"Ești 'MysticMinds', ghidul CityScape ultra-eficient. Locație: {detected_city}. "
-        f"Context Utilizator: {user_context} "
+        f"Ești 'MysticMinds', ghidul CityScape personalizat. Utilizator: {user_context}. "
+        f"Locație: {detected_city}. "
         f"Context Locație (RAG): {nearby_context} "
         f"Limba: {'română' if language == 'ro' else 'engleză'}. "
-        "MISIUNE: Răspunde SCURT, la obiect și prietenos. Maxim 2-3 fraze. "
-        "Dă idei concrete imediat. Nu folosi introduceri lungi. "
+        "MISIUNE: Răspunde extrem de SCURT (2 fraze), adresându-te utilizatorului pe nume. "
+        "Dă idei concrete bazate STRICT pe interesele lui. Fără introduceri lungi. "
         "La final, pune OBLIGATORIU [SUGGESTIONS: Sugestie 1 | Sugestie 2 | Sugestie 3] "
-        "unde sugestiile sunt întrebări scurte pe care utilizatorul le-ar putea pune în continuare."
+        "unde sugeriezi acțiuni bazate pe profil (ex: 'Caută restaurante vegane' dacă e interesat de food)."
     )
 
     # Try Gemini, if fails, use local model

@@ -119,4 +119,12 @@ public interface ApiService {
                         @retrofit2.http.Query("lat") double lat,
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("user_id") String userId);
+
+        @GET("recommendations/personalized")
+        Call<List<Place>> getPersonalizedRecommendations(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("query") String query,
+                        @retrofit2.http.Query("type") String type);
 }

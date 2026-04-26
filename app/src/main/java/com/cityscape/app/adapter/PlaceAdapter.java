@@ -62,13 +62,12 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
 
     class PlaceViewHolder extends RecyclerView.ViewHolder {
         ImageView placeImage, btnFavorite;
-        TextView placeName, placeType, placeRating, placeAddress;
+        TextView placeName, placeType, placeRating, placeAddress, aiSuggestion;
 
         PlaceViewHolder(@NonNull View itemView) {
             super(itemView);
             placeImage = itemView.findViewById(isHorizontal ? R.id.place_image : R.id.placeImage);
-            btnFavorite = itemView.findViewById(isHorizontal ? R.id.btn_favorite : R.id.btn_favorite); // If ID is the
-                                                                                                       // same
+            btnFavorite = itemView.findViewById(isHorizontal ? R.id.btn_favorite : R.id.btn_favorite); 
             if (btnFavorite == null)
                 btnFavorite = itemView.findViewById(R.id.btn_favorite);
 
@@ -76,6 +75,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             placeType = itemView.findViewById(isHorizontal ? R.id.place_type : R.id.placeCategory);
             placeRating = itemView.findViewById(isHorizontal ? R.id.place_rating : R.id.placeRating);
             placeAddress = itemView.findViewById(isHorizontal ? R.id.place_address : R.id.placeAddress);
+            aiSuggestion = itemView.findViewById(R.id.ai_suggestion);
 
             View btnVisited = itemView.findViewById(isHorizontal ? R.id.btn_visited : R.id.btnVisited);
             if (btnVisited != null) {
@@ -134,6 +134,15 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                 placeRating.setText(String.format("%.1f", place.rating));
             if (placeAddress != null) {
                 placeAddress.setText(place.address != null ? place.address : "");
+            }
+
+            if (aiSuggestion != null) {
+                if (place.aiSuggestion != null && !place.aiSuggestion.isEmpty()) {
+                    aiSuggestion.setText(place.aiSuggestion);
+                    aiSuggestion.setVisibility(View.VISIBLE);
+                } else {
+                    aiSuggestion.setVisibility(View.GONE);
+                }
             }
 
             Glide.with(context)

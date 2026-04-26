@@ -52,12 +52,15 @@ import com.google.android.gms.tasks.Task;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import java.util.Date;
 
 public class HomeFragment extends Fragment {
 
         private FragmentHomeBinding binding;
         private ApiService apiService;
         private SessionManager sessionManager;
+        private PlaceAdapter aiPicksAdapter;
         private FusedLocationProviderClient fusedLocationClient;
         private Location currentLocation;
         private Location actualGpsLocation;
@@ -68,6 +71,7 @@ public class HomeFragment extends Fragment {
         private List<Place> restaurantsList = new ArrayList<>();
         private List<Place> cafesList = new ArrayList<>();
         private List<Place> museumsList = new ArrayList<>();
+        private List<Place> aiPicksList = new ArrayList<>(); // NEW: AI Recommendations
         private List<com.cityscape.app.model.Event> eventsList = new ArrayList<>();
         private String currentCategory = "All";
         private String searchQuery = "";
@@ -203,9 +207,17 @@ public class HomeFragment extends Fragment {
         }
 
         private void setupCrystalBall() {
+                // Add a subtle pulsing animation to make it look "alive"
+                android.animation.ObjectAnimator pulseX = android.animation.ObjectAnimator.ofFloat(binding.btnRevealFate, "scaleX", 1f, 1.15f);
+                android.animation.ObjectAnimator pulseY = android.animation.ObjectAnimator.ofFloat(binding.btnRevealFate, "scaleY", 1f, 1.15f);
+                pulseX.setDuration(1200); pulseY.setDuration(1200);
+                pulseX.setRepeatCount(android.animation.ValueAnimator.INFINITE); pulseY.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                pulseX.setRepeatMode(android.animation.ValueAnimator.REVERSE); pulseY.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                pulseX.start(); pulseY.start();
+
                 binding.btnRevealFate.setOnClickListener(v -> {
                         // Header button feedback
-                        v.animate().scaleX(1.2f).scaleY(1.2f).setDuration(150).withEndAction(() -> v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150)).start();
+                        v.animate().scaleX(1.4f).scaleY(1.4f).setDuration(150).withEndAction(() -> v.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150)).start();
                         v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
                         
                         showRealisticMagicDialog();
@@ -314,19 +326,22 @@ public class HomeFragment extends Fragment {
              StringBuilder actStr = new StringBuilder();
              if (activitiesArr != null) {
                  for (int i = 0; i < activitiesArr.size(); i++) {
-                     actStr.append("• ").append(activitiesArr.get(i).getAsString()).append("\n");
+                     actStr.append("  ✨ ").append(activitiesArr.get(i).getAsString()).append("\n");
                  }
              }
 
              new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle("🎲 " + name)
-                .setMessage(reason + "\n\nActivități recomandate:\n" + actStr.toString())
-                .setPositiveButton("Vreau să merg!", (d, w) -> {
-                    // Navigate to place details if needed, or just toast for now
-                    Toast.makeText(getContext(), "Pregătește-te de aventură!", Toast.LENGTH_SHORT).show();
+                .setTitle("🔮 DESTINUL TĂU")
+                .setMessage("\n" + name.toUpperCase() + "\n\n" + 
+                           "\"" + reason + "\"\n\n" + 
+                           "ACTIVITĂȚI PROFETIZATE:\n" + actStr.toString())
+                .setPositiveButton("URMEAZĂ DESTINUL", (d, w) -> {
+                    Toast.makeText(getContext(), "Aventura începe acum! 🚀", Toast.LENGTH_SHORT).show();
                 })
-                .setNeutralButton("Inspiră-mă iar", (d, w) -> binding.btnRevealFate.performClick())
-                .setNegativeButton("Închide", null)
+                .setNeutralButton("ALTA VIZIUNE", (d, w) -> {
+                    if (binding != null) binding.btnRevealFate.performClick();
+                })
+                .setNegativeButton("ÎNCHIDE", null)
                 .show();
         }
 
@@ -712,17 +727,43 @@ public class HomeFragment extends Fragment {
         private void setupRecyclers() {
                 binding.recyclerNearYou.setLayoutManager(
                                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext()));
                 binding.recyclerEvents.setLayoutManager(
                                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                binding.recyclerVisited.setLayoutManager(
-                                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext()));
+                binding.recyclerVisited.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                
+                // AI Picks Recycler
+                binding.recyclerAiPicks.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                aiPicksAdapter = new PlaceAdapter(getContext(), aiPicksList, true, new PlaceAdapter.OnPlaceClickListener() {
+                    @Override
+                    public void onPlaceClick(Place place) {
+                        sessionManager.recordPlaceVisit(place.name);
+                    }
+
+                    @Override
+                    public void onFavoriteClick(Place place) {
+                        sessionManager.setPlaceFavorite(place.id, place.isFavorite);
+                    }
+
+                    @Override
+                    public void onVisitedClick(Place place) {
+                        handleVisitedClick(place);
+                    }
+
+                    @Override
+                    public void onPlanClick(Place place) {
+                        showPlanPlaceDialog(place);
+                    }
+                });
+                binding.recyclerAiPicks.setAdapter(aiPicksAdapter);
+                
                 fetchPlaces(false);
                 fetchEvents();
                 fetchVisitedPlaces();
         }
 
-        private void setupCategoryChips() {
+
+    private void setupCategoryChips() {
                 ChipGroup chipGroup = binding.categoryChipGroup;
                 for (int i = 0; i < chipGroup.getChildCount(); i++) {
                         View child = chipGroup.getChildAt(i);
@@ -730,7 +771,8 @@ public class HomeFragment extends Fragment {
                                 Chip chip = (Chip) child;
                                 chip.setOnClickListener(v -> {
                                         currentCategory = chip.getText().toString();
-                                        fetchPlaces(false); // Fetch EVERYTHING for the new category
+                                        fetchPlaces(false); 
+                                        fetchAIPicks();
                                 });
                         }
                 }
@@ -744,6 +786,7 @@ public class HomeFragment extends Fragment {
                         public void onTextChanged(CharSequence s, int start, int before, int count) {
                                 searchQuery = s.toString();
                                 updateFilters();
+                                fetchAIPicks();
                         }
                         @Override
                         public void afterTextChanged(android.text.Editable s) { }
@@ -819,6 +862,7 @@ public class HomeFragment extends Fragment {
                 
                 if (!isNearbyOnly) {
                     fetchPlaces(true); 
+                    fetchAIPicks(); // Trigger AI Recommendations
                 }
 
                 String userId = sessionManager.getUserId();
@@ -866,6 +910,32 @@ public class HomeFragment extends Fragment {
                             }
                         });
                 }
+        }
+
+        private void fetchAIPicks() {
+                if (currentLocation == null || !isAdded()) return;
+                
+                String userId = sessionManager.getUserId();
+                apiService.getPersonalizedRecommendations(currentLocation.getLatitude(), currentLocation.getLongitude(), userId, searchQuery, currentCategory)
+                    .enqueue(new Callback<List<Place>>() {
+                        @Override
+                        public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                aiPicksList.clear();
+                                aiPicksList.addAll(response.body());
+                                if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
+                                binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                            } else {
+                                binding.sectionAiPicks.setVisibility(View.GONE);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<List<Place>> call, Throwable t) {
+                            Log.e("HomeFragment", "AI Picks fetch failed", t);
+                            if (binding != null) binding.sectionAiPicks.setVisibility(View.GONE);
+                        }
+                    });
         }
 
         private void updateFilters() {
@@ -1232,17 +1302,17 @@ public class HomeFragment extends Fragment {
         }
 
         private void showPlanPlaceDialog(Place place) {
-            final java.util.Calendar calendar = java.util.Calendar.getInstance();
-            android.app.DatePickerDialog datePicker = new android.app.DatePickerDialog(requireContext(), 
-                (view, year, month, dayOfMonth) -> {
-                    calendar.set(year, month, dayOfMonth);
-                    savePlannedActivity(place, calendar.getTimeInMillis());
-                }, 
-                calendar.get(java.util.Calendar.YEAR), 
-                calendar.get(java.util.Calendar.MONTH), 
-                calendar.get(java.util.Calendar.DAY_OF_MONTH));
-            datePicker.setTitle("Alege data pentru " + place.name);
-            datePicker.show();
+            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText("Alege data pentru " + place.name)
+                .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                .setTheme(R.style.CustomMaterialCalendar)
+                .build();
+
+            datePicker.addOnPositiveButtonClickListener(selection -> {
+                savePlannedActivity(place, selection);
+            });
+            
+            datePicker.show(getChildFragmentManager(), "DATE_PICKER");
         }
 
         private void savePlannedActivity(Place place, long dateMillis) {

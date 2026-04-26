@@ -517,16 +517,34 @@ def get_weather():
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
     
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lng}&appid={OPENWEATHER_API_KEY}&units=metric"
+    # Open-Meteo is free and doesn't need a key
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,weather_code&timezone=auto"
     try:
         response = requests.get(url)
         data = response.json()
         if response.status_code == 200:
+            current = data.get("current", {})
+            code = current.get("weather_code", 0)
+            
+            # WMO Weather interpretation
+            condition_map = {
+                0: "Senin",
+                1: "Parțial Senin", 2: "Noros", 3: "Înnorat",
+                45: "Ceață", 48: "Ceață înghețată",
+                51: "Burniță", 53: "Burniță", 55: "Burniță",
+                61: "Ploaie slabă", 63: "Ploaie", 65: "Ploaie torențială",
+                71: "Zăpadă slabă", 73: "Zăpadă", 75: "Zăpadă puternică",
+                80: "Averse de ploaie", 81: "Averse", 82: "Averse violente",
+                95: "Furtună", 96: "Furtună cu grindină", 99: "Furtună severă"
+            }
+            
+            condition = condition_map.get(code, "Stabil")
+            
             return jsonify({
-                "temp": data["main"]["temp"],
-                "condition": data["weather"][0]["main"],
-                "description": data["weather"][0]["description"],
-                "icon": data["weather"][0]["icon"]
+                "temp": current.get("temperature_2m"),
+                "condition": condition,
+                "description": condition.lower(),
+                "icon": "01d" # Fallback for UI if needed
             })
         return jsonify({"error": "Weather fetch failed"}), response.status_code
     except Exception as e:
@@ -1153,6 +1171,17 @@ def get_magic_recommendation():
     lat = float(lat_str)
     lng = float(lng_str)
     
+    # 0. User context
+    user_context = "generale"
+    if user_id:
+        try:
+            headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*", headers=headers).json()
+            if p_res:
+                p = p_res[0]
+                user_context = f"Nume: {p.get('full_name')}, Interese: {p.get('interests')}, Buget: {p.get('budget_range')}"
+        except: pass
+    
     # 1. Fetch some real places using google_nearby_search (multiple categories for diversity)
     candidates = []
     seen_ids = set()
@@ -1178,11 +1207,12 @@ def get_magic_recommendation():
     candidates_data = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0)} for c in subset]
     
     prompt = (
-        f"Ești expertul 'MysticMinds' din CityScape. Din următoarele locații reale dintr-un oraș: {json.dumps(candidates_data)}, "
-        "alege EXACT UNA care ar fi cea mai interesantă recomandare de tip 'Destin' pentru un utilizator acum. "
-        "Pentru această locație, gândește-te la 3 activități specifice și creative pe care utilizatorul le poate face acolo. "
+        f"Ești expertul 'MysticMinds' din CityScape. Din următoarele locații: {json.dumps(candidates_data)}, "
+        f"alege EXACT UNA care ar fi cea mai interesantă recomandare de tip 'Destin' pentru utilizatorul: {user_context}. "
+        "Ține cont de interesele lui dar adaugă un gram de mister. "
+        "Pentru această locație, generează 3 activități specifice și creative. "
         "RĂSPUNS: Un obiect JSON (fără explicații) cu formatul: "
-        '{"place_id": "...", "name": "...", "reason": "De ce am ales asta (max 20 cuvinte)", '
+        '{"place_id": "...", "name": "...", "reason": "De ce am ales asta pentru TINE (max 15 cuvinte)", '
         '"activities": ["Activitate 1", "Activitate 2", "Activitate 3"]}'
     )
 
@@ -1215,18 +1245,114 @@ def get_magic_recommendation():
         return jsonify(result)
     except Exception as e:
         print(f"⚠️ Magic Rec Error: {e}")
-        # Final fallback - pick first candidate
-        c = subset[0]
-        geo = c.get("geometry", {}).get("location", {})
-        return jsonify({
-            "place_id": c['place_id'],
-            "name": c['name'],
-            "reason": "O destinație plină de surprize pe care trebuie să o descoperi!",
-            "activities": ["Explorează arhitectura", "Fă fotografii", "Relaxează-te"],
-            "latitude": geo.get("lat"),
-            "longitude": geo.get("lng"),
-            "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
-        })
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/recommendations/personalized', methods=['GET'])
+def get_personalized_recommendations():
+    lat_str = request.args.get('lat')
+    lng_str = request.args.get('lng')
+    user_id = request.args.get('user_id')
+    query = request.args.get('query', '')
+    type_filter = request.args.get('type', '')
+    
+    if not lat_str or not lng_str:
+        return jsonify({"error": "Location missing"}), 400
+        
+    lat, lng = float(lat_str), float(lng_str)
+    
+    # 1. Fetch User Context (Profile + History)
+    user_context = "generale"
+    history_names = []
+    if user_id:
+        try:
+            headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            # Profile
+            p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*", headers=headers).json()
+            profile_info = ""
+            if p_res:
+                p = p_res[0]
+                profile_info = f"Preferințe: {p.get('interests')}, Buget: {p.get('budget_range')}."
+            
+            # Real history from DB
+            v_res = requests.get(f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&limit=8&order=visited_at.desc", headers=headers).json()
+            history_names = [v.get("place_name") for v in v_res if v.get("place_name")]
+            user_context = f"{profile_info} Locații vizitate recent: {', '.join(history_names)}."
+        except Exception as e:
+            print(f"⚠️ Context Fetch Error: {e}")
+
+    # 2. Gather candidates (Respect filters if present)
+    candidates = []
+    seen_ids = set()
+    
+    search_terms = []
+    if query: search_terms.append(query)
+    if type_filter and type_filter.lower() not in ["toate", "all", "categoria"]: search_terms.append(type_filter)
+    
+    final_query = " ".join(search_terms)
+    
+    if final_query:
+        # Search specifically for what the user wants
+        candidates = google_text_search(f"{final_query} lângă mine", lat, lng)
+    else:
+        # Broad discovery
+        for p_type in ["tourist_attraction", "museum", "park", "restaurant", "cafe"]:
+            res = google_nearby_search(lat, lng, p_type, radius=15000)
+            for c in res[:10]:
+                if c['place_id'] not in seen_ids:
+                    candidates.append(c)
+                    seen_ids.add(c['place_id'])
+    
+    if not candidates:
+        return jsonify([])
+
+    # 3. AI Selection & Reasoning
+    import google.generativeai as genai
+    model = genai.GenerativeModel('gemini-flash-latest')
+    
+    candidates_simple = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0), "vicinity": c.get('vicinity', '')} for c in candidates[:15]]
+    
+    prompt = (
+        f"Ești 'MysticMinds'. Recomandă cele mai bune 5 locații din această listă: {json.dumps(candidates_simple)} "
+        f"pentru un utilizator cu contextul: {user_context} "
+        f"și filtrul activ: '{final_query if final_query else 'descoperire generală'}'. "
+        "IMPORTANT: Nu recomanda ceva ce a vizitat recent decât dacă e o legătură mistică. "
+        "Răspunde DOAR cu un JSON (lista de obiecte): "
+        '[{"place_id": "...", "ai_reason": "De ce e pentru tine, bazat pe profil/istoric (scurt, 10 cuvinte)"}, ...]'
+    )
+
+    try:
+        response = model.generate_content(prompt)
+        text = response.text
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
+        
+        recs = json.loads(text)
+        final_list = []
+        for r in recs:
+            matched = next((c for c in candidates if c['place_id'] == r.get('place_id')), None)
+            if matched:
+                geo = matched.get("geometry", {}).get("location", {})
+                img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+                if matched.get("photos"):
+                    img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={matched['photos'][0]['photo_reference']}&key={MAPS_API_KEY}"
+                
+                final_list.append({
+                    "id": matched['place_id'],
+                    "name": matched['name'],
+                    "address": matched.get("vicinity", ""),
+                    "rating": matched.get("rating", 4.0),
+                    "imageUrl": img_url,
+                    "latitude": geo.get("lat"),
+                    "longitude": geo.get("lng"),
+                    "ai_reason": r.get("ai_reason", "Alegere bazată pe profil"),
+                    "type": matched.get("types", ["place"])[0],
+                    "aiSuggestion": r.get("ai_reason") # Ensure both fields are set for adapter compatibility
+                })
+        return jsonify(final_list)
+    except Exception as e:
+        print(f"⚠️ Personalized AI Error: {e}")
+        return jsonify([])
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

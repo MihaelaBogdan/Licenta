@@ -112,7 +112,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             java.util.Date date = sdf.parse(isoDate.split("\\.")[0]);
             long diff = System.currentTimeMillis() - date.getTime();
             long mins = diff / 60000;
-            if (mins < 1) return "acum 1 minut";
+            if (mins < 1) return "chiar acum";
+            if (mins < 2) return "acum 1 minut";
             if (mins < 60) return "acum " + mins + " minute";
             long hours = mins / 60;
             if (hours < 24) return "acum " + hours + " ore";

@@ -100,4 +100,10 @@
         <item name="backgroundTint">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>
     </style>
+    <style name="CustomMaterialCalendar" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <item name="colorSurface">@color/app_card</item>
+        <item name="colorOnSurface">@color/app_text_primary</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
 </resources>
