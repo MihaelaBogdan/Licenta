@@ -41,6 +41,9 @@
     <color name="login_overlay_start">#00FFFFFF</color>
     <color name="login_overlay_end">#F8FAFC</color>
 
+    <!-- UI Backgrounds -->
+    <color name="bg_chat_bot">#F3F4F6</color>
+
 
 
     <!-- Legacy / Backup pointers to avoid breaking existing styles -->

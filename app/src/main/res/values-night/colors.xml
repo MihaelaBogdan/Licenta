@@ -36,5 +36,5 @@
     <color name="gradient_center">#16213E</color>
     <color name="gradient_end">#0D1117</color>
 
-
+    <color name="bg_chat_bot">#1F2937</color>
 </resources>

@@ -182,40 +182,18 @@
     </LinearLayout>
 
     <!-- Social Login Buttons -->
-    <LinearLayout
-        android:id="@+id/socialButtons"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGoogle"
+        style="@style/Widget.CityScape.Button.Outlined"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginTop="24dp"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/dividerContainer">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGoogle"
-            style="@style/Widget.CityScape.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:text="@string/google"
-            android:textAllCaps="false"
-            app:icon="@drawable/ic_google"
-            app:iconGravity="textStart"
-            app:strokeColor="@color/app_text_hint" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFacebook"
-            style="@style/Widget.CityScape.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="@string/facebook"
-            android:textAllCaps="false"
-            app:icon="@drawable/ic_facebook"
-            app:iconGravity="textStart"
-            app:strokeColor="@color/app_text_hint" />
-    </LinearLayout>
+        android:text="@string/google"
+        android:textAllCaps="false"
+        app:icon="@drawable/ic_google"
+        app:iconGravity="textStart"
+        app:strokeColor="@color/app_text_hint"
+        app:layout_constraintTop_toBottomOf="@id/dividerContainer" />
 
     <!-- Toggle Mode Text -->
     <TextView
@@ -229,6 +207,6 @@
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/socialButtons" />
+        app:layout_constraintTop_toBottomOf="@id/btnGoogle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

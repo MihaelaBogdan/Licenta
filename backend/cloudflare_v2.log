@@ -1,0 +1,30 @@
+2026-04-28T10:26:56Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2026-04-28T10:26:56Z INF Requesting new quick Tunnel on trycloudflare.com...
+2026-04-28T10:27:00Z INF +--------------------------------------------------------------------------------------------+
+2026-04-28T10:27:00Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+2026-04-28T10:27:00Z INF |  https://eau-merely-ronald-retrieve.trycloudflare.com                                      |
+2026-04-28T10:27:00Z INF +--------------------------------------------------------------------------------------------+
+2026-04-28T10:27:00Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+2026-04-28T10:27:00Z INF Version 2026.3.0 (Checksum 633cee0fd41fd2020e17498beecc54811bf4fc99f891c080dc9343eb0f449c60)
+2026-04-28T10:27:00Z INF GOOS: darwin, GOVersion: go1.26.0, GoArch: arm64
+2026-04-28T10:27:00Z INF Settings: map[ha-connections:1 protocol:quic url:http://localhost:5001]
+2026-04-28T10:27:00Z INF Autoupdate frequency is set autoupdateFreq=86400000
+2026-04-28T10:27:00Z INF Generated Connector ID: a9e964ca-fc93-41c7-bc51-7da1790bd3a6
+2026-04-28T10:27:00Z INF Initial protocol quic
+2026-04-28T10:27:00Z INF ICMP proxy will use 10.33.168.148 as source for IPv4
+2026-04-28T10:27:00Z INF ICMP proxy will use fe80::87:d3e1:797a:1438 in zone en0 as source for IPv6
+2026-04-28T10:27:00Z INF Created ICMP proxy listening on 10.33.168.148:0
+2026-04-28T10:27:00Z INF ICMP proxy will use 10.33.168.148 as source for IPv4
+2026-04-28T10:27:00Z INF ICMP proxy will use fe80::87:d3e1:797a:1438 in zone en0 as source for IPv6
+2026-04-28T10:27:00Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-04-28T10:27:00Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.192.47
+2026-04-28T10:27:01Z INF Registered tunnel connection connIndex=0 connection=65b4b23a-d596-44bd-8963-1da2852c6fbe event=0 ip=198.41.192.47 location=otp01 protocol=quic
+2026-04-28T10:28:32Z INF Initiating graceful shutdown due to signal terminated ...
+2026-04-28T10:28:32Z ERR failed to run the datagram handler error="Application error 0x0 (remote)" connIndex=0 event=0 ip=198.41.192.47
+2026-04-28T10:28:32Z ERR failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.192.47
+2026-04-28T10:28:32Z ERR Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.192.47
+2026-04-28T10:28:32Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.47
+2026-04-28T10:28:32Z ERR Connection terminated connIndex=0
+2026-04-28T10:28:32Z ERR no more connections active and exiting
+2026-04-28T10:28:32Z INF Tunnel server stopped
+2026-04-28T10:28:32Z INF Metrics server stopped

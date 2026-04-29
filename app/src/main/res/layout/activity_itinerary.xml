@@ -1,201 +1,248 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary_dark">
+    android:background="@color/app_background">
 
-    <!-- Header -->
-    <LinearLayout
-        android:id="@+id/header"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent">
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_back"
-            app:tint="@color/app_text_primary"
-            android:contentDescription="Back" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/perfect_day"
-            android:textColor="@color/app_text_primary"
-            android:textSize="20sp"
-            android:fontFamily="sans-serif-medium" />
-    </LinearLayout>
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:background="@drawable/bg_gradient_header"
+                android:padding="24dp">
+
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_glass_card"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/white" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Planificator Magic"
+                        android:textColor="@color/white"
+                        android:textSize="28sp"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Generează ziua perfectă în câteva secunde"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="14sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </RelativeLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <!-- Create Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/create_itinerary"
-                android:textColor="@color/app_text_primary"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-medium" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/choose_theme"
-                android:textColor="@color/app_text_secondary"
-                android:textSize="14sp" />
-
-            <!-- Theme Chips -->
-            <HorizontalScrollView
+            <!-- Configuration Card -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:scrollbars="none">
+                app:cardCornerRadius="28dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/app_card">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipFoodie"
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🍽️ Foodie Day"
-                        app:chipBackgroundColor="@color/card_background"
-                        app:chipStrokeColor="@color/accent_green"
-                        app:chipStrokeWidth="1dp" />
+                        android:text="CE AI VREA SĂ FACI AZI?"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.1"
+                        android:fontFamily="sans-serif-medium" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipCulture"
-                        android:layout_width="wrap_content"
+                    <!-- Theme Grid Alternative (Modern Chips) -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/themeChipGroup"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="🎭 Culture  Arts"
-                        app:chipBackgroundColor="@color/card_background"
-                        app:chipStrokeColor="@color/accent_green"
-                        app:chipStrokeWidth="1dp" />
+                        android:layout_marginTop="12dp"
+                        app:singleSelection="true">
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipRelax"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="🌿 Relaxing Day"
-                        app:chipBackgroundColor="@color/card_background"
-                        app:chipStrokeColor="@color/accent_green"
-                        app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFoodie"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🍽️ Gastronomie"
+                            app:chipBackgroundColor="@color/app_surface"
+                            app:chipStrokeColor="@color/primary" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipAdventure"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="🏃 Adventure"
-                        app:chipBackgroundColor="@color/card_background"
-                        app:chipStrokeColor="@color/accent_green"
-                        app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipCulture"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎭 Cultură"
+                            app:chipBackgroundColor="@color/app_surface"
+                            app:chipStrokeColor="@color/primary" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipRelax"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🌿 Relaxare"
+                            app:chipBackgroundColor="@color/app_surface"
+                            app:chipStrokeColor="@color/primary" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipAdventure"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🏃 Aventură"
+                            app:chipBackgroundColor="@color/app_surface"
+                            app:chipStrokeColor="@color/primary" />
+
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGenerate"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_marginTop="24dp"
+                        android:text="GENEREAZĂ AVENTURA"
+                        android:textAllCaps="false"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-black"
+                        app:cornerRadius="20dp"
+                        app:backgroundTint="@color/primary"
+                        app:icon="@drawable/ic_itinerary"
+                        app:iconGravity="textStart"
+                        app:iconSize="24dp" />
                 </LinearLayout>
-            </HorizontalScrollView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Generate Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGenerate"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/generate_personalized"
-                android:textAllCaps="false"
-                android:textSize="16sp"
-                app:backgroundTint="@color/accent_green"
-                app:cornerRadius="28dp"
-                app:icon="@drawable/ic_itinerary"
-                app:iconGravity="textStart" />
-
-            <!-- My Itineraries Section -->
+            <!-- History Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="My Itineraries"
+                android:layout_marginStart="8dp"
+                android:text="Itinerariile Tale"
                 android:textColor="@color/app_text_primary"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-medium" />
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-black" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/itinerariesRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="false" />
 
             <!-- Empty State -->
             <LinearLayout
                 android:id="@+id/emptyState"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="32dp">
+                android:padding="40dp"
+                android:visibility="gone">
 
                 <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/ic_itinerary"
-                    app:tint="@color/app_text_hint" />
+                    app:tint="@color/app_text_hint" 
+                    android:alpha="0.4" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="No itineraries yet"
+                    android:layout_marginTop="20dp"
+                    android:text="Încă nu ai aventuri salvate"
                     android:textColor="@color/app_text_primary"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="8dp"
                     android:gravity="center"
-                    android:text="Generate your first perfect day above!"
+                    android:text="Începe prin a alege o temă mai sus și lasă AI-ul să te surprindă!"
                     android:textColor="@color/app_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="13sp" />
             </LinearLayout>
-
-            <!-- Itineraries List -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/itinerariesRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:nestedScrollingEnabled="false"
-                android:visibility="gone" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Loading -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <!-- Professional Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:clickable="true"
+        android:focusable="true">
+        
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="@drawable/bg_glass_card"
+            android:padding="32dp">
+            
+            <ProgressBar
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:indeterminateTint="@color/white" />
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Se generează magia..."
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </FrameLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

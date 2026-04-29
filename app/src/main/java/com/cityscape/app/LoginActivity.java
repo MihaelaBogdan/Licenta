@@ -91,7 +91,10 @@ public class LoginActivity extends BaseActivity {
         registerPrompt = findViewById(R.id.btnRegister);
         btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
 
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        View btnBack = findViewById(R.id.btn_back);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         loginButton.setOnClickListener(v -> {
             String email = emailEditText.getText().toString().trim();
@@ -114,12 +117,18 @@ public class LoginActivity extends BaseActivity {
                     runOnUiThread(() -> {
                         try {
                             handleSupabaseUserSession(userEmail, displayName);
-                            String name = displayName != null ? displayName : email;
-                            Toast.makeText(LoginActivity.this,
-                                    String.format(getString(R.string.welcome_user), name),
-                                    Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                            finish();
+                            
+                            if (supabaseAuth.isUserConfirmed()) {
+                                String name = displayName != null ? displayName : userEmail;
+                                Toast.makeText(LoginActivity.this,
+                                        String.format(getString(R.string.welcome_user), name),
+                                        Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            } else {
+                                // Block and show verification reminder
+                                showVerificationNeededDialog(userEmail);
+                            }
                         } catch (Exception e) {
                             Log.e(TAG, "Error after Supabase login success", e);
                             // Still try local fallback
@@ -185,19 +194,7 @@ public class LoginActivity extends BaseActivity {
         findViewById(R.id.btnRegister).startAnimation(fadeInUp);
         if (btnGuest != null) btnGuest.startAnimation(fadeInUp);
 
-        // Test Account Helpers
-        findViewById(R.id.btnFillAdmin).setOnClickListener(v -> {
-            emailEditText.setText("admin@cityscape.app");
-            passwordEditText.setText("Admin123!");
-        });
-        findViewById(R.id.btnFillTest).setOnClickListener(v -> {
-            emailEditText.setText("test@example.com");
-            passwordEditText.setText("Password123!");
-        });
-        findViewById(R.id.btnFillMihaela).setOnClickListener(v -> {
-            emailEditText.setText("mihaela@licenta.ro");
-            passwordEditText.setText("Mihaela2026!");
-        });
+        // TestAccount helpers removed
     }
 
     private void tryLocalLogin(String email, String password) {
@@ -290,6 +287,18 @@ public class LoginActivity extends BaseActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error creating session for user", e);
         }
+    }
+
+    private void showVerificationNeededDialog(String email) {
+        new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                .setTitle("Email Neconfirmat")
+                .setMessage("Adresa de email " + email + " nu a fost încă confirmată.\n\nTe rugăm să verifici Inbox-ul pentru link-ul de activare trimis de CityScape.")
+                .setPositiveButton("Am înțeles", (dialog, which) -> {
+                    dialog.dismiss();
+                    supabaseAuth.signOut();
+                })
+                .setCancelable(false)
+                .show();
     }
 
     private boolean isValidEmail(String email) {

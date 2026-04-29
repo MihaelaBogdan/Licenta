@@ -1,5 +1,7 @@
 package com.cityscape.app.ui.home;
 
+import com.cityscape.app.BuildConfig;
+
 import android.app.Activity;
 import androidx.navigation.Navigation;
 import android.content.Intent;
@@ -100,6 +102,7 @@ public class HomeFragment extends Fragment {
                 setupRecyclers();
                 setupCategoryChips();
                 setupSearch();
+                setupMoodSearch();
                 setupItineraryButton();
                 setupCrystalBall();
                 setupLocationReset();
@@ -107,6 +110,14 @@ public class HomeFragment extends Fragment {
                 binding.textLocation.setOnClickListener(v -> showCitySelectionDialog());
                 checkLocationPermission();
                 showPreviousSessionPromptIfAvailable();
+
+                // DEBUG: Show the current API URL on start to verify build updates
+                try {
+                    String apiUrl = BuildConfig.FLASK_API_URL;
+                    Toast.makeText(getContext(), "Conectare la: " + apiUrl, Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Log.e("HomeFragment", "Debug URL toast failed", e);
+                }
 
                 return binding.getRoot();
         }
@@ -537,18 +548,27 @@ public class HomeFragment extends Fragment {
                         return;
                 // Update city text
                 try {
-                        android.location.Geocoder geocoder = new android.location.Geocoder(requireContext(),
-                                        java.util.Locale.getDefault());
-                        List<android.location.Address> addresses = geocoder.getFromLocation(
-                                        currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
-                        if (addresses != null && !addresses.isEmpty()) {
-                                String city = addresses.get(0).getLocality();
-                                binding.textLocation.setText(
-                                                city != null ? city : "Locație: " + currentLocation.getLatitude());
-                        } else {
-                                binding.textLocation.setText("Locație: " + currentLocation.getLatitude() + ", "
-                                                + currentLocation.getLongitude());
-                        }
+                        // Use a background thread for geocoding to avoid blocking the main UI if it takes too long or hangs
+                        new Thread(() -> {
+                            try {
+                                android.location.Geocoder geocoder = new android.location.Geocoder(requireContext(),
+                                                java.util.Locale.getDefault());
+                                List<android.location.Address> addresses = geocoder.getFromLocation(
+                                                currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
+                                if (isAdded()) {
+                                    requireActivity().runOnUiThread(() -> {
+                                        if (addresses != null && !addresses.isEmpty()) {
+                                            String city = addresses.get(0).getLocality();
+                                            binding.textLocation.setText(city != null ? city : "Locație: " + currentLocation.getLatitude());
+                                        } else {
+                                            binding.textLocation.setText("Locație: " + currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+                                        }
+                                    });
+                                }
+                            } catch (Exception e) {
+                                Log.e("HomeFragment", "Geocoder bg error", e);
+                            }
+                        }).start();
                 } catch (Exception e) {
                         Log.e("HomeFragment", "Geocoder error", e);
                 }
@@ -625,42 +645,57 @@ public class HomeFragment extends Fragment {
         }
 
         private void searchForCity(String cityName) {
-                try {
-                        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-                        List<Address> addresses = geocoder.getFromLocationName(cityName, 1);
-                        if (addresses != null && !addresses.isEmpty()) {
-                                Address addr = addresses.get(0);
-                                Location mockLoc = new Location("manual");
-                                mockLoc.setLatitude(addr.getLatitude());
-                                mockLoc.setLongitude(addr.getLongitude());
-                                currentLocation = mockLoc;
-                                isManualLocation = true;
+                new Thread(() -> {
+                    try {
+                        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+                        okhttp3.Request request = new okhttp3.Request.Builder()
+                            .url("https://nominatim.openstreetmap.org/search?q=" + cityName + "&format=json&limit=1")
+                            .header("User-Agent", "CityScape/1.0 (Android)")
+                            .build();
+                        okhttp3.Response response = client.newCall(request).execute();
+                        if (response.isSuccessful() && response.body() != null) {
+                            String responseData = response.body().string();
+                            org.json.JSONArray jsonArray = new org.json.JSONArray(responseData);
+                            if (jsonArray.length() > 0) {
+                                org.json.JSONObject cityObj = jsonArray.getJSONObject(0);
+                                double lat = cityObj.getDouble("lat");
+                                double lng = cityObj.getDouble("lon");
+                                String displayName = cityObj.getString("name");
+                                
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        Location mockLoc = new Location("manual");
+                                        mockLoc.setLatitude(lat);
+                                        mockLoc.setLongitude(lng);
+                                        currentLocation = mockLoc;
+                                        isManualLocation = true;
+                                        sessionManager.setPreferredCity(displayName);
 
-                                String detectedCity = addr.getLocality() != null ? addr.getLocality() : cityName;
-                                binding.textLocation.setText(detectedCity);
+                                        binding.textLocation.setText(displayName);
+                                        Toast.makeText(getContext(), "Bun venit în " + displayName + "!", Toast.LENGTH_SHORT).show();
 
-                                Toast.makeText(getContext(), "Bun venit în " + detectedCity + "!", Toast.LENGTH_SHORT)
-                                                .show();
+                                        allPlacesList.clear();
+                                        nearbyPlacesList.clear();
+                                        eventsList.clear();
+                                        updateFilters();
 
-                                // Clear all old data to prevent mixing cities
-                                allPlacesList.clear();
-                                nearbyPlacesList.clear();
-                                eventsList.clear();
-                                updateFilters(); // Refresh UI to show loading/empty state
-
-                                // Refresh everything for new city
-                                updateLocationUI();
-                                fetchPlaces(false);
-                                fetchWeather();
-                                fetchEvents();
-                        } else {
-                                // Fallback: try to see if it's a known city even if geocoder fails
-                                handleManualCityFallback(cityName);
+                                        updateLocationUI();
+                                        fetchPlaces(false);
+                                        fetchWeather();
+                                        fetchEvents();
+                                    });
+                                }
+                                return;
+                            }
                         }
-                } catch (Exception e) {
-                        Log.e("HomeFragment", "City search error", e);
-                        Toast.makeText(getContext(), "Eroare la căutarea orașului", Toast.LENGTH_SHORT).show();
-                }
+                    } catch (Exception e) {
+                        Log.e("HomeFragment", "Nominatim Network geocode error", e);
+                    }
+                    
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> handleManualCityFallback(cityName));
+                    }
+                }).start();
         }
 
         private void handleManualCityFallback(String cityName) {
@@ -745,6 +780,9 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onPlaceClick(Place place) {
                         sessionManager.recordPlaceVisit(place.name);
+                        // Award XP for exploring
+                        com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                        com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
                     }
 
                     @Override
@@ -927,12 +965,13 @@ public class HomeFragment extends Fragment {
                     .enqueue(new Callback<List<Place>>() {
                         @Override
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                            if (binding != null && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            if (binding == null) return;
+                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                                 aiPicksList.clear();
                                 aiPicksList.addAll(response.body());
                                 if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
                                 binding.sectionAiPicks.setVisibility(View.VISIBLE);
-                            } else if (binding != null) {
+                            } else {
                                 binding.sectionAiPicks.setVisibility(View.GONE);
                             }
                         }
@@ -943,6 +982,16 @@ public class HomeFragment extends Fragment {
                             if (binding != null) binding.sectionAiPicks.setVisibility(View.GONE);
                         }
                     });
+        }
+
+        private void setupMoodSearch() {
+            if (binding.btnMoodSearch != null) {
+                binding.btnMoodSearch.setOnClickListener(v -> {
+                    v.animate().rotationBy(360f).setDuration(500).start();
+                    v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
+                    showRealisticMagicDialog();
+                });
+            }
         }
 
         private void updateFilters() {
@@ -974,15 +1023,7 @@ public class HomeFragment extends Fragment {
                 }
 
                 // 2. Manage Near You Visibility
-                boolean isReallyNear = true;
-                if (actualGpsLocation != null && currentLocation != null) {
-                    float distance = actualGpsLocation.distanceTo(currentLocation);
-                    if (distance > 10000) { // More than 10km away
-                        isReallyNear = false;
-                    }
-                }
-
-                if (currentLocation != null && isReallyNear) {
+                if (currentLocation != null) {
                     binding.sectionNearYou.setVisibility(View.VISIBLE);
                     binding.recyclerNearYou.setVisibility(View.VISIBLE);
                     
@@ -1174,7 +1215,9 @@ public class HomeFragment extends Fragment {
                                 new PlaceAdapter.OnPlaceClickListener() {
                                         @Override
                                         public void onPlaceClick(Place place) {
-                                                sessionManager.recordPlaceVisit(place.name);
+                                            sessionManager.recordPlaceVisit(place.name);
+                                            com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                                            com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
                                         }
 
                                         @Override
@@ -1267,7 +1310,10 @@ public class HomeFragment extends Fragment {
             PlaceAdapter adapter = new PlaceAdapter(getContext(), visitedPlacesList, true, 
                 new PlaceAdapter.OnPlaceClickListener() {
                     @Override
-                    public void onPlaceClick(Place place) { }
+                    public void onPlaceClick(Place place) {
+                        com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                        com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                    }
                     @Override
                     public void onFavoriteClick(Place place) { }
                     @Override
@@ -1287,6 +1333,8 @@ public class HomeFragment extends Fragment {
                                         @Override
                                         public void onPlaceClick(Place place) {
                                                 sessionManager.recordPlaceVisit(place.name);
+                                                com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                                                com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
                                         }
 
                                         @Override
@@ -1336,6 +1384,8 @@ public class HomeFragment extends Fragment {
             new Thread(() -> {
                 com.cityscape.app.data.AppDatabase.getInstance(appContext).activityDao().insert(activity);
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(appContext).pushActivityToCloud(activity);
+                com.cityscape.app.util.BadgeManager.addExperience(appContext, user.id, 50);
+                com.cityscape.app.util.BadgeManager.awardBadge(appContext, user.id, "planner", "Master Planner", "Ai început să îți organizezi aventuras!", "ic_badge_generic");
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         if (getContext() != null) Toast.makeText(getContext(), "Adăugat la planul tău! 🎒", Toast.LENGTH_SHORT).show();

@@ -1,0 +1,7 @@
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+ssh_askpass: exec(/usr/X11R6/bin/ssh-askpass): No such file or directory
+Allocated port 5 for remote forward to localhost:5001
+You are not authenticated.
+Your tunnel will expire in 60 minutes. Upgrade to Pinggy Pro to get unrestricted tunnels. https://dashboard.pinggy.io
+http://giluh-193-226-62-176.run.pinggy-free.link
+https://giluh-193-226-62-176.run.pinggy-free.link

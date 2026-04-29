@@ -105,7 +105,7 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             textDistance = view.findViewById(R.id.text_distance);
             textCost = view.findViewById(R.id.text_step_cost);
             textTime = view.findViewById(R.id.text_step_time);
-            badgeWarning = view.findViewById(R.id.badge_closed_warning);
+            badgeWarning =  view.findViewById(R.id.badge_closed_warning);
             imgStep = view.findViewById(R.id.img_step);
             btnSwap = view.findViewById(R.id.btn_step_swap);
             btnDelete = view.findViewById(R.id.btn_step_delete);

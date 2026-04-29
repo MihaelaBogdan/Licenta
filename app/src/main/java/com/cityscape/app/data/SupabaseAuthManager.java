@@ -34,6 +34,7 @@ public class SupabaseAuthManager {
     private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_USER_CONFIRMED = "user_confirmed";
 
     private static volatile SupabaseAuthManager INSTANCE;
 
@@ -275,6 +276,13 @@ public class SupabaseAuthManager {
     }
 
     /**
+     * Check if the user has confirmed their email.
+     */
+    public boolean isUserConfirmed() {
+        return prefs.getBoolean(KEY_USER_CONFIRMED, false);
+    }
+
+    /**
      * Retrieve stored access token.
      */
     public String getAccessToken() {
@@ -302,6 +310,10 @@ public class SupabaseAuthManager {
                 editor.putString(KEY_USER_ID, id);
             if (displayName != null)
                 editor.putString(KEY_USER_NAME, displayName);
+            
+            boolean confirmed = user.has("email_confirmed_at") && !user.get("email_confirmed_at").isJsonNull();
+            editor.putBoolean(KEY_USER_CONFIRMED, confirmed);
+            
             editor.apply();
         }
     }
@@ -341,6 +353,9 @@ public class SupabaseAuthManager {
                     editor.putString(KEY_USER_NAME, name);
                 }
             }
+            
+            boolean confirmed = user.has("email_confirmed_at") && !user.get("email_confirmed_at").isJsonNull();
+            editor.putBoolean(KEY_USER_CONFIRMED, confirmed);
         }
 
         editor.apply();

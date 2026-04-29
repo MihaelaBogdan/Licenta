@@ -4,7 +4,7 @@ CityScape este o aplicație mobilă modernă destinată explorării urbane, inte
 
 ## 🚀 Funcționalități Principale
 
-- **AI Chatbot (MysticMinds)**: Ghid virtual bazat pe modele DistilBERT și Gemini pentru recomandări personalizate de locații în București.
+- **AI Chatbot (CityScape AI)**: Ghid virtual bazat pe modele DistilBERT și Gemini pentru recomandări personalizate de locații în București.
 - **Social Feed**: O experiență de tip Instagram-like unde utilizatorii pot vedea recomandări, poze și pot interacționa (like/comment) cu postările prietenilor.
 - **Itinerarii Inteligente**: Generare automată de planuri de zi în funcție de interese, buget și proximitate.
 - **AR Explorer**: Vizualizarea punctelor de interes în Realitate Augmentată folosind camera dispozitivului.

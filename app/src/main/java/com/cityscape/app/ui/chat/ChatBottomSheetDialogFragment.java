@@ -65,8 +65,26 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // Initial welcome message - using locale-aware string resource
-        messages.add(new ChatMessage(getString(R.string.chatbot_welcome), false));
+        // Initial welcome message - personalized with user's name
+        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
+        String userName = sessionManager.getUserName();
+        String welcomeText = getString(R.string.chatbot_welcome);
+        
+        // If the welcome string has a punctuation mark, inject the name before it for a natural feel
+        String finalWelcome;
+        if (userName != null && !userName.isEmpty()) {
+            if (welcomeText.contains("!")) {
+                finalWelcome = welcomeText.replace("!", ", " + userName + "!");
+            } else if (welcomeText.contains("?")) {
+                finalWelcome = welcomeText.replace("?", ", " + userName + "?");
+            } else {
+                finalWelcome = welcomeText + ", " + userName + "!";
+            }
+        } else {
+            finalWelcome = welcomeText;
+        }
+
+        messages.add(new ChatMessage(finalWelcome, false));
         adapter.notifyDataSetChanged();
 
         // Show welcome suggestions
@@ -103,6 +121,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
             double lng = sessionManager.getLastLng();
             
             ChatRequest request = new ChatRequest(text, userId, lat, lng);
+            com.cityscape.app.util.BadgeManager.addExperience(requireContext(), userId, 10);
             Call<ChatResponse> call = apiService.chat(request);
 
             call.enqueue(new Callback<ChatResponse>() {

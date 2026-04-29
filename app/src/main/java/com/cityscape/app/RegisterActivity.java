@@ -40,6 +40,7 @@ public class RegisterActivity extends BaseActivity {
     private TextView loginPrompt;
     private AppDatabase db;
     private SessionManager sessionManager;
+    private View progressOverlay;
 
     // Supabase
     private SupabaseAuthManager supabaseAuth;
@@ -91,9 +92,9 @@ public class RegisterActivity extends BaseActivity {
         registerButton = findViewById(R.id.btnRegister);
         loginPrompt = findViewById(R.id.btnLogin);
         btnGoogle = findViewById(R.id.btn_google_sign_in);
+        progressOverlay = findViewById(R.id.progressOverlay);
 
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) View btnBack = findViewById(R.id.btn_back);
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
         registerButton.setOnClickListener(v -> {
             String name = nameEditText.getText().toString().trim();
@@ -115,38 +116,51 @@ public class RegisterActivity extends BaseActivity {
                 return;
             }
 
+            // Show progress
+            if (progressOverlay != null) progressOverlay.setVisibility(View.VISIBLE);
+
             // Register with Supabase
             new Thread(() -> {
                 User existingLocalUser = db.userDao().getUserByEmail(email);
                 if (existingLocalUser != null) {
-                    runOnUiThread(() -> Toast
-                            .makeText(this, getString(R.string.email_already_registered), Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> {
+                        if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
+                        Toast.makeText(this, getString(R.string.email_already_registered), Toast.LENGTH_SHORT).show();
+                    });
                     return;
                 }
 
-                runOnUiThread(() -> {
-                    Toast.makeText(this, getString(R.string.email_checking), Toast.LENGTH_SHORT).show();
-                    supabaseAuth.signUpWithEmail(email, password, name, new SupabaseAuthManager.AuthCallback() {
-                        @Override
-                        public void onSuccess(String userEmail, String displayName) {
-                            runOnUiThread(() -> {
-                                handleSupabaseUserSession(userEmail, displayName);
+                supabaseAuth.signUpWithEmail(email, password, name, new SupabaseAuthManager.AuthCallback() {
+                    @Override
+                    public void onSuccess(String userEmail, String displayName) {
+                        runOnUiThread(() -> {
+                            handleSupabaseUserSession(userEmail, displayName);
+                            
+                            if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
+                            
+                            // Check if confirmed
+                            if (supabaseAuth.isUserConfirmed()) {
+                                // Already confirmed (could happen with some providers/backend settings)
                                 Toast.makeText(RegisterActivity.this,
-                                        String.format(getString(R.string.welcome_new_user), displayName),
+                                        String.format(getString(R.string.welcome_new_user), displayName != null ? displayName : name),
                                         Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                                 finish();
-                            });
-                        }
+                            } else {
+                                // Needs confirmation - Show dialog instead of auto-logging in
+                                showVerificationNeededDialog(userEmail != null ? userEmail : email);
+                            }
+                        });
+                    }
 
-                        @Override
-                        public void onFailure(String errorMessage) {
-                            runOnUiThread(() -> {
-                                Log.w(TAG, "Supabase registration failed: " + errorMessage);
-                                Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                            });
-                        }
-                    });
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        runOnUiThread(() -> {
+                            if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
+                            Log.w(TAG, "Supabase registration failed: " + errorMessage);
+                            Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        });
+                    }
                 });
             }).start();
         });
@@ -250,6 +264,20 @@ public class RegisterActivity extends BaseActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error creating session for user", e);
         }
+    }
+
+    private void showVerificationNeededDialog(String email) {
+        new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                .setTitle("Confirmă Adresa de Email")
+                .setMessage("Un link de confirmare a fost trimis la: " + email + "\n\nTe rugăm să verifici inbox-ul (și folderul Spam) pentru a-ți activa contul CityScape.")
+                .setPositiveButton("Am înțeles", (dialog, which) -> {
+                    dialog.dismiss();
+                    // Clear session since it's unconfirmed and we want them to login after confirming
+                    supabaseAuth.signOut();
+                    finish();
+                })
+                .setCancelable(false)
+                .show();
     }
 
     private boolean isValidEmail(String email) {

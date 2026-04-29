@@ -242,8 +242,8 @@ public class CalendarFragment extends Fragment {
             boolean changed = false;
             for (com.cityscape.app.model.CalendarDate item : dateItems) {
                 boolean hasLocal = db.activityDao().hasActivitiesForDate(userId, normalizeDate(item.date.getTime()));
-                if (hasLocal != item.hasActivities) {
-                    item.hasActivities = hasLocal;
+                if (hasLocal != item.hasEvents) {
+                    item.hasEvents = hasLocal;
                     changed = true;
                 }
             }
@@ -768,16 +768,16 @@ public class CalendarFragment extends Fragment {
                 return;
             }
 
-            ActivityGroup group = new ActivityGroup(activity.id, sessionManager.getUserId(), groupName);
+            User currentUser = sessionManager.getCurrentUser();
+            if (currentUser == null) return;
+
+            ActivityGroup group = new ActivityGroup(activity.id, currentUser.id, groupName);
             db.groupDao().insertGroup(group);
             com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
 
-            User currentUser = sessionManager.getCurrentUser();
-            if (currentUser != null) {
-                GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
-                db.groupDao().insertMember(creatorMember);
-                com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
-            }
+            GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
+            db.groupDao().insertMember(creatorMember);
+            com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
 
             // Invite selected users
             List<User> selectedUsers = new ArrayList<>();

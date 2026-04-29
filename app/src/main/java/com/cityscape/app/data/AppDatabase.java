@@ -25,7 +25,7 @@ import com.cityscape.app.model.MemberSchedule;
         MemberSchedule.class,
         com.cityscape.app.model.GroupSuggestion.class,
         com.cityscape.app.model.Vote.class
-}, version = 11, exportSchema = false)
+}, version = 12, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;

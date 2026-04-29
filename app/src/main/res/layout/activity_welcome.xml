@@ -25,35 +25,39 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="32dp"
+        android:background="@drawable/bg_glass_card"
+        android:layout_margin="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="48dp">
+        android:layout_marginBottom="32dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/welcome_pocket_guide"
-            android:textColor="@color/white"
-            android:textSize="36sp"
-            android:fontFamily="sans-serif-condensed-light"
-            android:alpha="0.9" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/welcome_to_bucharest"
-            android:textColor="@color/accent_green"
-            android:textSize="40sp"
+            android:text="CityScape"
+            android:textColor="@color/app_text_primary"
+            android:textSize="56sp"
             android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed-medium"
             android:letterSpacing="-0.02" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/welcome_description"
-            android:textColor="#E0E0E0"
-            android:textSize="16sp"
-            android:lineSpacingMultiplier="1.5" />
+            android:text="Orașul tău, explorat."
+            android:textColor="@color/accent_green"
+            android:textSize="20sp"
+            android:textStyle="normal"
+            android:letterSpacing="0.05"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Descoperă locuri ascunse și experiențe unice."
+            android:textColor="@color/app_text_secondary"
+            android:textSize="18sp"
+            android:lineSpacingMultiplier="1.2" />
 
         <!-- Main Action Button -->
         <com.google.android.material.button.MaterialButton
@@ -81,43 +85,19 @@
             android:textAllCaps="true"
             android:letterSpacing="0.1" />
 
-        <LinearLayout
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_google"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_height="56dp"
             android:layout_marginTop="16dp"
-            android:gravity="center">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_google"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="@string/google"
-                android:textColor="@color/white"
-                app:strokeColor="#40FFFFFF"
-                app:icon="@drawable/ic_google"
-                app:iconGravity="textStart"
-                app:iconTint="@null"
-                app:cornerRadius="16dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_facebook"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="@string/facebook"
-                android:textColor="@color/white"
-                app:strokeColor="#40FFFFFF"
-                app:icon="@drawable/ic_facebook"
-                app:iconGravity="textStart"
-                app:iconTint="@null"
-                app:cornerRadius="16dp" />
-        </LinearLayout>
+            android:text="@string/google"
+            android:textColor="@color/app_text_primary"
+            app:strokeColor="@color/app_text_hint"
+            app:icon="@drawable/ic_google"
+            app:iconGravity="textStart"
+            app:iconTint="@null"
+            app:cornerRadius="16dp" />
 
         <TextView
             android:id="@+id/text_already_account"
@@ -126,7 +106,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="24dp"
             android:text="@string/already_have_account_prompt"
-            android:textColor="@color/white"
+            android:textColor="@color/app_text_primary"
             android:textSize="14sp"
             android:alpha="0.8" />
 

@@ -36,6 +36,7 @@ public class ProfileFragment extends Fragment {
     private TextView profileName, profileTitle, xpText, levelBadge, titleMyPosts;
     private TextView statPlaces, statBadges;
     private ProgressBar xpProgress;
+    private TextView xpNeededText;
     private RecyclerView recyclerBadges, recyclerAchievements, recyclerUserPosts;
     private ImageView profileAvatar;
     private SessionManager sessionManager;
@@ -140,21 +141,28 @@ public class ProfileFragment extends Fragment {
         recyclerUserPosts = view.findViewById(R.id.recycler_user_posts);
         titleMyPosts = view.findViewById(R.id.title_my_posts);
         profileAvatar = view.findViewById(R.id.profile_avatar);
+        xpNeededText = view.findViewById(R.id.xp_needed_text);
         
         apiService = com.cityscape.app.api.ApiClient.getClient().create(com.cityscape.app.api.ApiService.class);
     }
 
     private void loadUserData() {
         User user = sessionManager.getCurrentUser();
-        if (user != null) {
+        if (user != null && profileName != null) {
             profileName.setText(user.name);
-            profileTitle.setText(String.format(getString(R.string.explorer_level), user.level));
+            profileTitle.setText(String.format(getString(R.string.explorer_level), user.level).toUpperCase());
             levelBadge.setText(String.valueOf(user.level));
 
             int xpNeeded = user.getXpForNextLevel();
             xpText.setText(String.format("%,d / %,d XP", user.currentXp, xpNeeded));
             xpProgress.setMax(100);
             xpProgress.setProgress(user.getProgressPercentage());
+
+            // Handle the new 'XP needed' text
+            if (xpNeededText != null) {
+                int remaining = xpNeeded - user.currentXp;
+                xpNeededText.setText(String.format("Mai ai nevoie de %d XP pentru nivelul %d", remaining, user.level + 1));
+            }
 
             statPlaces.setText(String.valueOf(user.placesVisited));
             statBadges.setText(String.valueOf(user.badgesEarned));

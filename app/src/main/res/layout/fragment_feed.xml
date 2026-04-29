@@ -75,7 +75,7 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- For You / Friends Tabs -->
+        <!-- Content Tabs -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/feed_tabs"
             android:layout_width="match_parent"

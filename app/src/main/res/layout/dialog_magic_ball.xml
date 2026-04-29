@@ -5,89 +5,115 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="32dp"
     android:background="@drawable/bg_glass_card_premium">
 
+    <!-- Mystical Header -->
     <View
         android:layout_width="60dp"
-        android:layout_height="4dp"
-        android:layout_marginBottom="20dp"
-        android:background="#40FFFFFF"
-        android:backgroundTint="@color/app_text_hint" />
+        android:layout_height="6dp"
+        android:layout_marginBottom="24dp"
+        android:alpha="0.2"
+        android:background="#FFFFFF"
+        app:cornerRadius="3dp" />
 
     <TextView
         android:id="@+id/text_magic_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Consultăm Oracolul..."
+        android:text="CONSULTĂM ORACOLUL"
         android:textColor="@color/primary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing="0.05" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Clarificăm viziunea pentru tine..."
+        android:layout_marginTop="6dp"
+        android:text="Alinierea energiilor orașului..."
         android:textColor="@color/app_text_secondary"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium" />
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="260dp"
-        android:layout_height="260dp"
-        android:layout_marginTop="24dp"
-        app:cardCornerRadius="130dp"
-        app:cardBackgroundColor="#000000"
-        app:cardElevation="20dp"
-        android:outlineSpotShadowColor="@color/accent_green"
-        android:outlineAmbientShadowColor="@color/primary">
+    <!-- The Magical Sphere -->
+    <RelativeLayout
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center">
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <!-- Outer Glow Ring -->
+        <View
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:background="@drawable/bg_magic_glow"
+            android:alpha="0.3" />
 
-            <ImageView
-                android:id="@+id/img_magic_reveal_ball"
+        <androidx.cardview.widget.CardView
+            android:layout_width="240dp"
+            android:layout_height="240dp"
+            android:layout_centerInParent="true"
+            app:cardCornerRadius="120dp"
+            app:cardBackgroundColor="#0A0A0A"
+            app:cardElevation="32dp"
+            android:outlineSpotShadowColor="@color/primary">
+
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_realistic_crystal_ball" />
+                android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/img_magic_reveal_mist"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:alpha="0"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_magic_mist" />
+                <!-- Crystal Ball Visual -->
+                <ImageView
+                    android:id="@+id/img_magic_reveal_ball"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_realistic_crystal_ball"
+                    android:alpha="0.8" />
 
-            <TextView
-                android:id="@+id/text_magic_reveal_name"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:alpha="0"
-                android:gravity="center"
-                android:padding="32dp"
-                android:text="?"
-                android:textColor="@color/app_text_primary"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:shadowColor="#00FF88"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="25" />
-        </FrameLayout>
-    </androidx.cardview.widget.CardView>
+                <!-- Magic Mist for Transitions -->
+                <ImageView
+                    android:id="@+id/img_magic_reveal_mist"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_magic_mist" />
 
+                <!-- The Revealed Destination Name -->
+                <TextView
+                    android:id="@+id/text_magic_reveal_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0"
+                    android:gravity="center"
+                    android:padding="32dp"
+                    android:text="?"
+                    android:textColor="@color/white"
+                    android:textSize="26sp"
+                    android:fontFamily="sans-serif-black"
+                    android:shadowColor="@color/primary"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="30" />
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+
+    <!-- Hidden Result Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_magic_go"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Arată-mi Drumul"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="32dp"
+        android:text="PĂȘEȘTE ÎN DESTIN"
         android:textAllCaps="false"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-black"
         android:visibility="gone"
+        app:cornerRadius="20dp"
         app:backgroundTint="@color/primary"
-        app:cornerRadius="12dp" />
+        app:elevation="8dp" />
 
 </LinearLayout>
