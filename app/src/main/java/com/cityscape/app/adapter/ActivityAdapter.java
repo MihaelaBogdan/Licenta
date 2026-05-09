@@ -35,6 +35,8 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         void onCreateGroupClick(PlannedActivity activity);
         
         void onExportClick(PlannedActivity activity);
+
+        void onEditClick(PlannedActivity activity);
     }
 
     public ActivityAdapter(Context context, List<PlannedActivity> activities, OnActivityActionListener listener) {
@@ -64,7 +66,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
 
     class ActivityViewHolder extends RecyclerView.ViewHolder {
         TextView time, placeName, placeType, notes, groupMemberCount, budgetDisplay;
-        ImageView btnComplete, btnShare, btnCreateGroup, btnExport, activityImage;
+        ImageView btnComplete, btnShare, btnCreateGroup, btnExport, btnEdit, activityImage;
         com.google.android.material.button.MaterialButton btnInviteFriendsText;
         LinearLayout groupInfoContainer, budgetInfoContainer;
 
@@ -79,6 +81,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             btnShare = itemView.findViewById(R.id.btn_share);
             btnCreateGroup = itemView.findViewById(R.id.btn_create_group);
             btnExport = itemView.findViewById(R.id.btn_export);
+            btnEdit = itemView.findViewById(R.id.btn_edit_activity);
             btnInviteFriendsText = itemView.findViewById(R.id.btn_invite_friends_text);
             groupInfoContainer = itemView.findViewById(R.id.group_info_container);
             groupMemberCount = itemView.findViewById(R.id.group_member_count);
@@ -119,7 +122,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             if (group != null) {
                 groupInfoContainer.setVisibility(View.VISIBLE);
                 int memberCount = db.groupDao().getAcceptedMemberCount(group.id);
-                groupMemberCount.setText("Grup activ (" + memberCount + " " + (memberCount == 1 ? "pers" : "pers") + ")");
+                groupMemberCount.setText("Grup activ (" + memberCount + " pers)");
                 btnInviteFriendsText.setText("Vezi Grup");
             } else {
                 groupInfoContainer.setVisibility(View.GONE);
@@ -131,10 +134,12 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                 btnComplete.setImageResource(R.drawable.ic_check);
                 btnComplete.setAlpha(0.5f);
                 itemView.setAlpha(0.6f);
+                if (btnEdit != null) btnEdit.setVisibility(View.GONE);
             } else {
                 btnComplete.setImageResource(R.drawable.ic_check);
                 btnComplete.setAlpha(1.0f);
                 itemView.setAlpha(1.0f);
+                if (btnEdit != null) btnEdit.setVisibility(View.VISIBLE);
             }
 
             // Click listeners
@@ -155,6 +160,12 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             btnExport.setOnClickListener(v -> {
                 if (listener != null) listener.onExportClick(activity);
             });
+            
+            if (btnEdit != null) {
+                btnEdit.setOnClickListener(v -> {
+                    if (listener != null) listener.onEditClick(activity);
+                });
+            }
 
             btnInviteFriendsText.setOnClickListener(v -> {
                 if (listener != null) listener.onCreateGroupClick(activity);

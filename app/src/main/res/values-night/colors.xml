@@ -35,6 +35,8 @@
     <color name="gradient_start">#0F3460</color>
     <color name="gradient_center">#16213E</color>
     <color name="gradient_end">#0D1117</color>
+    <color name="accent_purple">#A78BFA</color>
+    <color name="accent_gold">#FBBF24</color>
 
     <color name="bg_chat_bot">#1F2937</color>
 </resources>

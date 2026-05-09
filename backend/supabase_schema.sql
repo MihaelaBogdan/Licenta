@@ -110,6 +110,17 @@ CREATE TABLE IF NOT EXISTS public.invitations (
     sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Real-time Group Voting
+CREATE TABLE IF NOT EXISTS public.group_votes (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES public.activity_groups(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    place_id TEXT NOT NULL, -- google_place_id or name
+    place_name TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(group_id, user_id) -- One vote per user per group
+);
+
 -- Member Schedules
 CREATE TABLE IF NOT EXISTS public.member_schedules (
     id SERIAL PRIMARY KEY,

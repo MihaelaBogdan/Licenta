@@ -19,6 +19,9 @@ public interface ApiService {
                 @retrofit2.http.Query("type") String type,
                 @retrofit2.http.Query("user_id") String userId);
 
+        @GET("places/{placeId}/details")
+        Call<Place> getPlaceDetails(@retrofit2.http.Path("placeId") String placeId);
+
 
         @GET("places/search")
         Call<List<Place>> getPlacesSearch(
@@ -27,7 +30,8 @@ public interface ApiService {
                         @retrofit2.http.Query("query") String query,
                         @retrofit2.http.Query("type") String type,
                         @retrofit2.http.Query("radius") Integer radius,
-                        @retrofit2.http.Query("user_id") String userId);
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("city") String city);
 
         @GET("places/autocomplete")
         Call<List<java.util.Map<String, String>>> getAutocomplete(
@@ -74,7 +78,9 @@ public interface ApiService {
         @GET("feed")
         Call<List<com.cityscape.app.model.FeedPost>> getFeed(
                         @retrofit2.http.Query("type") String type,
-                        @retrofit2.http.Query("user_id") String userId);
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("lat") Double lat,
+                        @retrofit2.http.Query("lng") Double lng);
 
         @GET("users/{userId}/posts")
         Call<List<com.cityscape.app.model.FeedPost>> getUserPosts(
@@ -118,7 +124,8 @@ public interface ApiService {
         Call<com.google.gson.JsonObject> getMagicRecommendation(
                         @retrofit2.http.Query("lat") double lat,
                         @retrofit2.http.Query("lng") double lng,
-                        @retrofit2.http.Query("user_id") String userId);
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("type") String type);
 
         @GET("recommendations/personalized")
         Call<List<Place>> getPersonalizedRecommendations(
@@ -126,5 +133,28 @@ public interface ApiService {
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("user_id") String userId,
                         @retrofit2.http.Query("query") String query,
-                        @retrofit2.http.Query("type") String type);
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("city") String city);
+
+        @GET("quests/daily")
+        Call<com.google.gson.JsonObject> getDailyQuest(
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("interests") String interests,
+                        @retrofit2.http.Query("language") String language);
+
+        @GET("map/hype")
+        Call<List<java.util.Map<String, Object>>> getHypeMap(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng);
+
+        @POST("report")
+        Call<com.google.gson.JsonObject> reportContent(@Body java.util.Map<String, Object> data);
+
+        @GET("reports/user/{userId}")
+        Call<com.google.gson.JsonObject> getUserReport(@retrofit2.http.Path("userId") String userId);
+
+        @GET("admin/stats")
+        Call<com.google.gson.JsonObject> getAdminStats();
 }

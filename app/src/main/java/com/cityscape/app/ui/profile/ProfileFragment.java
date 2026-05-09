@@ -10,8 +10,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,7 +31,9 @@ import com.cityscape.app.model.Achievement;
 import com.cityscape.app.model.Badge;
 import com.cityscape.app.model.UserAchievement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ProfileFragment extends Fragment {
 
@@ -83,6 +87,21 @@ public class ProfileFragment extends Fragment {
                 settingsButton.setOnClickListener(v -> {
                     startActivity(new Intent(requireContext(), SettingsActivity.class));
                 });
+            }
+
+            // Report Buttons
+            View btnReport = view.findViewById(R.id.btn_generate_report);
+            if (btnReport != null) btnReport.setOnClickListener(v -> showUserReport());
+
+            View btnAdmin = view.findViewById(R.id.btn_admin_stats);
+            if (btnAdmin != null) {
+                // Show only for admins
+                if (sessionManager.getEmail() != null && sessionManager.getEmail().contains("admin")) {
+                    btnAdmin.setVisibility(View.VISIBLE);
+                } else {
+                    btnAdmin.setVisibility(View.GONE);
+                }
+                btnAdmin.setOnClickListener(v -> showAdminStats());
             }
         } else {
             // Show guest state
@@ -175,7 +194,7 @@ public class ProfileFragment extends Fragment {
 
         for (UserBadge ub : userBadges) {
             int iconRes = getIconResource(ub.iconName);
-            badges.add(new Badge(ub.name, ub.description, iconRes, ub.isUnlocked));
+            badges.add(new Badge(ub.name, ub.description, ub.requirement, iconRes, ub.isUnlocked));
         }
 
         BadgeAdapter adapter = new BadgeAdapter(badges);
@@ -246,6 +265,86 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onFailure(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, Throwable t) { }
+        });
+    }
+
+    private void showUserReport() {
+        if (!isAdded()) return;
+        AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setTitle("Generare Raport...")
+                .setMessage("Se preiau datele de la server...")
+                .show();
+
+        apiService.getUserReport(sessionManager.getUserId()).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    dialog.dismiss();
+                    com.google.gson.JsonObject r = response.body();
+                    
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("📊 RAPORT ACTIVITATE CITYSCAPE\n\n");
+                    sb.append("👤 Utilizator: ").append(r.get("user_name").getAsString()).append("\n");
+                    sb.append("🏅 Nivel: ").append(r.get("level").getAsInt()).append("\n");
+                    sb.append("⭐ Total XP: ").append(r.get("total_xp").getAsInt()).append("\n\n");
+                    
+                    sb.append("📍 Locații vizitate: ").append(r.get("places_visited_count").getAsInt()).append("\n");
+                    sb.append("❤️ Categoria preferată: ").append(r.get("favorite_category").getAsString()).append("\n");
+                    sb.append("📝 Postări create: ").append(r.get("posts_created").getAsInt()).append("\n");
+                    sb.append("💎 Insigne câștigate: ").append(r.get("badges_count").getAsInt()).append("\n\n");
+                    
+                    sb.append("📅 Membru din: ").append(r.get("join_date").getAsString()).append("\n\n");
+                    
+                    if (r.has("recent_visits") && r.get("recent_visits").getAsJsonArray().size() > 0) {
+                        sb.append("Ultimile aventuri:\n");
+                        for (com.google.gson.JsonElement e : r.get("recent_visits").getAsJsonArray()) {
+                            sb.append(" • ").append(e.getAsString()).append("\n");
+                        }
+                    }
+
+                    new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                            .setTitle("Raportul Tău CityScape")
+                            .setMessage(sb.toString())
+                            .setPositiveButton("Închide", null)
+                            .setNeutralButton("Share", (d, w) -> {
+                                Intent s = new Intent(Intent.ACTION_SEND); s.setType("text/plain");
+                                s.putExtra(Intent.EXTRA_TEXT, sb.toString());
+                                startActivity(Intent.createChooser(s, "Trimite Raport"));
+                            })
+                            .show();
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
+                if (isAdded()) dialog.dismiss();
+            }
+        });
+    }
+
+    private void showAdminStats() {
+        if (!isAdded()) return;
+        apiService.getAdminStats().enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    com.google.gson.JsonObject s = response.body();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("🛡️ ADMIN DASHBOARD STATS\n\n");
+                    sb.append("👥 Total Utilizatori: ").append(s.get("total_users").getAsInt()).append("\n");
+                    sb.append("📮 Total Postări: ").append(s.get("total_posts").getAsInt()).append("\n");
+                    sb.append("👣 Total Vizite: ").append(s.get("total_visits").getAsInt()).append("\n");
+                    sb.append("⚠️ Total Raportări: ").append(s.get("total_reports").getAsInt()).append("\n\n");
+                    
+                    sb.append("🔴 Raportări în așteptare: ").append(s.get("pending_reports_count").getAsInt()).append("\n");
+                    sb.append("✅ Status Sistem: ").append(s.get("system_health").getAsString()).append("\n");
+
+                    new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                            .setTitle("Statistici Globale")
+                            .setMessage(sb.toString())
+                            .setPositiveButton("OK", null)
+                            .show();
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {}
         });
     }
 }

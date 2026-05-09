@@ -1,239 +1,309 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:background="@color/app_surface">
+    android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Planifică aventura ta"
-        android:textColor="@color/app_text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Unde vrei să explorăm astăzi?"
-        android:textColor="@color/app_text_secondary"
-        android:textSize="14sp" />
-
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/dialog_toggle_scope"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:checkedButton="@+id/btn_scope_nearby"
-        app:selectionRequired="true"
-        app:singleSelection="true">
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="@color/app_surface">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Planifică aventura ta"
+            android:textColor="@color/app_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Unde vrei să explorăm astăzi?"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/dialog_toggle_scope"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:checkedButton="@+id/btn_scope_nearby"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_scope_nearby"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Aproape"
+                android:textAllCaps="false"
+                android:textColor="@color/app_text_primary"
+                app:strokeColor="@color/primary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_scope_city"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tot orașul"
+                android:textAllCaps="false"
+                android:textColor="@color/app_text_primary"
+                app:strokeColor="@color/primary" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Ce stil preferi?"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/dialog_style_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_exploration"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Explorare"
+                android:checked="true" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_relaxation"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Relaxare" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_cultural"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cultural" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_gastronomic"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gastronomic" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_nightlife"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nocturn" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_cinema"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cinema" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_type_sport"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tenis / Sport" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Ce vrei să facem neapărat?"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/dialog_interest_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:singleSelection="false">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_include_cinema"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎬 Cinema" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_include_tennis"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎾 Tenis" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_include_museum"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏛️ Muzee" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_include_park"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌳 Parcuri" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_include_food"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🍔 Restaurante" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Duration Slider -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Durată (ore)"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_duration_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="6h"
+                android:textColor="@color/primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/dialog_duration_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:value="6"
+            android:valueFrom="2"
+            android:valueTo="24"
+            android:stepSize="1"
+            app:thumbColor="@color/primary"
+            app:trackColorActive="@color/primary"
+            app:labelBehavior="gone" />
+
+        <!-- Density / Points Slider -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Număr puncte"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_density_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4 locații"
+                android:textColor="@color/primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/dialog_density_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:value="4"
+            android:valueFrom="2"
+            android:valueTo="10"
+            android:stepSize="1"
+            app:thumbColor="@color/primary"
+            app:trackColorActive="@color/primary"
+            app:labelBehavior="gone" />
+
+        <!-- Budget Slider -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Buget Maxim"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_budget_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="250 RON"
+                android:textColor="@color/primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/dialog_budget_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:value="250"
+            android:valueFrom="50"
+            android:valueTo="1000"
+            android:stepSize="50"
+            app:thumbColor="@color/primary"
+            app:trackColorActive="@color/primary"
+            app:labelBehavior="gone" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_scope_nearby"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Aproape"
+            android:id="@+id/btn_generate_itinerary"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="✨ Planifică"
             android:textAllCaps="false"
-            android:textColor="@color/app_text_primary"
-            app:strokeColor="@color/primary" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_scope_city"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Tot orașul"
-            android:textAllCaps="false"
-            android:textColor="@color/app_text_primary"
-            app:strokeColor="@color/primary" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Ce stil preferi?"
-        android:textColor="@color/app_text_secondary"
-        android:textSize="14sp" />
-
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/dialog_style_chips"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:singleSelection="true"
-        app:selectionRequired="true">
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_type_exploration"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Explorare"
-            android:checked="true" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_type_relaxation"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Relaxare" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_type_cultural"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cultural" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_type_gastronomic"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gastronomic" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_type_nightlife"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nocturn" />
-    </com.google.android.material.chip.ChipGroup>
-
-    <!-- Duration Slider -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Durată (ore)"
-            android:textColor="@color/app_text_secondary"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_duration_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="6h"
-            android:textColor="@color/primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <com.google.android.material.slider.Slider
-        android:id="@+id/dialog_duration_slider"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:value="6"
-        android:valueFrom="2"
-        android:valueTo="24"
-        android:stepSize="1"
-        app:thumbColor="@color/primary"
-        app:trackColorActive="@color/primary"
-        app:labelBehavior="gone" />
-
-    <!-- Density / Points Slider -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Număr puncte"
-            android:textColor="@color/app_text_secondary"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_density_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="4 locații"
-            android:textColor="@color/primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <com.google.android.material.slider.Slider
-        android:id="@+id/dialog_density_slider"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:value="4"
-        android:valueFrom="2"
-        android:valueTo="10"
-        android:stepSize="1"
-        app:thumbColor="@color/primary"
-        app:trackColorActive="@color/primary"
-        app:labelBehavior="gone" />
-
-    <!-- Budget Slider -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Buget Maxim"
-            android:textColor="@color/app_text_secondary"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_budget_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="250 RON"
-            android:textColor="@color/primary"
+            android:textColor="@color/app_background"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/primary" />
+
     </LinearLayout>
-
-    <com.google.android.material.slider.Slider
-        android:id="@+id/dialog_budget_slider"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:value="250"
-        android:valueFrom="50"
-        android:valueTo="1000"
-        android:stepSize="50"
-        app:thumbColor="@color/primary"
-        app:trackColorActive="@color/primary"
-        app:labelBehavior="gone" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_generate_itinerary"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="24dp"
-        android:text="✨ Planifică"
-        android:textAllCaps="false"
-        android:textColor="@color/app_background"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:cornerRadius="12dp"
-        app:backgroundTint="@color/primary" />
-
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>

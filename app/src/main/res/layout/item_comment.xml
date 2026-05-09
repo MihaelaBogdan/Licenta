@@ -25,4 +25,14 @@
         android:textColor="@color/app_text_primary"
         android:textSize="13sp" />
 
+    <ImageButton
+        android:id="@+id/btn_comment_options"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_more"
+        android:contentDescription="Options"
+        android:tint="@color/app_text_secondary"
+        android:padding="4dp" />
+
 </LinearLayout>

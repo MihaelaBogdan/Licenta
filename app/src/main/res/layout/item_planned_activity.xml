@@ -196,6 +196,16 @@
                     android:src="@drawable/ic_calendar" />
 
                 <ImageView
+                    android:id="@+id/btn_edit_activity"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/circle_card"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/accent_gold" />
+
+                <ImageView
                     android:id="@+id/btn_share"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
@@ -203,6 +213,7 @@
                     android:padding="10dp"
                     android:src="@drawable/ic_share" />
             </LinearLayout>
+
         </LinearLayout>
         
         <ImageView

@@ -39,9 +39,32 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:scrollbars="none"
-        android:visibility="gone">
+        android:visibility="visible">
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chat_suggestions_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true"
+            app:chipSpacingHorizontal="8dp" />
+    </HorizontalScrollView>
+
+    <!-- Discussion Themes (Persistent) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Teme de discuție:"
+        android:textColor="@color/app_text_secondary"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:scrollbars="none">
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chat_themes_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:singleLine="true"

@@ -33,6 +33,16 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHol
         holder.badgeName.setText(badge.name);
         holder.badgeIcon.setImageResource(badge.iconResId);
         holder.badgeIcon.setAlpha(badge.isUnlocked ? 1.0f : 0.3f);
+
+        holder.itemView.setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(v.getContext(), R.style.DarkDialogTheme)
+                .setTitle(badge.name)
+                .setMessage(badge.description + "\n\n" + 
+                           (badge.isUnlocked ? "✅ DEBLOCATĂ" : "🔒 ÎNCĂ ÎNCUIATĂ") + "\n\n" + 
+                           "CERINȚĂ: " + badge.requirement)
+                .setPositiveButton("OK", null)
+                .show();
+        });
     }
 
     @Override

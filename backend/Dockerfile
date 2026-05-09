@@ -1,26 +1,43 @@
 FROM python:3.9-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirement files and install dependencies
+# Install system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ && rm -rf /var/lib/apt/lists/*
+
+# Install PyTorch CPU first (separate layer for caching)
+RUN pip install --no-cache-dir \
+    torch==2.2.2+cpu \
+    --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining dependencies
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir \
+    flask==3.0.3 \
+    flask-cors==4.0.1 \
+    transformers==4.40.2 \
+    numpy==1.26.4 \
+    nltk==3.8.1 \
+    python-dotenv==1.0.1 \
+    requests==2.31.0 \
+    beautifulsoup4==4.12.3 \
+    google-generativeai==0.8.3 \
+    gunicorn==22.0.0
 
-# Download NLTK data required for Chatbot
-RUN python -m nltk.downloader punkt
+# Download NLTK data
+RUN python -m nltk.downloader punkt punkt_tab
 
-# Copy all the rest of the application files
-COPY . .
+# Copy app files (excludes files listed in .dockerignore)
+COPY app.py chatbot.py model.py nltk_utils.py ./
+COPY data.pth ./
+COPY data/ ./data/
+COPY templates/ ./templates/
+COPY static/ ./static/
 
-# Expose port
-EXPOSE 5000
-
-# Set environment variables for Flask
+# Railway injects PORT env var automatically
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
+EXPOSE 8080
 
-# Run the backend
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120", "app:app"]

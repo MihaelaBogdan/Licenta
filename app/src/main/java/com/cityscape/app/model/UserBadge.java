@@ -22,13 +22,16 @@ public class UserBadge {
         this.id = java.util.UUID.randomUUID().toString();
     }
 
-    public UserBadge(String userId, String badgeId, String name, String description, String iconName) {
+    public String requirement;
+
+    public UserBadge(String userId, String badgeId, String name, String description, String iconName, String requirement) {
         this.id = java.util.UUID.randomUUID().toString();
         this.userId = userId;
         this.badgeId = badgeId;
         this.name = name;
         this.description = description;
         this.iconName = iconName;
+        this.requirement = requirement;
         this.isUnlocked = false;
         this.unlockedAt = 0;
     }

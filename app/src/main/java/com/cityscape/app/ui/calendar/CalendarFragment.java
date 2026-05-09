@@ -100,9 +100,12 @@ public class CalendarFragment extends Fragment {
         selectedDate = normalizeDate(System.currentTimeMillis());
         if (getArguments() != null && getArguments().containsKey("target_date")) {
             selectedDate = normalizeDate(getArguments().getLong("target_date"));
-            calendarView.setDate(selectedDate);
-            textSelectedDate.setText(dateFormat.format(new Date(selectedDate)));
-            
+        }
+        
+        calendarView.setDate(selectedDate);
+        textSelectedDate.setText(dateFormat.format(new Date(selectedDate)));
+
+        if (getArguments() != null) {
             // Auto-trigger group creation if requested
             if (getArguments().getBoolean("auto_create_group", false)) {
                 String activityId = getArguments().getString("target_activity_id");
@@ -543,13 +546,27 @@ public class CalendarFragment extends Fragment {
                             if (existingGroup != null) {
                                 showGroupDetails(existingGroup, activity);
                             } else {
-                                showCreateGroupDialog(activity);
+                                // Offer choice: full group or 1-on-1 availability check
+                                new AlertDialog.Builder(context, R.style.DarkDialogTheme)
+                                    .setTitle("Cum vrei să inviți?")
+                                    .setMessage("Creează un grup sau invită un singur prieten după ce verifici disponibilitatea.")
+                                    .setPositiveButton("🗓️ Verifică disponibilitate", (d, w) ->
+                                            showAvailabilityPickerDialog(activity))
+                                    .setNegativeButton("👥 Creează grup", (d, w) ->
+                                            showCreateGroupDialog(activity))
+                                    .setNeutralButton("Anulează", null)
+                                    .show();
                             }
                         }
 
                         @Override
                         public void onExportClick(PlannedActivity activity) {
                             exportActivityToPhone(activity);
+                        }
+
+                        @Override
+                        public void onEditClick(PlannedActivity activity) {
+                            showEditActivityDialog(activity);
                         }
                         });
                         recyclerActivities.setAdapter(activityAdapter);
@@ -754,7 +771,7 @@ public class CalendarFragment extends Fragment {
             });
         }
 
-        inputGroupName.setText(activity.placeName + " - Grup");
+        inputGroupName.setText("Aventură la " + activity.placeName);
 
         AlertDialog dialog = builder.setView(dialogView).create();
         if (dialog.getWindow() != null) {
@@ -787,16 +804,31 @@ public class CalendarFragment extends Fragment {
                 sendInvitation(group, activity, u);
             }
 
-            // Also check email if typed
-            String email = inputSearchEmail.getText().toString().trim();
-            if (!email.isEmpty()) {
+            // Also check email/username if typed
+            String query = inputSearchEmail.getText().toString().trim();
+            if (!query.isEmpty()) {
                 android.content.Context context = getContext();
                 if (context != null) {
                     new Thread(() -> {
-                        User targetUser = db.userDao().getUserByEmail(email);
+                        // Search locally first, then via API
+                        User targetUser = db.userDao().getUserByEmail(query);
+                        if (targetUser == null) targetUser = db.userDao().getUserByUsername(query);
+                        
                         if (targetUser != null && getActivity() != null) {
+                            User finalTarget = targetUser;
                             getActivity().runOnUiThread(() -> {
-                                if (isAdded()) sendInvitation(group, activity, targetUser);
+                                if (isAdded()) sendInvitation(group, activity, finalTarget);
+                            });
+                        } else {
+                            // Fallback to API search
+                            apiService.searchUsers(query, sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
+                                @Override
+                                public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
+                                    if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                        sendInvitation(group, activity, response.body().get(0));
+                                    }
+                                }
+                                @Override public void onFailure(retrofit2.Call<List<User>> call, Throwable t) {}
                             });
                         }
                     }).start();
@@ -1260,6 +1292,18 @@ public class CalendarFragment extends Fragment {
             }
         });
 
+        com.google.android.material.chip.ChipGroup suggestionChips = dialogView.findViewById(R.id.dialog_activity_suggestions);
+        if (suggestionChips != null) {
+            for (int i = 0; i < suggestionChips.getChildCount(); i++) {
+                com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) suggestionChips.getChildAt(i);
+                chip.setOnClickListener(v -> {
+                    String name = chip.getText().toString().replaceAll("[🎬🎾☕🍔 ]", "");
+                    inputName.setText(name);
+                    inputType.setText(name.equals("Cinema") ? "Movie Theater" : (name.equals("Tenis") ? "Sports" : name));
+                });
+            }
+        }
+
         final String[] selectedTime = { "10:00" };
         final double EUR_RATE = 4.97; // 1 EUR = 4.97 RON
 
@@ -1377,5 +1421,343 @@ public class CalendarFragment extends Fragment {
         } catch (NumberFormatException e) {
             textConversion.setVisibility(View.GONE);
         }
+    }
+
+    // ==================== EDIT ACTIVITY ====================
+
+    /**
+     * Opens the add-activity dialog pre-filled with the existing activity's data.
+     * On save, updates the Room record and pushes to Supabase.
+     */
+    private void showEditActivityDialog(PlannedActivity existingActivity) {
+        if (!isAdded() || getContext() == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.DarkDialogTheme);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_activity, null);
+
+        android.widget.AutoCompleteTextView inputName = dialogView.findViewById(R.id.input_place_name);
+        EditText inputType    = dialogView.findViewById(R.id.input_place_type);
+        TextView inputTime    = dialogView.findViewById(R.id.input_time);
+        EditText inputBudget  = dialogView.findViewById(R.id.input_budget);
+        com.google.android.material.button.MaterialButtonToggleGroup toggleCurrency =
+                dialogView.findViewById(R.id.toggle_currency);
+        TextView textConversion = dialogView.findViewById(R.id.text_conversion_result);
+        EditText inputNotes   = dialogView.findViewById(R.id.input_notes);
+
+        // Pre-fill existing values
+        inputName.setText(existingActivity.placeName);
+        inputType.setText(existingActivity.placeType);
+        inputNotes.setText(existingActivity.notes);
+        if (existingActivity.budget > 0)
+            inputBudget.setText(String.valueOf((int) existingActivity.budget));
+
+        // Pre-select currency
+        if ("EUR".equals(existingActivity.currency)) {
+            toggleCurrency.check(R.id.btn_eur);
+        } else {
+            toggleCurrency.check(R.id.btn_ron);
+        }
+
+        // Autocomplete
+        List<String> placeNames = new ArrayList<>();
+        for (com.cityscape.app.model.Place p : allPlaces) placeNames.add(p.name);
+        android.widget.ArrayAdapter<String> acAdapter = new android.widget.ArrayAdapter<>(
+                getContext(), android.R.layout.simple_dropdown_item_1line, placeNames);
+        inputName.setAdapter(acAdapter);
+        inputName.setDropDownBackgroundResource(R.color.app_card);
+
+        final String[] selectedTime = { existingActivity.scheduledTime != null ? existingActivity.scheduledTime : "10:00" };
+        inputTime.setText(selectedTime[0]);
+        inputTime.setOnClickListener(v -> {
+            int h = 10, m = 0;
+            try {
+                String[] parts = selectedTime[0].split(":");
+                h = Integer.parseInt(parts[0]); m = Integer.parseInt(parts[1]);
+            } catch (Exception ignored) {}
+            new TimePickerDialog(getContext(), (view, hourOfDay, minute) -> {
+                selectedTime[0] = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
+                inputTime.setText(selectedTime[0]);
+            }, h, m, true).show();
+        });
+
+        final double EUR_RATE = 4.97;
+        inputBudget.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {
+                updateConversion(s.toString(), toggleCurrency.getCheckedButtonId(), textConversion, EUR_RATE);
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+        toggleCurrency.addOnButtonCheckedListener((g, checkedId, isChecked) -> {
+            if (isChecked) updateConversion(inputBudget.getText().toString(), checkedId, textConversion, EUR_RATE);
+        });
+
+        AlertDialog dialog = builder.setView(dialogView)
+                .setTitle("Editează Activitate")
+                .setPositiveButton("Salvează", null)
+                .setNegativeButton("Anulează", null)
+                .create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name  = inputName.getText().toString().trim();
+            String type  = inputType.getText().toString().trim();
+            String notes = inputNotes.getText().toString().trim();
+
+            if (name.isEmpty()) { inputName.setError("Introdu numele locului"); return; }
+
+            existingActivity.placeName    = name;
+            existingActivity.placeType    = type.isEmpty() ? existingActivity.placeType : type;
+            existingActivity.scheduledTime = selectedTime[0];
+            existingActivity.notes        = notes;
+
+            String budgetStr = inputBudget.getText().toString();
+            if (!budgetStr.isEmpty()) {
+                try { existingActivity.budget = Double.parseDouble(budgetStr); } catch (Exception ignored) {}
+            }
+            existingActivity.currency = toggleCurrency.getCheckedButtonId() == R.id.btn_eur ? "EUR" : "RON";
+
+            new Thread(() -> {
+                db.activityDao().update(existingActivity);
+                android.content.Context ctx = getContext();
+                if (ctx != null)
+                    com.cityscape.app.data.SupabaseSyncManager.getInstance(ctx).updateActivityInCloud(existingActivity);
+                if (getActivity() != null)
+                    getActivity().runOnUiThread(() -> {
+                        if (isAdded()) {
+                            loadActivitiesForDate(selectedDate);
+                            Toast.makeText(getContext(), "Activitate actualizată!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+            }).start();
+
+            dialog.dismiss();
+        });
+    }
+
+    // ==================== AVAILABILITY / DOODLE ====================
+
+    /**
+     * Shows a "Who's free?" dialog.
+     * - User picks a date range (up to 7 days)
+     * - Loads the calendar of the current user + every invited user for those days
+     * - Highlights hours where EVERYONE is free (no PlannedActivity overlaps)
+     * - Proposes the best common slot
+     * - Allows inviting a single friend (1-on-1) or a full group
+     */
+    private void showAvailabilityPickerDialog(PlannedActivity activityToSchedule) {
+        if (!isAdded() || getContext() == null) return;
+
+        android.content.Context ctx = getContext();
+        User currentUser = sessionManager.getCurrentUser();
+        if (currentUser == null) return;
+
+        // ── Build dialog UI programmatically ──────────────────────────
+        LinearLayout root = new LinearLayout(ctx);
+        root.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        root.setPadding(pad, pad, pad, pad);
+
+        // Section title
+        TextView titleLabel = new TextView(ctx);
+        titleLabel.setText("🗓️ Verifică disponibilitate");
+        titleLabel.setTextSize(16f);
+        titleLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        titleLabel.setTextColor(android.graphics.Color.WHITE);
+        root.addView(titleLabel);
+
+        // Date range picker row
+        TextView dateRangeInfo = new TextView(ctx);
+        SimpleDateFormat sdf7 = new SimpleDateFormat("dd MMM", Locale.getDefault());
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTimeInMillis(selectedDate);
+        final long[] rangeStart = { normalizeDate(startCal.getTimeInMillis()) };
+        final long[] rangeEnd   = { normalizeDate(startCal.getTimeInMillis() + 6L * 86400_000L) };
+        dateRangeInfo.setText("Interval: " + sdf7.format(new Date(rangeStart[0]))
+                + " – " + sdf7.format(new Date(rangeEnd[0])));
+        dateRangeInfo.setTextColor(0xFFAAAAAA);
+        root.addView(dateRangeInfo);
+
+        com.google.android.material.button.MaterialButton btnPickRange =
+                new com.google.android.material.button.MaterialButton(ctx);
+        btnPickRange.setText("Schimbă intervalul");
+        root.addView(btnPickRange);
+
+        btnPickRange.setOnClickListener(bv -> {
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(rangeStart[0]);
+            new DatePickerDialog(ctx, (dv, y, mo, d) -> {
+                Calendar picked = Calendar.getInstance();
+                picked.set(y, mo, d);
+                rangeStart[0] = normalizeDate(picked.getTimeInMillis());
+                rangeEnd[0]   = normalizeDate(picked.getTimeInMillis() + 6L * 86400_000L);
+                dateRangeInfo.setText("Interval: " + sdf7.format(new Date(rangeStart[0]))
+                        + " – " + sdf7.format(new Date(rangeEnd[0])));
+            }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
+        // Invite user field (email or username) — 1-on-1 or group
+        TextView inviteLabel = new TextView(ctx);
+        inviteLabel.setText("\nInvită utilizator (email / username):");
+        inviteLabel.setTextColor(android.graphics.Color.WHITE);
+        root.addView(inviteLabel);
+
+        EditText inputInvite = new EditText(ctx);
+        inputInvite.setHint("ex: ana@email.com sau @ana_pop");
+        inputInvite.setHintTextColor(0xFF888888);
+        inputInvite.setTextColor(android.graphics.Color.WHITE);
+        root.addView(inputInvite);
+
+        // Result area
+        TextView resultText = new TextView(ctx);
+        resultText.setText("");
+        resultText.setTextColor(0xFF00E5FF);
+        resultText.setPadding(0, pad / 2, 0, 0);
+        root.addView(resultText);
+
+        android.widget.ScrollView scroll = new android.widget.ScrollView(ctx);
+        scroll.addView(root);
+
+        AlertDialog dialog = new AlertDialog.Builder(ctx, R.style.DarkDialogTheme)
+                .setTitle("Disponibilitate & Invitație")
+                .setView(scroll)
+                .setPositiveButton("Analizează & Invită", null)
+                .setNegativeButton("Închide", null)
+                .create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String query = inputInvite.getText().toString().trim();
+            resultText.setText("⏳ Se analizează calendarele...");
+
+            new Thread(() -> {
+                // 1. Collect current user's busy hours across range
+                java.util.Map<Long, List<String>> myBusy = collectBusySlots(
+                        currentUser.id, rangeStart[0], rangeEnd[0]);
+
+                // 2. Try to find the invited user
+                User invited = null;
+                if (!query.isEmpty()) {
+                    String q = query.startsWith("@") ? query.substring(1) : query;
+                    invited = db.userDao().getUserByEmail(q);
+                    if (invited == null) invited = db.userDao().getUserByUsername(q);
+                }
+
+                java.util.Map<Long, List<String>> theirBusy = new java.util.HashMap<>();
+                if (invited != null) {
+                    theirBusy = collectBusySlots(invited.id, rangeStart[0], rangeEnd[0]);
+                }
+
+                // 3. Find best common free slot (first 1-hour window free for both)
+                String bestSlot = findBestOverlap(myBusy, theirBusy, rangeStart[0], rangeEnd[0]);
+
+                final User finalInvited = invited;
+                final String finalBest = bestSlot;
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (!isAdded()) return;
+
+                        StringBuilder sb = new StringBuilder();
+                        if (finalInvited != null) {
+                            sb.append("✅ Utilizator găsit: ").append(finalInvited.name).append("\n\n");
+                        } else if (!query.isEmpty()) {
+                            sb.append("⚠️ Utilizatorul '").append(query).append("' nu a fost găsit local.\n");
+                            sb.append("Invitația va fi trimisă prin cod de grup.\n\n");
+                        }
+
+                        if (finalBest != null) {
+                            sb.append("🟢 Slot liber propus: ").append(finalBest);
+                        } else {
+                            sb.append("🔴 Nu există un slot comun liber în intervalul ales.\n");
+                            sb.append("Încearcă un interval mai larg.");
+                        }
+
+                        resultText.setText(sb.toString());
+
+                        // If best slot found + user exists → offer to send invite
+                        if (finalBest != null && finalInvited != null) {
+                            new AlertDialog.Builder(ctx, R.style.DarkDialogTheme)
+                                    .setTitle("Trimite invitație?")
+                                    .setMessage("Cel mai bun slot comun: " + finalBest
+                                            + "\n\nVrei să trimiți o invitație lui " + finalInvited.name + "?")
+                                    .setPositiveButton("Trimite invitație", (dd, ww) -> {
+                                        // Create a group (or invite 1-on-1 via group with 2 members)
+                                        ActivityGroup grp = new ActivityGroup(
+                                                activityToSchedule.id, currentUser.id,
+                                                "Activitate cu " + finalInvited.name);
+                                        db.groupDao().insertGroup(grp);
+                                        com.cityscape.app.data.SupabaseSyncManager
+                                                .getInstance(ctx).pushGroupToCloud(grp);
+
+                                        GroupMember myMember = new GroupMember(
+                                                grp.id, currentUser.id, currentUser.name, true);
+                                        db.groupDao().insertMember(myMember);
+                                        com.cityscape.app.data.SupabaseSyncManager
+                                                .getInstance(ctx).pushMemberToCloud(myMember);
+
+                                        sendInvitation(grp, activityToSchedule, finalInvited);
+                                        Toast.makeText(ctx,
+                                                "Invitație trimisă lui " + finalInvited.name + "!",
+                                                Toast.LENGTH_LONG).show();
+                                        loadUserGroups();
+                                    })
+                                    .setNegativeButton("Nu acum", null)
+                                    .show();
+                        }
+                    });
+                }
+            }).start();
+        });
+    }
+
+    /**
+     * Collects all busy time slots ("dd/MM HH") for a user in [start, end] from local DB.
+     */
+    private java.util.Map<Long, List<String>> collectBusySlots(
+            String userId, long rangeStart, long rangeEnd) {
+        java.util.Map<Long, List<String>> busyByDay = new java.util.LinkedHashMap<>();
+        long cursor = rangeStart;
+        while (cursor <= rangeEnd) {
+            List<PlannedActivity> acts = db.activityDao().getActivitiesForDate(userId, cursor);
+            List<String> busyHours = new ArrayList<>();
+            for (PlannedActivity a : acts) {
+                if (a.scheduledTime != null && a.scheduledTime.contains(":")) {
+                    busyHours.add(a.scheduledTime.split(":")[0].trim()); // busy hour string
+                }
+            }
+            busyByDay.put(cursor, busyHours);
+            cursor += 86400_000L; // next day
+        }
+        return busyByDay;
+    }
+
+    /**
+     * Finds the earliest 1-hour slot where BOTH users are free (08:00–22:00 window).
+     * Returns a human-readable string or null if none found.
+     */
+    private String findBestOverlap(
+            java.util.Map<Long, List<String>> myBusy,
+            java.util.Map<Long, List<String>> theirBusy,
+            long rangeStart, long rangeEnd) {
+
+        SimpleDateFormat dayFmt  = new SimpleDateFormat("EEE dd MMM", Locale.getDefault());
+        long cursor = rangeStart;
+        while (cursor <= rangeEnd) {
+            List<String> mine  = myBusy.getOrDefault(cursor, new ArrayList<>());
+            List<String> theirs = theirBusy.isEmpty() ? new ArrayList<>() :
+                    theirBusy.getOrDefault(cursor, new ArrayList<>());
+
+            for (int hour = 8; hour <= 21; hour++) {
+                String h = String.format(Locale.getDefault(), "%02d", hour);
+                boolean myFree    = !mine.contains(h);
+                boolean theirFree = !theirs.contains(h);
+                if (myFree && theirFree) {
+                    return dayFmt.format(new Date(cursor)) + " la " + h + ":00–"
+                            + String.format(Locale.getDefault(), "%02d", hour + 1) + ":00";
+                }
+            }
+            cursor += 86400_000L;
+        }
+        return null;
     }
 }

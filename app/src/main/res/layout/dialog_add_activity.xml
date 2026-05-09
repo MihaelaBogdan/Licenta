@@ -25,6 +25,42 @@
             android:textColor="@color/app_text_primary"
             android:textColorHint="@color/app_text_hint" />
     </com.google.android.material.textfield.TextInputLayout>
+    
+    <!-- Suggested Activities -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/dialog_activity_suggestions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_add_cinema"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎬 Cinema" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_add_tennis"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎾 Tenis" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_add_coffee"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="☕ Cafea" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_add_restaurant"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🍔 Restaurant" />
+    </com.google.android.material.chip.ChipGroup>
 
     <!-- Place Type -->
     <com.google.android.material.textfield.TextInputLayout

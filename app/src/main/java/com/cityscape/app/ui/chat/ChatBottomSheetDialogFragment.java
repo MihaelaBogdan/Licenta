@@ -68,21 +68,9 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         // Initial welcome message - personalized with user's name
         com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
         String userName = sessionManager.getUserName();
-        String welcomeText = getString(R.string.chatbot_welcome);
+        if (userName == null || userName.isEmpty()) userName = "Prieten";
         
-        // If the welcome string has a punctuation mark, inject the name before it for a natural feel
-        String finalWelcome;
-        if (userName != null && !userName.isEmpty()) {
-            if (welcomeText.contains("!")) {
-                finalWelcome = welcomeText.replace("!", ", " + userName + "!");
-            } else if (welcomeText.contains("?")) {
-                finalWelcome = welcomeText.replace("?", ", " + userName + "?");
-            } else {
-                finalWelcome = welcomeText + ", " + userName + "!";
-            }
-        } else {
-            finalWelcome = welcomeText;
-        }
+        String finalWelcome = "Salut, " + userName + "! Cu ce te pot ajuta azi?";
 
         messages.add(new ChatMessage(finalWelcome, false));
         adapter.notifyDataSetChanged();
@@ -92,11 +80,46 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         welcomeSuggestions.add("🍽️ Restaurant bun");
         welcomeSuggestions.add("☕ Cafenea cozy");
         welcomeSuggestions.add("🎭 Ce vizităm?");
+        welcomeSuggestions.add("🎬 Cinema");
+        welcomeSuggestions.add("🎾 Tenis / Sport");
+        welcomeSuggestions.add("🌙 Viață de noapte");
         showSuggestions(welcomeSuggestions);
+
+        // Setup Persistent Themes
+        setupDiscussionThemes(view);
 
         sendButton.setOnClickListener(v -> sendMessage());
 
         return view;
+    }
+
+    private void setupDiscussionThemes(View view) {
+        com.google.android.material.chip.ChipGroup themesGroup = view.findViewById(R.id.chat_themes_group);
+        if (themesGroup == null) return;
+
+        String[] themes = {
+            "🍕 Unde mâncăm azi?",
+            "📍 Ce e în apropiere?",
+            "🗺️ Planifică-mi ziua",
+            "💎 Locuri ascunse",
+            "📸 Cele mai bune poze",
+            "💸 Opțiuni ieftine",
+            "🎸 Evenimente live"
+        };
+
+        for (String theme : themes) {
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+            chip.setText(theme);
+            chip.setCheckable(false);
+            chip.setClickable(true);
+            chip.setChipBackgroundColorResource(R.color.app_surface);
+            chip.setTextColor(getResources().getColor(R.color.app_text_primary));
+            chip.setOnClickListener(v -> {
+                inputField.setText(theme);
+                sendMessage();
+            });
+            themesGroup.addView(chip);
+        }
     }
 
     private void sendMessage() {
@@ -119,8 +142,9 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
             String userId = sessionManager.getUserId();
             double lat = sessionManager.getLastLat();
             double lng = sessionManager.getLastLng();
+            String cityName = sessionManager.getPreferredCity();
             
-            ChatRequest request = new ChatRequest(text, userId, lat, lng);
+            ChatRequest request = new ChatRequest(text, userId, lat, lng, cityName);
             com.cityscape.app.util.BadgeManager.addExperience(requireContext(), userId, 10);
             Call<ChatResponse> call = apiService.chat(request);
 

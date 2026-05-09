@@ -6,17 +6,19 @@ public class ChatRequest {
     public String user_id;
     public Double lat;
     public Double lng;
+    public String city_name;
 
     public ChatRequest(String message) {
         this.message = message;
         this.language = "ro";
     }
 
-    public ChatRequest(String message, String user_id, Double lat, Double lng) {
+    public ChatRequest(String message, String user_id, Double lat, Double lng, String city_name) {
         this.message = message;
         this.user_id = user_id;
         this.lat = lat;
         this.lng = lng;
+        this.city_name = city_name;
         this.language = "ro";
     }
 }

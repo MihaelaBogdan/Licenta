@@ -25,7 +25,7 @@ import com.cityscape.app.model.MemberSchedule;
         MemberSchedule.class,
         com.cityscape.app.model.GroupSuggestion.class,
         com.cityscape.app.model.Vote.class
-}, version = 12, exportSchema = false)
+}, version = 14, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
@@ -80,18 +80,21 @@ public abstract class AppDatabase extends RoomDatabase {
                 UserDao dao = userDao();
                 if (dao.getUserByEmail("admin@cityscape.app") == null) {
                     User admin = new User("Administrator", "admin@cityscape.app", "Admin123!");
+                    admin.username = "admin";
                     admin.level = 10;
                     admin.totalXp = 5000;
                     dao.insert(admin);
                 }
                 if (dao.getUserByEmail("test@example.com") == null) {
                     User test = new User("Test User", "test@example.com", "Password123!");
+                    test.username = "tester";
                     test.level = 3;
                     test.totalXp = 1200;
                     dao.insert(test);
                 }
                 if (dao.getUserByEmail("mihaela@licenta.ro") == null) {
                     User mihaela = new User("Mihaela Bogdan", "mihaela@licenta.ro", "Mihaela2026!");
+                    mihaela.username = "mihaela";
                     mihaela.level = 5;
                     mihaela.totalXp = 2500;
                     dao.insert(mihaela);

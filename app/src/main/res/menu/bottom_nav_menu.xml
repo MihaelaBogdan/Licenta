@@ -3,7 +3,7 @@
     <item
         android:id="@+id/navigation_feed"
         android:icon="@drawable/ic_globe"
-        android:title="Feed" />
+        android:title="Social Hub" />
     <item
         android:id="@+id/navigation_home"
         android:icon="@drawable/ic_home"

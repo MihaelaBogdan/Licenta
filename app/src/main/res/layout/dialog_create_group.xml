@@ -91,7 +91,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Caută după email"
+        android:hint="Caută după email sau @utilizator"
         app:startIconDrawable="@drawable/ic_search"
         app:startIconTint="@color/app_text_hint">
 
@@ -99,7 +99,7 @@
             android:id="@+id/input_search_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"
+            android:inputType="text"
             android:textColor="@color/app_text_primary"
             android:textSize="14sp" />
     </com.google.android.material.textfield.TextInputLayout>

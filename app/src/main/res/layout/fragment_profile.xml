@@ -309,6 +309,37 @@
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
                 </LinearLayout>
+                
+                <Button
+                    android:id="@+id/btn_generate_report"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="20dp"
+                    android:text="Generare Raport Activitate"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:backgroundTint="@color/primary"
+                    app:cornerRadius="16dp"
+                    app:icon="@drawable/ic_itinerary"
+                    app:iconGravity="textStart"
+                    app:iconPadding="10dp" />
+
+                <Button
+                    android:id="@+id/btn_admin_stats"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Panou Administrare (Stats)"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/primary"
+                    android:visibility="gone" />
 
                 <!-- INSIGNE SECTION -->
                 <TextView

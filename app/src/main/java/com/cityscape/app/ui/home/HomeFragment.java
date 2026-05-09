@@ -57,7 +57,8 @@ import retrofit2.Response;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import java.util.Date;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements com.google.android.gms.maps.OnMapReadyCallback {
+    private com.google.android.gms.maps.GoogleMap googleMap;
 
         private FragmentHomeBinding binding;
         private android.content.Context appContext;
@@ -105,8 +106,14 @@ public class HomeFragment extends Fragment {
                 setupMoodSearch();
                 setupItineraryButton();
                 setupCrystalBall();
-                setupLocationReset();
+                binding.btnResetLocation.setOnClickListener(v -> setupLocationReset());
                 
+                com.google.android.gms.maps.SupportMapFragment mapFragment = (com.google.android.gms.maps.SupportMapFragment) getChildFragmentManager()
+                        .findFragmentById(R.id.map_preview);
+                if (mapFragment != null) {
+                    mapFragment.getMapAsync(this);
+                }
+
                 binding.textLocation.setOnClickListener(v -> showCitySelectionDialog());
                 checkLocationPermission();
                 showPreviousSessionPromptIfAvailable();
@@ -114,7 +121,7 @@ public class HomeFragment extends Fragment {
                 // DEBUG: Show the current API URL on start to verify build updates
                 try {
                     String apiUrl = BuildConfig.FLASK_API_URL;
-                    Toast.makeText(getContext(), "Conectare la: " + apiUrl, Toast.LENGTH_LONG).show();
+                    // Removed connection toast
                 } catch (Exception e) {
                     Log.e("HomeFragment", "Debug URL toast failed", e);
                 }
@@ -123,20 +130,8 @@ public class HomeFragment extends Fragment {
         }
 
         private void showPreviousSessionPromptIfAvailable() {
-            String preferredCity = sessionManager.getPreferredCity();
-            if (preferredCity != null && !preferredCity.isEmpty()) {
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext(), R.style.DarkDialogTheme)
-                    .setTitle("Sesiune anterioară")
-                    .setMessage("Te-ai întors! Vrei să continui explorarea în " + preferredCity + "?")
-                    .setPositiveButton("Da", (dialog, which) -> {
-                        searchForCity(preferredCity);
-                    })
-                    .setNegativeButton("Nu, rămân aici", (dialog, which) -> {
-                        sessionManager.setPreferredCity(null);
-                        updateFilters();
-                    })
-                    .show();
-            }
+            // No prompt needed anymore, we automatically respect the preferred city
+            // as per user request to ignore current location when set.
         }
 
         private void setupLocationReset() {
@@ -197,6 +192,7 @@ public class HomeFragment extends Fragment {
                             });
                         }
 
+                        com.google.android.material.chip.ChipGroup interestChips = dialogView.findViewById(R.id.dialog_interest_chips);
                         View btnPlan = dialogView.findViewById(R.id.btn_generate_itinerary);
 
                         btnPlan.setOnClickListener(v1 -> {
@@ -210,6 +206,20 @@ public class HomeFragment extends Fragment {
                                 else if (checkedChipId == R.id.chip_type_cultural) type = "cultural";
                                 else if (checkedChipId == R.id.chip_type_gastronomic) type = "gastronomic";
                                 else if (checkedChipId == R.id.chip_type_nightlife) type = "nightlife";
+                                else if (checkedChipId == R.id.chip_type_cinema) type = "cinema";
+                                else if (checkedChipId == R.id.chip_type_sport) type = "sport";
+
+                                // Collect interests
+                                List<String> selectedInterests = new ArrayList<>();
+                                if (interestChips != null) {
+                                    for (int i = 0; i < interestChips.getChildCount(); i++) {
+                                        com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) interestChips.getChildAt(i);
+                                        if (chip.isChecked()) {
+                                            selectedInterests.add(chip.getText().toString().replace("🎬 ", "").replace("🎾 ", "").replace("🏛️ ", "").replace("🌳 ", "").replace("🍔 ", ""));
+                                        }
+                                    }
+                                }
+                                String interestsString = String.join(",", selectedInterests);
 
                                 int budget = (int) budgetSlider.getValue();
                                 
@@ -217,7 +227,7 @@ public class HomeFragment extends Fragment {
                                 int points = (int) (densitySlider != null ? densitySlider.getValue() : 4);
 
                                 dialog.dismiss();
-                                fetchItinerary(scope, type, budget, duration, points);
+                                fetchItinerary(scope, type, budget, duration, points, interestsString);
                         });
 
                         dialog.show();
@@ -253,48 +263,63 @@ public class HomeFragment extends Fragment {
                 TextView textReveal = dialogView.findViewById(R.id.text_magic_reveal_name);
                 ImageView imgBall = dialogView.findViewById(R.id.img_magic_reveal_ball);
                 ImageView imgMist = dialogView.findViewById(R.id.img_magic_reveal_mist);
+                com.google.android.material.chip.ChipGroup chipGroup = dialogView.findViewById(R.id.chip_group_magic_cats);
                 com.google.android.material.button.MaterialButton btnGo = dialogView.findViewById(R.id.btn_magic_go);
+                View ballContainer = dialogView.findViewById(R.id.layout_magic_ball_container);
 
-                // --- SNAPPY ANIMATIONS & BLENDING ---
-                // No color filter needed anymore since the image has a transparent background.
+                ballContainer.setVisibility(View.GONE);
 
-                // 1. Subtle Breath (Faster for better feel)
-                android.animation.ObjectAnimator scaleX = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleX", 1.0f, 1.05f);
-                android.animation.ObjectAnimator scaleY = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleY", 1.0f, 1.05f);
-                scaleX.setDuration(1500); scaleY.setDuration(1500);
+                chipGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                        if (checkedId == -1) return;
+
+                        String category = "general";
+                        if (checkedId == R.id.chip_magic_food) category = "restaurant";
+                        else if (checkedId == R.id.chip_magic_fun) category = "entertainment";
+                        else if (checkedId == R.id.chip_magic_relax) category = "park";
+                        else if (checkedId == R.id.chip_magic_culture) category = "museum";
+
+                        chipGroup.setVisibility(View.GONE);
+                        ballContainer.setVisibility(View.VISIBLE);
+                        textStatus.setText("CITIM DESTINUL...");
+
+                        startMagicAnimations(imgBall, imgMist);
+                        fetchMagicRecommendation(dialog, category, textStatus, textReveal, imgMist, btnGo);
+                });
+
+                dialog.show();
+        }
+
+        private void startMagicAnimations(ImageView imgBall, ImageView imgMist) {
+                android.animation.ObjectAnimator scaleX = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleX", 1.0f, 1.1f);
+                android.animation.ObjectAnimator scaleY = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleY", 1.0f, 1.1f);
+                scaleX.setDuration(1200); scaleY.setDuration(1200);
                 scaleX.setRepeatCount(android.animation.ValueAnimator.INFINITE); scaleY.setRepeatCount(android.animation.ValueAnimator.INFINITE);
                 scaleX.setRepeatMode(android.animation.ValueAnimator.REVERSE); scaleY.setRepeatMode(android.animation.ValueAnimator.REVERSE);
                 scaleX.start(); scaleY.start();
 
-                // 2. Swirling Mist (Initial "Thick Dust" phase)
-                imgMist.setAlpha(0.9f); // Thick fog/dust
-                
+                imgMist.setAlpha(0.9f);
                 android.animation.ObjectAnimator rotateMist = android.animation.ObjectAnimator.ofFloat(imgMist, "rotation", 0f, 360f);
-                rotateMist.setDuration(10000);
+                rotateMist.setDuration(8000);
                 rotateMist.setRepeatCount(android.animation.ValueAnimator.INFINITE);
                 rotateMist.setInterpolator(new android.view.animation.LinearInterpolator());
                 rotateMist.start();
+        }
 
-                dialog.show();
-                
-                // Fetch high-quality AI recommendation from backend
-                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId())
+        private void fetchMagicRecommendation(androidx.appcompat.app.AlertDialog dialog, String category, TextView textStatus, TextView textReveal, ImageView imgMist, com.google.android.material.button.MaterialButton btnGo) {
+                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId(), category)
                     .enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
                         @Override
                         public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
                             if (isAdded() && response.isSuccessful() && response.body() != null) {
                                 com.google.gson.JsonObject result = response.body();
                                 String name = result.get("name").getAsString();
-                                String reason = result.get("reason").getAsString();
-                                com.google.gson.JsonArray activities = result.getAsJsonArray("activities");
                                 
-                                // Reveal with delay for dramatic effect
                                 textReveal.postDelayed(() -> {
                                     if (dialog.isShowing()) {
-                                        textStatus.setText("Destinul tău este:");
-                                        imgMist.animate().alpha(0.15f).setDuration(2500).start();
+                                        textStatus.setText("DESTINUL TĂU:");
+                                        imgMist.animate().alpha(0.1f).setDuration(1000).start();
                                         textReveal.setText(name);
-                                        textReveal.animate().alpha(1.0f).setDuration(2000).start();
+                                        textReveal.animate().alpha(1.0f).setDuration(800).start();
                                         
                                         btnGo.setVisibility(View.VISIBLE);
                                         btnGo.setOnClickListener(v1 -> {
@@ -302,7 +327,7 @@ public class HomeFragment extends Fragment {
                                             showMagicDetailDialog(result);
                                         });
                                     }
-                                }, 2500);
+                                }, 800);
                             } else {
                                 fallbackToRandomPlace(dialog, textStatus, textReveal, imgMist, btnGo);
                             }
@@ -321,16 +346,23 @@ public class HomeFragment extends Fragment {
                 textReveal.postDelayed(() -> {
                     if (dialog.isShowing()) {
                         textStatus.setText("Destinul tău este:");
-                        imgMist.animate().alpha(0.15f).setDuration(2500).start();
+                        imgMist.animate().alpha(0.1f).setDuration(1000).start();
                         textReveal.setText(result.name);
-                        textReveal.animate().alpha(1.0f).setDuration(2000).start();
+                        textReveal.animate().alpha(1.0f).setDuration(800).start();
+                        
                         btnGo.setVisibility(View.VISIBLE);
                         btnGo.setOnClickListener(v1 -> {
                             dialog.dismiss();
-                            showRecommendationDialog(result);
+                            // Convert Place to JsonObject for compatibility
+                            com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+                            obj.addProperty("name", result.name);
+                            obj.addProperty("address", result.address);
+                            obj.addProperty("rating", result.rating);
+                            obj.addProperty("place_id", result.id);
+                            showMagicDetailDialog(obj);
                         });
                     }
-                }, 2500);
+                }, 800);
             }
         }
 
@@ -353,13 +385,35 @@ public class HomeFragment extends Fragment {
                 .setMessage("\n" + name.toUpperCase() + "\n\n" + 
                            "\"" + reason + "\"\n\n" + 
                            "ACTIVITĂȚI PROFETIZATE:\n" + actStr.toString())
-                .setPositiveButton("URMEAZĂ DESTINUL", (d, w) -> {
-                    Toast.makeText(getContext(), "Aventura începe acum! 🚀", Toast.LENGTH_SHORT).show();
-                })
-                .setNeutralButton("ALTA VIZIUNE", (d, w) -> {
-                    if (binding != null) binding.btnRevealFate.performClick();
-                })
-                .setNegativeButton("ÎNCHIDE", null)
+                .setPositiveButton("VEZI TRASEU", (d, w) -> {
+                     try {
+                         if (result.has("latitude") && !result.get("latitude").isJsonNull()) {
+                             double lat = result.get("latitude").getAsDouble();
+                             double lng = result.get("longitude").getAsDouble();
+                             String uri = String.format(java.util.Locale.ENGLISH, "google.navigation:q=%f,%f", lat, lng);
+                             android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                             intent.setPackage("com.google.android.apps.maps");
+                             startActivity(intent);
+                         } else {
+                             Toast.makeText(getContext(), "Coordonate indisponibile", Toast.LENGTH_SHORT).show();
+                         }
+                     } catch (Exception e) {
+                         Toast.makeText(getContext(), "Eroare navigație", Toast.LENGTH_SHORT).show();
+                     }
+                 })
+                 .setNeutralButton("INVITĂ PRIETENI", (d, w) -> {
+                     try {
+                        String shareMsg = "Hei! Globul de Cristal CityScape mi-a prezis o aventură la " + (name != null ? name : "o locație secretă") + ". Vrei să vii cu mine? ✨🚀";
+                        android.content.Intent sendIntent = new android.content.Intent();
+                        sendIntent.setAction(android.content.Intent.ACTION_SEND);
+                        sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMsg);
+                        sendIntent.setType("text/plain");
+                        startActivity(android.content.Intent.createChooser(sendIntent, "Invită prieteni prin..."));
+                     } catch (Exception e) {
+                        Toast.makeText(getContext(), "Eroare la partajare", Toast.LENGTH_SHORT).show();
+                     }
+                 })
+                 .setNegativeButton("ÎNCHIDE", null)
                 .show();
         }
 
@@ -419,7 +473,17 @@ public class HomeFragment extends Fragment {
                 Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
                 task.addOnSuccessListener(requireActivity(), locationSettingsResponse -> {
-                        // Settings are good, get location
+                        // Check if user has a preferred city set in Settings. 
+                        // If so, we IGNORE GPS completely to respect their choice.
+                        String prefCity = sessionManager.getPreferredCity();
+                        if (prefCity != null && !prefCity.isEmpty()) {
+                            Log.d("HomeFragment", "Using preferred city override: " + prefCity);
+                            isManualLocation = true;
+                            searchForCity(prefCity);
+                            return;
+                        }
+
+                        // Settings are good, get location only if no manual override is active
                         if (!isManualLocation) {
                             performLocationFetch();
                         }
@@ -525,7 +589,7 @@ public class HomeFragment extends Fragment {
                 }
         }
 
-        private void fetchItinerary(String scope, String type, int budget, int duration, int points) {
+        private void fetchItinerary(String scope, String type, int budget, int duration, int points, String manualInterests) {
                 if (currentLocation == null) return;
                 
                 Bundle args = new Bundle();
@@ -538,8 +602,15 @@ public class HomeFragment extends Fragment {
                 args.putInt("itinerary_points", points);
                 
                 User user = sessionManager.getCurrentUser();
-                String interests = user != null && user.interests != null ? user.interests : "";
-                args.putString("itinerary_interests", interests);
+                String profileInterests = user != null && user.interests != null ? user.interests : "";
+                
+                // Combine profile interests with manual ones from dialog
+                String combinedInterests = profileInterests;
+                if (manualInterests != null && !manualInterests.isEmpty()) {
+                    combinedInterests = combinedInterests.isEmpty() ? manualInterests : combinedInterests + "," + manualInterests;
+                }
+                
+                args.putString("itinerary_interests", combinedInterests);
                 Navigation.findNavController(binding.getRoot()).navigate(R.id.navigation_itinerary, args);
         }
 
@@ -908,6 +979,8 @@ public class HomeFragment extends Fragment {
                 if (!isNearbyOnly) {
                     fetchPlaces(true); 
                     fetchAIPicks(); // Trigger AI Recommendations
+                    loadDailyQuest(); // Trigger AI Daily Quest
+                    loadHypeMap(); // Refresh Hype Map for the new city
                 }
 
                 String userId = sessionManager.getUserId();
@@ -928,7 +1001,8 @@ public class HomeFragment extends Fragment {
                             }
                         });
                 } else {
-                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 50000, userId)
+                    String currentCity = sessionManager.getPreferredCity();
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 50000, userId, currentCity)
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -940,11 +1014,11 @@ public class HomeFragment extends Fragment {
                                     combinedPlacesList.addAll(results);
                                     
                                     // DEBUG TOAST: Remove later once confirmed
-                                    if (isAdded()) Toast.makeText(getContext(), "Am găsit " + results.size() + " locații în Trending!", Toast.LENGTH_SHORT).show();
+                                    // Removed results toast
                                     
                                     updateFilters();
                                 } else {
-                                    if (isAdded()) Toast.makeText(getContext(), "Server-ul nu a returnat date populare.", Toast.LENGTH_SHORT).show();
+                                    // Removed error toast
                                 }
                             }
 
@@ -961,7 +1035,8 @@ public class HomeFragment extends Fragment {
                 if (currentLocation == null || !isAdded()) return;
                 
                 String userId = sessionManager.getUserId();
-                apiService.getPersonalizedRecommendations(currentLocation.getLatitude(), currentLocation.getLongitude(), userId, searchQuery, currentCategory)
+                String currentCity = sessionManager.getPreferredCity();
+                apiService.getPersonalizedRecommendations(currentLocation.getLatitude(), currentLocation.getLongitude(), userId, searchQuery, currentCategory, currentCity)
                     .enqueue(new Callback<List<Place>>() {
                         @Override
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -1385,7 +1460,7 @@ public class HomeFragment extends Fragment {
                 com.cityscape.app.data.AppDatabase.getInstance(appContext).activityDao().insert(activity);
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(appContext).pushActivityToCloud(activity);
                 com.cityscape.app.util.BadgeManager.addExperience(appContext, user.id, 50);
-                com.cityscape.app.util.BadgeManager.awardBadge(appContext, user.id, "planner", "Master Planner", "Ai început să îți organizezi aventuras!", "ic_badge_generic");
+                com.cityscape.app.util.BadgeManager.awardBadge(appContext, user.id, "planner", "Master Planner", "Ai început să îți organizezi aventura!", "Planifică cel puțin o activitate în jurnal", "ic_badge_generic");
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         if (getContext() != null) Toast.makeText(getContext(), "Adăugat la planul tău! 🎒", Toast.LENGTH_SHORT).show();
@@ -1476,6 +1551,95 @@ public class HomeFragment extends Fragment {
                             (pType.contains("cafe") || pType.contains("coffee") || pType.contains("bakery"))) return true;
                 }
                 return false;
+        }
+
+
+
+        private void loadDailyQuest() {
+            if (currentLocation == null || !isAdded()) return;
+            
+            User user = sessionManager.getCurrentUser();
+            String userId = user != null ? user.id : "";
+            String interests = user != null ? (user.interests != null ? user.interests : "") : "";
+            
+            apiService.getDailyQuest(userId, currentLocation.getLatitude(), currentLocation.getLongitude(), interests, "ro")
+                .enqueue(new Callback<com.google.gson.JsonObject>() {
+                    @Override
+                    public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                        if (response.isSuccessful() && response.body() != null && binding != null) {
+                            try {
+                                com.google.gson.JsonObject quest = response.body();
+                                binding.cardDailyQuest.setVisibility(View.VISIBLE);
+                                binding.textQuestTitle.setText(quest.get("title").getAsString());
+                                binding.textQuestObjective.setText(quest.get("objective").getAsString());
+                                binding.textQuestReward.setText(quest.get("reward").getAsString());
+                                binding.textQuestReason.setText(quest.get("reason").getAsString());
+                                
+                                // Add a subtle animation
+                                binding.cardDailyQuest.setAlpha(0f);
+                                binding.cardDailyQuest.animate().alpha(1f).setDuration(500).start();
+                            } catch (Exception e) {
+                                Log.e("HomeFragment", "Quest parsing error: " + e.getMessage());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
+                        Log.e("HomeFragment", "Quest failed: " + t.getMessage());
+                    }
+                });
+        }
+
+        @Override
+        public void onMapReady(@NonNull com.google.android.gms.maps.GoogleMap map) {
+            this.googleMap = map;
+            try {
+                // Style the map to be dark/premium
+                boolean success = map.setMapStyle(com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style_dark));
+                if (!success) Log.e("HomeFragment", "Style parsing failed.");
+            } catch (Exception e) {
+                Log.e("HomeFragment", "Can't find style. Error: ", e);
+            }
+            
+            if (currentLocation != null) {
+                com.google.android.gms.maps.model.LatLng latLng = new com.google.android.gms.maps.model.LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(latLng, 14f));
+            }
+            
+            loadHypeMap();
+        }
+
+        private void loadHypeMap() {
+            if (googleMap == null || currentLocation == null) return;
+            
+            apiService.getHypeMap(currentLocation.getLatitude(), currentLocation.getLongitude()).enqueue(new Callback<List<Map<String, Object>>>() {
+                @Override
+                public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                    if (response.isSuccessful() && response.body() != null && googleMap != null) {
+                        List<Map<String, Object>> points = response.body();
+                        googleMap.clear();
+                        
+                        for (Map<String, Object> point : points) {
+                            double lat = (double) point.get("lat");
+                            double lng = (double) point.get("lng");
+                            String source = (String) point.get("source");
+                            
+                            float hue = source.equals("post") ? com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_VIOLET : com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE;
+                            
+                            googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+                                .position(new com.google.android.gms.maps.model.LatLng(lat, lng))
+                                .title(source.equals("post") ? "Postare Nouă" : "Vizită Recentă")
+                                .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hue)));
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
+                    Log.e("HomeFragment", "Hype fetch failed", t);
+                }
+            });
         }
 
         @Override

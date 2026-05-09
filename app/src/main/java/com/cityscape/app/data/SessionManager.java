@@ -11,6 +11,7 @@ public class SessionManager {
     private static final String PREF_NAME = "CityScapeSession";
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_USER_NAME = "user_name";
+    private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
     private static final String KEY_PREFERRED_CITY = "preferred_city";
@@ -30,6 +31,7 @@ public class SessionManager {
     public void createSession(User user) {
         editor.putString(KEY_USER_ID, user.id);
         editor.putString(KEY_USER_NAME, user.name);
+        editor.putString(KEY_USER_EMAIL, user.email);
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.apply();
 
@@ -89,6 +91,13 @@ public class SessionManager {
         return "Explorer";
     }
 
+    public String getEmail() {
+        String email = prefs.getString(KEY_USER_EMAIL, null);
+        if (email != null) return email;
+        User user = getCurrentUser();
+        return (user != null) ? user.email : null;
+    }
+
     public void logout() {
         editor.clear();
         editor.apply();
@@ -117,21 +126,15 @@ public class SessionManager {
     private void initializeBadgesForUser(String userId) {
         // Check if badges already exist
         if (db.badgeDao().getBadgesForUser(userId).isEmpty()) {
-            // Create default badges
-            db.badgeDao().insert(
-                    new UserBadge(userId, "first_steps", "First Steps", "Visit your first place", "ic_badge_first"));
-            db.badgeDao()
-                    .insert(new UserBadge(userId, "coffee_lover", "Coffee Lover", "Visit 5 cafes", "ic_badge_coffee"));
-            db.badgeDao().insert(
-                    new UserBadge(userId, "culture_seeker", "Culture Seeker", "Visit 3 museums", "ic_badge_culture"));
-            db.badgeDao()
-                    .insert(new UserBadge(userId, "night_owl", "Night Owl", "Check in after 10 PM", "ic_badge_night"));
-            db.badgeDao().insert(new UserBadge(userId, "explorer", "Explorer", "Visit 50 places", "ic_badge_explorer"));
-            db.badgeDao().insert(new UserBadge(userId, "foodie", "Foodie", "Visit 10 restaurants", "ic_badge_default"));
-            db.badgeDao()
-                    .insert(new UserBadge(userId, "social", "Social Butterfly", "Share 5 places", "ic_badge_default"));
-            db.badgeDao()
-                    .insert(new UserBadge(userId, "reviewer", "Top Reviewer", "Write 10 reviews", "ic_badge_default"));
+            // Create default badges with descriptions and requirements
+            db.badgeDao().insert(new UserBadge(userId, "first_steps", "First Steps", "Vizitează prima ta locație", "ic_badge_first", "Vizitează o locație de pe hartă"));
+            db.badgeDao().insert(new UserBadge(userId, "coffee_lover", "Coffee Lover", "Ești un fan al cafelei", "ic_badge_coffee", "Vizitează 5 cafenele diferite"));
+            db.badgeDao().insert(new UserBadge(userId, "culture_seeker", "Culture Seeker", "Explorator cultural", "ic_badge_culture", "Vizitează 3 muzee sau galerii de artă"));
+            db.badgeDao().insert(new UserBadge(userId, "night_owl", "Night Owl", "Explorator de noapte", "ic_badge_night", "Vizitează o locație după ora 22:00"));
+            db.badgeDao().insert(new UserBadge(userId, "explorer", "Explorer", "Mare explorator urban", "ic_badge_explorer", "Vizitează 50 de locații în total"));
+            db.badgeDao().insert(new UserBadge(userId, "foodie", "Foodie", "Pasionat de gastronomie", "ic_badge_default", "Vizitează 10 restaurante recomandate"));
+            db.badgeDao().insert(new UserBadge(userId, "social", "Social Butterfly", "Activ în comunitate", "ic_badge_default", "Postează 5 experiențe în feed"));
+            db.badgeDao().insert(new UserBadge(userId, "reviewer", "Top Reviewer", "Criticul orașului", "ic_badge_default", "Scrie 10 recenzii detaliate"));
         }
     }
 

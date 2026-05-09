@@ -6,9 +6,12 @@ public class Badge {
     public int iconResId;
     public boolean isUnlocked;
 
-    public Badge(String name, String description, int iconResId, boolean isUnlocked) {
+    public String requirement;
+
+    public Badge(String name, String description, String requirement, int iconResId, boolean isUnlocked) {
         this.name = name;
         this.description = description;
+        this.requirement = requirement;
         this.iconResId = iconResId;
         this.isUnlocked = isUnlocked;
     }

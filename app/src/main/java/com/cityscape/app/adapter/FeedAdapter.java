@@ -24,6 +24,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         void onLikeClicked(FeedPost post, int position);
         void onCommentClicked(FeedPost post);
         void onShareClicked(FeedPost post);
+        void onReportClicked(FeedPost post);
     }
 
     public FeedAdapter(OnPostActionListener listener) {
@@ -97,6 +98,19 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
 
         holder.btnShare.setOnClickListener(v -> {
             if (listener != null) listener.onShareClicked(post);
+        });
+
+        holder.btnOptions.setOnClickListener(v -> {
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(v.getContext(), v);
+            popup.getMenu().add("Raportează");
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getTitle().equals("Raportează") && listener != null) {
+                    listener.onReportClicked(post);
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
         });
     }
 

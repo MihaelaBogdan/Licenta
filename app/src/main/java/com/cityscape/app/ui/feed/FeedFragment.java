@@ -137,7 +137,10 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         if (swipeRefresh != null && !swipeRefresh.isRefreshing()) progressBar.setVisibility(View.VISIBLE);
         
         String uId = (sessionManager != null) ? sessionManager.getUserId() : "";
-        apiService.getFeed(currentTab, uId != null ? uId : "").enqueue(new Callback<List<FeedPost>>() {
+        Double lat = (sessionManager != null) ? sessionManager.getLastLat() : null;
+        Double lng = (sessionManager != null) ? sessionManager.getLastLng() : null;
+        
+        apiService.getFeed(currentTab, uId != null ? uId : "", lat, lng).enqueue(new Callback<List<FeedPost>>() {
             @Override
             public void onResponse(Call<List<FeedPost>> call, Response<List<FeedPost>> res) {
                 if (!isAdded()) return;
@@ -260,6 +263,23 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                                 com.cityscape.app.util.BadgeManager.awardPostBadge(getContext(), sessionManager.getUserId());
                                 
                                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> loadFeed(), 500);
+                            } else if (res.code() == 400) {
+                                try {
+                                    String errorJson = res.errorBody().string();
+                                    JsonObject obj = com.google.gson.JsonParser.parseString(errorJson).getAsJsonObject();
+                                    if (obj.has("status") && obj.get("status").getAsString().equals("rejected")) {
+                                        String reason = obj.get("reason").getAsString();
+                                        new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                            .setTitle("🤖 AI Moderation")
+                                            .setMessage("Conținutul a fost respins de AI: " + reason)
+                                            .setPositiveButton("Am înțeles", null)
+                                            .show();
+                                    } else {
+                                        Toast.makeText(getContext(), "Eroare: " + res.code(), Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (Exception e) {
+                                    Toast.makeText(getContext(), "Eroare server", Toast.LENGTH_SHORT).show();
+                                }
                             } else {
                                 Toast.makeText(getContext(), "Server error: " + res.code(), Toast.LENGTH_SHORT).show();
                             }
@@ -272,6 +292,40 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             }
         });
         builder.setNegativeButton("Anulează", null);
+        builder.show();
+    }
+
+    @Override
+    public void onReportClicked(FeedPost post) {
+        showReportDialog(post.id, null);
+    }
+
+    private void showReportDialog(String postId, String commentId) {
+        String[] reasons = {"Limbaj nepotrivit", "Spam / Conținut irelevant", "Hărțuire", "Dezinformare", "Altceva"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+        builder.setTitle("Raportează conținutul");
+        builder.setItems(reasons, (dialog, which) -> {
+            String reason = reasons[which];
+            Map<String, Object> body = new HashMap<>();
+            body.put("user_id", sessionManager.getUserId());
+            if (postId != null) body.put("post_id", postId);
+            if (commentId != null) body.put("comment_id", commentId);
+            body.put("reason", reason);
+            
+            if (apiService != null) {
+                apiService.reportContent(body).enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> res) {
+                        if (isAdded() && res.isSuccessful()) {
+                            Toast.makeText(getContext(), "Raport trimis cu succes! Mulțumim.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override public void onFailure(Call<JsonObject> call, Throwable t) {
+                        if (isAdded()) Toast.makeText(getContext(), "Eroare rețea", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
         builder.show();
     }
 
@@ -306,7 +360,9 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         if (apiService != null) {
             apiService.getComments(post.id).enqueue(new Callback<List<FeedComment>>() {
                 @Override public void onResponse(Call<List<FeedComment>> call, Response<List<FeedComment>> res) {
-                    if (isAdded() && rv != null && res.body() != null) rv.setAdapter(new CommentAdapter(res.body()));
+                    if (isAdded() && rv != null && res.body() != null) {
+                        rv.setAdapter(new CommentAdapter(res.body(), id -> showReportDialog(null, id)));
+                    }
                 }
                 @Override public void onFailure(Call<List<FeedComment>> call, Throwable t) {}
             });
@@ -318,13 +374,26 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             if (apiService != null) {
                 apiService.addComment(post.id, c).enqueue(new Callback<JsonObject>() {
                     @Override public void onResponse(Call<JsonObject> call, Response<JsonObject> res) {
-                        if (isAdded()) { et.setText("");
-                            apiService.getComments(post.id).enqueue(new Callback<List<FeedComment>>() {
-                                @Override public void onResponse(Call<List<FeedComment>> call, Response<List<FeedComment>> res2) {
-                                    if (isAdded() && rv != null && res2.body() != null) { rv.setAdapter(new CommentAdapter(res2.body())); post.commentsCount = res2.body().size(); }
-                                }
-                                @Override public void onFailure(Call<List<FeedComment>> call, Throwable t) {}
-                            });
+                        if (isAdded()) { 
+                            if (res.isSuccessful()) {
+                                et.setText("");
+                                apiService.getComments(post.id).enqueue(new Callback<List<FeedComment>>() {
+                                    @Override public void onResponse(Call<List<FeedComment>> call, Response<List<FeedComment>> res2) {
+                                        if (isAdded() && rv != null && res2.body() != null) { 
+                                            rv.setAdapter(new CommentAdapter(res2.body(), id -> showReportDialog(null, id))); 
+                                            post.commentsCount = res2.body().size(); 
+                                        }
+                                    }
+                                    @Override public void onFailure(Call<List<FeedComment>> call, Throwable t) {}
+                                });
+                            } else if (res.code() == 400) {
+                                try {
+                                    String err = res.errorBody().string();
+                                    JsonObject obj = com.google.gson.JsonParser.parseString(err).getAsJsonObject();
+                                    String reason = obj.get("reason").getAsString();
+                                    Toast.makeText(getContext(), "🚫 AI: " + reason, Toast.LENGTH_LONG).show();
+                                } catch (Exception e) {}
+                            }
                         }
                     }
                     @Override public void onFailure(Call<JsonObject> call, Throwable t) {}
@@ -379,16 +448,45 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
 
     private static class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
         private final List<FeedComment> comments;
-        CommentAdapter(List<FeedComment> c) { this.comments = c; }
+        private final OnCommentReportListener reportListener;
+
+        interface OnCommentReportListener { void onReport(String commentId); }
+
+        CommentAdapter(List<FeedComment> c, OnCommentReportListener l) { 
+            this.comments = c; 
+            this.reportListener = l;
+        }
+
         @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int vt) {
             return new VH(LayoutInflater.from(p.getContext()).inflate(R.layout.item_comment, p, false));
         }
         @Override public void onBindViewHolder(@NonNull VH h, int p) {
-            FeedComment c = comments.get(p); h.n.setText(c.userName); h.t.setText(c.commentText);
+            FeedComment c = comments.get(p); 
+            h.n.setText(c.userName); 
+            h.t.setText(c.commentText);
+            h.opt.setOnClickListener(v -> {
+                android.widget.PopupMenu popup = new android.widget.PopupMenu(v.getContext(), v);
+                popup.getMenu().add("Raportează");
+                popup.setOnMenuItemClickListener(item -> {
+                    if (item.getTitle().equals("Raportează") && reportListener != null) {
+                        reportListener.onReport(c.id);
+                        return true;
+                    }
+                    return false;
+                });
+                popup.show();
+            });
         }
         @Override public int getItemCount() { return (comments != null) ? comments.size() : 0; }
         static class VH extends RecyclerView.ViewHolder {
-            TextView n, t; VH(@NonNull View v) { super(v); n = v.findViewById(R.id.comment_user_name); t = v.findViewById(R.id.comment_text); }
+            TextView n, t; 
+            android.widget.ImageButton opt;
+            VH(@NonNull View v) { 
+                super(v); 
+                n = v.findViewById(R.id.comment_user_name); 
+                t = v.findViewById(R.id.comment_text); 
+                opt = v.findViewById(R.id.btn_comment_options);
+            }
         }
     }
 }

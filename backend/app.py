@@ -71,9 +71,10 @@ def predict():
     user_id = data.get("user_id")
     lat = data.get("lat")
     lng = data.get("lng")
+    city_name = data.get("city_name")
     
     from chatbot import get_response_with_rag
-    result = get_response_with_rag(text, user_id, lat, lng, language)
+    result = get_response_with_rag(text, user_id, lat, lng, language, city_name)
     return jsonify({"answer": result["answer"]})
 
 @app.post("/predict/detailed")
@@ -85,10 +86,171 @@ def predict_detailed():
     user_id = data.get("user_id")
     lat = data.get("lat")
     lng = data.get("lng")
+    city_name = data.get("city_name")
     
     from chatbot import get_response_with_rag
-    result = get_response_with_rag(text, user_id, lat, lng, language)
+    result = get_response_with_rag(text, user_id, lat, lng, language, city_name)
     return jsonify(result)
+
+@app.get("/quests/daily")
+def get_daily_quest():
+    """Generates a personalized daily quest based on weather and interests."""
+    user_id = request.args.get("user_id")
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    interests = request.args.get("interests", "")
+    language = request.args.get("language", "ro")
+    
+    # 1. Get Weather
+    weather = fetch_current_weather(lat, lng) if lat and lng else {"status": "Senin", "is_bad": False, "temp": "20°C"}
+    
+    # 2. Generate with Gemini
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        model = genai.GenerativeModel("gemini-flash-latest")
+        
+        prompt = (
+            f"Ești CityScape AI Master. Generează o MISIUNE ZILNICĂ (Daily Quest) pentru un explorator urban. "
+            f"DATE CONTEXTUALE: Interese: {interests}. Vreme: {weather['status']}, {weather['temp']}. "
+            f"Limba: {'română' if language == 'ro' else 'engleză'}. "
+            "CERINȚE: "
+            "1. Titlu captivant (ex: 'Misiunea Gurmandului'). "
+            "2. Obiectiv specific (ex: 'Vizitează 2 cafenele și postează o poză'). "
+            "3. Recompensă (ex: '500 XP și insigna Coffee Lover'). "
+            "4. Justificare (ex: 'Pentru că plouă, am ales activități indoor'). "
+            "FORMAT JSON: {'title': '...', 'objective': '...', 'reward': '...', 'reason': '...'}"
+        )
+        
+        response = model.generate_content(prompt)
+        # Extract JSON from response
+        import re
+        json_match = re.search(r"\{.*\}", response.text, re.DOTALL)
+        if json_match:
+            quest_data = json.loads(json_match.group())
+            return jsonify(quest_data)
+    except Exception as e:
+        print(f"Quest Error: {e}")
+        
+    # Fallback quest
+    return jsonify({
+        "title": "Explorator Urban",
+        "objective": "Vizitează o locație nouă astăzi",
+        "reward": "250 XP",
+        "reason": "O zi perfectă pentru a descoperi orașul!"
+    })
+
+# ==================== REPORTING & ANALYTICS ====================
+
+@app.get("/reports/user/<u_id>")
+def get_user_activity_report(u_id):
+    """Generates a summary of activity for a specific user."""
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    
+    try:
+        # 1. Profile data
+        profile_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{u_id}&select=*", headers=headers).json()
+        if not profile_res:
+            return jsonify({"error": "Profilul utilizatorului nu a fost găsit."}), 404
+        profile = profile_res[0]
+        
+        # 2. Visit stats
+        visits = requests.get(f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{u_id}&select=*", headers=headers).json()
+        
+        # Calculate favorite category
+        categories = {}
+        for v in visits:
+            t = v.get("place_type", "General")
+            categories[t] = categories.get(t, 0) + 1
+        
+        fav_cat = max(categories, key=categories.get) if categories else "N/A"
+        
+        # 3. Social stats
+        posts = requests.get(f"{SUPABASE_URL}/rest/v1/feed_posts?user_id=eq.{u_id}&select=id", headers=headers).json()
+        
+        report = {
+            "user_name": profile.get("name"),
+            "level": profile.get("level", 1),
+            "total_xp": profile.get("total_xp", 0),
+            "places_visited_count": len(visits),
+            "favorite_category": fav_cat,
+            "posts_created": len(posts),
+            "badges_count": profile.get("badges_earned", 0),
+            "join_date": profile.get("created_at", "").split("T")[0],
+            "recent_visits": [v["place_name"] for v in visits[:5]]
+        }
+        
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.get("/admin/stats")
+def get_admin_stats():
+    """Returns global system statistics for the admin dashboard."""
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    
+    try:
+        # Get counts from various tables
+        users_count = len(requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?select=id", headers=headers).json())
+        posts_count = len(requests.get(f"{SUPABASE_URL}/rest/v1/feed_posts?select=id", headers=headers).json())
+        visits_count = len(requests.get(f"{SUPABASE_URL}/rest/v1/visited_places?select=id", headers=headers).json())
+        reports_count = len(requests.get(f"{SUPABASE_URL}/rest/v1/content_reports?select=id", headers=headers).json())
+        
+        # Get pending reports
+        pending_reports = requests.get(f"{SUPABASE_URL}/rest/v1/content_reports?status=eq.pending&select=*", headers=headers).json()
+        
+        stats = {
+            "total_users": users_count,
+            "total_posts": posts_count,
+            "total_visits": visits_count,
+            "total_reports": reports_count,
+            "pending_reports_count": len(pending_reports),
+            "system_health": "Optimal",
+            "last_updated": "now"
+        }
+        
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.get("/map/hype")
+def get_hype_map():
+    """Aggregates recent activity to show where the 'vibe' is, filtered by current location."""
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    radius = 0.5 # approx 50km
+    
+    try:
+        # Fetch visits
+        url = f"{SUPABASE_URL}/rest/v1/visited_places?select=latitude,longitude,place_name&order=visited_at.desc&limit=100"
+        headers = {"apikey": os.getenv("SUPABASE_KEY"), "Authorization": f"Bearer {os.getenv('SUPABASE_KEY')}"}
+        res_v = requests.get(url, headers=headers).json()
+        
+        # Fetch posts
+        url_p = f"{SUPABASE_URL}/rest/v1/feed_posts?select=latitude,longitude,place_name&order=created_at.desc&limit=100"
+        res_p = requests.get(url_p, headers=headers).json()
+        
+        points = []
+        def is_nearby(p_lat, p_lng):
+            if not lat or not lng: return True # Show all if no center
+            try:
+                return abs(float(p_lat) - float(lat)) < radius and abs(float(p_lng) - float(lng)) < radius
+            except: return False
+
+        if isinstance(res_v, list):
+            for p in res_v:
+                if p.get("latitude") and p.get("longitude") and is_nearby(p["latitude"], p["longitude"]):
+                    points.append({"lat": p["latitude"], "lng": p["longitude"], "weight": 1.0, "source": "visit"})
+        
+        if isinstance(res_p, list):
+            for p in res_p:
+                if p.get("latitude") and p.get("longitude") and is_nearby(p["latitude"], p["longitude"]):
+                    points.append({"lat": p["latitude"], "lng": p["longitude"], "weight": 1.5, "source": "post"})
+                    
+        return jsonify(points[:50]) # Return top 50 relevant
+    except Exception as e:
+        print(f"Hype Map Error: {e}")
+        return jsonify([])
 
 import requests
 import os
@@ -123,7 +285,14 @@ FSQ_CATEGORIES = {
     "landmark": "16026",
     "historic": "16026",
     "culture": "10027",
-    "shopping": "17114"
+    "shopping": "17114",
+    "cinema": "10024",
+    "tenis": "18065",
+    "bowling": "10006",
+    "sport": "18000",
+    "fitness": "11038",
+    "karting": "10018",
+    "biliard": "10006"
 }
 
 # Categories to ALWAYS exclude from UI results
@@ -136,7 +305,7 @@ BLACKLISTED_TYPES = {
 }
 
 def google_text_search(query, lat=None, lng=None, radius=50000):
-    """Searches Google Places Text Search API for high-relevance matches."""
+    """Searches Google Places Text Search API for high-relevance matches with strict location biasing."""
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     params = {
         "query": query,
@@ -146,9 +315,24 @@ def google_text_search(query, lat=None, lng=None, radius=50000):
     if lat and lng:
         params["location"] = f"{lat},{lng}"
         params["radius"] = str(radius)
+        # Force strict location biasing to avoid Bucharest bias
+        params["locationbias"] = f"circle:{radius}@{lat},{lng}"
     try:
-        res = requests.get(url, params=params, timeout=15).json()
-        return res.get("results", [])
+        res = requests.get(url, params=params, timeout=10).json()
+        results = res.get("results", [])
+        
+        # Double check results to filter out anything too far (sanity check)
+        if lat and lng:
+            filtered = []
+            for r in results:
+                loc = r.get("geometry", {}).get("location", {})
+                r_lat, r_lng = loc.get("lat"), loc.get("lng")
+                if r_lat and r_lng:
+                    dist = abs(float(r_lat) - float(lat)) + abs(float(r_lng) - float(lng))
+                    if dist < 0.6: # approx 60km
+                        filtered.append(r)
+            return filtered
+        return results
     except Exception as e:
         print(f"Google Text Search Error: {e}")
         return []
@@ -205,6 +389,31 @@ def get_place_details(place_id):
             ref = result["photos"][0]["photo_reference"]
             img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
 
+        # AI Review Summary (Premium Feature)
+        ai_summary = "O locație interesantă care merită explorată pentru experiența sa unică."
+        if reviews:
+            try:
+                import google.generativeai as genai
+                # Check if already configured, if not, use environment
+                try:
+                    model = genai.GenerativeModel('gemini-flash-latest')
+                except:
+                    genai.configure(api_key=GOOGLE_API_KEY)
+                    model = genai.GenerativeModel('gemini-flash-latest')
+                
+                reviews_text = "\n".join([f"- {r['text']}" for r in reviews[:5] if r['text']])
+                if reviews_text:
+                    prompt = (
+                        f"Ești un critic urban inteligent. Rezumă aceste recenzii pentru '{result.get('name')}' "
+                        "într-o singură frază ultra-scurtă, onestă și captivantă (max 25 cuvinte). "
+                        "Folosește un ton modern, de tip 'TL;DR'. Menționează un punct forte și un punct slab dacă există. "
+                        f"Recenzii:\n{reviews_text}"
+                    )
+                    ai_res = model.generate_content(prompt)
+                    ai_summary = ai_res.text.strip().replace('"', '')
+            except Exception as ae:
+                print(f"⚠️ AI Summary Error: {ae}")
+
         return jsonify({
             "name": result.get("name"),
             "rating": result.get("rating"),
@@ -212,6 +421,7 @@ def get_place_details(place_id):
             "description": result.get("editorial_summary", {}).get("overview", "O locație excelentă de descoperit."),
             "imageUrl": img_url,
             "reviews": reviews,
+            "ai_summary": ai_summary,
             "isOpen": result.get("opening_hours", {}).get("open_now")
         })
     except Exception as e:
@@ -293,83 +503,404 @@ def format_google_place(place, user_lat=None, user_lng=None):
         "longitude": geo.get("lng"),
         "type": (types[0] if types else "").replace("_", " ").capitalize(),
         "reviewCount": place.get("user_ratings_total", 0),
-        "relevance_score": 0 
+        "priceLevel": place.get("price_level"),
+        "_raw_types": types,   # full Google type list for scorer
+        "relevance_score": 0
     }
 
-# ==================== PERSONALIZATION ENGINE ====================
+# ==================== PERSONALIZATION ENGINE v2 ====================
+
+import math
+from datetime import datetime, timezone
+
+# ---------- Interest synonym map ----------
+# Maps raw interest tags → related Google place types
+INTEREST_TYPE_MAP = {
+    "restaurant": ["restaurant", "food", "meal_takeaway", "meal_delivery"],
+    "cafe": ["cafe", "bakery", "coffee"],
+    "park": ["park", "natural_feature", "campground"],
+    "museum": ["museum", "art_gallery", "library"],
+    "art_gallery": ["art_gallery", "museum"],
+    "bar": ["bar", "night_club"],
+    "night_club": ["night_club", "bar"],
+    "shopping": ["shopping_mall", "store", "clothing_store"],
+    "sport": ["gym", "stadium", "sports_complex", "bowling_alley"],
+    "cinema": ["movie_theater"],
+    "spa": ["spa", "beauty_salon"],
+    "music": ["night_club", "bar", "concert_hall"],
+    "history": ["museum", "church", "tourist_attraction"],
+    "nature": ["park", "natural_feature", "campground", "zoo"],
+    "food": ["restaurant", "cafe", "bakery", "meal_takeaway"],
+    "culture": ["museum", "art_gallery", "library", "tourist_attraction"],
+    "adventure": ["tourist_attraction", "amusement_park", "campground"],
+    "wellness": ["spa", "gym", "park"],
+}
+
+# ---------- Time-of-day preference buckets ----------
+# hour ranges → preferred place types
+TIME_PREFERENCES = {
+    "morning":   {"range": (6, 11),  "types": ["cafe", "bakery", "park"],
+                  "weight": 18},
+    "lunch":     {"range": (11, 14), "types": ["restaurant", "cafe", "food"],
+                  "weight": 18},
+    "afternoon": {"range": (14, 18), "types": ["tourist_attraction", "museum", "park", "art_gallery"],
+                  "weight": 14},
+    "evening":   {"range": (18, 22), "types": ["restaurant", "bar", "night_club", "movie_theater"],
+                  "weight": 18},
+    "night":     {"range": (22, 6),  "types": ["bar", "night_club"],
+                  "weight": 20},
+}
+
+# ---------- Seasonal preference map ----------
+SEASON_TYPE_BOOST = {
+    "spring": ["park", "tourist_attraction", "cafe", "art_gallery"],  # Mar-May
+    "summer": ["park", "campground", "zoo", "amusement_park", "beach"],  # Jun-Aug
+    "autumn": ["museum", "cafe", "restaurant", "art_gallery"],  # Sep-Nov
+    "winter": ["museum", "shopping_mall", "cafe", "movie_theater", "spa"],  # Dec-Feb
+}
+
+# ---------- Indoor / Outdoor classification ----------
+INDOOR_TYPES = {"museum", "art_gallery", "cafe", "restaurant", "movie_theater",
+                "shopping_mall", "spa", "library", "gym", "bar", "night_club", "bowling_alley"}
+OUTDOOR_TYPES = {"park", "tourist_attraction", "campground", "zoo", "amusement_park",
+                 "stadium", "natural_feature", "beach"}
+
+def _get_season(month: int) -> str:
+    if month in (3, 4, 5):   return "spring"
+    if month in (6, 7, 8):   return "summer"
+    if month in (9, 10, 11): return "autumn"
+    return "winter"
+
+def _get_time_bucket(hour: int) -> str:
+    for bucket, data in TIME_PREFERENCES.items():
+        lo, hi = data["range"]
+        if lo < hi:
+            if lo <= hour < hi:
+                return bucket
+        else:  # wraps midnight
+            if hour >= lo or hour < hi:
+                return bucket
+    return "afternoon"
+
+def _weather_prefers_indoor(lat, lng) -> bool:
+    """Quick real weather check via Open-Meteo (no API key needed)."""
+    try:
+        url = (f"https://api.open-meteo.com/v1/forecast"
+               f"?latitude={lat}&longitude={lng}&current=weather_code&timezone=auto")
+        r = requests.get(url, timeout=4).json()
+        code = r.get("current", {}).get("weather_code", 0)
+        return code >= 51  # drizzle, rain, snow, thunderstorm
+    except:
+        return False
+
+def _haversine_km(lat1, lon1, lat2, lon2) -> float:
+    """Returns distance in km between two coordinates."""
+    try:
+        R = 6371.0
+        dlat = math.radians(float(lat2) - float(lat1))
+        dlon = math.radians(float(lon2) - float(lon1))
+        a = (math.sin(dlat / 2) ** 2 +
+             math.cos(math.radians(float(lat1))) *
+             math.cos(math.radians(float(lat2))) *
+             math.sin(dlon / 2) ** 2)
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    except:
+        return 999.0
 
 def get_user_context(user_id):
-    """Fetches user interests and history from Supabase to provide context for recommendations."""
+    """Fetches rich user context: interests, visit history with recency, price preference."""
     if not user_id:
-        return {"interests": [], "history_weights": {}}
-        
+        return {
+            "interests": [], "history_weights": {}, "recency_weights": {},
+            "visited_place_ids": set(), "avg_price_level": 2,
+            "name": "Explorator", "level": 1,
+        }
+
     headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
-    
-    # 1. Fetch ALL data from user profile
-    user_url = f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}&select=*"
+    profile_context = {
+        "name": "Explorator", "interests": [], "level": 1,
+        "xp": 0, "visited_count": 0, "badges_count": 0,
+    }
     interests = []
-    profile_context = {"name": "Explorator", "interests": []}
+
+    # 1. Profile
     try:
-        res = requests.get(user_url, headers=headers)
+        res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}&select=*", headers=headers)
         if res.status_code == 200 and res.json():
             u = res.json()[0]
             interests_str = u.get("interests", "")
             interests = [i.strip().lower() for i in interests_str.split(",") if i.strip()]
-            
-            # Return full profile data for context
-            profile_context = {
+            profile_context.update({
                 "name": u.get("name", "Explorator"),
                 "level": u.get("level", 1),
                 "xp": u.get("total_xp", 0),
                 "visited_count": u.get("places_visited", 0),
                 "badges_count": u.get("badges_earned", 0),
-                "interests": interests
-            }
+                "interests": interests,
+            })
     except Exception as e:
-        print(f"⚠️ get_user_context Error: {e}")
-    
-    # 2. Fetch history to detect preferred categories
-    history_weights = {}
-    history_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&select=place_type"
-    try:
-        res = requests.get(history_url, headers=headers)
-        if res.status_code == 200:
-            for visit in res.json():
-                ptype = visit.get("place_type", "").lower()
-                if ptype:
-                    history_weights[ptype] = history_weights.get(ptype, 0) + 1
-    except: pass
-    
-    return {**profile_context, "history_weights": history_weights}
+        print(f"⚠️ get_user_context profile error: {e}")
 
-def score_item(item, context):
-    """Calculates a compatibility score (0-100) based on habits, interests, and quality."""
-    score = 0
-    title = item.get("name", item.get("title", "")).lower()
-    item_type = item.get("type", item.get("category", "")).lower()
-    
-    # 1. Interest Matching (Explicit preferences)
-    interests = context.get("interests", [])
-    for interest in interests:
-        if interest in title or (item_type and interest in item_type):
-            score += 35 # High priority for explicit interests
-            
-    # 2. History & Habits (Implicit preferences from visits)
+    # 2. Full visit history with timestamps for recency decay
+    history_weights = {}   # type → raw count
+    recency_weights = {}   # type → recency-decayed score
+    visited_place_ids = set()
+    price_levels = []
+
+    try:
+        res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/visited_places"
+            f"?user_id=eq.{user_id}&select=place_type,google_place_id,place_id,visited_at,price_level"
+            f"&order=visited_at.desc&limit=200",
+            headers=headers)
+        if res.status_code == 200:
+            now_ts = datetime.now(timezone.utc).timestamp()
+            for i, visit in enumerate(res.json()):
+                ptype = visit.get("place_type", "").lower().strip()
+                pid_g = visit.get("google_place_id", "")
+                pid   = visit.get("place_id", "")
+                visited_at_str = visit.get("visited_at", "")
+                pl = visit.get("price_level")
+
+                if pid_g: visited_place_ids.add(pid_g)
+                if pid:   visited_place_ids.add(pid)
+                if pl is not None:
+                    try: price_levels.append(int(pl))
+                    except: pass
+
+                if not ptype:
+                    continue
+
+                history_weights[ptype] = history_weights.get(ptype, 0) + 1
+
+                # Recency decay: half-life ≈ 30 days
+                decay = 1.0
+                if visited_at_str:
+                    try:
+                        # Handle both with/without timezone suffix
+                        ts_str = visited_at_str.replace("Z", "+00:00")
+                        visit_ts = datetime.fromisoformat(ts_str).timestamp()
+                        age_days = (now_ts - visit_ts) / 86400.0
+                        decay = math.exp(-0.693 * age_days / 30.0)  # half-life 30d
+                    except:
+                        decay = max(0.1, 1.0 - i * 0.05)
+
+                recency_weights[ptype] = recency_weights.get(ptype, 0.0) + decay
+    except Exception as e:
+        print(f"⚠️ get_user_context history error: {e}")
+
+    avg_price_level = round(sum(price_levels) / len(price_levels)) if price_levels else 2
+
+    return {
+        **profile_context,
+        "history_weights": history_weights,
+        "recency_weights": recency_weights,
+        "visited_place_ids": visited_place_ids,
+        "avg_price_level": avg_price_level,
+    }
+
+
+def score_item(item, context, user_lat=None, user_lng=None,
+               already_scored_types=None, use_weather=False):
+    """
+    Multi-signal recommendation score (0–100).
+
+    Signals
+    -------
+    A. Explicit interest match          (0–25 pts)
+    B. Implicit habit match w/ recency  (0–20 pts)
+    C. Popularity  (rating × log(reviews))  (0–15 pts)
+    D. Time-of-day context              (0–18 pts)
+    E. Seasonal relevance               (0–8  pts)
+    F. Weather (indoor/outdoor fit)     (0–8  pts)
+    G. Novelty (not already visited)    (0–10 pts)
+    H. Distance (closer = better)       (0–10 pts)
+    I. Diversity bonus (type variety)   (0–8  pts)
+    J. Day-of-week (weekend boost)      (0–5  pts)
+    K. Price-level fit                  (0–5  pts)
+    ─────────────────────────────────────────────
+    Total raw max                      ≈ 132 pts  → normalized to 100
+    """
+    if already_scored_types is None:
+        already_scored_types = {}
+
+    score = 0.0
+    title     = (item.get("name") or item.get("title") or "").lower()
+    raw_type  = (item.get("type") or item.get("category") or "").lower().replace(" ", "_")
+    g_types   = item.get("_raw_types", [raw_type])  # list of Google place types
+    place_id  = item.get("id", "")
+
+    interests       = context.get("interests", [])
     history_weights = context.get("history_weights", {})
-    if item_type in history_weights:
-        # Give a substantial boost based on visit frequency
-        # 10 points per visit, cap at 45
-        habit_bonus = min(history_weights[item_type] * 10, 45)
-        score += habit_bonus
-    
-    # 3. Quality & Rating
-    rating = float(item.get("rating", 4.0))
-    if rating >= 4.5:
-        score += 20
-    elif rating >= 4.0:
+    recency_weights = context.get("recency_weights", {})
+    visited_ids     = context.get("visited_place_ids", set())
+    avg_price       = context.get("avg_price_level", 2)
+
+    now    = datetime.now()
+    hour   = now.hour
+    month  = now.month
+    weekday = now.weekday()   # 0=Mon … 6=Sun
+    season  = _get_season(month)
+    bucket  = _get_time_bucket(hour)
+    season_boost_types = SEASON_TYPE_BOOST.get(season, [])
+
+    # ── A. Explicit interest match ──────────────────────────────────
+    interest_score = 0.0
+    for interest in interests:
+        # Direct name/type match
+        if interest in title:
+            interest_score += 12
+        # Type synonym expansion
+        synonyms = INTEREST_TYPE_MAP.get(interest, [interest])
+        if any(s in raw_type or raw_type in s for s in synonyms):
+            interest_score += 13
+        # Also check all raw Google types
+        for gtype in g_types:
+            if any(s == gtype for s in synonyms):
+                interest_score += 8
+                break
+    score += min(interest_score, 25)
+
+    # ── B. Implicit habit (recency-decayed) ─────────────────────────
+    habit_score = 0.0
+    for gtype in g_types + [raw_type]:
+        if gtype in recency_weights:
+            # Logarithmic: frequent visits matter but don't dominate
+            habit_score += min(recency_weights[gtype] * 4.0, 20)
+            break
+    score += min(habit_score, 20)
+
+    # ── C. Popularity (rating × log1p(review_count)) ────────────────
+    rating      = float(item.get("rating") or 4.0)
+    review_cnt  = int(item.get("reviewCount") or item.get("review_count") or 0)
+    pop_score   = (rating / 5.0) * math.log1p(review_cnt) / math.log1p(5000) * 15
+    score += min(pop_score, 15)
+
+    # ── D. Time-of-day context ──────────────────────────────────────
+    time_data  = TIME_PREFERENCES.get(bucket, {})
+    time_types = time_data.get("types", [])
+    time_w     = time_data.get("weight", 14)
+    if any(tt in raw_type or raw_type in tt for tt in time_types):
+        score += time_w
+    elif any(any(tt in gtype for tt in time_types) for gtype in g_types):
+        score += time_w * 0.6
+
+    # ── E. Seasonal relevance ───────────────────────────────────────
+    if raw_type in season_boost_types or any(st in raw_type for st in season_boost_types):
+        score += 8
+    elif any(st in gtype for gtype in g_types for st in season_boost_types):
+        score += 4
+
+    # ── F. Weather (indoor / outdoor fit) ──────────────────────────
+    # use_weather flag avoids re-calling Open-Meteo per item (caller checks once)
+    if use_weather:
+        is_indoor_place = raw_type in INDOOR_TYPES or any(gt in INDOOR_TYPES for gt in g_types)
+        is_outdoor_place = raw_type in OUTDOOR_TYPES or any(gt in OUTDOOR_TYPES for gt in g_types)
+        weather_bad = item.get("_weather_bad", False)
+        if weather_bad and is_indoor_place:
+            score += 8
+        elif not weather_bad and is_outdoor_place:
+            score += 8
+        elif weather_bad and is_outdoor_place:
+            score -= 6   # penalize outdoor when raining
+
+    # ── G. Novelty — prefer unvisited places ────────────────────────
+    if place_id and place_id not in visited_ids:
         score += 10
-    
-    return int(min(score, 100))
+    elif place_id in visited_ids:
+        score -= 8   # already been there → deprioritize
+
+    # ── H. Distance scoring ─────────────────────────────────────────
+    if user_lat and user_lng and item.get("latitude") and item.get("longitude"):
+        dist_km = _haversine_km(user_lat, user_lng, item["latitude"], item["longitude"])
+        if dist_km <= 0.5:
+            score += 10
+        elif dist_km <= 1.5:
+            score += 7
+        elif dist_km <= 3.0:
+            score += 4
+        elif dist_km <= 8.0:
+            score += 1
+        else:
+            score -= 2  # far away mild penalty
+
+    # ── I. Diversity boost — penalize over-represented types ─────────
+    type_count = already_scored_types.get(raw_type, 0)
+    if type_count == 0:
+        score += 8
+    elif type_count == 1:
+        score += 3
+    elif type_count >= 3:
+        score -= 5  # too many of same type already in list
+
+    # ── J. Day-of-week ──────────────────────────────────────────────
+    is_weekend = weekday >= 5
+    if is_weekend and raw_type in {"park", "tourist_attraction", "museum", "restaurant", "cafe"}:
+        score += 5
+    elif not is_weekend and raw_type in {"cafe", "restaurant", "museum"}:
+        score += 2
+
+    # ── K. Price-level fit ──────────────────────────────────────────
+    item_price = item.get("priceLevel") or item.get("price_level")
+    if item_price is not None:
+        try:
+            diff = abs(int(item_price) - avg_price)
+            score += max(0, 5 - diff * 2)
+        except:
+            pass
+
+    # Normalize to 0-100 (raw max ≈ 132)
+    normalized = max(0.0, min(score / 132.0 * 100.0, 100.0))
+    return round(normalized, 2)
+
+
+def rank_places(formatted_places, context, user_lat=None, user_lng=None,
+                check_weather=True):
+    """
+    Applies score_item to every place with shared state for diversity tracking.
+    Fetches weather once (not per item) when check_weather=True.
+    Returns places sorted by relevance_score descending.
+    """
+    weather_bad = False
+    if check_weather and user_lat and user_lng:
+        weather_bad = _weather_prefers_indoor(user_lat, user_lng)
+
+    type_counts = {}
+    # First pass: score everything
+    for p in formatted_places:
+        raw_type = (p.get("type") or "").lower().replace(" ", "_")
+        p["_weather_bad"] = weather_bad
+        p["relevance_score"] = score_item(
+            p, context,
+            user_lat=user_lat, user_lng=user_lng,
+            already_scored_types=type_counts,
+            use_weather=check_weather,
+        )
+        type_counts[raw_type] = type_counts.get(raw_type, 0) + 1
+
+    formatted_places.sort(key=lambda x: x["relevance_score"], reverse=True)
+
+    # Second pass: re-score top-N with diversity now known to improve ordering
+    type_counts2 = {}
+    for p in formatted_places:
+        raw_type = (p.get("type") or "").lower().replace(" ", "_")
+        p["_weather_bad"] = weather_bad
+        p["relevance_score"] = score_item(
+            p, context,
+            user_lat=user_lat, user_lng=user_lng,
+            already_scored_types=type_counts2,
+            use_weather=check_weather,
+        )
+        type_counts2[raw_type] = type_counts2.get(raw_type, 0) + 1
+
+    # Clean temp keys
+    for p in formatted_places:
+        p.pop("_weather_bad", None)
+        p.pop("_raw_types", None)
+
+    formatted_places.sort(key=lambda x: x["relevance_score"], reverse=True)
+    return formatted_places
 
 # --------------------------------
 
@@ -422,10 +953,9 @@ def get_nearby_realtime():
     
     if user_id:
         context = get_user_context(user_id)
-        for p in formatted:
-            p["relevance_score"] = score_item(p, context)
-        formatted.sort(key=lambda x: x["relevance_score"], reverse=True)
-            
+        formatted = rank_places(formatted, context,
+                                user_lat=float(lat), user_lng=float(lng),
+                                check_weather=True)
     return jsonify(formatted[:15])
 
 @app.get("/places/search")
@@ -458,10 +988,12 @@ def personalized_discovery():
         radius = 15000
     results = []
     if not actual_type or actual_type == "" or actual_type.lower() == "all":
+        city = request.args.get("city", "București")
+        
         # 1. Start with high-relevance Text Search for "atractii" and "restaurante"
-        results.extend(google_text_search("Top atracții turistice și obiective", lat, lng, radius=radius))
-        results.extend(google_text_search("Restaurante faimoase și cafenele populare", lat, lng, radius=radius))
-        results.extend(google_text_search("Experiențe unice și locuri cool", lat, lng, radius=radius))
+        results.extend(google_text_search(f"Top atracții turistice și obiective în {city}", lat, lng, radius=radius))
+        results.extend(google_text_search(f"Restaurante faimoase și cafenele populare în {city}", lat, lng, radius=radius))
+        results.extend(google_text_search(f"Experiențe unice și locuri cool în {city}", lat, lng, radius=radius))
         
         # 2. Add some specific categories too for variety
         # Use more categories to ensure we get results
@@ -490,16 +1022,19 @@ def personalized_discovery():
     
     if user_id:
         context = get_user_context(user_id)
-        for p in formatted:
-            # Refresh feel: add random jitter to score
-            jitter = random.uniform(0, 2.0)
-            p["relevance_score"] = score_item(p, context) + jitter
-        formatted.sort(key=lambda x: (x["relevance_score"], x["rating"]), reverse=True)
+        formatted = rank_places(formatted, context,
+                                user_lat=float(lat), user_lng=float(lng),
+                                check_weather=True)
     else:
+        # Guest users: sort by rating × log(reviews) with small jitter for freshness
         for p in formatted:
-            p["jitter_score"] = p.get("rating", 0) + random.uniform(0, 1.0)
-        formatted.sort(key=lambda x: x["jitter_score"], reverse=True)
-        
+            rc = p.get("reviewCount") or 0
+            p["_guest_score"] = float(p.get("rating") or 0) * math.log1p(rc) + random.uniform(0, 0.5)
+        formatted.sort(key=lambda x: x.get("_guest_score", 0), reverse=True)
+        for p in formatted:
+            p.pop("_guest_score", None)
+            p.pop("_raw_types", None)
+
     return jsonify(formatted[:60])
 
 @app.get("/places/autocomplete")
@@ -642,6 +1177,166 @@ def get_places():
         return jsonify({"error": "Failed to fetch from Supabase"}), 500
 
 
+# ==================== GAMIFICATION 2.0 ====================
+
+@app.get("/leaderboard")
+def get_leaderboard():
+    """Returns top users based on XP/Visited places."""
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    url = f"{SUPABASE_URL}/rest/v1/user_profiles?order=total_xp.desc&limit=10&select=name,total_xp,places_visited"
+    
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            return jsonify(res.json())
+        return jsonify([])
+    except:
+        # Mock data for demonstration if DB fails
+        return jsonify([
+            {"name": "Andrei Popa", "total_xp": 1250, "places_visited": 42},
+            {"name": "Elena Ionescu", "total_xp": 1100, "places_visited": 38},
+            {"name": "Mihai Radu", "total_xp": 950, "places_visited": 31},
+            {"name": "Ana Maria", "total_xp": 800, "places_visited": 25}
+        ])
+
+@app.get("/challenges")
+def get_challenges():
+    """Active challenges for the user."""
+    return jsonify([
+        {
+            "id": "weekend_cafe",
+            "title": "Weekend-ul Cafenelelor",
+            "description": "Vizitează 3 cafenele noi sâmbăta și duminica.",
+            "reward_xp": 150,
+            "progress": 1,
+            "target": 3,
+            "icon": "☕"
+        },
+        {
+            "id": "museum_marathon",
+            "title": "Maratonul Muzeelor",
+            "description": "Descoperă 2 muzee în 24 de ore.",
+            "reward_xp": 300,
+            "progress": 0,
+            "target": 2,
+            "icon": "🏛️"
+        },
+        {
+            "id": "night_owl",
+            "title": "Bufniță de Noapte",
+            "description": "Vizitează o locație după ora 22:00.",
+            "reward_xp": 100,
+            "progress": 0,
+            "target": 1,
+            "icon": "🦉"
+        }
+    ])
+
+# ==================== WEATHER RECOVERY ====================
+
+@app.get("/weather/plan-b")
+def get_weather_plan_b():
+    """Provides indoor alternatives if the weather is bad."""
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
+    if not lat or not lng:
+        return jsonify({"error": "Missing coordinates"}), 400
+        
+    # Check real weather
+    w_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=weather_code"
+    is_raining = False
+    try:
+        w_res = requests.get(w_url).json()
+        code = w_res.get("current", {}).get("weather_code", 0)
+        if code >= 51: # Drizzle, Rain, Snow, etc.
+            is_raining = True
+    except: pass
+    
+    if not is_raining:
+        return jsonify({"status": "fine", "message": "Vremea e perfectă pentru explorare afară!"})
+        
+    # Fetch indoor places
+    indoor_types = ["museum", "art_gallery", "movie_theater", "shopping_mall", "cafe"]
+    results = []
+    for t in indoor_types[:3]:
+        res = google_nearby_search(lat, lng, t, radius=5000)
+        if res:
+            results.extend(res[:3])
+            
+    formatted = []
+    for r in results:
+        f = format_google_place(r, lat, lng)
+        if f: formatted.append(f)
+        
+    return jsonify({
+        "status": "bad",
+        "message": "Văd că a început ploaia! Ce zici de aceste alternative indoor?",
+        "alternatives": formatted[:6]
+    })
+
+# ==================== COMMUNITY GUIDES ====================
+
+@app.post("/itineraries/share")
+def share_itinerary():
+    """Saves a generated itinerary to the public gallery."""
+    data = request.get_json()
+    user_id = data.get("user_id")
+    user_name = data.get("user_name", "Explorator")
+    title = data.get("title", "Traseu Urban")
+    city = data.get("city", "București")
+    items = data.get("items", []) # List of places
+    
+    if not user_id or not items:
+        return jsonify({"error": "Missing data"}), 400
+        
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "user_id": user_id,
+        "user_name": user_name,
+        "title": title,
+        "city": city,
+        "items": items,
+        "likes": 0
+    }
+    
+    try:
+        # Note: This expects a table 'public_itineraries' to exist
+        res = requests.post(f"{SUPABASE_URL}/rest/v1/public_itineraries", headers=headers, json=payload)
+        return jsonify({"status": "success", "message": "Itinerariul a fost publicat!"})
+    except:
+        return jsonify({"error": "Failed to share"}), 500
+
+@app.get("/itineraries/public")
+def get_public_itineraries():
+    """Fetches shared itineraries from the community."""
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    try:
+        res = requests.get(f"{SUPABASE_URL}/rest/v1/public_itineraries?order=likes.desc&limit=10", headers=headers)
+        if res.status_code == 200:
+            return jsonify(res.json())
+        return jsonify([])
+    except:
+        # Mock data
+        return jsonify([
+            {
+                "id": 1,
+                "user_name": "Maria Popescu",
+                "title": "Bucureștiul Istoric în 4 ore",
+                "city": "București",
+                "likes": 45,
+                "image_url": "https://images.unsplash.com/photo-1549443105-098522300b0e?w=800"
+            },
+            {
+                "id": 2,
+                "user_name": "Alex Ghid",
+                "title": "Turul Cafenelelor de Specialitate",
+                "city": "București",
+                "likes": 128,
+                "image_url": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800"
+            }
+        ])
+
+
 @app.get("/weather")
 def get_weather():
     lat = request.args.get("lat")
@@ -741,6 +1436,22 @@ def get_itinerary():
             {"type": "bar", "label": "Aperitiv de Seară"},
             {"type": "restaurant", "label": "Cină Tasting"},
             {"type": "cafe", "label": "Desert Târziu"}
+        ]
+    elif "cinema" in style:
+        pattern = [
+            {"type": "cafe", "label": "Socializare pre-film"},
+            {"type": "movie_theater", "label": "Vizionare Film"},
+            {"type": "restaurant", "label": "Cină post-film"},
+            {"type": "movie_theater", "label": "Avanpremieră"},
+            {"type": "bar", "label": "Cocktail & Movie Talk"}
+        ]
+    elif "sport" in style:
+        pattern = [
+            {"type": "cafe", "label": "Mic dejun energetic"},
+            {"type": "gym", "label": "Antrenament / Tenis"},
+            {"type": "restaurant", "label": "Prânz proteic"},
+            {"type": "park", "label": "Alergare / Yoga"},
+            {"type": "stadium", "label": "Eveniment Sportiv"}
         ]
     else:
         pattern = [
@@ -886,7 +1597,7 @@ def get_feed():
             return jsonify([])
     else:
         # Community (foryou) - all posts
-        url = f"{SUPABASE_URL}/rest/v1/feed_posts?select=*&order=created_at.desc&limit=30"
+        url = f"{SUPABASE_URL}/rest/v1/feed_posts?select=*&order=created_at.desc&limit=100"
     
     try:
         res = requests.get(url, headers=headers)
@@ -894,7 +1605,51 @@ def get_feed():
             return jsonify([])
             
         posts = res.json()
-        for post in posts:
+        
+        # 2. Filter by location if lat/lng provided
+        lat_req = request.args.get("lat")
+        lng_req = request.args.get("lng")
+        
+        if lat_req and lng_req:
+            try:
+                from math import geodesic
+            except:
+                # Manual distance approximation if geopy not available
+                import math
+                def distance(lat1, lon1, lat2, lon2):
+                    R = 6371 # Radius of earth in km
+                    dLat = math.radians(lat2 - lat1)
+                    dLon = math.radians(lon2 - lon1)
+                    a = math.sin(dLat/2) * math.sin(dLat/2) + \
+                        math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
+                        math.sin(dLon/2) * math.sin(dLon/2)
+                    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+                    return R * c
+                
+                user_lat = float(lat_req)
+                user_lng = float(lng_req)
+                # Keep posts within 50km
+                local_posts = [p for p in posts if p.get('latitude') and p.get('longitude') and 
+                         distance(user_lat, user_lng, float(p['latitude']), float(p['longitude'])) <= 50]
+                
+                # Fallback: if no local posts, show all but maybe a bit more than usual to ensure content
+                if not local_posts:
+                    posts = posts[:40]
+                else:
+                    posts = local_posts
+            else:
+                user_lat = float(lat_req)
+                user_lng = float(lng_req)
+                local_posts = [p for p in posts if p.get('latitude') and p.get('longitude') and 
+                         geodesic((user_lat, user_lng), (float(p['latitude']), float(p['longitude']))).km <= 50]
+                
+                if not local_posts:
+                    posts = posts[:40]
+                else:
+                    posts = local_posts
+
+        # 3. Post-processing and enrichment
+        for post in posts[:30]: # Limit to 30 after filtering
             p_id = post.get("id")
             # Enrichment
             c_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_comments?post_id=eq.{p_id}&select=id", headers=headers)
@@ -911,10 +1666,54 @@ def get_feed():
         print(f"❌ Feed Error: {e}")
         return jsonify([])
 
+def is_content_safe(text):
+    """Uses Gemini AI to check if content is appropriate for the community."""
+    if not text or len(text.strip()) < 2:
+        return True, ""
+        
+    try:
+        import google.generativeai as genai
+        # Reuse existing configuration or configure
+        try:
+            model = genai.GenerativeModel("gemini-flash-latest")
+        except:
+            genai.configure(api_key=GOOGLE_API_KEY)
+            model = genai.GenerativeModel("gemini-flash-latest")
+            
+        prompt = (
+            "Ești un moderator de conținut pentru o aplicație socială de explorare urbană numită CityScape. "
+            "Analizează următorul text și decide dacă este ADECVAT sau NEADECVAT. "
+            "NEADECVAT înseamnă: limbaj licențios, ură, hărțuire, conținut sexual explicit, violență sau spam. "
+            "Răspunde DOAR în format JSON: {\"safe\": true/false, \"reason\": \"motivul scurt în română dacă e unsafe\"}. "
+            f"Text de analizat: \"{text}\""
+        )
+        
+        response = model.generate_content(prompt)
+        import re
+        json_match = re.search(r"\{.*\}", response.text, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group())
+            return result.get("safe", True), result.get("reason", "")
+    except Exception as e:
+        print(f"⚠️ AI Moderation Error: {e}")
+        
+    return True, "" # Fallback to safe if AI fails
+
 @app.post("/feed")
 def create_post():
-    """Creates a new feed post with UUID validation."""
+    """Creates a new feed post with AI moderation and UUID validation."""
     data = request.get_json()
+    caption = data.get("caption", "")
+    
+    # 1. AI Content Moderation
+    is_safe, reason = is_content_safe(caption)
+    if not is_safe:
+        return jsonify({
+            "status": "rejected", 
+            "error": "Conținut neadecvat detectat", 
+            "reason": reason
+        }), 400
+
     
     # Validation for UUID: if it's not a valid UUID, use a fallback
     # to avoid Supabase NOT NULL UUID constraint violation
@@ -987,11 +1786,22 @@ def add_comment(post_id):
         "Prefer": "return=representation"
     }
     
+    comment_text = data.get("comment_text", "")
+    
+    # 1. AI Content Moderation
+    is_safe, reason = is_content_safe(comment_text)
+    if not is_safe:
+        return jsonify({
+            "status": "rejected", 
+            "error": "Comentariul conține limbaj neadecvat", 
+            "reason": reason
+        }), 400
+
     comment_data = {
         "post_id": post_id,
         "user_id": data.get("user_id"),
         "user_name": data.get("user_name", "Explorer"),
-        "comment_text": data.get("comment_text", "")
+        "comment_text": comment_text
     }
     
     url = f"{SUPABASE_URL}/rest/v1/feed_comments"
@@ -1028,6 +1838,30 @@ def toggle_like(post_id):
         ins_url = f"{SUPABASE_URL}/rest/v1/feed_likes"
         requests.post(ins_url, headers=headers, json=like_data)
         return jsonify({"status": "liked"})
+
+@app.post("/report")
+def report_content():
+    """Handles manual reporting of posts or comments."""
+    data = request.get_json()
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    report_data = {
+        "reporter_id": data.get("user_id"),
+        "post_id": data.get("post_id"),
+        "comment_id": data.get("comment_id"),
+        "reason": data.get("reason", "Conținut neadecvat")
+    }
+    
+    url = f"{SUPABASE_URL}/rest/v1/content_reports"
+    res = requests.post(url, headers=headers, json=report_data)
+    
+    if res.status_code in [200, 201]:
+        return jsonify({"status": "success", "message": "Raport trimis cu succes. Mulțumim!"})
+    return jsonify({"error": "Eroare la trimiterea raportului"}), 500
 
 # ==================== USERS & SOCIAL ====================
 
@@ -1243,8 +2077,8 @@ def search_users():
         "Authorization": f"Bearer {SUPABASE_KEY}"
     }
     
-    # Search for users by name or email
-    url = f"{SUPABASE_URL}/rest/v1/user_profiles?or=(name.ilike.*{query}*,email.ilike.*{query}*)&limit=20"
+    # Search for users by name, email or unique username
+    url = f"{SUPABASE_URL}/rest/v1/user_profiles?or=(name.ilike.*{query}*,email.ilike.*{query}*,username.ilike.*{query}*)&limit=20"
     
     try:
         res = requests.get(url, headers=headers)
@@ -1353,6 +2187,7 @@ def get_magic_recommendation():
     lat_str = request.args.get("lat")
     lng_str = request.args.get("lng")
     user_id = request.args.get("user_id")
+    requested_type = request.args.get("type", "general")
 
     if not lat_str or not lng_str:
         return jsonify({"error": "Missing location"}), 400
@@ -1360,48 +2195,69 @@ def get_magic_recommendation():
     lat = float(lat_str)
     lng = float(lng_str)
     
-    # 0. User context
-    user_context = "generale"
+    # 0. User context for personalization
+    user_context = "preferințe generale"
+    u_interests = ""
     if user_id:
         try:
             headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
             p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*", headers=headers).json()
             if p_res:
                 p = p_res[0]
-                user_context = f"Nume: {p.get('full_name')}, Interese: {p.get('interests')}, Buget: {p.get('budget_range')}"
+                u_interests = p.get('interests', '')
+                user_context = f"Nume: {p.get('full_name')}, Interese: {u_interests}, Buget: {p.get('budget_range')}"
         except: pass
     
-    # 1. Fetch some real places using google_nearby_search (multiple categories for diversity)
+    # Map friendly type to Google Places types
+    type_map = {
+        "restaurant": ["restaurant", "food", "cafe", "steakhouse", "sushi"],
+        "entertainment": ["amusement_park", "movie_theater", "night_club", "bowling_alley"],
+        "park": ["park", "natural_feature", "zoo", "campground"],
+        "museum": ["museum", "art_gallery", "library", "church", "hindu_temple"]
+    }
+    
+    target_types = type_map.get(requested_type, ["tourist_attraction", "museum", "park", "restaurant", "cafe"])
+    
+    # 1. Fetch real places based on requested type
     candidates = []
     seen_ids = set()
-    for p_type in ["tourist_attraction", "museum", "park", "restaurant", "cafe"]:
+    for p_type in target_types:
         res = google_nearby_search(lat, lng, p_type, radius=15000)
-        random.shuffle(res)
-        for c in res[:5]:
+        for c in res:
             if c['place_id'] not in seen_ids:
+                # Add a "match_score" based on user interests
+                score = c.get('rating', 0) * 10
+                if u_interests:
+                    for interest in u_interests.split(','):
+                        if interest.strip().lower() in c['name'].lower() or any(interest.strip().lower() in t.lower() for t in c.get('types', [])):
+                            score += 20
+                
+                c['personal_score'] = score
                 candidates.append(c)
                 seen_ids.add(c['place_id'])
     
     if not candidates:
         return jsonify({"error": "No candidates found"}), 404
 
-    random.shuffle(candidates)
-    subset = candidates[:15] # Give Gemini a good list to pick from
+    # Sort by personal score and pick some to give Gemini options
+    candidates.sort(key=lambda x: x.get('personal_score', 0), reverse=True)
+    subset = candidates[:15]
+    random.shuffle(subset) # Shuffle top 15 to keep it "magic"
 
-    # 2. Use Gemini to pick the BEST one and generate activities
+    # 2. Use Gemini to pick the BEST one
     import google.generativeai as genai
-    from os import getenv
     model = genai.GenerativeModel('gemini-flash-latest')
     
     candidates_data = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0)} for c in subset]
     
     prompt = (
         f"Ești expertul 'CityScape AI'. Din următoarele locații: {json.dumps(candidates_data)}, "
-        f"alege EXACT UNA care ar fi cea mai interesantă recomandare de tip 'Destin' pentru utilizatorul: {user_context}. "
-        "Ține cont de interesele lui dar adaugă un gram de mister. "
+        f"alege EXACT UNA care se potrivește cel mai bine cu categoria cerută '{requested_type}' "
+        f"și cu profilul utilizatorului: {user_context}. "
+        "Ține cont de interesele lui dar adaugă un gram de mister și destin. "
         "Pentru această locație, generează 3 activități specifice și creative. "
         "RĂSPUNS: Un obiect JSON (fără explicații) cu formatul: "
-        '{"place_id": "...", "name": "...", "reason": "De ce am ales asta pentru TINE (max 15 cuvinte)", '
+        '{"place_id": "...", "name": "...", "reason": "De ce am ales asta pentru TINE bazat pe interesele tale (max 15 cuvinte)", '
         '"activities": ["Activitate 1", "Activitate 2", "Activitate 3"]}'
     )
 
@@ -1443,6 +2299,7 @@ def get_personalized_recommendations():
     user_id = request.args.get('user_id')
     query = request.args.get('query', '')
     type_filter = request.args.get('type', '')
+    city = request.args.get('city', 'București')
     
     if not lat_str or not lng_str:
         return jsonify({"error": "Location missing"}), 400
@@ -1471,22 +2328,21 @@ def get_personalized_recommendations():
 
     # 2. Gather candidates (Respect filters if present)
     candidates = []
-    seen_ids = set()
-    
     search_terms = []
     if query: search_terms.append(query)
     if type_filter and type_filter.lower() not in ["toate", "all", "categoria"]: search_terms.append(type_filter)
-    
     final_query = " ".join(search_terms)
     
+    seen_ids = set()
     if final_query:
         # Search specifically for what the user wants
-        candidates = google_text_search(f"{final_query} lângă mine", lat, lng)
+        candidates.extend(google_text_search(f"{final_query} în {city}", lat, lng, radius=20000))
     else:
-        # Broad discovery
-        for p_type in ["tourist_attraction", "museum", "park", "restaurant", "cafe"]:
-            res = google_nearby_search(lat, lng, p_type, radius=15000)
-            for c in res[:10]:
+        # Broad discovery using city name
+        queries = [f"atracții de top în {city}", f"restaurante apreciate în {city}", f"locuri faimoase în {city}"]
+        for q in queries:
+            res = google_text_search(q, lat, lng, radius=15000)
+            for c in res:
                 if c['place_id'] not in seen_ids:
                     candidates.append(c)
                     seen_ids.add(c['place_id'])
@@ -1501,7 +2357,7 @@ def get_personalized_recommendations():
     candidates_simple = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0), "vicinity": c.get('vicinity', '')} for c in candidates[:15]]
     
     prompt = (
-        f"Ești 'CityScape AI'. Recomandă cele mai bune 5 locații din această listă: {json.dumps(candidates_simple)} "
+        f"Ești 'CityScape AI'. Recomandă cele mai bune 15 locații din această listă: {json.dumps(candidates_simple)} "
         f"pentru un utilizator cu contextul: {user_context} "
         f"și filtrul activ: '{final_query if final_query else 'descoperire generală'}'. "
         "IMPORTANT: Nu recomanda ceva ce a vizitat recent decât dacă e o legătură mistică. "
@@ -1857,6 +2713,6 @@ def get_group_recommendations(group_id):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Try to clean up port if needed (Mac-specific)
-    import subprocess
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    port = int(os.environ.get('PORT', 5001))
+    debug = os.environ.get('FLASK_ENV', 'production') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)

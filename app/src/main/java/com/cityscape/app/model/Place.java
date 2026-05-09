@@ -24,6 +24,7 @@ public class Place implements Serializable {
     public int priceLevel; // 1 to 4
     public int reviewCount; // user_ratings_total from Google
     public String aiSuggestion; // Reason from Gemini
+    public String ai_summary; // TL;DR from Gemini
 
     public Place() {
         this.id = java.util.UUID.randomUUID().toString();

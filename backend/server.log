@@ -1,0 +1,169 @@
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+✅ Chatbot model loaded successfully!
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://172.20.10.9:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+ * Debugger is active!
+ * Debugger PIN: 107-020-653
+127.0.0.1 - - [05/May/2026 11:32:58] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.43811798095703&lng=25.993104934692383 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:01] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:07] "GET /map/hype?lat=44.450314&lng=26.0832815 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:10] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450314&lng=26.0832815&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:15] "GET /weather?lat=44.450314&lng=26.0832815 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:17] "GET /nearby?lat=44.450314&lng=26.0832815&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:17] "GET /nearby?lat=44.450314&lng=26.0832815&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:19] "GET /events?lat=44.450314&lng=26.0832815&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:23] "GET /places/search?lat=44.450314&lng=26.0832815&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:25] "GET /recommendations/personalized?lat=44.450314&lng=26.0832815&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:33:25] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:38] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:39] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:40] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:51] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:53] "GET /map/hype?lat=44.4503093&lng=26.0832938 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:57] "GET /nearby?lat=44.4503093&lng=26.0832938&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:57] "GET /nearby?lat=44.4503093&lng=26.0832938&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:58] "GET /weather?lat=44.4503093&lng=26.0832938 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:35:58] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4503093&lng=26.0832938&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:00] "GET /places/search?lat=44.4503093&lng=26.0832938&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:01] "GET /events?lat=44.4503093&lng=26.0832938&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:02] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.45030975341797&lng=26.083293914794922 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:05] "GET /recommendations/personalized?lat=44.4503093&lng=26.0832938&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:21] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:23] "GET /map/hype?lat=44.4503092&lng=26.0832733 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:26] "GET /nearby?lat=44.4503092&lng=26.0832733&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:26] "GET /nearby?lat=44.4503092&lng=26.0832733&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:27] "GET /weather?lat=44.4503092&lng=26.0832733 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:27] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4503092&lng=26.0832733&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:30] "GET /places/search?lat=44.4503092&lng=26.0832733&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:30] "GET /events?lat=44.4503092&lng=26.0832733&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:36] "GET /recommendations/personalized?lat=44.4503092&lng=26.0832733&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:43] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:43] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:36:44] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:37:06] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:37:16] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:37:48] "[35m[1mGET /users/recommended?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1[0m" 500 -
+Traceback (most recent call last):
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/mihaela/Desktop/Licenta/backend/app.py", line 1853, in get_recommended_users
+    following_ids = [f["following_id"] for f in MOCK_DATA["follows"] if f["user_id"] == user_id]
+NameError: name 'MOCK_DATA' is not defined
+127.0.0.1 - - [05/May/2026 11:37:48] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/following HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:06] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:23] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:24] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:25] "GET /weather?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:26] "GET /events?lat=48.1371079&lng=11.5753822&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:29] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:30] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=48.1371079&lng=11.5753822&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:32] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:40] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:38:57] "GET /recommendation/magic?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&type=restaurant HTTP/1.1" 200 -
+127.0.0.1 - - [05/May/2026 11:39:04] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.45030975341797&lng=26.08327293395996 HTTP/1.1" 200 -
+ * Detected change in '/Users/mihaela/Desktop/Licenta/backend/app.py', reloading
+✅ Chatbot model loaded successfully!
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+✅ [GET /places] Successfully fetched 80 places from Supabase.
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+ * Restarting with stat
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+ * Debugger is active!
+ * Debugger PIN: 107-020-653
+ * Detected change in '/Users/mihaela/Desktop/Licenta/backend/app.py', reloading
+✅ Chatbot model loaded successfully!
+ * Restarting with stat
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+ * Debugger is active!
+ * Debugger PIN: 107-020-653
+/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

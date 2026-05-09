@@ -21,6 +21,8 @@
     <color name="gradient_start">#D1FAE5</color>
     <color name="gradient_center">#E6F2ED</color>
     <color name="gradient_end">#F8FAFC</color>
+    <color name="accent_purple">#8B5CF6</color>
+    <color name="accent_gold">#F59E0B</color>
 
     <!-- Semantic Colors (PREMIUM LIGHT THEME) -->
     <color name="app_background">#FFFFFF</color>
