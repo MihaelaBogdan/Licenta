@@ -119,54 +119,85 @@ def predict_detailed():
     )
     return jsonify(result)
 
+def generate_smart_daily_quest(user_id, lat, lng, interests, language="ro"):
+    """Generates ULTRA-PERSONALIZED daily quest with user profile data."""
+    from datetime import datetime
+    import random
+
+    if not lat or not lng:
+        lat, lng = 44.4268, 26.1025
+    lat, lng = float(lat), float(lng)
+
+    user_profile = {"level": 1, "total_xp": 0, "achievements_count": 0, "visits_count": 0}
+
+    if user_id:
+        try:
+            headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*", headers=headers, timeout=5).json()
+            if p_res:
+                p = p_res[0]
+                user_profile["level"] = p.get("level", 1)
+                user_profile["total_xp"] = p.get("total_xp", 0)
+                user_profile["achievements_count"] = p.get("badges_count", 0)
+                user_profile["interests"] = p.get("interests", interests)
+
+            v_res = requests.get(f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&select=id", headers=headers, timeout=5).json()
+            user_profile["visits_count"] = len(v_res) if v_res else 0
+        except Exception as e:
+            print(f"Profile fetch error: {e}")
+
+    weather = fetch_current_weather(lat, lng) if lat and lng else {"status": "Senin", "is_bad": False, "temp": "20°C"}
+
+    xp_reward = 250 + (user_profile["level"] * 50)
+    city_name = get_city_name(lat, lng) or "orașul tău"
+    time_of_day = "dimineață" if datetime.now().hour < 12 else ("după-amiază" if datetime.now().hour < 18 else "seară")
+
+    quest_templates = [
+        {"focus": "social", "title": "Misiunea Aventurii Solitare", "obj": "Găsește 3 oameni noi și fă 1 prietenă nouă", "badge": "Social Butterfly"},
+        {"focus": "discovery", "title": "Misiunea Descoperitorului", "obj": "Vizitează 2 locuri noi și ia 5 poze", "badge": "Explorer"},
+        {"focus": "foodie", "title": "Misiunea Gurmandului", "obj": "Încearcă 2 restaurante noi și postează cea mai bună poză", "badge": "Foodie Lover"},
+        {"focus": "culture", "title": "Misiunea Istoriei Vii", "obj": "Vizitează un muzeu și înveți 1 fapt istoric", "badge": "Culture Explorer"},
+        {"focus": "outdoor", "title": "Misiunea Aventurierului", "obj": "Merge la parc și fă 30 minute de mișcare", "badge": "Nature Lover"},
+        {"focus": "photographer", "title": "Misiunea Fotografului", "obj": "Fotografiază arhitectura și postează cu #CityScape", "badge": "Photographer"},
+    ]
+
+    interests_list = [i.strip().lower() for i in user_profile.get("interests", interests).split(",") if i.strip()]
+
+    if "muzeu" in " ".join(interests_list) or "art" in " ".join(interests_list):
+        template = next((t for t in quest_templates if t["focus"] == "culture"), random.choice(quest_templates))
+    elif "restaurant" in " ".join(interests_list) or "mâncare" in " ".join(interests_list):
+        template = next((t for t in quest_templates if t["focus"] == "foodie"), random.choice(quest_templates))
+    else:
+        template = random.choice(quest_templates)
+
+    weather_note = "Perfect pentru ieșit!" if not weather.get("is_bad") else "Activități indoor!"
+
+    return {
+        "title": template["title"],
+        "objective": template["obj"] + f" în {city_name}",
+        "reward": f"{xp_reward} XP + insignă {template['badge']}",
+        "reason": f"Nivelul tău ({user_profile['level']}) merită o aventură în {time_of_day}! {weather_note}",
+        "difficulty": "Ușor" if user_profile["level"] < 3 else ("Normal" if user_profile["level"] < 6 else "Greu"),
+        "category": template["focus"],
+        "xp_reward": xp_reward,
+        "user_level": user_profile["level"],
+        "visits_count": user_profile["visits_count"]
+    }
+
 @app.get("/quests/daily")
-def get_daily_quest():
-    """Generates a personalized daily quest based on weather and interests."""
+def get_daily_quest_improved():
+    """Returns ULTRA-PERSONALIZED daily quest."""
     user_id = request.args.get("user_id")
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     interests = request.args.get("interests", "")
     language = request.args.get("language", "ro")
-    
-    # 1. Get Weather
-    weather = fetch_current_weather(lat, lng) if lat and lng else {"status": "Senin", "is_bad": False, "temp": "20°C"}
-    
-    # 2. Generate with Gemini (via OpenRouter)
+
     try:
-        import requests
-        
-        prompt = (
-            f"Ești CityScape AI Master. Generează o MISIUNE ZILNICĂ (Daily Quest) pentru un explorator urban. "
-            f"DATE CONTEXTUALE: Interese: {interests}. Vreme: {weather['status']}, {weather['temp']}. "
-            f"Limba: {'română' if language == 'ro' else 'engleză'}. "
-            "CERINȚE: "
-            "1. Titlu captivant (ex: 'Misiunea Gurmandului'). "
-            "2. Obiectiv specific (ex: 'Vizitează 2 cafenele și postează o poză'). "
-            "3. Recompensă (ex: '500 XP și insigna Coffee Lover'). "
-            "4. Justificare (ex: 'Pentru că plouă, am ales activități indoor'). "
-            "FORMAT JSON: {'title': '...', 'objective': '...', 'reward': '...', 'reason': '...'}"
-        )
-        
-        response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": "Bearer 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"},
-            json={
-                "model": "google/gemini-2.5-flash",
-                "messages": [{"role": "user", "content": prompt}]
-            },
-            timeout=10
-        )
-        
-        # Extract JSON from response
-        if response.status_code == 200:
-            llm_text = response.json()['choices'][0]['message']['content']
-            import re
-            json_match = re.search(r"\{.*\}", llm_text, re.DOTALL)
-            if json_match:
-                quest_data = json.loads(json_match.group())
-                return jsonify(quest_data)
+        quest = generate_smart_daily_quest(user_id, lat, lng, interests, language)
+        return jsonify(quest)
     except Exception as e:
-        print(f"Quest Error (OpenRouter): {e}")
+        print(f"Daily quest error: {e}")
         
     # Fallback quest
     return jsonify({
@@ -2201,6 +2232,121 @@ def _iabilet_format_date(date_str):
     except:
         return date_str
 
+def scrape_bandsintown_events(lat, lng, city_name):
+    """Scrapes music events from Bandsintown API."""
+    try:
+        url = "https://rest.bandsintown.com/events/search"
+        params = {
+            "location": f"{lat},{lng}",
+            "radius": 30,
+            "app_id": "cityscape_app"
+        }
+        resp = requests.get(url, params=params, timeout=5)
+        if resp.status_code == 200:
+            events = []
+            for e in resp.json()[:10]:
+                try:
+                    event = {
+                        "name": e.get("title", ""),
+                        "date": e.get("datetime", ""),
+                        "venue": e.get("venue", {}).get("name", ""),
+                        "city": e.get("venue", {}).get("city", city_name),
+                        "source": "Bandsintown",
+                        "url": e.get("url", ""),
+                        "image_url": e.get("image_url", "")
+                    }
+                    if event["name"]:
+                        events.append(event)
+                except:
+                    pass
+            return events
+    except Exception as e:
+        print(f"Bandsintown scrape error: {e}")
+    return []
+
+def scrape_eventim_romania_events(city_name):
+    """Scrapes events from Eventim Romania (theater, concerts, cinema)."""
+    try:
+        from bs4 import BeautifulSoup
+
+        base_url = "https://www.eventim.ro"
+        city_map = {
+            "București": "/teatro-bilete-bucuresti",
+            "Cluj-Napoca": "/teatro-bilete-cluj",
+            "Timișoara": "/teatro-bilete-timisoara",
+            "Iași": "/teatro-bilete-iasi"
+        }
+
+        path = city_map.get(city_name, "/")
+        url = base_url + path
+
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
+        resp = requests.get(url, headers=headers, timeout=5)
+
+        if resp.status_code == 200:
+            soup = BeautifulSoup(resp.content, "html.parser")
+            events = []
+
+            event_containers = soup.find_all("div", class_="event-card")[:8]
+
+            for container in event_containers:
+                try:
+                    name = container.find("h3") or container.find("a")
+                    if name:
+                        event = {
+                            "name": name.get_text(strip=True),
+                            "date": "",
+                            "venue": city_name,
+                            "city": city_name,
+                            "source": "Eventim",
+                            "url": base_url + (container.find("a").get("href") if container.find("a") else ""),
+                            "type": "Teatru/Spectacol"
+                        }
+                        events.append(event)
+                except:
+                    pass
+
+            return events[:5]
+    except Exception as e:
+        print(f"Eventim scrape error: {e}")
+    return []
+
+def scrape_cinemagia_events(city_name):
+    """Scrapes movie events from Cinemagia.ro (Romanian cinema listings)."""
+    try:
+        from bs4 import BeautifulSoup
+
+        url = "https://www.cinemagia.ro"
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
+
+        resp = requests.get(url, headers=headers, timeout=5)
+
+        if resp.status_code == 200:
+            soup = BeautifulSoup(resp.content, "html.parser")
+            events = []
+
+            movie_containers = soup.find_all("div", class_="movie-item")[:5]
+
+            for container in movie_containers:
+                try:
+                    title = container.find("h2") or container.find("a")
+                    if title:
+                        event = {
+                            "name": title.get_text(strip=True),
+                            "type": "Cinema",
+                            "city": city_name,
+                            "source": "Cinemagia",
+                            "url": "https://www.cinemagia.ro"
+                        }
+                        events.append(event)
+                except:
+                    pass
+
+            return events[:5]
+    except Exception as e:
+        print(f"Cinemagia scrape error: {e}")
+    return []
+
 def scrape_iabilet_events(city_name, lat, lng):
     """Fetches 100% real events from iabilet.ro for the given city."""
     import re as _re
@@ -2480,22 +2626,44 @@ def get_events():
     import concurrent.futures
     events = []
 
-    # ---- Fast parallel workers with HARD 2s timeouts ----
+    # ---- PARALLEL WEB SCRAPING from multiple sources ----
     def run_tm():
         try:
             return fetch_ticketmaster_events(lat, lng, radius) or []
         except: return []
 
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
-    future_tm = executor.submit(run_tm)
+    def run_bandsintown():
+        try:
+            return scrape_bandsintown_events(lat, lng, city_name) or []
+        except: return []
 
-    # Collect Ticketmaster API results
+    def run_cinemagia():
+        try:
+            return scrape_cinemagia_events(city_name) or []
+        except: return []
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    future_tm = executor.submit(run_tm)
+    future_bandsintown = executor.submit(run_bandsintown)
+    future_cinemagia = executor.submit(run_cinemagia)
+
+    # Collect results from all sources
     try:
         events.extend(future_tm.result(timeout=2.0))
     except Exception as e:
-        print(f"⚠️ Ticketmaster run failed: {e}")
+        print(f"⚠️ Ticketmaster failed: {e}")
 
-    executor.shutdown(wait=False)
+    try:
+        events.extend(future_bandsintown.result(timeout=2.0))
+    except Exception as e:
+        print(f"⚠️ Bandsintown failed: {e}")
+
+    try:
+        events.extend(future_cinemagia.result(timeout=2.0))
+    except Exception as e:
+        print(f"⚠️ Cinemagia failed: {e}")
+
+    print(f"📍 Events so far: {len(events)} (TM, Bandsintown, Cinemagia)")
 
     print(f"📍 Events for: {city_name} (Lat: {lat}, Lng: {lng}) | Real TM events: {len(events)}")
 
@@ -2551,14 +2719,38 @@ def get_events():
         nearest_city = find_nearest_iabilet_city(lat, lng)
         print(f"🎯 Nearest iabilet city: {nearest_city} (for {city_name})")
 
-        real_events = scrape_iabilet_events(nearest_city, lat, lng)
-        events.extend(real_events)
-        real_events_count = len(real_events)
+        def run_iabilet():
+            try:
+                iab_events = scrape_iabilet_events(nearest_city, lat, lng) or []
+                if city_name in _IABILET_SUPPORT and city_name != nearest_city:
+                    iab_events.extend(scrape_iabilet_events(city_name, lat, lng) or [])
+                return iab_events
+            except: return []
 
-        if city_name in _IABILET_SUPPORT and city_name != nearest_city:
-            extra_real = scrape_iabilet_events(city_name, lat, lng)
-            events.extend(extra_real)
-            real_events_count += len(extra_real)
+        def run_eventim():
+            try:
+                return scrape_eventim_romania_events(city_name) or []
+            except: return []
+
+        # Create NEW executor for Romania-specific scraping
+        executor_ro = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        future_iabilet = executor_ro.submit(run_iabilet)
+        future_eventim = executor_ro.submit(run_eventim)
+
+        try:
+            real_events = future_iabilet.result(timeout=3.0)
+            events.extend(real_events)
+            real_events_count = len(real_events)
+        except Exception as e:
+            print(f"⚠️ iabilet failed: {e}")
+
+        try:
+            eventim_events = future_eventim.result(timeout=2.0)
+            events.extend(eventim_events)
+        except Exception as e:
+            print(f"⚠️ Eventim failed: {e}")
+
+        executor_ro.shutdown(wait=False)
 
     # ---- Dedup + Score ----
     seen_titles = set()
@@ -2600,6 +2792,9 @@ def get_events():
 
     sorted_others = sorted(unique_events, key=lambda x: x.get('relevance_score', 0), reverse=True)
     print(f"✅ Returning {len(sorted_others)} events ({real_events_count} real RO events, global mapping active)")
+
+    executor.shutdown(wait=False)
+
     return jsonify(sorted_others[:40])
 
 
@@ -2976,14 +3171,14 @@ def get_personalized_recommendations():
             f"Ești CityScape AI, un expert în recomandări de locuri urbane. "
             f"Context utilizator: {user_context} "
             f"Locații disponibile: {json.dumps(candidates_json[:7])} "
-            f"Filtru activ: '{final_query if final_query else 'descoperire generală}'. "
+            f"Filtru activ: '{final_query if final_query else 'descoperire generală'}'. "
             f"Task: Selectează cel mult 5 locuri PERFECT potrivite. "
             f"Pentru FIECARE locație: calculează %% bazat pe: "
             f"- match_prefs_pct: cât din recomandare se bazează pe preferințele utilizatorului (0-100) "
             f"- match_history_pct: cât din recomandare se bazează pe istoria / nivelul utilizatorului (0-100). "
             f"Suma = 100%. Explicația trebuie să fie ULTRA-personalizată și scurtă (max 20 cuvinte). "
             f"Răspunde DOAR cu JSON valid: "
-            f'[{{"place_id": "...", "ai_reason": "...", "match_prefs_pct": N, "match_history_pct": N}}]'
+            '[{"place_id": "...", "ai_reason": "...", "match_prefs_pct": N, "match_history_pct": N}]'
         )
 
         response = model.generate_content(prompt, timeout=15)
