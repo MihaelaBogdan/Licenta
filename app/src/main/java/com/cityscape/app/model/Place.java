@@ -38,11 +38,25 @@ public class Place implements Serializable {
     @androidx.room.Ignore
     public java.util.List<Review> reviews;
 
+    @androidx.room.Ignore
+    public java.util.List<Photo> photos;
+
+    @SerializedName("is_open")
+    public Boolean isOpen;
+
+    public String website;
+
     public static class Review implements java.io.Serializable {
         public String author;
         public String text;
         public float rating;
         public String time;
+        public String source;
+    }
+
+    public static class Photo implements java.io.Serializable {
+        public String url;
+        public String source;
     }
 
     public Place() {
