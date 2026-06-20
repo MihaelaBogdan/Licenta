@@ -1121,8 +1121,10 @@ def get_nearby_realtime():
                 p_types = p.get("types", [])
                 if "shopping_mall" in p_types or "store" in p_types:
                     continue
+            # Enrich place with photos, reviews, and detailed info
+            f = enrich_place_with_details(f, float(lat), float(lng))
             formatted.append(f)
-    
+
     if user_id:
         context = get_user_context(user_id)
         formatted = rank_places(formatted, context,
@@ -1196,9 +1198,11 @@ def personalized_discovery():
         if pid and pid not in seen_ids:
             f = format_google_place(p, lat, lng)
             if f:
+                # Enrich place with photos, reviews, and detailed info
+                f = enrich_place_with_details(f, float(lat), float(lng))
                 formatted.append(f)
                 seen_ids.add(pid)
-    
+
     if user_id:
         context = get_user_context(user_id)
         formatted = rank_places(formatted, context,
@@ -2602,6 +2606,71 @@ def generate_gemini_events(city_name, lat, lng):
     except Exception as e:
         print(f"⚠️ Gemini Events Generation Error: {e}")
         return []
+
+
+def enrich_place_with_details(place_data, lat, lng):
+    """Enrich place with photos, reviews, descriptions from Google Places."""
+    place_id = place_data.get('id')
+    place_name = place_data.get('name', '')
+
+    if not place_id:
+        return place_data
+
+    try:
+        # Get detailed place info from Google Places API
+        details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+        details_params = {
+            "place_id": place_id,
+            "key": MAPS_API_KEY,
+            "fields": "photos,reviews,rating,user_ratings_total,formatted_address,website,opening_hours,business_status,types,editorial_summary"
+        }
+        details_res = requests.get(details_url, params=details_params, timeout=3)
+        if details_res.status_code == 200:
+            details = details_res.json().get('result', {})
+
+            # Extract multiple photos
+            if details.get('photos'):
+                place_data['photos'] = [{
+                    'url': f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={p.get('photo_reference')}&key={MAPS_API_KEY}",
+                    'source': 'Google Places'
+                } for p in details['photos'][:3]]
+
+            # Extract reviews
+            if details.get('reviews'):
+                place_data['reviews'] = [{
+                    'author': r.get('author_name', 'Anonymous'),
+                    'rating': r.get('rating', 0),
+                    'text': r.get('text', '')[:150],
+                    'source': 'Google Maps',
+                    'time': r.get('relative_time_description', '')
+                } for r in details['reviews'][:4]]
+
+            # Extract description from editorial summary if available
+            if details.get('editorial_summary'):
+                place_data['description'] = details['editorial_summary'].get('overview', '')
+
+            # Update rating info
+            if details.get('rating'):
+                place_data['rating'] = details.get('rating', place_data.get('rating', 0))
+                place_data['reviewCount'] = details.get('user_ratings_total', place_data.get('reviewCount', 0))
+
+            # Add website if available
+            if details.get('website'):
+                place_data['website'] = details['website']
+
+            # Add opening hours
+            if details.get('opening_hours'):
+                place_data['is_open'] = details['opening_hours'].get('open_now', None)
+
+    except Exception as e:
+        print(f"⚠️ Place enrichment error for {place_name}: {e}")
+
+    # Ensure description exists
+    if 'description' not in place_data:
+        place_type = place_data.get('type', 'Locație')
+        place_data['description'] = f"{place_name} - {place_type} în {place_data.get('address', '')}"
+
+    return place_data
 
 
 def get_event_details_enriched(event, lat, lng):
