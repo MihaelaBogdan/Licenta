@@ -2603,189 +2603,216 @@ def generate_gemini_events(city_name, lat, lng):
         print(f"⚠️ Gemini Events Generation Error: {e}")
         return []
 
+
+def get_event_details_enriched(event, lat, lng):
+    """Enrich event with descriptions, photos, and reviews."""
+    title = event.get('title', '')
+    location_name = event.get('location', '')
+    event_url = event.get('event_url', '')
+
+    # 1. Try Google Places search for the venue/location - try location name first
+    search_queries = [
+        location_name,  # Try venue name first
+        location_name.split(',')[0],  # Try first part of address
+        title.split('-')[0] if '-' in title else title,  # Try event name
+    ]
+
+    for search_query in search_queries:
+        if not search_query or len(search_query) < 3:
+            continue
+
+        try:
+            places_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+            params = {
+                "input": search_query,
+                "inputtype": "textquery",
+                "locationbias": f"circle:5000@{lat},{lng}",
+                "key": MAPS_API_KEY,
+            }
+            places_res = requests.get(places_url, params=params, timeout=2)
+            if places_res.status_code == 200:
+                places_data = places_res.json()
+                if places_data.get('candidates'):
+                    place_id = places_data['candidates'][0].get('place_id')
+
+                    # Get detailed place info
+                    details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+                    details_params = {
+                        "place_id": place_id,
+                        "key": MAPS_API_KEY,
+                        "fields": "photos,reviews,rating,user_ratings_total,name,formatted_address"
+                    }
+                    details_res = requests.get(details_url, params=details_params, timeout=2)
+                    if details_res.status_code == 200:
+                        details = details_res.json().get('result', {})
+
+                        # Extract photos
+                        if details.get('photos') and 'photos' not in event:
+                            photo_refs = [p.get('photo_reference') for p in details['photos'][:2] if p.get('photo_reference')]
+                            if photo_refs:
+                                event['photos'] = [{
+                                    'url': f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={ref}&key={MAPS_API_KEY}",
+                                    'source': f"Google Places - {details.get('name', 'Venue')}"
+                                } for ref in photo_refs]
+
+                        # Extract reviews
+                        if details.get('reviews') and 'reviews' not in event:
+                            event['reviews'] = [{
+                                'author': r.get('author_name', 'Anonymous'),
+                                'rating': r.get('rating', 0),
+                                'text': r.get('text', '')[:150],
+                                'source': 'Google Maps',
+                                'time': r.get('relative_time_description', '')
+                            } for r in details['reviews'][:4]]
+
+                        if details.get('rating'):
+                            event['google_rating'] = details.get('rating', 0)
+                            event['review_count'] = details.get('user_ratings_total', 0)
+
+                        break  # Success, stop trying other queries
+        except Exception as e:
+            continue
+
+    # 2. Get description - try to extract from event page if available
+    if 'description' not in event and event_url:
+        try:
+            res = requests.get(event_url, timeout=2, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            })
+            if res.status_code == 200:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(res.content, 'html.parser')
+
+                # Try meta description first
+                desc_meta = soup.find('meta', attrs={'name': 'description'})
+                description = None
+                if desc_meta:
+                    description = desc_meta.get('content', '').strip()
+
+                # Extract text if no description found
+                if not description or len(description) < 20:
+                    paragraphs = soup.find_all('p')
+                    for p in paragraphs[:3]:
+                        text = p.get_text(strip=True)
+                        if len(text) > 50:
+                            description = text[:300]
+                            break
+
+                if description and len(description) > 20:
+                    event['description'] = description
+        except Exception as e:
+            pass
+
+    # 3. Add default description if none found
+    if 'description' not in event:
+        category = event.get('category', 'Eveniment')
+        event['description'] = f"{title} - {category} în {location_name}"
+
+    # 4. Add default photo if none found
+    if 'photos' not in event or not event['photos']:
+        category_lower = event.get('category', '').lower()
+        unsplash_queries = {
+            'muzic': 'concert-music-live',
+            'teatru': 'theater-stage',
+            'film': 'cinema-movie',
+            'expozitie': 'art-exhibition',
+            'sport': 'sports-event',
+        }
+        query = 'event'
+        for key, val in unsplash_queries.items():
+            if key in category_lower:
+                query = val
+                break
+
+        event['photos'] = [{
+            'url': f"https://images.unsplash.com/search?query={query}&client=unsplash&w=800",
+            'source': 'Unsplash'
+        }]
+
+    return event
+
+
 @app.get("/events")
 def get_events():
-    """Returns REAL events: concerts, movies, theater shows from multiple sources."""
+    """Returns REAL events: concerts, movies, theater from iabilet.ro, Ticketmaster, etc."""
     lat_val = request.args.get("lat", "44.4268")
     lng_val = request.args.get("lng", "26.1025")
-    radius = int(request.args.get("radius", 50))
     interests = request.args.get("interests", "").lower()
 
     try:
         lat = float(lat_val)
         lng = float(lng_val)
-    except Exception:
+    except:
         lat, lng = 44.4268, 26.1025
 
-    city_name = get_city_name(lat, lng) or "România"
+    city_name = get_city_name(lat, lng) or "Bucuresti"
     is_romania = (43.0 <= lat <= 49.0) and (20.0 <= lng <= 30.2)
 
-    print(f"🎭 Fetching events for: {city_name} (Romania: {is_romania})")
-
     events = []
-    real_events_count = 0
 
-    # ==================== 1. iabilet.ro (ROMANIA ONLY) ====================
+    # 1. IABILET.RO - ROMANIA EVENTS
     if is_romania:
-        _RO_CITIES = {
-            "București": "https://www.iabilet.ro/bilete/bucuresti",
-            "Cluj-Napoca": "https://www.iabilet.ro/bilete/cluj-napoca",
-            "Timișoara": "https://www.iabilet.ro/bilete/timisoara",
-            "Iași": "https://www.iabilet.ro/bilete/iasi",
-            "Brașov": "https://www.iabilet.ro/bilete/brasov",
-            "Constanța": "https://www.iabilet.ro/bilete/constanta",
-            "Sibiu": "https://www.iabilet.ro/bilete/sibiu",
-        }
-
-        nearest_city = min(_RO_CITIES.keys(), key=lambda c: haversine(lat, lng, *_RO_CITIES_COORDS.get(c, (44.4268, 26.1025))))
-
         try:
-            iab_events = scrape_iabilet_events(nearest_city, lat, lng) or []
+            iab_events = scrape_iabilet_events(city_name, lat, lng) or []
             events.extend(iab_events)
-            real_events_count = len(iab_events)
-            print(f"✅ iabilet: {len(iab_events)} events from {nearest_city}")
+            print(f"✅ iabilet: {len(iab_events)} events")
         except Exception as e:
             print(f"⚠️ iabilet error: {e}")
 
-    # ==================== 2. Ticketmaster (GLOBAL) ====================
+    # 2. TICKETMASTER - GLOBAL EVENTS
     try:
-        tm_events = fetch_ticketmaster_events(lat, lng, radius) or []
+        tm_events = fetch_ticketmaster_events(lat, lng, 50) or []
         events.extend(tm_events)
         print(f"✅ Ticketmaster: {len(tm_events)} events")
     except Exception as e:
         print(f"⚠️ Ticketmaster error: {e}")
 
-    print(f"📍 Events for: {city_name} (Lat: {lat}, Lng: {lng}) | Real TM events: {len(events)}")
-
-    real_events_count = 0
-    nearest_city = city_name
-
-    # ---- Regional Scraping vs. Global Event Integration ----
-    if is_romania:
-        # Find nearest Romanian city with iabilet support
-        _RO_CITIES = {
-            "București":   (44.4268, 26.1025),
-            "Cluj-Napoca": (46.7712, 23.6236),
-            "Timișoara":   (45.7537, 21.2257),
-            "Iași":        (47.1585, 27.6014),
-            "Brașov":      (45.6427, 25.5887),
-            "Constanța":   (44.1598, 28.6348),
-            "Sibiu":       (45.7983, 24.1256),
-            "Craiova":     (44.3302, 23.7949),
-            "Galați":      (45.4353, 28.0080),
-            "Oradea":      (47.0722, 21.9218),
-            "Ploiești":    (44.9364, 26.0185),
-            "Pitești":     (44.8565, 24.8692),
-            "Bacău":       (46.5671, 26.9138),
-            "Râmnicu Vâlcea": (45.1001, 24.3679),
-            "Suceava":     (47.6514, 26.2556),
-            "Târgu Mureș": (46.5472, 24.5574),
-            "Arad":        (46.1866, 21.3123),
-            "Deva":        (45.8816, 22.9024),
-            "Sinaia":      (45.3498, 25.5546),
-            "Poiana Brasov": (45.5963, 25.5488),
-        }
-        _IABILET_SUPPORT = {"București", "Cluj-Napoca", "Timișoara", "Iași", "Brașov", "Constanța", "Sibiu"}
-
-        def haversine_km(lat1, lng1, lat2, lng2):
-            from math import radians, cos, sin, asin, sqrt
-            lat1, lng1, lat2, lng2 = map(radians, [lat1, lng1, lat2, lng2])
-            dlat = lat2 - lat1
-            dlng = lng2 - lng1
-            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
-            return 2 * asin(sqrt(a)) * 6371
-
-        def find_nearest_iabilet_city(lat, lng):
-            best_city = "București"
-            best_dist = float('inf')
-            for city, (clat, clng) in _RO_CITIES.items():
-                iabilet_city = city if city in _IABILET_SUPPORT else "București"
-                d = haversine_km(lat, lng, clat, clng)
-                if d < best_dist:
-                    best_dist = d
-                    best_city = iabilet_city
-            return best_city
-
-        nearest_city = find_nearest_iabilet_city(lat, lng)
-        print(f"🎯 Nearest iabilet city: {nearest_city} (for {city_name})")
-
-        def run_iabilet():
-            try:
-                iab_events = scrape_iabilet_events(nearest_city, lat, lng) or []
-                if city_name in _IABILET_SUPPORT and city_name != nearest_city:
-                    iab_events.extend(scrape_iabilet_events(city_name, lat, lng) or [])
-                return iab_events
-            except: return []
-
-        def run_eventim():
-            try:
-                return scrape_eventim_romania_events(city_name) or []
-            except: return []
-
-        # Create NEW executor for Romania-specific scraping
-        executor_ro = concurrent.futures.ThreadPoolExecutor(max_workers=2)
-        future_iabilet = executor_ro.submit(run_iabilet)
-        future_eventim = executor_ro.submit(run_eventim)
-
-        try:
-            real_events = future_iabilet.result(timeout=3.0)
-            events.extend(real_events)
-            real_events_count = len(real_events)
-        except Exception as e:
-            print(f"⚠️ iabilet failed: {e}")
-
-        try:
-            eventim_events = future_eventim.result(timeout=2.0)
-            events.extend(eventim_events)
-        except Exception as e:
-            print(f"⚠️ Eventim failed: {e}")
-
-        executor_ro.shutdown(wait=False)
-
-    # ---- Dedup + Score ----
-    seen_titles = set()
+    # 3. DEDUPLICATION & FORMATTING
+    seen = set()
     unique_events = []
-    interest_list = [i.strip() for i in interests.split(",") if i.strip()] if interests else []
 
     for event in events:
-        title = event.get('title')
-        if not title or title in seen_titles:
+        title = event.get('title', '')
+        if not title or title in seen:
             continue
-        seen_titles.add(title)
+        seen.add(title)
 
-        vibe_tags = ["Popular", "Recomandat"]
-        title_lower = title.lower()
-        if "concert" in title_lower or "jazz" in title_lower or "muzic" in title_lower or "music" in title_lower:
-            vibe_tags = ["Energy", "Social"]
-        elif "muzeu" in title_lower or "art" in title_lower or "expoz" in title_lower or "museum" in title_lower or "exhibition" in title_lower:
-            vibe_tags = ["Culture", "Chill"]
-        elif "parc" in title_lower or "sport" in title_lower or "alerg" in title_lower or "maraton" in title_lower or "run" in title_lower or "marathon" in title_lower:
-            vibe_tags = ["Nature", "Active"]
-        elif "food" in title_lower or "street" in title_lower or "gastro" in title_lower or "taste" in title_lower or "wine" in title_lower:
-            vibe_tags = ["Taste", "Vibe"]
+        # Ensure proper format
+        formatted = {
+            'title': title,
+            'date': event.get('date_str', event.get('date', 'TBA')),
+            'location': event.get('location', city_name),
+            'category': event.get('category', 'Spectacol'),
+            'image_url': event.get('image_url', ''),
+            'event_url': event.get('event_url', ''),
+            'source': event.get('source', 'unknown'),
+            'latitude': event.get('latitude', lat),
+            'longitude': event.get('longitude', lng),
+        }
 
-        event['smart_tags'] = vibe_tags
-        event['expected_crowding'] = random.choice(["Scăzut", "Moderat", "Vârf de audiență"])
-        event['nearest_city'] = nearest_city
+        # Enrich with descriptions, photos, and reviews
+        formatted = get_event_details_enriched(formatted, lat, lng)
 
-        score = sum(30 for interest in interest_list
-                    if interest in title_lower or interest in event.get('category', '').lower())
-        
-        # Scoring priority: Real events
-        source_score = {
-            "iabilet": 20,              # REAL scraped events (Romania) — top tier
-            "ticketmaster": 18,         # REAL ticketmaster events (Global) — top tier
-        }.get(event.get('source', ''), 1)
+        unique_events.append(formatted)
 
-        event['relevance_score'] = score + source_score
-        unique_events.append(event)
+    # 4. SORTING BY RELEVANCE
+    if interests:
+        interest_words = interests.split(',')
+        for event in unique_events:
+            score = 0
+            title_lower = event['title'].lower()
+            category_lower = event['category'].lower()
 
-    sorted_others = sorted(unique_events, key=lambda x: x.get('relevance_score', 0), reverse=True)
-    print(f"✅ Returning {len(sorted_others)} events ({real_events_count} real RO events, global mapping active)")
+            for interest in interest_words:
+                if interest.strip() in title_lower or interest.strip() in category_lower:
+                    score += 10
 
-    executor.shutdown(wait=False)
+            event['relevance_score'] = score
 
-    return jsonify(sorted_others[:40])
+        unique_events.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+
+    print(f"✅ Returning {len(unique_events)} unique events for {city_name}")
+    return jsonify(unique_events[:50])
 
 
 
