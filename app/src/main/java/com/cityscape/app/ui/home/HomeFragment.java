@@ -20,6 +20,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -59,6 +62,9 @@ import java.util.Date;
 
 public class HomeFragment extends Fragment implements com.google.android.gms.maps.OnMapReadyCallback {
     private com.google.android.gms.maps.GoogleMap googleMap;
+    private android.speech.tts.TextToSpeech textToSpeech;
+    private final java.util.Set<String> discoveredPlaceIds = new java.util.HashSet<>();
+    private com.google.android.gms.location.LocationCallback locationCallback;
 
         private FragmentHomeBinding binding;
         private android.content.Context appContext;
@@ -86,6 +92,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private String currentCategory = "All";
         private String searchQuery = "";
         private String currentMusicFilter = "All";
+        private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        private Runnable searchRunnable;
         private String eventMusicFilter = "All";
         private com.cityscape.app.api.WeatherResponse currentWeather;
         private boolean isManualLocation = false;
@@ -98,6 +106,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 apiService = ApiClient.getClient().create(ApiService.class);
                 sessionManager = new SessionManager(requireContext());
                 fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+                initLocationCallback();
 
                 setupGreeting();
                 setupRecyclers();
@@ -106,6 +115,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 setupMoodSearch();
                 setupItineraryButton();
                 setupCrystalBall();
+                // Hide location-only sections until GPS confirms real location
+                View battleCard = binding.getRoot().findViewById(R.id.card_home_live_battle);
+                if (battleCard != null) battleCard.setVisibility(View.GONE);
+                androidx.cardview.widget.CardView smartCard = binding.getRoot().findViewById(R.id.card_smart_recommendation);
+                if (smartCard != null) smartCard.setVisibility(View.GONE);
+                if (binding.cardDailyQuest != null) binding.cardDailyQuest.setVisibility(View.GONE);
+                setupHypeBattle();
                 binding.btnResetLocation.setOnClickListener(v -> setupLocationReset());
                 
                 com.google.android.gms.maps.SupportMapFragment mapFragment = (com.google.android.gms.maps.SupportMapFragment) getChildFragmentManager()
@@ -115,6 +131,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 }
 
                 binding.textLocation.setOnClickListener(v -> showCitySelectionDialog());
+                binding.textWeather.setOnClickListener(v -> checkWeatherPlanB());
                 checkLocationPermission();
                 showPreviousSessionPromptIfAvailable();
 
@@ -163,6 +180,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         builder.setView(dialogView);
 
                         androidx.appcompat.app.AlertDialog dialog = builder.create();
+                        if (dialog.getWindow() != null) {
+                            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+                        }
 
                         com.google.android.material.button.MaterialButtonToggleGroup toggleScope = dialogView
                                         .findViewById(R.id.dialog_toggle_scope);
@@ -267,7 +287,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 com.google.android.material.button.MaterialButton btnGo = dialogView.findViewById(R.id.btn_magic_go);
                 View ballContainer = dialogView.findViewById(R.id.layout_magic_ball_container);
 
+                com.google.android.material.chip.Chip prediction1 = dialogView.findViewById(R.id.prediction_1);
+                com.google.android.material.chip.Chip prediction2 = dialogView.findViewById(R.id.prediction_2);
+                com.google.android.material.chip.Chip prediction3 = dialogView.findViewById(R.id.prediction_3);
+
                 ballContainer.setVisibility(View.GONE);
+
+                // Fetch predictions when dialog opens
+                fetchAndDisplayPredictions(prediction1, prediction2, prediction3);
 
                 chipGroup.setOnCheckedChangeListener((group, checkedId) -> {
                         if (checkedId == -1) return;
@@ -289,6 +316,41 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 dialog.show();
         }
 
+        private void fetchAndDisplayPredictions(com.google.android.material.chip.Chip pred1, com.google.android.material.chip.Chip pred2, com.google.android.material.chip.Chip pred3) {
+                String userId = sessionManager.getUserId();
+                apiService.getCrystalBallTimeline(userId).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                        if (isAdded() && response.isSuccessful() && response.body() != null) {
+                            com.google.gson.JsonObject result = response.body();
+                            com.google.gson.JsonArray timeline = result.getAsJsonArray("timeline");
+
+                            if (timeline != null && timeline.size() >= 3) {
+                                com.google.gson.JsonObject pred = timeline.get(0).getAsJsonObject();
+                                String type = pred.get("type").getAsString();
+                                int conf = pred.get("confidence").getAsInt();
+                                pred1.setText(String.format("%s (%d%%)", type, conf));
+
+                                pred = timeline.get(1).getAsJsonObject();
+                                type = pred.get("type").getAsString();
+                                conf = pred.get("confidence").getAsInt();
+                                pred2.setText(String.format("%s (%d%%)", type, conf));
+
+                                pred = timeline.get(2).getAsJsonObject();
+                                type = pred.get("type").getAsString();
+                                conf = pred.get("confidence").getAsInt();
+                                pred3.setText(String.format("%s (%d%%)", type, conf));
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
+                        Log.e("CrystalBall", "Failed to fetch predictions", t);
+                    }
+                });
+        }
+
         private void startMagicAnimations(ImageView imgBall, ImageView imgMist) {
                 android.animation.ObjectAnimator scaleX = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleX", 1.0f, 1.1f);
                 android.animation.ObjectAnimator scaleY = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleY", 1.0f, 1.1f);
@@ -306,7 +368,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void fetchMagicRecommendation(androidx.appcompat.app.AlertDialog dialog, String category, TextView textStatus, TextView textReveal, ImageView imgMist, com.google.android.material.button.MaterialButton btnGo) {
-                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId(), category)
+                String interests = "";
+                com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                if (currentUser != null && currentUser.interests != null) {
+                    interests = currentUser.interests;
+                }
+                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId(), category, interests)
                     .enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
                         @Override
                         public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
@@ -370,14 +437,18 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
              if (getContext() == null) return;
              
              String name = result.get("name").getAsString();
-             String reason = result.get("reason").getAsString();
-             com.google.gson.JsonArray activitiesArr = result.getAsJsonArray("activities");
+             String reason = result.has("reason") && !result.get("reason").isJsonNull() ? result.get("reason").getAsString() : "Destinul te ghidează spre o experiență locală unică!";
+             com.google.gson.JsonArray activitiesArr = result.has("activities") && !result.get("activities").isJsonNull() ? result.getAsJsonArray("activities") : null;
              
              StringBuilder actStr = new StringBuilder();
              if (activitiesArr != null) {
                  for (int i = 0; i < activitiesArr.size(); i++) {
                      actStr.append("  ✨ ").append(activitiesArr.get(i).getAsString()).append("\n");
                  }
+             } else {
+                 actStr.append("  ✨ Explorează împrejurimile în ritmul tău.\n");
+                 actStr.append("  ✨ Admiră detaliile arhitecturale și farmecul locului.\n");
+                 actStr.append("  ✨ Descoperă secretele ascunse ale comunității.\n");
              }
 
              new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
@@ -563,30 +634,92 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         return;
                 apiService.getWeather(currentLocation.getLatitude(), currentLocation.getLongitude())
                                 .enqueue(new Callback<com.cityscape.app.api.WeatherResponse>() {
-                                        @Override
-                                        public void onResponse(Call<com.cityscape.app.api.WeatherResponse> call,
-                                                        Response<com.cityscape.app.api.WeatherResponse> response) {
-                                                if (response.isSuccessful() && response.body() != null) {
-                                                        currentWeather = response.body();
-                                                        updateWeatherUI();
-                                                        updateFilters();
-                                                }
-                                        }
+                                         @Override
+                                         public void onResponse(Call<com.cityscape.app.api.WeatherResponse> call,
+                                                         Response<com.cityscape.app.api.WeatherResponse> response) {
+                                                 if (response.isSuccessful() && response.body() != null) {
+                                                         currentWeather = response.body();
+                                                         updateWeatherUI();
+                                                         updateFilters();
+                                                 } else {
+                                                         updateSmartRecommendationOffline();
+                                                 }
+                                         }
 
-                                        @Override
-                                        public void onFailure(Call<com.cityscape.app.api.WeatherResponse> call,
-                                                        Throwable t) {
-                                        }
-                                });
+                                         @Override
+                                         public void onFailure(Call<com.cityscape.app.api.WeatherResponse> call,
+                                                         Throwable t) {
+                                                 updateSmartRecommendationOffline();
+                                         }
+                                 });
         }
 
         private void updateWeatherUI() {
                 if (currentWeather != null && binding != null) {
                         String weatherText = String.format(java.util.Locale.US, "%.0f°C %s", currentWeather.temp,
                                         currentWeather.condition != null && currentWeather.condition.contains("Rain") ? "🌧️"
-                                                        : (currentWeather.condition != null && currentWeather.condition.contains("Clear") ? "☀️" : "☁️"));
+                                                         : (currentWeather.condition != null && currentWeather.condition.contains("Clear") ? "☀️" : "☁️"));
                         binding.textWeather.setText(weatherText);
+                        updateSmartRecommendation(currentWeather.temp, currentWeather.condition);
+                } else {
+                        updateSmartRecommendationOffline();
                 }
+        }
+
+        private void updateSmartRecommendation(double temp, String condition) {
+                if (!isAdded() || getView() == null) return;
+                if (isManualLocation) {
+                    androidx.cardview.widget.CardView cs = getView().findViewById(R.id.card_smart_recommendation);
+                    if (cs != null) cs.setVisibility(View.GONE);
+                    return;
+                }
+                androidx.cardview.widget.CardView cardSmart = getView().findViewById(R.id.card_smart_recommendation);
+                TextView txtEmoji = getView().findViewById(R.id.txt_smart_emoji);
+                TextView txtRec = getView().findViewById(R.id.txt_smart_recommendation);
+                
+                if (cardSmart == null || txtEmoji == null || txtRec == null) return;
+                
+                String conditionLower = condition != null ? condition.toLowerCase() : "";
+                boolean isRainy = conditionLower.contains("rain") || conditionLower.contains("drizzle") || conditionLower.contains("ploaie") || conditionLower.contains("storm");
+                
+                String recText;
+                String emoji;
+                
+                if (isRainy) {
+                    emoji = "🌧️";
+                    recText = "Vremea e ploioasă în oraș acum! 🌧️ Recomandarea noastră este o activitate culturală de interior. Ce zici de o vizită caldă la Muzeul Național de Artă al României sau o cafea aromată la o cafenea de specialitate din centru?";
+                } else if (temp < 12) {
+                    emoji = "❄️";
+                    recText = "Este destul de răcoros afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Îți recomandăm să explorezi spațiile indoor călduroase. O expoziție la Art Safari sau un ceai cald ar fi opțiunile perfecte pentru azi.";
+                } else if (temp >= 12 && temp <= 22) {
+                    emoji = "🌤️";
+                    recText = "Vreme excelentă de plimbare urbană (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ O vizită la Grădina Botanică sau o plimbare pe Calea Victoriei ar fi o experiență perfectă.";
+                } else {
+                    emoji = "☀️";
+                    recText = "Este o zi călduroasă și însorită (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Perfect pentru o terasă sau relaxare în parc. Îți recomandăm Parcul Herăstrău și o plimbare cu barca pe lac!";
+                }
+                
+                txtEmoji.setText(emoji);
+                txtRec.setText(recText);
+                cardSmart.setVisibility(View.VISIBLE);
+        }
+
+        private void updateSmartRecommendationOffline() {
+                if (!isAdded() || getView() == null) return;
+                if (isManualLocation) {
+                    androidx.cardview.widget.CardView cs = getView().findViewById(R.id.card_smart_recommendation);
+                    if (cs != null) cs.setVisibility(View.GONE);
+                    return;
+                }
+                androidx.cardview.widget.CardView cardSmart = getView().findViewById(R.id.card_smart_recommendation);
+                TextView txtEmoji = getView().findViewById(R.id.txt_smart_emoji);
+                TextView txtRec = getView().findViewById(R.id.txt_smart_recommendation);
+                
+                if (cardSmart == null || txtEmoji == null || txtRec == null) return;
+                
+                txtEmoji.setText("🔌");
+                txtRec.setText("Modul Offline Activ. 🔌 Chiar și fără conexiune la internet, poți accesa traseele tale salvate offline din profil și poți efectua check-in-uri GPS la locațiile vizitate!");
+                cardSmart.setVisibility(View.VISIBLE);
         }
 
         private void fetchItinerary(String scope, String type, int budget, int duration, int points, String manualInterests) {
@@ -854,6 +987,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         // Award XP for exploring
                         com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
                         com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                        showPlaceDetailDialog(place);
                     }
 
                     @Override
@@ -902,7 +1036,17 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         public void onTextChanged(CharSequence s, int start, int before, int count) {
                                 searchQuery = s.toString();
                                 updateFilters();
-                                fetchAIPicks();
+                                
+                                if (searchRunnable != null) {
+                                    searchHandler.removeCallbacks(searchRunnable);
+                                }
+                                searchRunnable = () -> {
+                                    if (isAdded()) {
+                                        fetchPlaces(false);
+                                        fetchAIPicks();
+                                    }
+                                };
+                                searchHandler.postDelayed(searchRunnable, 400); // 400ms debounce
                         }
                         @Override
                         public void afterTextChanged(android.text.Editable s) { }
@@ -1002,7 +1146,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         });
                 } else {
                     String currentCity = sessionManager.getPreferredCity();
-                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), "", type, 50000, userId, currentCity)
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), searchQuery, type, 50000, userId, currentCity)
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -1033,30 +1177,125 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
         private void fetchAIPicks() {
                 if (currentLocation == null || !isAdded()) return;
-                
+
                 String userId = sessionManager.getUserId();
                 String currentCity = sessionManager.getPreferredCity();
-                apiService.getPersonalizedRecommendations(currentLocation.getLatitude(), currentLocation.getLongitude(), userId, searchQuery, currentCategory, currentCity)
+
+                String interests = "";
+                com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                if (currentUser != null && currentUser.interests != null) {
+                    interests = currentUser.interests;
+                }
+
+                // First, fetch explainable recommendations with confidence scores
+                fetchExplainableRecommendations(userId, currentCity, interests);
+
+                // Fallback to regular recommendations if needed
+                apiService.getPersonalizedRecommendations(currentLocation.getLatitude(), currentLocation.getLongitude(), userId, searchQuery, currentCategory, currentCity, interests)
                     .enqueue(new Callback<List<Place>>() {
                         @Override
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                             if (binding == null) return;
                             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                                aiPicksList.clear();
-                                aiPicksList.addAll(response.body());
-                                if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
-                                binding.sectionAiPicks.setVisibility(View.VISIBLE);
-                            } else {
-                                binding.sectionAiPicks.setVisibility(View.GONE);
+                                // Only add if explainable didn't already populate
+                                if (aiPicksList.isEmpty()) {
+                                    aiPicksList.clear();
+                                    aiPicksList.addAll(response.body());
+                                    if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
+                                    binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                                }
                             }
                         }
 
                         @Override
                         public void onFailure(Call<List<Place>> call, Throwable t) {
                             Log.e("HomeFragment", "AI Picks fetch failed", t);
-                            if (binding != null) binding.sectionAiPicks.setVisibility(View.GONE);
                         }
                     });
+        }
+
+        /**
+         * Fetch recommendations with explainable confidence scores and match percentages
+         */
+        private void fetchExplainableRecommendations(String userId, String city, String interestsStr) {
+                new Thread(() -> {
+                    try {
+                        // Build interests array from string
+                        java.util.List<String> interestsList = new ArrayList<>();
+                        if (interestsStr != null && !interestsStr.isEmpty()) {
+                            String[] parts = interestsStr.split(",");
+                            for (String part : parts) {
+                                interestsList.add(part.trim());
+                            }
+                        }
+
+                        if (interestsList.isEmpty()) {
+                            interestsList.add("general");
+                        }
+
+                        // Build request JSON
+                        org.json.JSONObject requestBody = new org.json.JSONObject();
+                        requestBody.put("user_id", userId);
+                        requestBody.put("lat", currentLocation.getLatitude());
+                        requestBody.put("lng", currentLocation.getLongitude());
+                        requestBody.put("interests", new org.json.JSONArray(interestsList));
+                        requestBody.put("city_name", city != null ? city : "București");
+                        requestBody.put("limit", 10);
+                        requestBody.put("trending", true);
+                        requestBody.put("language", "ro");
+
+                        // Make HTTP request to explainable recommendations endpoint
+                        String baseUrl = ApiClient.getBaseUrl();
+                        String apiUrl = baseUrl.replace("/api/", "") + "recommendations/explainable";
+
+                        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                            .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                            .writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                            .build();
+
+                        okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
+                        okhttp3.RequestBody body = okhttp3.RequestBody.create(requestBody.toString(), JSON);
+
+                        okhttp3.Request request = new okhttp3.Request.Builder()
+                            .url(apiUrl)
+                            .post(body)
+                            .build();
+
+                        okhttp3.Response response = client.newCall(request).execute();
+                        String responseBody = response.body().string();
+
+                        if (response.isSuccessful()) {
+                            org.json.JSONObject jsonResponse = new org.json.JSONObject(responseBody);
+                            org.json.JSONArray recommendations = jsonResponse.optJSONArray("recommendations");
+
+                            if (recommendations != null && recommendations.length() > 0) {
+                                // Convert recommendations to Place objects with match percentages
+                                java.util.List<Place> places = com.cityscape.app.utils.RecommendationMapper
+                                    .mapRecommendationsToPlaces(recommendations);
+
+                                // Update UI on main thread
+                                if (isAdded()) {
+                                    getActivity().runOnUiThread(() -> {
+                                        if (binding != null) {
+                                            aiPicksList.clear();
+                                            aiPicksList.addAll(places);
+                                            if (aiPicksAdapter != null) {
+                                                aiPicksAdapter.notifyDataSetChanged();
+                                            }
+                                            binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                                            Log.d("HomeFragment", "Loaded " + places.size() + " explainable recommendations");
+                                        }
+                                    });
+                                }
+                            }
+                        } else {
+                            Log.e("HomeFragment", "Explainable recommendations failed: " + response.code());
+                        }
+                    } catch (Exception e) {
+                        Log.e("HomeFragment", "Error fetching explainable recommendations", e);
+                    }
+                }).start();
         }
 
         private void setupMoodSearch() {
@@ -1293,6 +1532,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                             sessionManager.recordPlaceVisit(place.name);
                                             com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
                                             com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                                            showPlaceDetailDialog(place);
                                         }
 
                                         @Override
@@ -1388,6 +1628,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     public void onPlaceClick(Place place) {
                         com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
                         com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                        showPlaceDetailDialog(place);
                     }
                     @Override
                     public void onFavoriteClick(Place place) { }
@@ -1410,6 +1651,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                                 sessionManager.recordPlaceVisit(place.name);
                                                 com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
                                                 com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                                                showPlaceDetailDialog(place);
                                         }
 
                                         @Override
@@ -1431,39 +1673,391 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 binding.recyclerRecommended.setAdapter(adapter);
         }
 
-        private void showPlanPlaceDialog(Place place) {
-            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
-                .setTitleText("Alege data pentru " + place.name)
-                .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-                .setTheme(R.style.CustomMaterialCalendar)
-                .build();
-
-            datePicker.addOnPositiveButtonClickListener(selection -> {
-                savePlannedActivity(place, selection);
-            });
+        private void showPlaceDetailDialog(Place place) {
+            if (!isAdded()) return;
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+            View v = getLayoutInflater().inflate(R.layout.dialog_place_detail, null);
+            builder.setView(v);
             
-            datePicker.show(getChildFragmentManager(), "DATE_PICKER");
+            ImageView image = v.findViewById(R.id.detail_place_image);
+            TextView txtType = v.findViewById(R.id.detail_place_type);
+            TextView txtRating = v.findViewById(R.id.detail_place_rating);
+            TextView txtWeather = v.findViewById(R.id.detail_place_weather);
+            TextView txtName = v.findViewById(R.id.detail_place_name);
+            TextView txtAddress = v.findViewById(R.id.detail_place_address);
+            TextView txtDescription = v.findViewById(R.id.detail_place_description);
+            TextView lblAiSummary = v.findViewById(R.id.lbl_ai_summary);
+            Button btnPlan = v.findViewById(R.id.btn_plan_place_detail);
+            Button btnClose = v.findViewById(R.id.btn_close_place_detail);
+            
+            ImageView btnSpeakAi = v.findViewById(R.id.btn_speak_ai);
+            android.widget.LinearLayout layoutVibeometer = v.findViewById(R.id.layout_vibeometer);
+            TextView vibeEmoji = v.findViewById(R.id.vibe_emoji);
+            TextView vibeTitle = v.findViewById(R.id.vibe_title);
+            TextView vibeDescription = v.findViewById(R.id.vibe_description);
+            
+            if (txtName != null) txtName.setText(place.name);
+            if (txtType != null) txtType.setText(place.type != null ? place.type.toUpperCase() : "ATRACȚIE");
+            if (txtRating != null) txtRating.setText(String.format(java.util.Locale.US, "%.1f", place.rating));
+            if (txtAddress != null) txtAddress.setText(place.address != null ? place.address : "Nespecificată");
+            
+            // Dynamic Live Weather Fetch for this specific place location
+            if (txtWeather != null && place.latitude != 0 && place.longitude != 0) {
+                apiService.getWeather(place.latitude, place.longitude).enqueue(new Callback<com.cityscape.app.api.WeatherResponse>() {
+                    @Override
+                    public void onResponse(Call<com.cityscape.app.api.WeatherResponse> call, Response<com.cityscape.app.api.WeatherResponse> response) {
+                        if (isAdded() && response.isSuccessful() && response.body() != null) {
+                            com.cityscape.app.api.WeatherResponse w = response.body();
+                            String emoji = "🌤️";
+                            if (w.condition != null) {
+                                String cond = w.condition.toLowerCase();
+                                if (cond.contains("rain") || cond.contains("drizzle") || cond.contains("ploaie")) emoji = "🌧️";
+                                else if (cond.contains("snow") || cond.contains("ninsoare")) emoji = "❄️";
+                                else if (cond.contains("thunder") || cond.contains("furtună")) emoji = "⚡";
+                                else if (cond.contains("clear") || cond.contains("senin")) emoji = "☀️";
+                                else if (cond.contains("cloud") || cond.contains("nor")) emoji = "☁️";
+                            }
+                            txtWeather.setText(String.format(java.util.Locale.US, "%s %.1f°C", emoji, w.temp));
+                            txtWeather.setVisibility(View.VISIBLE);
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<com.cityscape.app.api.WeatherResponse> call, Throwable t) {}
+                });
+            }
+            
+            String desc = place.aiSuggestion;
+            
+            LinearLayout aiAnalysisSection = v.findViewById(R.id.aiAnalysisSection);
+            TextView historyPctLabel = v.findViewById(R.id.historyPctLabel);
+            TextView prefsPctLabel = v.findViewById(R.id.prefsPctLabel);
+
+            if (desc == null || desc.isEmpty()) {
+                desc = place.ai_summary;
+            }
+            if (desc == null || desc.isEmpty()) {
+                desc = place.description;
+            }
+            if (desc == null || desc.isEmpty()) {
+                desc = "Această locație este recomandată pentru experiența sa unică și recenziile sale excelente.";
+                if (lblAiSummary != null) lblAiSummary.setText("ℹ️ DESPRE LOCAȚIE");
+            } else {
+                if (lblAiSummary != null) lblAiSummary.setText("💡 SFATUL EXPLORATORULUI");
+                
+                // Show AI Analysis Percentages if they exist (usually means it's a personalized rec)
+                if (place.matchHistoryPct > 0 || place.matchPrefsPct > 0) {
+                    if (aiAnalysisSection != null) aiAnalysisSection.setVisibility(View.VISIBLE);
+                    if (historyPctLabel != null) historyPctLabel.setText(place.matchHistoryPct + "% Potrivire Istoric");
+                    if (prefsPctLabel != null) prefsPctLabel.setText(place.matchPrefsPct + "% Potrivire Interese");
+                }
+            }
+            
+            if (txtDescription != null) txtDescription.setText(desc);
+            
+            if (image != null && place.imageUrl != null && !place.imageUrl.isEmpty()) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(place.imageUrl)
+                    .centerCrop()
+                    .placeholder(R.drawable.placeholder_place)
+                    .into(image);
+            }
+
+            // Vibeometer logic
+            if (layoutVibeometer != null && vibeEmoji != null && vibeTitle != null && vibeDescription != null) {
+                int currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+                String typeLower = place.type != null ? place.type.toLowerCase() : "";
+                
+                String emoji = "🍃";
+                String title = "Chill Vibe (Liniștit & Relaxant)";
+                String descriptionStr = "Mulți vizitatori preferă această locație pentru relaxare și liniște.";
+                
+                if (typeLower.contains("restaurant") || typeLower.contains("cafe") || typeLower.contains("club") || typeLower.contains("bar") || typeLower.contains("pub")) {
+                    if (currentHour >= 18 && currentHour <= 23) {
+                        emoji = "🔥";
+                        title = "Hype Vibe (Extrem de aglomerat)";
+                        descriptionStr = "Atmosfera este incendiară acum! Foarte mulți oameni și vibe excelent.";
+                    } else if (currentHour >= 12 && currentHour <= 15) {
+                        emoji = "⚡";
+                        title = "Energy Vibe (Popular & Activ)";
+                        descriptionStr = "Locația este destul de populată la ora prânzului. Energie maximă!";
+                    } else {
+                        emoji = "🍃";
+                        title = "Chill Vibe (Relaxant & Plăcut)";
+                        descriptionStr = "Perfect pentru discuții lejere și relaxare în afara orelor de vârf.";
+                    }
+                } else {
+                    if (currentHour >= 10 && currentHour <= 16) {
+                        emoji = "⚡";
+                        title = "Energy Vibe (Popular & Activ)";
+                        descriptionStr = "Ora ideală de vizitat. Vizitatorii explorează în număr mare!";
+                    } else if (currentHour >= 17 || currentHour <= 9) {
+                        emoji = "💤";
+                        title = "Peaceful Vibe (Destul de liber)";
+                        descriptionStr = "Oază de liniște și pace în acest moment. Excelent pentru relaxare și poze!";
+                    }
+                }
+                
+                vibeEmoji.setText(emoji);
+                vibeTitle.setText(title);
+                vibeDescription.setText(descriptionStr);
+            }
+
+            // Audio Guide Click Logic
+            if (btnSpeakAi != null) {
+                initTextToSpeech();
+                final String textToRead = desc;
+                btnSpeakAi.setOnClickListener(view -> {
+                    if (textToSpeech != null) {
+                        if (textToSpeech.isSpeaking()) {
+                            textToSpeech.stop();
+                            Toast.makeText(getContext(), "Ghidul audio a fost oprit.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Se citește recomandarea AI... 🔊", Toast.LENGTH_SHORT).show();
+                            textToSpeech.speak(textToRead, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "ai_tour");
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Sintetizatorul de voce se inițializează...", Toast.LENGTH_SHORT).show();
+                        initTextToSpeech();
+                    }
+                });
+            }
+            
+            androidx.appcompat.app.AlertDialog dialog = builder.create();
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+            }
+            
+            if (btnPlan != null) {
+                btnPlan.setOnClickListener(view -> {
+                    if (textToSpeech != null && textToSpeech.isSpeaking()) {
+                        textToSpeech.stop();
+                    }
+                    dialog.dismiss();
+                    showPlanPlaceDialog(place);
+                });
+            }
+            
+            if (btnClose != null) {
+                btnClose.setOnClickListener(view -> {
+                    if (textToSpeech != null && textToSpeech.isSpeaking()) {
+                        textToSpeech.stop();
+                    }
+                    dialog.dismiss();
+                });
+            }
+
+            // Hide reviews section
+            TextView lblReviewsHide = v.findViewById(R.id.lbl_reviews_title);
+            android.widget.HorizontalScrollView scrollReviewsHide = v.findViewById(R.id.scroll_reviews);
+            if (lblReviewsHide != null) lblReviewsHide.setVisibility(View.GONE);
+            if (scrollReviewsHide != null) scrollReviewsHide.setVisibility(View.GONE);
+            
+            dialog.show();
         }
 
-        private void savePlannedActivity(Place place, long dateMillis) {
+        private void loadFallbackReviews(View v, Place place) {
+            if (!isAdded()) return;
+            List<Place.Review> mockReviews = new ArrayList<>();
+            
+            Place.Review r1 = new Place.Review();
+            r1.author = "Alexandru Popescu";
+            r1.rating = 5f;
+            r1.time = "acum 2 zile";
+            r1.text = "O locație superbă, cu servire rapidă și energie excelentă! Perfect pentru un weekend relaxant.";
+            mockReviews.add(r1);
+
+            Place.Review r2 = new Place.Review();
+            r2.author = "Andreea Stoica";
+            r2.rating = 4f;
+            r2.time = "acum o săptămână";
+            r2.text = "Atmosferă caldă, perfectă pentru poze și ieșit cu prietenii. Cu siguranță voi mai reveni aici.";
+            mockReviews.add(r2);
+
+            place.reviews = mockReviews;
+            renderReviews(v, place.reviews);
+        }
+
+        private void renderReviews(View v, List<com.cityscape.app.model.Place.Review> reviews) {
+            if (getActivity() == null || reviews == null || reviews.isEmpty()) return;
+            
+            TextView lblReviews = v.findViewById(R.id.lbl_reviews_title);
+            android.widget.HorizontalScrollView scrollReviews = v.findViewById(R.id.scroll_reviews);
+            android.widget.LinearLayout container = v.findViewById(R.id.layout_reviews_container);
+            
+            if (lblReviews != null) lblReviews.setVisibility(View.VISIBLE);
+            if (scrollReviews != null) scrollReviews.setVisibility(View.VISIBLE);
+            if (container != null) {
+                container.removeAllViews();
+                
+                for (com.cityscape.app.model.Place.Review review : reviews) {
+                    View card = getLayoutInflater().inflate(R.layout.item_review_card, container, false);
+                    TextView txtAuthor = card.findViewById(R.id.review_author);
+                    TextView txtRating = card.findViewById(R.id.review_rating);
+                    TextView txtText = card.findViewById(R.id.review_text);
+                    TextView txtTime = card.findViewById(R.id.review_time);
+                    
+                    if (txtAuthor != null) txtAuthor.setText(review.author);
+                    if (txtRating != null) {
+                        StringBuilder stars = new StringBuilder();
+                        int r = (int) Math.round(review.rating);
+                        for (int i = 0; i < 5; i++) {
+                            stars.append(i < r ? "⭐" : "☆");
+                        }
+                        txtRating.setText(stars.toString());
+                    }
+                    if (txtText != null) txtText.setText(review.text);
+                    if (txtTime != null) txtTime.setText(review.time != null ? review.time : "");
+                    
+                    container.addView(card);
+                }
+            }
+        }
+
+        private void showPlanPlaceDialog(Place place) {
+            if (!isAdded()) return;
+
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+            View v = getLayoutInflater().inflate(R.layout.dialog_plan_place_complex, null);
+            builder.setView(v);
+
+            TextView txtTitle = v.findViewById(R.id.txt_plan_title);
+            Button btnSelectDate = v.findViewById(R.id.btn_select_date);
+            Button btnStartTime = v.findViewById(R.id.btn_start_time);
+            Button btnEndTime = v.findViewById(R.id.btn_end_time);
+            com.google.android.material.chip.ChipGroup cgPriority = v.findViewById(R.id.cg_priority);
+            EditText inputBudget = v.findViewById(R.id.input_budget);
+            com.google.android.material.chip.ChipGroup cgTransit = v.findViewById(R.id.cg_transit);
+            EditText inputNotes = v.findViewById(R.id.input_notes);
+            Button btnCancel = v.findViewById(R.id.btn_cancel_plan);
+            Button btnSave = v.findViewById(R.id.btn_save_plan);
+
+            if (txtTitle != null) {
+                txtTitle.setText("Planifică vizita la:\n" + place.name);
+            }
+
+            final long[] selectedDateMillis = {System.currentTimeMillis()};
+            final int[] startHour = {10}, startMinute = {0};
+            final int[] endHour = {12}, endMinute = {0};
+
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMMM yyyy", new Locale("ro", "RO"));
+            if (btnSelectDate != null) btnSelectDate.setText(sdf.format(new Date(selectedDateMillis[0])));
+
+            if (btnSelectDate != null) {
+                btnSelectDate.setOnClickListener(view -> {
+                    android.app.DatePickerDialog datePicker = new android.app.DatePickerDialog(requireContext(), R.style.DarkDialogTheme,
+                        (dp, year, month, dayOfMonth) -> {
+                            Calendar cal = Calendar.getInstance();
+                            cal.set(year, month, dayOfMonth);
+                            selectedDateMillis[0] = cal.getTimeInMillis();
+                            btnSelectDate.setText(sdf.format(cal.getTime()));
+                        },
+                        Calendar.getInstance().get(Calendar.YEAR),
+                        Calendar.getInstance().get(Calendar.MONTH),
+                        Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+                    );
+                    datePicker.show();
+                });
+            }
+
+            if (btnStartTime != null) {
+                btnStartTime.setOnClickListener(view -> {
+                    android.app.TimePickerDialog timePicker = new android.app.TimePickerDialog(requireContext(), R.style.DarkDialogTheme,
+                        (tp, hourOfDay, minute) -> {
+                            startHour[0] = hourOfDay;
+                            startMinute[0] = minute;
+                            btnStartTime.setText(String.format(Locale.US, "De la: %02d:%02d", hourOfDay, minute));
+                        },
+                        startHour[0], startMinute[0], true
+                    );
+                    timePicker.show();
+                });
+            }
+
+            if (btnEndTime != null) {
+                btnEndTime.setOnClickListener(view -> {
+                    android.app.TimePickerDialog timePicker = new android.app.TimePickerDialog(requireContext(), R.style.DarkDialogTheme,
+                        (tp, hourOfDay, minute) -> {
+                            endHour[0] = hourOfDay;
+                            endMinute[0] = minute;
+                            btnEndTime.setText(String.format(Locale.US, "Până la: %02d:%02d", hourOfDay, minute));
+                        },
+                        endHour[0], endMinute[0], true
+                    );
+                    timePicker.show();
+                });
+            }
+
+            androidx.appcompat.app.AlertDialog dialog = builder.create();
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+            }
+
+            if (btnCancel != null) btnCancel.setOnClickListener(view -> dialog.dismiss());
+
+            if (btnSave != null) {
+                btnSave.setOnClickListener(view -> {
+                    String timeSlot = String.format(Locale.US, "%02d:%02d - %02d:%02d", startHour[0], startMinute[0], endHour[0], endMinute[0]);
+                    
+                    String priority = "🔥 Must See";
+                    if (cgPriority != null) {
+                        int checkedPriority = cgPriority.getCheckedChipId();
+                        if (checkedPriority == R.id.chip_priority_med) priority = "🍃 Flexible";
+                        else if (checkedPriority == R.id.chip_priority_low) priority = "💤 Optional";
+                    }
+
+                    double budget = 0.0;
+                    if (inputBudget != null) {
+                        String rawBudget = inputBudget.getText().toString().trim();
+                        if (!rawBudget.isEmpty()) {
+                            try {
+                                budget = Double.parseDouble(rawBudget);
+                            } catch (Exception e) {}
+                        }
+                    }
+
+                    String transit = "🚶 Pe jos";
+                    if (cgTransit != null) {
+                        int checkedTransit = cgTransit.getCheckedChipId();
+                        if (checkedTransit == R.id.chip_transit_bus) transit = "🚌 Transport comun";
+                        else if (checkedTransit == R.id.chip_transit_car) transit = "🚗 Auto/Uber";
+                    }
+
+                    String userNotes = inputNotes != null ? inputNotes.getText().toString().trim() : "";
+
+                    String formattedEndTime = String.format(Locale.US, "%02d:%02d", endHour[0], endMinute[0]);
+
+                    dialog.dismiss();
+                    savePlannedActivityComplex(place, selectedDateMillis[0], timeSlot, formattedEndTime, priority, transit, budget, userNotes);
+                });
+            }
+
+            dialog.show();
+        }
+
+        private void savePlannedActivityComplex(Place place, long dateMillis, String timeSlot, String endTime, String priority, String transitMode, double budget, String notes) {
             User user = sessionManager.getCurrentUser();
             if (user == null) return;
 
             com.cityscape.app.model.PlannedActivity activity = new com.cityscape.app.model.PlannedActivity(
-                user.id, null, place.name, "Atracție", place.imageUrl, dateMillis, "Toată ziua"
+                user.id, null, place.name, place.type != null ? place.type : "Atracție", place.imageUrl, dateMillis, timeSlot
             );
-            activity.notes = "Locație: " + place.address;
+            activity.endTime = endTime;
+            activity.priority = priority;
+            activity.transitMode = transitMode;
+            activity.notes = notes;
+            activity.budget = budget;
+            activity.currency = "RON";
 
             android.content.Context context = getContext();
             if (context == null) return;
             new Thread(() -> {
                 com.cityscape.app.data.AppDatabase.getInstance(appContext).activityDao().insert(activity);
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(appContext).pushActivityToCloud(activity);
-                com.cityscape.app.util.BadgeManager.addExperience(appContext, user.id, 50);
+                com.cityscape.app.util.BadgeManager.addExperience(appContext, user.id, 75);
                 com.cityscape.app.util.BadgeManager.awardBadge(appContext, user.id, "planner", "Master Planner", "Ai început să îți organizezi aventura!", "Planifică cel puțin o activitate în jurnal", "ic_badge_generic");
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        if (getContext() != null) Toast.makeText(getContext(), "Adăugat la planul tău! 🎒", Toast.LENGTH_SHORT).show();
+                        if (getContext() != null) Toast.makeText(getContext(), "Adăugat la planul tău complex! 🎒🚀", Toast.LENGTH_LONG).show();
                     });
                 }
             }).start();
@@ -1557,6 +2151,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
         private void loadDailyQuest() {
             if (currentLocation == null || !isAdded()) return;
+            if (isManualLocation) {
+                if (binding != null) binding.cardDailyQuest.setVisibility(View.GONE);
+                return;
+            }
             
             User user = sessionManager.getCurrentUser();
             String userId = user != null ? user.id : "";
@@ -1643,8 +2241,770 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         @Override
+        public void onResume() {
+            super.onResume();
+            if (!isManualLocation) {
+                startLocationUpdates();
+            }
+            // Refresh live battle widget every time user comes back to home
+            loadHomeBattleWidget();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            stopLocationUpdates();
+        }
+
+        @Override
         public void onDestroyView() {
+                if (textToSpeech != null) {
+                    textToSpeech.stop();
+                    textToSpeech.shutdown();
+                    textToSpeech = null;
+                }
+                stopLocationUpdates();
                 super.onDestroyView();
                 binding = null;
+        }
+
+        private void initTextToSpeech() {
+            if (textToSpeech == null && getContext() != null) {
+                textToSpeech = new android.speech.tts.TextToSpeech(getContext().getApplicationContext(), status -> {
+                    if (status == android.speech.tts.TextToSpeech.SUCCESS && textToSpeech != null) {
+                        Locale roLocale = new Locale("ro", "RO");
+                        int result = textToSpeech.setLanguage(roLocale);
+                        
+                        boolean voiceFound = false;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            try {
+                                java.util.Set<android.speech.tts.Voice> voices = textToSpeech.getVoices();
+                                if (voices != null) {
+                                    for (android.speech.tts.Voice voice : voices) {
+                                        if (voice.getLocale() != null && 
+                                            (voice.getLocale().getLanguage().equals("ro") || 
+                                             voice.getLocale().toString().toLowerCase().contains("ro"))) {
+                                            textToSpeech.setVoice(voice);
+                                            voiceFound = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                Log.e("HomeFragment", "Error setting explicit Romanian voice", e);
+                            }
+                        }
+                        
+                        if (result == android.speech.tts.TextToSpeech.LANG_MISSING_DATA ||
+                            result == android.speech.tts.TextToSpeech.LANG_NOT_SUPPORTED) {
+                            
+                            int generalRo = textToSpeech.setLanguage(new Locale("ro"));
+                            if (generalRo == android.speech.tts.TextToSpeech.LANG_MISSING_DATA ||
+                                generalRo == android.speech.tts.TextToSpeech.LANG_NOT_SUPPORTED) {
+                                
+                                textToSpeech.setLanguage(Locale.US);
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        Toast.makeText(getContext(), "Ghidul audio citește cu accent deoarece limba Română lipsește din setările TTS ale telefonului. Puteți instala pachetul în limba Română din setările Android (Text-to-speech).", Toast.LENGTH_LONG).show();
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        private void initLocationCallback() {
+            locationCallback = new com.google.android.gms.location.LocationCallback() {
+                @Override
+                public void onLocationResult(@NonNull com.google.android.gms.location.LocationResult locationResult) {
+                    for (Location location : locationResult.getLocations()) {
+                        if (location != null) {
+                            currentLocation = location;
+                            actualGpsLocation = location;
+                            checkGeofencingQuests(location);
+                        }
+                    }
+                }
+            };
+        }
+
+        @SuppressLint("MissingPermission")
+        private void startLocationUpdates() {
+            if (getContext() == null || fusedLocationClient == null || locationCallback == null) return;
+            if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                com.google.android.gms.location.LocationRequest locationRequest = new com.google.android.gms.location.LocationRequest.Builder(com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                        .setMinUpdateIntervalMillis(2000)
+                        .setMinUpdateDistanceMeters(2)
+                        .build();
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, android.os.Looper.getMainLooper());
+            }
+        }
+
+        private void stopLocationUpdates() {
+            if (fusedLocationClient != null && locationCallback != null) {
+                fusedLocationClient.removeLocationUpdates(locationCallback);
+            }
+        }
+
+        private void checkGeofencingQuests(Location location) {
+            if (location == null) return;
+            List<Place> allPlacesToCheck = new ArrayList<>();
+            if (aiPicksList != null) allPlacesToCheck.addAll(aiPicksList);
+            if (nearbyPlacesList != null) allPlacesToCheck.addAll(nearbyPlacesList);
+            if (allPlacesList != null) allPlacesToCheck.addAll(allPlacesList);
+            
+            for (Place place : allPlacesToCheck) {
+                if (place == null || place.name == null) continue;
+                String placeId = place.id != null ? place.id : place.name;
+                if (discoveredPlaceIds.contains(placeId)) continue;
+                
+                double placeLat = place.latitude;
+                double placeLng = place.longitude;
+                if (placeLat == 0 && placeLng == 0) continue;
+                
+                float[] results = new float[1];
+                Location.distanceBetween(location.getLatitude(), location.getLongitude(), placeLat, placeLng, results);
+                float distance = results[0];
+                
+                if (distance < 50) { // Sub 50 de metri
+                    discoveredPlaceIds.add(placeId);
+                    triggerQuestDiscovery(place);
+                    break;
+                }
+            }
+        }
+
+        private void triggerQuestDiscovery(Place place) {
+            if (!isAdded() || getContext() == null) return;
+            
+            User user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            
+            com.cityscape.app.util.BadgeManager.addExperience(appContext, user.id, 200);
+            com.cityscape.app.util.BadgeManager.awardBadge(appContext, user.id, "explorer", "Master Explorer", 
+                    "Ai descoperit o locație recomandată de AI în apropiere!", 
+                    "Apropie-te la mai puțin de 50 de metri de o locație recomandată", 
+                    "ic_badge_explorer");
+            
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+                    View v = getLayoutInflater().inflate(R.layout.dialog_quest_discovery, null);
+                    builder.setView(v);
+                    
+                    TextView txtTitle = v.findViewById(R.id.txt_quest_discovery_title);
+                    TextView txtMessage = v.findViewById(R.id.txt_quest_discovery_message);
+                    Button btnClaim = v.findViewById(R.id.btn_claim_quest);
+                    
+                    if (txtTitle != null) {
+                        txtTitle.setText("🎉 RECOMPENSĂ DEBLOCATĂ!");
+                    }
+                    if (txtMessage != null) {
+                        txtMessage.setText("Felicitări! Ai ajuns la " + place.name + " (" + (place.type != null ? place.type : "Atracție") + ") și ai finalizat Quest-ul de proximitate!\n\n🎒 Ai primit +200 XP și insigna Master Explorer! 🏆");
+                    }
+                    
+                    androidx.appcompat.app.AlertDialog dialog = builder.create();
+                    if (dialog.getWindow() != null) {
+                        dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+                    }
+                    
+                    if (btnClaim != null) {
+                        btnClaim.setOnClickListener(view -> {
+                            dialog.dismiss();
+                            Toast.makeText(getContext(), "XP și insignă adăugate la profil! 🚀", Toast.LENGTH_LONG).show();
+                        });
+                    }
+                    
+                    dialog.show();
+                });
+            }
+        }
+
+        private void checkWeatherPlanB() {
+            if (!isAdded()) return;
+            if (currentLocation == null) {
+                Toast.makeText(getContext(), "Locația nu este disponibilă încă. Te rugăm să aștepți.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Toast.makeText(getContext(), "Se analizează prognoza meteo în timp real... ☁️", Toast.LENGTH_SHORT).show();
+
+            apiService.getWeatherPlanB(currentLocation.getLatitude(), currentLocation.getLongitude()).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+                @Override
+                public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null) {
+                        com.google.gson.JsonObject res = response.body();
+                        String status = res.get("status").getAsString();
+                        String message = res.get("message").getAsString();
+
+                        if ("fine".equals(status)) {
+                            new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                    .setTitle("☀️ Vreme Perfectă!")
+                                    .setMessage(message)
+                                    .setPositiveButton("Minunat!", null)
+                                    .show();
+                        } else {
+                            com.google.gson.JsonArray alts = res.getAsJsonArray("alternatives");
+                            if (alts == null || alts.size() == 0) {
+                                Toast.makeText(getContext(), "Nu s-au găsit alternative din apropiere.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            List<Place> alternativesList = new ArrayList<>();
+                            for (com.google.gson.JsonElement el : alts) {
+                                com.google.gson.JsonObject o = el.getAsJsonObject();
+                                Place p = new Place();
+                                p.name = o.get("name").getAsString();
+                                p.type = o.has("type") && !o.get("type").isJsonNull() ? o.get("type").getAsString() : "Alternative Indoor";
+                                p.address = o.has("address") && !o.get("address").isJsonNull() ? o.get("address").getAsString() : "În apropiere";
+                                p.rating = o.has("rating") && !o.get("rating").isJsonNull() ? (float) o.get("rating").getAsDouble() : 4.5f;
+                                p.imageUrl = o.has("image_url") && !o.get("image_url").isJsonNull() ? o.get("image_url").getAsString() : "";
+                                p.latitude = o.has("latitude") && !o.get("latitude").isJsonNull() ? o.get("latitude").getAsDouble() : 0.0;
+                                p.longitude = o.has("longitude") && !o.get("longitude").isJsonNull() ? o.get("longitude").getAsDouble() : 0.0;
+                                p.aiSuggestion = o.has("description") && !o.get("description").isJsonNull() ? o.get("description").getAsString() : "Recomandat ca alternativă excelentă de interior.";
+                                alternativesList.add(p);
+                            }
+
+                            String[] itemsNames = new String[alternativesList.size()];
+                            for (int i = 0; i < alternativesList.size(); i++) {
+                                itemsNames[i] = alternativesList.get(i).name + " (" + alternativesList.get(i).type.toUpperCase() + ")";
+                            }
+
+                            new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                    .setTitle("☔ Plan B Weather SOS!")
+                                    .setMessage(message + "\n\nAlege o alternativă indoor de mai jos pentru a o vizualiza și planifica:")
+                                    .setItems(itemsNames, (dialogSub, index) -> {
+                                        Place selectedAlt = alternativesList.get(index);
+                                        showPlaceDetailDialog(selectedAlt);
+                                        com.cityscape.app.util.BadgeManager.addExperience(appContext, sessionManager.getUserId(), 50);
+                                    })
+                                    .setPositiveButton("Închide", null)
+                                    .show();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Eroare de conexiune la serverul meteo.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        private void setupHypeBattle() {
+            // Load live battle data into home widget
+            loadHomeBattleWidget();
+        }
+
+        private void loadHomeBattleWidget() {
+            if (isManualLocation) {
+                if (getView() != null) {
+                    View cardView = getView().findViewById(R.id.card_home_live_battle);
+                    if (cardView != null) cardView.setVisibility(View.GONE);
+                }
+                return;
+            }
+            String userId = sessionManager.getUserId();
+            if (userId == null || userId.isEmpty()) userId = "anon";
+
+            apiService.getHypeBattle(userId).enqueue(new Callback<com.google.gson.JsonObject>() {
+                @Override
+                public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                    if (!isAdded() || binding == null) return;
+                    if (!response.isSuccessful() || response.body() == null) return;
+
+                    com.google.gson.JsonObject battle = response.body();
+
+                    final String placeAId = battle.has("place_a_id")   ? battle.get("place_a_id").getAsString()   : "";
+                    final String nameA    = battle.has("place_a_name") ? battle.get("place_a_name").getAsString() : "Locație A";
+                    final double pctA     = battle.has("pct_a")        ? battle.get("pct_a").getAsDouble()        : 50.0;
+
+                    final String placeBId = battle.has("place_b_id")   ? battle.get("place_b_id").getAsString()   : "";
+                    final String nameB    = battle.has("place_b_name") ? battle.get("place_b_name").getAsString() : "Locație B";
+                    final double pctB     = battle.has("pct_b")        ? battle.get("pct_b").getAsDouble()        : 50.0;
+
+                    final String userChoice     = battle.has("user_choice") && !battle.get("user_choice").isJsonNull()
+                                                  ? battle.get("user_choice").getAsString() : "";
+                    final String mostVotedName  = battle.has("most_voted_name") ? battle.get("most_voted_name").getAsString() : "";
+                    final double mostVotedPct   = battle.has("most_voted_pct")  ? battle.get("most_voted_pct").getAsDouble()  : 50.0;
+                    final String battleId       = battle.has("id") ? battle.get("id").getAsString() : "";
+
+                    View root = binding.getRoot();
+
+                    android.widget.TextView nameAView  = root.findViewById(R.id.home_battle_name_a);
+                    android.widget.TextView nameBView  = root.findViewById(R.id.home_battle_name_b);
+                    android.widget.TextView pctAView   = root.findViewById(R.id.home_battle_pct_a);
+                    android.widget.TextView pctBView   = root.findViewById(R.id.home_battle_pct_b);
+                    android.widget.ProgressBar progA   = root.findViewById(R.id.home_battle_progress_a);
+                    android.widget.ProgressBar progB   = root.findViewById(R.id.home_battle_progress_b);
+                    android.widget.TextView leaderView = root.findViewById(R.id.txt_home_battle_leader);
+                    com.google.android.material.button.MaterialButton voteABtn = root.findViewById(R.id.btn_home_vote_a);
+
+                    View cardView = root.findViewById(R.id.card_home_live_battle);
+
+                    if (nameAView != null) nameAView.setText(nameA);
+                    if (nameBView != null) nameBView.setText(nameB);
+                    if (pctAView  != null) pctAView.setText(String.format(java.util.Locale.US, "%.0f%%", pctA));
+                    if (pctBView  != null) pctBView.setText(String.format(java.util.Locale.US, "%.0f%%", pctB));
+                    if (progA     != null) progA.setProgress((int) pctA);
+                    if (progB     != null) progB.setProgress((int) pctB);
+
+                    if (leaderView != null) {
+                        if ("Egalitate".equals(mostVotedName) || mostVotedName.isEmpty()) {
+                            leaderView.setText("⚔️ Este egalitate acum! (50%)");
+                        } else {
+                            leaderView.setText("👑 Favorit: " + mostVotedName
+                                + " (" + String.format(java.util.Locale.US, "%.0f%%", mostVotedPct) + ")");
+                        }
+                    }
+
+                    if (cardView != null) {
+                        cardView.setVisibility(View.VISIBLE);
+                        cardView.setOnClickListener(v2 -> showHypeBattleDialog());
+                    }
+
+                    // FIX: Butoanele de vot - animația rulează pe ROOT, nu pe CardView
+                    if (voteABtn != null) {
+                        voteABtn.setText(placeAId.equals(userChoice) ? "⭐ Votat" : "Votează");
+                        voteABtn.setEnabled(true);
+                        voteABtn.setOnClickListener(v2 -> {
+                            v2.setEnabled(false); // previne dublu-click
+                            // Animația pe root fragment, nu pe card (CardView clipează copiii)
+                            ViewGroup animRoot = (ViewGroup) root;
+                            playClashAnimation(animRoot, () -> submitHomeVote(placeAId, battleId, nameA, nameB));
+                        });
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
+                    Log.e("HomeFragment", "Battle widget load failed: " + t.getMessage());
+                }
+            });
+        }
+
+        private void submitHomeVote(String placeId, String battleId, String nameA, String nameB) {
+            if (!isAdded() || binding == null) return;
+
+            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("user_id", sessionManager.getUserId());
+            payload.put("place_id", placeId);
+            payload.put("battle_id", battleId);
+
+            apiService.castHypeVote(payload).enqueue(new Callback<com.google.gson.JsonObject>() {
+                @Override
+                public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                    if (!isAdded() || binding == null) return;
+                    if (response.isSuccessful() && response.body() != null) {
+                        com.google.gson.JsonObject res = response.body();
+
+                        // Show Snackbar with XP confirmation
+                        com.google.android.material.snackbar.Snackbar.make(
+                            binding.getRoot(),
+                            "🎉 Vot înregistrat! +50 XP câștigat!",
+                            com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                        ).setBackgroundTint(android.graphics.Color.parseColor("#10B981"))
+                         .setTextColor(android.graphics.Color.WHITE)
+                         .show();
+
+                        // Refresh widget with new vote counts
+                        double newPctA = res.has("pct_a") ? res.get("pct_a").getAsDouble() : 50.0;
+                        double newPctB = res.has("pct_b") ? res.get("pct_b").getAsDouble() : 50.0;
+                        String newMostVoted = res.has("most_voted_name") ? res.get("most_voted_name").getAsString() : "";
+                        double newMostPct   = res.has("most_voted_pct")  ? res.get("most_voted_pct").getAsDouble()  : 50.0;
+                        String newChoice    = res.has("user_choice")     ? res.get("user_choice").getAsString()     : placeId;
+
+                        View root = binding.getRoot();
+                        android.widget.TextView pctAView   = root.findViewById(R.id.home_battle_pct_a);
+                        android.widget.TextView pctBView   = root.findViewById(R.id.home_battle_pct_b);
+                        android.widget.ProgressBar progA   = root.findViewById(R.id.home_battle_progress_a);
+                        android.widget.ProgressBar progB   = root.findViewById(R.id.home_battle_progress_b);
+
+                        com.google.android.material.button.MaterialButton voteABtn = root.findViewById(R.id.btn_home_vote_a);
+
+
+                        if (pctAView != null) pctAView.setText(String.format(java.util.Locale.US, "%.0f%%", newPctA));
+                        if (pctBView != null) pctBView.setText(String.format(java.util.Locale.US, "%.0f%%", newPctB));
+                        if (progA    != null) progA.setProgress((int) newPctA);
+                        if (progB    != null) progB.setProgress((int) newPctB);
+
+
+
+                        // Update button labels to reflect new vote
+                        // We need to know which is A and B — re-load for accuracy
+                        loadHomeBattleWidget();
+
+                    } else {
+                        com.google.android.material.snackbar.Snackbar.make(
+                            binding.getRoot(), "Eroare la votare. Încearcă din nou.",
+                            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
+                    if (isAdded() && binding != null) {
+                        com.google.android.material.snackbar.Snackbar.make(
+                            binding.getRoot(), "Eroare de rețea. Votul nu a fost transmis.",
+                            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+            });
+        }
+
+
+        private void showHypeBattleDialog() {
+            if (getContext() == null || !isAdded()) return;
+
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+            View v = getLayoutInflater().inflate(R.layout.dialog_hype_battle, null);
+            builder.setView(v);
+
+            androidx.appcompat.app.AlertDialog dialog = builder.create();
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            }
+
+            TextView txtTimer = v.findViewById(R.id.hype_timer);
+            
+            // Place A views
+            ImageView imgA = v.findViewById(R.id.hype_img_a);
+            TextView txtNameA = v.findViewById(R.id.hype_name_a);
+            TextView txtTypeA = v.findViewById(R.id.hype_type_a);
+            ProgressBar progressA = v.findViewById(R.id.hype_progress_a);
+            TextView txtPctA = v.findViewById(R.id.hype_pct_a);
+            com.google.android.material.button.MaterialButton btnVoteA = v.findViewById(R.id.hype_btn_vote_a);
+            TextView txtReviewA = v.findViewById(R.id.hype_review_text_a);
+            TextView txtReviewAuthorA = v.findViewById(R.id.hype_review_author_a);
+
+            // Place B views
+            ImageView imgB = v.findViewById(R.id.hype_img_b);
+            TextView txtNameB = v.findViewById(R.id.hype_name_b);
+            TextView txtTypeB = v.findViewById(R.id.hype_type_b);
+            ProgressBar progressB = v.findViewById(R.id.hype_progress_b);
+            TextView txtPctB = v.findViewById(R.id.hype_pct_b);
+            com.google.android.material.button.MaterialButton btnVoteB = v.findViewById(R.id.hype_btn_vote_b);
+            TextView txtReviewB = v.findViewById(R.id.hype_review_text_b);
+            TextView txtReviewAuthorB = v.findViewById(R.id.hype_review_author_b);
+
+            // Leaderboard and winner views
+            android.widget.LinearLayout leaderboardContainer = v.findViewById(R.id.battle_leaderboard_container);
+            TextView txtWinnerValue = v.findViewById(R.id.txt_battle_winner_value);
+
+            com.google.android.material.button.MaterialButton btnClose = v.findViewById(R.id.hype_btn_close);
+
+            if (btnClose != null) {
+                btnClose.setOnClickListener(v1 -> dialog.dismiss());
+            }
+
+            apiService.getHypeBattle(sessionManager.getUserId()).enqueue(new Callback<com.google.gson.JsonObject>() {
+                @Override
+                public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null) {
+                        com.google.gson.JsonObject battle = response.body();
+
+                        String id = battle.get("id").getAsString();
+                        String placeAId = battle.get("place_a_id").getAsString();
+                        String nameA = battle.get("place_a_name").getAsString();
+                        String typeA = battle.get("place_a_type").getAsString();
+                        String imageA = battle.get("place_a_image").getAsString();
+                        double pctA = battle.get("pct_a").getAsDouble();
+                        
+                        String reviewA = battle.has("place_a_review") ? battle.get("place_a_review").getAsString() : "";
+                        String authorA = battle.has("place_a_review_author") ? battle.get("place_a_review_author").getAsString() : "";
+
+                        String placeBId = battle.get("place_b_id").getAsString();
+                        String nameB = battle.get("place_b_name").getAsString();
+                        String typeB = battle.get("place_b_type").getAsString();
+                        String imageB = battle.get("place_b_image").getAsString();
+                        double pctB = battle.get("pct_b").getAsDouble();
+                        
+                        String reviewB = battle.has("place_b_review") ? battle.get("place_b_review").getAsString() : "";
+                        String authorB = battle.has("place_b_review_author") ? battle.get("place_b_review_author").getAsString() : "";
+
+                        String userChoice = battle.has("user_choice") && !battle.get("user_choice").isJsonNull() ? battle.get("user_choice").getAsString() : "";
+                        int secondsLeft = battle.get("seconds_left").getAsInt();
+
+                        if (txtNameA != null) txtNameA.setText(nameA);
+                        if (txtTypeA != null) txtTypeA.setText(typeA.toUpperCase());
+                        if (txtPctA != null) txtPctA.setText(String.format(java.util.Locale.US, "%.1f%%", pctA));
+                        if (progressA != null) progressA.setProgress((int) pctA);
+                        if (txtReviewA != null) txtReviewA.setText("\"" + reviewA + "\"");
+                        if (txtReviewAuthorA != null) txtReviewAuthorA.setText("— " + authorA);
+
+                        if (txtNameB != null) txtNameB.setText(nameB);
+                        if (txtTypeB != null) txtTypeB.setText(typeB.toUpperCase());
+                        if (txtPctB != null) txtPctB.setText(String.format(java.util.Locale.US, "%.1f%%", pctB));
+                        if (progressB != null) progressB.setProgress((int) pctB);
+                        if (txtReviewB != null) txtReviewB.setText("\"" + reviewB + "\"");
+                        if (txtReviewAuthorB != null) txtReviewAuthorB.setText("— " + authorB);
+
+                        if (imgA != null && imageA != null && !imageA.isEmpty()) {
+                            com.bumptech.glide.Glide.with(HomeFragment.this)
+                                .load(imageA)
+                                .centerCrop()
+                                .placeholder(R.drawable.placeholder_place)
+                                .into(imgA);
+                        }
+                        if (imgB != null && imageB != null && !imageB.isEmpty()) {
+                            com.bumptech.glide.Glide.with(HomeFragment.this)
+                                .load(imageB)
+                                .centerCrop()
+                                .placeholder(R.drawable.placeholder_place)
+                                .into(imgB);
+                        }
+
+                        if (txtTimer != null) {
+                            int hours = secondsLeft / 3600;
+                            int minutes = (secondsLeft % 3600) / 60;
+                            txtTimer.setText(String.format(java.util.Locale.getDefault(), "⏳ Se încheie în: %02d ore %02d min", hours, minutes));
+                        }
+
+                        // Populating the Dynamic Explorer Leaderboard
+                        if (leaderboardContainer != null) {
+                            leaderboardContainer.removeAllViews();
+                            if (battle.has("leaderboard") && battle.get("leaderboard").isJsonArray()) {
+                                com.google.gson.JsonArray lb = battle.getAsJsonArray("leaderboard");
+                                for (int i = 0; i < lb.size(); i++) {
+                                    com.google.gson.JsonObject u = lb.get(i).getAsJsonObject();
+                                    String name = u.get("name").getAsString();
+                                    int xp = u.get("total_xp").getAsInt();
+
+                                    android.widget.LinearLayout row = new android.widget.LinearLayout(requireContext());
+                                    row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                                    row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                                    row.setPadding(0, 10, 0, 10);
+
+                                    TextView txtRank = new TextView(requireContext());
+                                    String medal = "";
+                                    if (i == 0) medal = "🥇 ";
+                                    else if (i == 1) medal = "🥈 ";
+                                    else if (i == 2) medal = "🥉 ";
+                                    else medal = " " + (i + 1) + ". ";
+                                    txtRank.setText(medal);
+                                    txtRank.setTextSize(13);
+                                    txtRank.setPadding(0, 0, 12, 0);
+
+                                    TextView txtUserName = new TextView(requireContext());
+                                    txtUserName.setText(name);
+                                    txtUserName.setTextColor(getResources().getColor(R.color.app_text_primary));
+                                    txtUserName.setTextSize(12);
+                                    txtUserName.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+                                    txtUserName.setLayoutParams(new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+                                    TextView txtUserXp = new TextView(requireContext());
+                                    txtUserXp.setText(xp + " XP");
+                                    txtUserXp.setTextColor(getResources().getColor(R.color.primary));
+                                    txtUserXp.setTextSize(11);
+                                    txtUserXp.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+
+                                    row.addView(txtRank);
+                                    row.addView(txtUserName);
+                                    row.addView(txtUserXp);
+
+                                    if (i > 0) {
+                                        View div = new View(requireContext());
+                                        div.setLayoutParams(new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+                                        div.setBackgroundColor(getResources().getColor(R.color.app_divider));
+                                        leaderboardContainer.addView(div);
+                                    }
+                                    leaderboardContainer.addView(row);
+                                }
+                            }
+                        }
+
+                        // Binding the real-time winner / most voted location
+                        String winnerName = battle.has("most_voted_name") ? battle.get("most_voted_name").getAsString() : "";
+                        double winnerPct = battle.has("most_voted_pct") ? battle.get("most_voted_pct").getAsDouble() : 50.0;
+                        if (txtWinnerValue != null) {
+                            if (winnerName.equals("Egalitate")) {
+                                txtWinnerValue.setText("Egalitate temporară! (50.0%)");
+                            } else {
+                                txtWinnerValue.setText(winnerName + " (" + String.format(java.util.Locale.US, "%.1f%%", winnerPct) + ")");
+                            }
+                        }
+
+                        // High-interaction voting: buttons are ALWAYS active and click-able so the user can switch sides and test the boxing clash animation infinitely!
+                        if (btnVoteA != null) {
+                            btnVoteA.setText(userChoice.equals(placeAId) ? "⭐️ Votat!" : "Alege");
+                            btnVoteA.setEnabled(true);
+                            btnVoteA.setOnClickListener(v2 -> castVote(dialog, placeAId, id));
+                        }
+                        if (btnVoteB != null) {
+                            btnVoteB.setText(userChoice.equals(placeBId) ? "⭐️ Votat!" : "Alege");
+                            btnVoteB.setEnabled(true);
+                            btnVoteB.setOnClickListener(v2 -> castVote(dialog, placeBId, id));
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Bătăliile live nu sunt disponibile offline.", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
+                    Toast.makeText(getContext(), "Conectare eșuată la serverul de bătălii.", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.show();
+        }
+
+        private void playClashAnimation(ViewGroup rootView, Runnable onEnd) {
+            if (getContext() == null || rootView == null) {
+                onEnd.run();
+                return;
+            }
+
+            // Create a semi-transparent black overlay
+            android.widget.FrameLayout animContainer = new android.widget.FrameLayout(requireContext());
+            animContainer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            animContainer.setBackgroundColor(android.graphics.Color.parseColor("#80000000"));
+            rootView.addView(animContainer);
+
+            // Left fist (boxing glove representation)
+            TextView txtLeftFist = new TextView(requireContext());
+            txtLeftFist.setText("🤜");
+            txtLeftFist.setTextSize(64);
+            android.widget.FrameLayout.LayoutParams lpLeft = new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lpLeft.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START;
+            lpLeft.leftMargin = 16;
+            txtLeftFist.setLayoutParams(lpLeft);
+            animContainer.addView(txtLeftFist);
+
+            // Right fist (boxing glove representation)
+            TextView txtRightFist = new TextView(requireContext());
+            txtRightFist.setText("🤛");
+            txtRightFist.setTextSize(64);
+            android.widget.FrameLayout.LayoutParams lpRight = new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lpRight.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END;
+            lpRight.rightMargin = 16;
+            txtRightFist.setLayoutParams(lpRight);
+            animContainer.addView(txtRightFist);
+
+            // Spark/Explosion
+            TextView txtBoom = new TextView(requireContext());
+            txtBoom.setText("💥");
+            txtBoom.setTextSize(88);
+            android.widget.FrameLayout.LayoutParams lpBoom = new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lpBoom.gravity = android.view.Gravity.CENTER;
+            txtBoom.setLayoutParams(lpBoom);
+            txtBoom.setVisibility(View.INVISIBLE);
+            animContainer.addView(txtBoom);
+
+            // Animate Left Fist to Center
+            float width = getResources().getDisplayMetrics().widthPixels;
+            float targetXLeft = (width / 2f) - 120f;
+            android.animation.ObjectAnimator animLeft = android.animation.ObjectAnimator.ofFloat(
+                    txtLeftFist, "translationX", 0f, targetXLeft);
+            animLeft.setDuration(450);
+            animLeft.setInterpolator(new android.view.animation.AccelerateInterpolator());
+
+            // Animate Right Fist to Center
+            float targetXRight = -(width / 2f) + 120f;
+            android.animation.ObjectAnimator animRight = android.animation.ObjectAnimator.ofFloat(
+                    txtRightFist, "translationX", 0f, targetXRight);
+            animRight.setDuration(450);
+            animRight.setInterpolator(new android.view.animation.AccelerateInterpolator());
+
+            android.animation.AnimatorSet set = new android.animation.AnimatorSet();
+            set.playTogether(animLeft, animRight);
+            set.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(android.animation.Animator animation) {
+                    txtLeftFist.setVisibility(View.GONE);
+                    txtRightFist.setVisibility(View.GONE);
+                    txtBoom.setVisibility(View.VISIBLE);
+
+                    // Explosion Pulse
+                    txtBoom.setScaleX(0.4f);
+                    txtBoom.setScaleY(0.4f);
+                    txtBoom.animate()
+                        .scaleX(2.0f)
+                        .scaleY(2.0f)
+                        .alpha(0f)
+                        .setDuration(600)
+                        .setListener(new android.animation.AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(android.animation.Animator animation1) {
+                                rootView.removeView(animContainer);
+                                onEnd.run();
+                            }
+                        });
+
+                    // Screen shake effect on dialog layout
+                    rootView.animate()
+                        .translationX(20f)
+                        .setDuration(40)
+                        .setListener(new android.animation.AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(android.animation.Animator animation2) {
+                                rootView.animate()
+                                    .translationX(-20f)
+                                    .setDuration(40)
+                                    .setListener(new android.animation.AnimatorListenerAdapter() {
+                                        @Override
+                                        public void onAnimationEnd(android.animation.Animator animation3) {
+                                            rootView.animate().translationX(0f).setDuration(40);
+                                        }
+                                    });
+                            }
+                        });
+                }
+            });
+            set.start();
+        }
+
+        private void castVote(androidx.appcompat.app.AlertDialog dialog, String placeId, String battleId) {
+            if (dialog.getWindow() == null) return;
+            playClashAnimation((ViewGroup) dialog.getWindow().getDecorView(), () -> {
+                java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                payload.put("user_id", sessionManager.getUserId());
+                payload.put("place_id", placeId);
+                payload.put("battle_id", battleId);
+
+                apiService.castHypeVote(payload).enqueue(new Callback<com.google.gson.JsonObject>() {
+                    @Override
+                    public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                        if (isAdded()) {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), "Vot înregistrat! +50 XP Adăugați! 🎉", Toast.LENGTH_LONG).show();
+                                new Thread(() -> {
+                                    try {
+                                        sessionManager.unlockBadge("hype_master");
+                                    } catch (Exception e) {
+                                        Log.e("HomeFragment", "Badge unlock error", e);
+                                    }
+                                }).start();
+                                dialog.dismiss();
+                                showHypeBattleDialog();
+                            } else {
+                                try {
+                                    String err = response.errorBody() != null ? response.errorBody().string() : "Eroare la vot";
+                                    Toast.makeText(getContext(), err, Toast.LENGTH_SHORT).show();
+                                } catch (Exception e) {
+                                    Toast.makeText(getContext(), "Vot refuzat.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
+                        Toast.makeText(getContext(), "Eroare rețea la transmiterea votului.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
         }
 }

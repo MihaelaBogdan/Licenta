@@ -34,6 +34,7 @@ import com.cityscape.app.adapter.FeedAdapter;
 import com.cityscape.app.api.ApiClient;
 import com.cityscape.app.api.ApiService;
 import com.cityscape.app.data.SessionManager;
+import com.cityscape.app.data.AppDatabase;
 import com.cityscape.app.model.FeedComment;
 import com.cityscape.app.model.FeedPost;
 import com.google.gson.JsonObject;
@@ -134,6 +135,7 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             return;
         }
 
+
         if (swipeRefresh != null && !swipeRefresh.isRefreshing()) progressBar.setVisibility(View.VISIBLE);
         
         String uId = (sessionManager != null) ? sessionManager.getUserId() : "";
@@ -148,7 +150,13 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
 
                 if (res.isSuccessful() && res.body() != null && !res.body().isEmpty()) {
-                    adapter.setPosts(res.body());
+                    List<FeedPost> postsList = res.body();
+                    AppDatabase database = AppDatabase.getInstance(requireContext());
+                    String currentUserId = sessionManager.getUserId();
+                    for (FeedPost post : postsList) {
+                        post.isBookmarked = database.bookmarkDao().isBookmarked(post.id, currentUserId);
+                    }
+                    adapter.setPosts(postsList);
                     if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
                     if (emptyState != null) emptyState.setVisibility(View.GONE);
                 } else {
@@ -183,7 +191,6 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             }
         });
     }
-
 
     private void showNewPostDialog() {
         if (!isAdded()) return;
@@ -339,6 +346,35 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             }
             @Override public void onFailure(Call<JsonObject> call, Throwable t) {}
         });
+    }
+
+    @Override
+    public void onBookmarkClicked(FeedPost post, int pos) {
+        if (!isAdded()) return;
+        new Thread(() -> {
+            AppDatabase database = AppDatabase.getInstance(requireContext());
+            boolean wasBookmarked = database.bookmarkDao().isBookmarked(post.id, sessionManager.getUserId());
+            if (wasBookmarked) {
+                database.bookmarkDao().delete(new com.cityscape.app.model.FeedBookmark(post.id, sessionManager.getUserId()));
+            } else {
+                database.bookmarkDao().insert(new com.cityscape.app.model.FeedBookmark(post.id, sessionManager.getUserId()));
+            }
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    post.isBookmarked = !wasBookmarked;
+                    adapter.notifyItemChanged(pos);
+                    
+                    // Feedback haptic
+                    View view = getView();
+                    if (view != null) {
+                        view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+                    }
+                    
+                    String msg = post.isBookmarked ? "Postare adăugată la Salvate" : "Postare eliminată din Salvate";
+                    android.widget.Toast.makeText(requireContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
     }
 
     @Override public void onCommentClicked(FeedPost post) { showCommentsDialog(post); }

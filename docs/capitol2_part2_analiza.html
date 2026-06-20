@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>C2 - Analiza Sistemului - CityScape</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; max-width: 1100px; margin: auto; padding: 30px; background: #f9f9f9; color: #222; }
+  h1 { color: #1a237e; border-bottom: 3px solid #1a237e; padding-bottom: 8px; }
+  h2 { color: #283593; margin-top: 40px; }
+  h3 { color: #3949ab; }
+  .diagram-box { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 20px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow-x:auto; }
+  .text-box { background: #fff; border-left: 4px solid #3949ab; padding: 16px 20px; margin: 16px 0; border-radius: 4px; }
+  .mermaid { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<h1>C2 – Secțiunea 2: Analiza Sistemului</h1>
+
+<!-- ===== 2.1 DIAGRAMA DE CLASE INITIALA ===== -->
+<h2>2.1 Diagrama de Clase – Forma Inițială</h2>
+<div class="text-box">
+<p>Diagrama de clase în forma inițială (faza de analiză) identifică principalele entități ale domeniului problemei, relațiile conceptuale dintre ele și proprietățile esențiale, fără a intra în detalii de implementare. Sunt utilizate stereotipurile standard: <code>&lt;&lt;entity&gt;&gt;</code> pentru clasele pasive de date, <code>&lt;&lt;control&gt;&gt;</code> pentru clasele care orchestrează logica de business și <code>&lt;&lt;boundary&gt;&gt;</code> pentru interfețele cu actorii externi.</p>
+</div>
+<div class="diagram-box">
+<div class="mermaid">
+classDiagram
+    class User {
+        <<entity>>
+        - id : UUID
+        - name : String
+        - email : String
+        - level : int
+        - currentXp : int
+        - totalXp : int
+        - interests : String
+        + addXp(amount: int)
+        + getProgressPercentage() int
+        + getXpForNextLevel() int
+    }
+
+    class Place {
+        <<entity>>
+        - id : UUID
+        - googlePlaceId : String
+        - name : String
+        - latitude : double
+        - longitude : double
+        - type : String
+        - rating : float
+        - aiSuggestion : String
+        + isFavorite() bool
+    }
+
+    class PlannedActivity {
+        <<entity>>
+        - id : UUID
+        - userId : UUID
+        - placeId : UUID
+        - scheduledDate : long
+        - scheduledTime : String
+        - isCompleted : bool
+        - notes : String
+        - budget : double
+    }
+
+    class ActivityGroup {
+        <<entity>>
+        - id : UUID
+        - groupName : String
+        - groupCode : String
+        - maxMembers : int
+        - creatorId : UUID
+        + generateGroupCode() String
+    }
+
+    class Invitation {
+        <<entity>>
+        - id : UUID
+        - fromUserId : UUID
+        - toUserId : UUID
+        - groupId : UUID
+        - status : String
+        - sentAt : long
+    }
+
+    class Event {
+        <<entity>>
+        - title : String
+        - date_str : String
+        - location : String
+        - eventType : String
+        - latitude : double
+        - longitude : double
+        - relevanceScore : int
+    }
+
+    class FeedPost {
+        <<entity>>
+        - id : UUID
+        - userId : UUID
+        - placeName : String
+        - caption : String
+        - rating : double
+        - likesCount : int
+        - commentsCount : int
+    }
+
+    class Badge {
+        <<entity>>
+        - name : String
+        - description : String
+        - requirement : String
+        - isUnlocked : bool
+    }
+
+    class ChatbotController {
+        <<control>>
+        + processMessage(msg: String) String
+        + classifyIntent(msg: String) String
+        + generateResponse(intent: String) String
+    }
+
+    class XPEngine {
+        <<control>>
+        + awardXp(user: User, amount: int)
+        + checkBadges(user: User)
+        + updateLeaderboard(user: User)
+    }
+
+    class MapsInterface {
+        <<boundary>>
+        + getNearbyPlaces(lat: double, lng: double) List
+        + displayMap(places: List)
+        + getRoute(origin: Place, dest: Place)
+    }
+
+    class APIGateway {
+        <<boundary>>
+        + callGooglePlaces(query: String) JSON
+        + callGeminiAI(prompt: String) String
+    }
+
+    User "1" --> "0..*" PlannedActivity : planifică
+    User "1" --> "0..*" FeedPost : publică
+    User "1" --> "0..*" Badge : deține
+    User "1" --> "0..*" Invitation : trimite/primește
+    User "1" --> "0..1" ActivityGroup : creează
+    ActivityGroup "1" --> "1..*" User : conține membri
+    PlannedActivity "0..*" --> "1" Place : referențiază
+    ActivityGroup "0..1" --> "1" PlannedActivity : bazat pe
+    XPEngine --> User : actualizează
+    XPEngine --> Badge : acordă
+    ChatbotController --> Place : recomandă
+    ChatbotController --> Event : returnează
+    MapsInterface --> Place : afișează
+    APIGateway --> Place : populează
+    APIGateway --> Event : populează
+</div>
+</div>
+
+<!-- ===== 2.2 DIAGRAMA DE ACTIVITATE - AUTENTIFICARE ===== -->
+<h2>2.2 Diagrame de Activitate</h2>
+
+<h3>Activitate 1 – Fluxul de Autentificare și Onboarding</h3>
+<div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    Start([Start]) --> A1[Utilizatorul deschide aplicația]
+    A1 --> A2{Cont existent?}
+    A2 -->|Nu| A3[Ecran Welcome → Înregistrare]
+    A3 --> A4{Metodă autentificare}
+    A4 -->|Email/Parolă| A5[Completare formular]
+    A4 -->|Google Sign-In| A6[OAuth Google Flow]
+    A5 --> A7[Validare câmpuri]
+    A7 -->|Invalid| A5
+    A7 -->|Valid| A8[Supabase Auth signUp]
+    A6 --> A8
+    A8 --> A9[Creare profil în Supabase]
+    A9 --> A10[Selecție interese → InterestsActivity]
+    A10 --> A11[Salvare preferințe]
+    A2 -->|Da| A12[Ecran Login]
+    A12 --> A13[Introducere credențiale]
+    A13 --> A14[Supabase Auth signIn]
+    A14 -->|Eșuat| A13
+    A14 -->|Reușit| A15
+    A11 --> A15[Home Fragment]
+    A15 --> End([End])
+</div>
+</div>
+
+<h3>Activitate 2 – Explorare și Planificare Activitate</h3>
+<div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    Start([Start]) --> B1[Utilizatorul accesează Home]
+    B1 --> B2[Obținere locație GPS]
+    B2 --> B3[Apel API: Google Places]
+    B3 --> B4[Aplicare filtru AI Gemini - scoring]
+    B4 --> B5[Afișare locații recomandate]
+    B5 --> B6{Utilizator selectează loc}
+    B6 -->|Vizualizare hartă| B7[MapFragment - markere]
+    B6 -->|Detalii loc| B8[PlaceDetailActivity]
+    B8 --> B9{Acțiune utilizator}
+    B9 -->|Adaugă la favorite| B10[UPDATE isFavorite = true]
+    B9 -->|Planifică| B11[Dialog planificare: dată, oră, buget]
+    B11 --> B12[INSERT planned_activities în Supabase]
+    B12 --> B13[Notificare confirmare]
+    B9 -->|Invită grup| B14[Creare/Alăturare grup]
+    B14 --> B15[Flux grup: voting, scheduling]
+    B10 --> End([End])
+    B13 --> End
+    B15 --> End
+</div>
+</div>
+
+<h3>Activitate 3 – Finalizare Activitate și Acordare XP</h3>
+<div class="diagram-box">
+<div class="mermaid">
+flowchart TD
+    Start([Start]) --> C1[Utilizatorul deschide Calendar]
+    C1 --> C2[Selectare zi cu activitate]
+    C2 --> C3[Afișare listă activități zilei]
+    C3 --> C4[Selectare activitate]
+    C4 --> C5[Marcare ca finalizată]
+    C5 --> C6[UPDATE is_completed = true în Supabase]
+    C6 --> C7[XPEngine.awardXp - 50 XP]
+    C7 --> C8[UPDATE user_profiles - xp, level]
+    C8 --> C9{Level up?}
+    C9 -->|Da| C10[Animație Level Up + notificare]
+    C9 -->|Nu| C11[Actualizare bara XP]
+    C10 --> C12[checkBadges - verificare insigne]
+    C11 --> C12
+    C12 --> C13{Badge nou deblocat?}
+    C13 -->|Da| C14[INSERT user_badges + notificare badge]
+    C13 -->|Nu| End([End])
+    C14 --> End
+</div>
+</div>
+
+<!-- ===== 2.3 DIAGRAME DE STARE ===== -->
+<h2>2.3 Diagrame de Stare</h2>
+
+<h3>Stare 1 – Ciclul de Viață al unei Activități Planificate</h3>
+<div class="diagram-box">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Creata : adaugaActivitate() [dateValide] / salveazaObiect()
+    Creata --> Planificata : seteazaDataOra() / planificaActivitate()
+    Planificata --> InDesfasurare : pornesteActivitate() [dataCurenta == dataStabilita]
+    InDesfasurare --> Finalizata : finalizeazaActivitate() / calculeazaXP()
+    InDesfasurare --> Anulata : stergeActivitate() / anuleaza()
+    Planificata --> Anulata : anuleazaActivitate() / anuleaza()
+    Finalizata --> [*] : acordaXP() / deblocheazaBadge()
+    Anulata --> [*] : elibereazaResurse()
+</div>
+</div>
+
+<h3>Stare 2 – Ciclul de Viață al unui Itinerar Generat</h3>
+<div class="diagram-box">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Generat : solicitaItinerar() [bugetValid] / apeleazaGeminiAPI()
+    Generat --> Salvat : apasaSalveaza() [contAutentificat] / insereazaPlannedActivities()
+    Generat --> [*] : respingeItinerar() / stergeDateTemporare()
+    Salvat --> Activ : incepeZiua() [dataCurenta == dataItinerar] / pornesteGhidareMaps()
+    Salvat --> Abandonat : anuleazaItinerar() / stergeActivitati()
+    Activ --> Completat : finalizeazaToateActivitatile() [numarActivitatiBifate == totalActivitati] / acordaBonusXP()
+    Activ --> Abandonat : abandoneazaTraseu() / opresteGhidare()
+    Completat --> [*]
+    Abandonat --> [*]
+</div>
+</div>
+
+<h3>Stare 3 – Ciclul de Viață al unui Ecuson (Gamificare)</h3>
+<div class="diagram-box">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Blocat : inregistrareUtilizator() / initializeazaEcusoane()
+    Blocat --> Eligibil : acumuleazaXP() [xpCurent >= xpNecesar - 100] / trimiteNotificareApropiere()
+    Blocat --> Deblocat : finalizeazaActivitatiTinta() [conditieIndeplinita] / acordaXPBonus()
+    Eligibil --> Deblocat : finalizeazaActivitate() [conditieIndeplinita] / acordaXPBonus()
+    Deblocat --> Echipat : selecteazaEcuson() [ecusonSelectat == true] / actualizeazaProfil()
+    Echipat --> Deblocat : deselecteazaEcuson() [ecusonSelectat == false] / actualizeazaProfil()
+    Deblocat --> [*]
+    Echipat --> [*]
+</div>
+</div>
+
+<h3>Stare 4 – Ciclul de Viață al unei Invitații de Grup</h3>
+<div class="diagram-box">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Trimisa : trimiteInvitatie() / primesteNotificare()
+    Trimisa --> InAsteptare : afiseazaInAsteptare()
+    InAsteptare --> Acceptata : apasaAccept() / adaugaMembruInGrup()
+    InAsteptare --> Refuzata : apasaRefuz() / stergeInvitatie()
+    InAsteptare --> Expirata : timeout48h() / stergeInvitatie()
+    Acceptata --> [*]
+    Refuzata --> [*]
+    Expirata --> [*]
+</div>
+</div>
+
+<h3>Stare 5 – Progres Gamificare (Stările Utilizatorului)</h3>
+<div class="diagram-box">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Incepator : inregistrareCont() / nivelInit()
+    Incepator --> Incepator : finalizeazaActivitate() [xpCurent < 500] / adaugaXP()
+    Incepator --> Explorator : acumuleazaXP() [xpCurent >= 500] / avanseazaNivel()
+    Explorator --> Explorator : finalizeazaActivitate() [xpCurent < 1000] / adaugaXP()
+    Explorator --> Aventurier : acumuleazaXP() [xpCurent >= 1000] / avanseazaNivel()
+    Aventurier --> Aventurier : publicaPostare() [xpCurent < 2000] / adaugaXP()
+    Aventurier --> Expert : acumuleazaXP() [xpCurent >= 2000] / avanseazaNivel()
+    Expert --> Expert : viziteazaLocatie() [xpCurent < 5000] / adaugaXP()
+    Expert --> Legendar : acumuleazaXP() [xpCurent >= 5000] / avanseazaNivel()
+    Legendar --> Legendar : finalizeazaOriceActivitate() / adaugaXP()
+    Legendar --> [*] : stergereCont()
+</div>
+</div>
+
+<h3>Stare 6 – Ciclul de Viață al unui Grup de Activitate (ActivityGroup)</h3>
+<div class="diagram-box">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Creat : creeazaGrup() / salveazaGrup()
+    Creat --> Deschis : genereazaCodGrup() / afiseazaInvitatie()
+    Deschis --> InVotare : initiazaVotare() / deschideSondaj()
+    InVotare --> InVotare : inregistreazaVot() [maiSuntVotanti] / adaugaVotGrup()
+    InVotare --> Planificat : finalizareVotare() [sondajInchis == true] / stabilesteCastigator()
+    Planificat --> Inchis : finalizeazaActivitateGrup() / arhiveazaGrup()
+    Inchis --> [*] : stergeDateGrup()
+</div>
+</div>
+
+<!-- ===== 2.4 DIAGRAME DE SECVENTA ===== -->
+<h2>2.4 Diagrame de Secvență</h2>
+
+<h3>Secvență 1 – Obținerea Recomandărilor de Locații (Home Fragment)</h3>
+<div class="diagram-box">
+<div class="mermaid">
+sequenceDiagram
+    actor U as Utilizator
+    participant HF as HomeFragment
+    participant Back as Backend Flask
+    participant GP as Google Places API
+    participant Gem as Gemini AI
+
+    U->>HF: Deschide aplicația (Home)
+    HF->>Back: GET /api/places?lat=&lng=&interests=
+    Back->>GP: searchNearby(lat, lng, radius=5km)
+    GP-->>Back: places[]
+    Back->>Gem: scorePlaces(places, userInterests)
+    Gem-->>Back: scoredPlaces[] cu aiSuggestion
+    Back-->>HF: JSON {places: [...], events: [...]}
+    HF-->>U: RecyclerView cu locații + carduri
+</div>
+</div>
+
+<h3>Secvență 2 – Fluxul Complet al Grupului de Activitate (Voting + Scheduling)</h3>
+<div class="diagram-box">
+<div class="mermaid">
+sequenceDiagram
+    actor C as Creator
+    actor M1 as Membru 1
+    actor M2 as Membru 2
+    participant App as Android App
+    participant Back as Backend
+    participant DB as Supabase
+
+    C->>App: Crează grup
+    App->>Back: POST /api/groups {name, activity_id}
+    Back->>DB: INSERT activity_groups (group_code=AB1234)
+    DB-->>Back: group_id
+    Back-->>App: {group_code: "AB1234"}
+    App-->>C: Cod grup afișat
+
+    M1->>App: Introduce cod AB1234
+    App->>Back: POST /api/groups/join {code, user_id}
+    Back->>DB: INSERT group_members
+    DB-->>Back: success
+    App-->>M1: Acces la grupul de activitate
+
+    M2->>App: Introduce cod AB1234
+    App->>Back: POST /api/groups/join
+    Back->>DB: INSERT group_members
+    App-->>M2: Acces la grup
+
+    M1->>App: Votează locația X
+    App->>Back: POST /api/groups/{id}/vote {place_id}
+    Back->>DB: INSERT group_votes
+    M2->>App: Votează locația Y
+    App->>Back: POST /api/groups/{id}/vote
+    Back->>DB: INSERT group_votes
+    C->>App: Vizualizează rezultate votare
+    App->>Back: GET /api/groups/{id}/votes
+    Back->>DB: SELECT votes + COUNT
+    DB-->>Back: locația X - 2 voturi, locația Y - 1 vot
+    Back-->>App: winner = locația X
+    App-->>C: Locația câștigătoare afișată
+
+    M1->>App: Adaugă disponibilitate
+    App->>Back: POST /api/groups/{id}/schedule
+    Back->>DB: INSERT member_schedules
+    C->>App: Generare interval comun
+    App->>Back: GET /api/groups/{id}/common-slot
+    Back->>DB: SELECT schedules WHERE is_available=true
+    Back-->>App: Interval comun: Sâmbătă 14:00-18:00
+    App-->>C: Propunere interval comun afișată
+</div>
+</div>
+
+<h3>Secvență 3 – Publicare Postare în Feed și Acordare Like</h3>
+<div class="diagram-box">
+<div class="mermaid">
+sequenceDiagram
+    actor U1 as Utilizator (poster)
+    actor U2 as Alt utilizator
+    participant FF as FeedFragment
+    participant Back as Backend Flask
+    participant DB as Supabase
+
+    U1->>FF: Apasă butonul Postare nouă
+    FF-->>U1: Dialog: fotografie, rating, descriere, loc
+    U1->>FF: Completează și trimite
+    FF->>Back: POST /api/feed {user_id, place_id, caption, rating, image_url}
+    Back->>DB: INSERT feed_posts
+    DB-->>Back: post_id
+    Back-->>FF: success
+    FF-->>U1: Postarea apare în feed
+
+    U2->>FF: Vizualizează feed-ul
+    FF->>Back: GET /api/feed?page=1
+    Back->>DB: SELECT posts ORDER BY created_at DESC
+    DB-->>Back: posts[]
+    Back-->>FF: posts[]
+    FF-->>U2: RecyclerView cu postări
+
+    U2->>FF: Apasă Like pe postarea lui U1
+    FF->>Back: POST /api/feed/{post_id}/like {user_id}
+    Back->>DB: UPDATE feed_posts SET likes_count + 1
+    DB-->>Back: success
+    Back-->>FF: {likes_count: 5}
+    FF-->>U2: Inimă roșie + counter actualizat
+</div>
+</div>
+
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose', flowchart: { useMaxWidth: true } });
+</script>
+</body>
+</html>

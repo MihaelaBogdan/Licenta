@@ -19,6 +19,33 @@ public class SettingsActivity extends BaseActivity {
     private TextView currentLanguageText;
     private Button btnLogout;
     private SessionManager sessionManager;
+    private de.hdodenhof.circleimageview.CircleImageView currentEditProfileImage;
+    private String currentEditProfileAvatarPath = null;
+    
+    private final androidx.activity.result.ActivityResultLauncher<String> imagePickerLauncher = registerForActivityResult(
+            new androidx.activity.result.contract.ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    try {
+                        java.io.InputStream is = getContentResolver().openInputStream(uri);
+                        java.io.File file = new java.io.File(getFilesDir(), "avatar_" + System.currentTimeMillis() + ".jpg");
+                        java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                        fos.close();
+                        is.close();
+                        currentEditProfileAvatarPath = file.getAbsolutePath();
+                        if (currentEditProfileImage != null) {
+                            com.bumptech.glide.Glide.with(this).load(file).into(currentEditProfileImage);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Eroare la încărcarea imaginii", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +84,24 @@ public class SettingsActivity extends BaseActivity {
         // Logout button
         btnLogout = findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(v -> showLogoutDialog());
+        
+        // Edit Profile
+        LinearLayout editProfileItem = findViewById(R.id.editProfileItem);
+        if (editProfileItem != null) {
+            editProfileItem.setOnClickListener(v -> showEditProfileDialog());
+        }
+
+        // Terms and Conditions
+        LinearLayout termsItem = findViewById(R.id.termsItem);
+        if (termsItem != null) {
+            termsItem.setOnClickListener(v -> showTermsDialog());
+        }
+        
+        // Privacy Policy
+        LinearLayout privacyItem = findViewById(R.id.privacyItem);
+        if (privacyItem != null) {
+            privacyItem.setOnClickListener(v -> showPrivacyPolicyDialog());
+        }
         
         // Dark mode toggle
         com.google.android.material.switchmaterial.SwitchMaterial darkModeSwitch = findViewById(R.id.darkModeSwitch);
@@ -162,6 +207,92 @@ public class SettingsActivity extends BaseActivity {
                     }
                 })
                 .setNegativeButton("Anulează", null)
+                .show();
+    }
+
+    private void showEditProfileDialog() {
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_profile, null);
+        com.google.android.material.textfield.TextInputEditText nameInput = dialogView.findViewById(R.id.editNameInput);
+        com.google.android.material.textfield.TextInputEditText interestsInput = dialogView.findViewById(R.id.editInterestsInput);
+        currentEditProfileImage = dialogView.findViewById(R.id.editProfileImage);
+        currentEditProfileAvatarPath = null;
+        
+        com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+        if (currentUser != null) {
+            if (currentUser.name != null) nameInput.setText(currentUser.name);
+            if (currentUser.interests != null) interestsInput.setText(currentUser.interests);
+            if (currentUser.avatar != null && currentEditProfileImage != null) {
+                com.bumptech.glide.Glide.with(this).load(currentUser.avatar).into(currentEditProfileImage);
+            }
+        }
+        
+        if (currentEditProfileImage != null) {
+            currentEditProfileImage.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this, R.style.DarkDialogTheme)
+                .setView(dialogView)
+                .create();
+        
+        // Face fundalul dialogului transparent pentru a pastra design-ul curbat din XML
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        dialogView.findViewById(R.id.btnCancelEdit).setOnClickListener(v -> dialog.dismiss());
+        
+        dialogView.findViewById(R.id.btnSaveEdit).setOnClickListener(v -> {
+            String newName = nameInput.getText() != null ? nameInput.getText().toString().trim() : "";
+            String newInterests = interestsInput.getText() != null ? interestsInput.getText().toString().trim() : "";
+            
+            if (!newName.isEmpty() && currentUser != null) {
+                currentUser.name = newName;
+                currentUser.interests = newInterests;
+                if (currentEditProfileAvatarPath != null) {
+                    currentUser.avatar = currentEditProfileAvatarPath;
+                }
+                sessionManager.updateUserName(newName);
+                
+                new Thread(() -> {
+                    com.cityscape.app.data.AppDatabase.getInstance(this).userDao().update(currentUser);
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Profil actualizat cu succes!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        recreate(); // Auto-refresh the activity
+                    });
+                }).start();
+            }
+        });
+        
+        dialog.show();
+    }
+    
+    private void showPrivacyPolicyDialog() {
+        String privacyText = "Politica de Confidențialitate - CityScape AI\n\n" +
+                "1. Colectarea Datelor: Colectăm istoricul locațiilor vizitate și interesele tale pentru a oferi o experiență personalizată.\n" +
+                "2. Transparență AI: Fiecare recomandare generată de AI îți explică procentual de ce a fost aleasă pe baza datelor tale.\n" +
+                "3. Nu vindem datele: Profilul tău este procesat exclusiv pentru funcționalitățile CityScape.\n\n" +
+                "Securitate garantată.";
+
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogTheme)
+                .setTitle(getString(R.string.privacy_policy))
+                .setMessage(privacyText)
+                .setPositiveButton("Am Înțeles", null)
+                .show();
+    }
+
+    private void showTermsDialog() {
+        String termsText = "Termeni și Condiții - CityScape\n\n" +
+                "1. Prin utilizarea aplicației, ești de acord să respecți regulile comunității.\n" +
+                "2. Datele tale (nume, preferințe) sunt folosite exclusiv pentru personalizarea recomandărilor prin AI.\n" +
+                "3. Nu stocăm parole în clar, iar autentificarea este securizată via Supabase.\n" +
+                "4. Ne rezervăm dreptul de a suspenda conturile care fac spam în modulul 'Hype Battle'.\n\n" +
+                "Ultima actualizare: Astăzi.";
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.terms_of_service))
+                .setMessage(termsText)
+                .setPositiveButton("Am Înțeles", null)
                 .show();
     }
 }

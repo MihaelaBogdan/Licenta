@@ -2,6 +2,7 @@ package com.cityscape.app.api;
 
 import com.cityscape.app.model.Place;
 import java.util.List;
+import java.util.Map;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -41,6 +42,12 @@ public interface ApiService {
 
         @POST("predict")
         Call<ChatResponse> chat(@Body ChatRequest request);
+
+        @GET("hype/battles")
+        Call<com.google.gson.JsonObject> getHypeBattle(@retrofit2.http.Query("user_id") String userId);
+
+        @POST("hype/vote")
+        Call<com.google.gson.JsonObject> castHypeVote(@Body Map<String, Object> body);
 
         @GET("weather")
         Call<WeatherResponse> getWeather(
@@ -103,6 +110,15 @@ public interface ApiService {
                         @retrofit2.http.Path("postId") String postId,
                         @Body java.util.Map<String, String> data);
 
+        @GET("feed/by_ids")
+        Call<List<com.cityscape.app.model.FeedPost>> getFeedByIds(
+                        @retrofit2.http.Query("ids") String ids,
+                        @retrofit2.http.Query("user_id") String userId);
+
+        @GET("users/{userId}/liked_posts")
+        Call<List<com.cityscape.app.model.FeedPost>> getLikedPosts(
+                        @retrofit2.http.Path("userId") String userId);
+
         // ===== USERS & SOCIAL =====
         @GET("users/search")
         Call<List<com.cityscape.app.model.User>> searchUsers(
@@ -125,7 +141,8 @@ public interface ApiService {
                         @retrofit2.http.Query("lat") double lat,
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("user_id") String userId,
-                        @retrofit2.http.Query("type") String type);
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("interests") String interests);
 
         @GET("recommendations/personalized")
         Call<List<Place>> getPersonalizedRecommendations(
@@ -134,7 +151,8 @@ public interface ApiService {
                         @retrofit2.http.Query("user_id") String userId,
                         @retrofit2.http.Query("query") String query,
                         @retrofit2.http.Query("type") String type,
-                        @retrofit2.http.Query("city") String city);
+                        @retrofit2.http.Query("city") String city,
+                        @retrofit2.http.Query("interests") String interests);
 
         @GET("quests/daily")
         Call<com.google.gson.JsonObject> getDailyQuest(
@@ -157,4 +175,16 @@ public interface ApiService {
 
         @GET("admin/stats")
         Call<com.google.gson.JsonObject> getAdminStats();
+
+        @GET("weather/plan-b")
+        Call<com.google.gson.JsonObject> getWeatherPlanB(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng);
+
+        @POST("travel-story")
+        Call<com.google.gson.JsonObject> generateTravelStory(@retrofit2.http.Body java.util.Map<String, Object> body);
+
+        @GET("crystal-ball/timeline/{user_id}")
+        Call<com.google.gson.JsonObject> getCrystalBallTimeline(
+                        @retrofit2.http.Path("user_id") String userId);
 }

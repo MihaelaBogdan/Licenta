@@ -1,185 +1,286 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:background="@drawable/bg_magic_dialog_solid">
+    android:layout_height="match_parent"
+    android:background="@color/primary_dark">
 
-    <!-- Mystical Header -->
-    <ImageView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginBottom="12dp"
-        android:src="@drawable/ic_globe"
-        app:tint="@color/primary" />
+    <!-- Background with gradient -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_magic_dialog_solid" />
 
-    <TextView
-        android:id="@+id/text_magic_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GLOBUL DE CRISTAL"
-        android:textColor="@color/white"
-        android:textSize="26sp"
-        android:fontFamily="sans-serif-black"
-        android:letterSpacing="0.12" />
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <!-- PRE-SELECTION: What do you want to do? -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Ce cauți azi în destinul tău?"
-        android:textColor="@color/primary_light"
-        android:textSize="12sp"
-        android:fontFamily="sans-serif-medium"
-        android:alpha="0.9" />
+        <!-- Header with Glow -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
 
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chip_group_magic_cats"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:singleSelection="true"
-        app:selectionRequired="true"
-        app:chipSpacingHorizontal="8dp">
-        
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_magic_food"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="🔮"
+                android:textSize="72sp" />
+
+            <TextView
+                android:id="@+id/text_magic_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔮 GLOBUL DE CRISTAL"
+                android:textColor="@color/primary"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.12"
+                android:shadowColor="@color/primary"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="15"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Ce cauți azi?"
+                android:textColor="@color/secondary"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:alpha="0.8" />
+        </LinearLayout>
+
+        <!-- Category Selection Chips -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_magic_cats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🍕 Mâncare"
-            app:chipBackgroundColor="@color/primary_faded"
-            app:chipStrokeColor="@color/primary"
-            app:chipStrokeWidth="1dp"
-            android:textColor="@color/white" />
+            android:layout_marginBottom="16dp"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            app:chipSpacingHorizontal="8dp"
+            android:gravity="center">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_magic_fun"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🎮 Distracție"
-            app:chipBackgroundColor="@color/primary_faded"
-            app:chipStrokeColor="@color/primary"
-            app:chipStrokeWidth="1dp"
-            android:textColor="@color/white" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_magic_food"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🍕 Mâncare" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_magic_relax"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🧘 Relaxare"
-            app:chipBackgroundColor="@color/primary_faded"
-            app:chipStrokeColor="@color/primary"
-            app:chipStrokeWidth="1dp"
-            android:textColor="@color/white" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_magic_fun"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎮 Distracție" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_magic_culture"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🏛️ Cultural"
-            app:chipBackgroundColor="@color/primary_faded"
-            app:chipStrokeColor="@color/primary"
-            app:chipStrokeWidth="1dp"
-            android:textColor="@color/white" />
-    </com.google.android.material.chip.ChipGroup>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_magic_relax"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🧘 Relaxare" />
 
-    <!-- The Magical Sphere -->
-    <RelativeLayout
-        android:id="@+id/layout_magic_ball_container"
-        android:layout_width="260dp"
-        android:layout_height="260dp"
-        android:layout_marginTop="24dp"
-        android:gravity="center">
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_magic_culture"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏛️ Cultural" />
+        </com.google.android.material.chip.ChipGroup>
 
-        <!-- Multiple Glow Layers for Depth -->
-        <View
+        <!-- Crystal Ball Container with Advanced Glow -->
+        <RelativeLayout
+            android:id="@+id/layout_magic_ball_container"
             android:layout_width="300dp"
             android:layout_height="300dp"
-            android:background="@drawable/bg_magic_glow"
-            android:alpha="0.4" />
-        
-        <View
-            android:layout_width="260dp"
-            android:layout_height="260dp"
-            android:layout_centerInParent="true"
-            android:background="@drawable/bg_magic_glow"
-            android:alpha="0.2"
-            app:tint="@color/accent_purple" />
+            android:layout_marginVertical="20dp">
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="240dp"
-            android:layout_height="240dp"
-            android:layout_centerInParent="true"
-            app:cardCornerRadius="120dp"
-            app:cardBackgroundColor="#000000"
-            app:cardElevation="40dp"
-            android:outlineSpotShadowColor="@color/primary">
+            <!-- Outer Glow Layer 1 (Large) -->
+            <View
+                android:layout_width="320dp"
+                android:layout_height="320dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="-10dp"
+                android:layout_marginTop="-10dp"
+                android:background="@drawable/bg_magic_glow"
+                android:alpha="0.3" />
 
-            <FrameLayout
+            <!-- Outer Glow Layer 2 (Medium) -->
+            <View
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/bg_magic_glow"
+                android:alpha="0.2"
+                app:tint="@color/accent_purple" />
+
+            <!-- Outer Glow Layer 3 (Small, Bright) -->
+            <View
+                android:layout_width="280dp"
+                android:layout_height="280dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/bg_magic_glow"
+                android:alpha="0.15"
+                app:tint="@color/secondary" />
+
+            <!-- Main Crystal Ball Sphere -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="260dp"
+                android:layout_height="260dp"
+                android:layout_centerInParent="true"
+                app:cardCornerRadius="130dp"
+                app:cardBackgroundColor="#1a0033"
+                app:cardElevation="50dp"
+                android:outlineSpotShadowColor="@color/primary">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <!-- Gradient Background -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_magic_gradient" />
+
+                    <!-- Crystal Ball Main Image -->
+                    <ImageView
+                        android:id="@+id/img_magic_reveal_ball"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_realistic_crystal_ball"
+                        android:alpha="0.95" />
+
+                    <!-- Animated Particle Overlay -->
+                    <ImageView
+                        android:id="@+id/img_magic_particles"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_magic_particles"
+                        android:alpha="0.6" />
+
+                    <!-- Mist Transition Effect -->
+                    <ImageView
+                        android:id="@+id/img_magic_reveal_mist"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:alpha="0"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_magic_mist" />
+
+                    <!-- Prediction Text with Glow -->
+                    <TextView
+                        android:id="@+id/text_magic_reveal_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:alpha="0"
+                        android:gravity="center"
+                        android:padding="32dp"
+                        android:text="?"
+                        android:textColor="@color/secondary"
+                        android:textSize="32sp"
+                        android:fontFamily="sans-serif-black"
+                        android:shadowColor="@color/primary"
+                        android:shadowDx="0"
+                        android:shadowDy="0"
+                        android:shadowRadius="30"
+                        android:lineSpacingExtra="4dp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+
+        <!-- Predictions Display -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:layout_marginTop="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📊 Următoarele interese:"
+                android:textColor="@color/primary"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:spacing="8dp">
 
-                <!-- Crystal Ball Visual -->
-                <ImageView
-                    android:id="@+id/img_magic_reveal_ball"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/img_realistic_crystal_ball"
-                    android:alpha="0.9" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/prediction_1"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="🏛️ Muzee (65%)"
+                    android:textColor="@color/secondary"
+                    app:chipBackgroundColor="#220055"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp" />
 
-                <!-- Magic Mist for Transitions -->
-                <ImageView
-                    android:id="@+id/img_magic_reveal_mist"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:alpha="0"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/img_magic_mist" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/prediction_2"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="🌳 Parcuri (55%)"
+                    android:textColor="@color/secondary"
+                    app:chipBackgroundColor="#220055"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp" />
 
-                <!-- The Revealed Destination Name -->
-                <TextView
-                    android:id="@+id/text_magic_reveal_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:alpha="0"
-                    android:gravity="center"
-                    android:padding="32dp"
-                    android:text="?"
-                    android:textColor="@color/white"
-                    android:textSize="28sp"
-                    android:fontFamily="sans-serif-black"
-                    android:shadowColor="@color/primary"
-                    android:shadowDx="0"
-                    android:shadowDy="0"
-                    android:shadowRadius="25"
-                    android:lineSpacingExtra="4dp" />
-            </FrameLayout>
-        </androidx.cardview.widget.CardView>
-    </RelativeLayout>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/prediction_3"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="🍽️ Mâncare (60%)"
+                    android:textColor="@color/secondary"
+                    app:chipBackgroundColor="#220055"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp" />
+            </LinearLayout>
+        </LinearLayout>
 
-    <!-- Hidden Result Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_magic_go"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_marginTop="32dp"
-        android:text="URMEAZĂ-ȚI DESTINUL"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:visibility="gone"
-        app:cornerRadius="24dp"
-        app:backgroundTint="@color/primary"
-        app:elevation="12dp"
-        app:rippleColor="#4DFFFFFF" />
+        <!-- Action Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_magic_go"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="VIZIONEAZĂ DESTINUL"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-black"
+            android:visibility="gone"
+            app:cornerRadius="28dp"
+            app:backgroundTint="@color/primary"
+            app:elevation="20dp"
+            app:rippleColor="#4DFFFFFF"
+            app:strokeColor="@color/secondary"
+            app:strokeWidth="2dp" />
+    </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>

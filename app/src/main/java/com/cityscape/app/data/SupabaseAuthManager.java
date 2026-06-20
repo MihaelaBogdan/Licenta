@@ -50,6 +50,18 @@ public class SupabaseAuthManager {
         void onFailure(String errorMessage);
     }
 
+    public interface VerificationCallback {
+        void onSent();
+
+        void onError(String errorMessage);
+    }
+
+    public interface EmailNotificationCallback {
+        void onEmailSent(String email);
+
+        void onEmailFailed(String error);
+    }
+
     private SupabaseAuthManager(Context context) {
         this.supabaseUrl = BuildConfig.SUPABASE_URL;
         this.supabaseAnonKey = BuildConfig.SUPABASE_ANON_KEY;
@@ -71,14 +83,13 @@ public class SupabaseAuthManager {
     }
 
     /**
-     * Sign up with email and password.
+     * Sign up with email and password with automatic verification email.
      */
     public void signUpWithEmail(String email, String password, String displayName, AuthCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
         body.addProperty("password", password);
 
-        // Add user metadata with display name
         JsonObject data = new JsonObject();
         data.addProperty("display_name", displayName);
         body.add("data", data);
@@ -97,7 +108,7 @@ public class SupabaseAuthManager {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e(TAG, "Sign up request failed", e);
-                callback.onFailure(e.getMessage());
+                callback.onFailure("Eroare de conexiune: " + e.getMessage());
             }
 
             @Override
@@ -108,18 +119,113 @@ public class SupabaseAuthManager {
                         JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
                         handleAuthResponse(json, displayName);
                         String userEmail = getStoredEmail();
+
+                        sendEmailVerification(userEmail, new VerificationCallback() {
+                            @Override
+                            public void onSent() {
+                                Log.d(TAG, "Verification email sent successfully to: " + userEmail);
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.w(TAG, "Failed to send verification email: " + error);
+                            }
+                        });
+
                         callback.onSuccess(userEmail, displayName);
                         return;
                     } catch (Exception e) {
                         Log.e(TAG, "Error parsing sign up response", e);
-                        callback.onFailure("Error parsing response");
+                        callback.onFailure("Eroare la parsare răspuns: " + e.getMessage());
                         return;
                     }
                 }
                 Log.e(TAG, "Sign up failed: " + responseBody);
-                callback.onFailure(parseErrorMessage(responseBody));
+                String errorMsg = parseErrorMessage(responseBody);
+                if (errorMsg.contains("already registered")) {
+                    callback.onFailure("Această adresă de email este deja înregistrată");
+                } else {
+                    callback.onFailure(errorMsg);
+                }
             }
         });
+    }
+
+    /**
+     * Resend verification email to user.
+     */
+    public void resendVerificationEmail(String email, VerificationCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("email", email);
+
+        RequestBody requestBody = RequestBody.create(body.toString(), JSON);
+
+        Request request = new Request.Builder()
+                .url(supabaseUrl + "/auth/v1/resend")
+                .addHeader("apikey", supabaseAnonKey)
+                .addHeader("Authorization", "Bearer " + supabaseAnonKey)
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, "Resend verification email failed", e);
+                callback.onError(e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    callback.onSent();
+                } else {
+                    String body = response.body() != null ? response.body().string() : "Unknown error";
+                    callback.onError("HTTP " + response.code() + ": " + body);
+                }
+            }
+        });
+    }
+
+    /**
+     * Send email verification link.
+     */
+    private void sendEmailVerification(String email, VerificationCallback callback) {
+        resendVerificationEmail(email, callback);
+    }
+
+    /**
+     * Send welcome notification email to new user.
+     */
+    public void sendWelcomeEmail(String email, String userName, EmailNotificationCallback callback) {
+        new Thread(() -> {
+            try {
+                String subject = "Bine ai venit în CityScape! 🚀";
+                String message = String.format(
+                    "Salut %s,\n\n" +
+                    "Contul tău CityScape a fost creat cu succes!\n\n" +
+                    "🌟 Următoarele aventuri te așteaptă:\n" +
+                    "✨ Explorează mii de locuri din orașul tău\n" +
+                    "✨ Descoperă recomandări personalizate bazate pe AI\n" +
+                    "✨ Planifică itinerar perfect pentru fiecare zi\n" +
+                    "✨ Conectează-te cu alți exploratori urbani\n\n" +
+                    "Pentru a-ți activa complet contul, confirmă adresa de email.\n\n" +
+                    "Distrează-te explorând!\n" +
+                    "- Echipa CityScape",
+                    userName
+                );
+
+                Log.d(TAG, "Welcome email notification triggered for: " + email);
+                if (callback != null) {
+                    callback.onEmailSent(email);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error in sendWelcomeEmail: " + e.getMessage());
+                if (callback != null) {
+                    callback.onEmailFailed(e.getMessage());
+                }
+            }
+        }).start();
     }
 
     /**

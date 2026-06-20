@@ -58,6 +58,8 @@ public class CalendarFragment extends Fragment {
     private LinearLayout emptyGroupsState;
     private TextView textSelectedDate;
     private TextView textGroupCount;
+    private TextView textMonthYear;
+    private TextView textActivitySummary;
     private ImageView btnAddActivity;
     private ImageView btnJoinGroup;
     private ImageView btnSyncCalendar;
@@ -170,6 +172,8 @@ public class CalendarFragment extends Fragment {
         emptyGroupsState = view.findViewById(R.id.empty_groups_state);
         textSelectedDate = view.findViewById(R.id.text_selected_date);
         textGroupCount = view.findViewById(R.id.text_group_count);
+        textMonthYear = view.findViewById(R.id.text_month_year);
+        textActivitySummary = view.findViewById(R.id.text_activity_summary);
         btnAddActivity = view.findViewById(R.id.btn_add_activity);
         btnJoinGroup = view.findViewById(R.id.btn_join_group);
         btnSyncCalendar = view.findViewById(R.id.btn_sync_calendar);
@@ -479,6 +483,14 @@ public class CalendarFragment extends Fragment {
             textSelectedDate.setText(formattedDate);
         }
 
+        if (textMonthYear != null) {
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(date);
+            String[] luni = {"Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"};
+            String lunaAn = luni[c.get(Calendar.MONTH)] + " " + c.get(Calendar.YEAR);
+            textMonthYear.setText(lunaAn);
+        }
+
         android.content.Context context = getContext();
         if (context == null) return;
         new Thread(() -> {
@@ -490,6 +502,19 @@ public class CalendarFragment extends Fragment {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     if (!isAdded()) return;
+
+                    if (textActivitySummary != null) {
+                        int count = activities.size();
+                        String summaryText;
+                        if (count == 0) {
+                            summaryText = "Nu ai nicio activitate planificată";
+                        } else if (count == 1) {
+                            summaryText = "Ai o activitate planificată";
+                        } else {
+                            summaryText = "Ai " + count + " activități planificate";
+                        }
+                        textActivitySummary.setText(summaryText);
+                    }
                     // Animation for "Pro" feel
                     recyclerActivities.setAlpha(0f);
                     recyclerActivities.animate().alpha(1f).setDuration(400).start();
@@ -862,7 +887,24 @@ public class CalendarFragment extends Fragment {
     // ==================== GROUP DETAILS ====================
 
     private void showGroupDetails(ActivityGroup group, PlannedActivity activity) {
+        if (!isAdded()) return;
+
         List<GroupMember> members = db.groupDao().getMembersForGroup(group.id);
+
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_group_details, null);
+        TextView txtGroupName = dialogView.findViewById(R.id.txt_detail_group_name);
+        TextView txtGroupCode = dialogView.findViewById(R.id.txt_detail_group_code);
+        TextView lblMembersCount = dialogView.findViewById(R.id.lbl_members_count);
+        TextView txtMembersList = dialogView.findViewById(R.id.txt_members_list);
+        Button btnChat = dialogView.findViewById(R.id.btn_group_chat);
+        Button btnVote = dialogView.findViewById(R.id.btn_group_vote);
+        Button btnWhatsapp = dialogView.findViewById(R.id.btn_group_whatsapp);
+        Button btnClose = dialogView.findViewById(R.id.btn_close_group_details);
+        ImageView btnCopy = dialogView.findViewById(R.id.btn_copy_code);
+
+        if (txtGroupName != null) txtGroupName.setText(group.groupName);
+        if (txtGroupCode != null) txtGroupCode.setText(group.groupCode);
+        if (lblMembersCount != null) lblMembersCount.setText("Membri (" + members.size() + "):");
 
         StringBuilder memberList = new StringBuilder();
         for (GroupMember member : members) {
@@ -871,16 +913,151 @@ public class CalendarFragment extends Fragment {
                 memberList.append(" (Creator)");
             memberList.append(" — ").append(member.status).append("\n");
         }
+        if (txtMembersList != null) txtMembersList.setText(memberList.toString());
 
-        new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle(group.groupName)
-                .setMessage("Cod partajare: " + group.groupCode + "\n\n" +
-                        "Membri (" + members.size() + "):\n" + memberList.toString())
-                .setPositiveButton("WhatsApp", (d, w) -> shareOnWhatsApp(group))
-                .setNeutralButton("Votare", (d, w) -> showVotingDialog(group))
-                .setNegativeButton("Închide", null)
-                .show();
+        AlertDialog detailsDialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setView(dialogView)
+                .create();
+
+        if (detailsDialog.getWindow() != null) {
+            detailsDialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+        }
+
+        if (btnChat != null) {
+            btnChat.setOnClickListener(v -> {
+                detailsDialog.dismiss();
+                showGroupChatDialog(group);
+            });
+        }
+
+        if (btnVote != null) {
+            btnVote.setOnClickListener(v -> {
+                detailsDialog.dismiss();
+                showVotingDialog(group);
+            });
+        }
+
+        if (btnWhatsapp != null) {
+            btnWhatsapp.setOnClickListener(v -> {
+                shareOnWhatsApp(group);
+            });
+        }
+
+        if (btnCopy != null) {
+            btnCopy.setOnClickListener(v -> {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("CityScape Group Code", group.groupCode);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getContext(), "Cod copiat în clipboard! 📋", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> detailsDialog.dismiss());
+        }
+
+        detailsDialog.show();
     }
+
+    private void showGroupChatDialog(ActivityGroup group) {
+        if (!isAdded()) return;
+
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_group_chat, null);
+        TextView txtTitle = dialogView.findViewById(R.id.txt_chat_group_title);
+        RecyclerView rvChat = dialogView.findViewById(R.id.rv_chat_messages);
+        EditText inputChat = dialogView.findViewById(R.id.input_chat_message);
+        ImageView btnSend = dialogView.findViewById(R.id.btn_send_chat);
+        ImageView btnClose = dialogView.findViewById(R.id.btn_close_chat);
+
+        if (txtTitle != null) {
+            txtTitle.setText("💬 Chat: " + group.groupName);
+        }
+
+        String currentUserId = sessionManager.getUserId();
+        User currentUser = sessionManager.getCurrentUser();
+        String currentUserName = currentUser != null ? currentUser.name : "Eu";
+
+        // Load historical messages from DB
+        List<com.cityscape.app.model.GroupMessage> chatMessages = new ArrayList<>(db.groupMessageDao().getMessagesForGroup(group.id));
+
+        // Loaded clean historical messages with no predefined seeds
+
+        com.cityscape.app.adapter.GroupChatAdapter chatAdapter = new com.cityscape.app.adapter.GroupChatAdapter(chatMessages, currentUserId);
+        rvChat.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvChat.setAdapter(chatAdapter);
+        rvChat.scrollToPosition(chatMessages.size() - 1);
+
+        AlertDialog chatDialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setView(dialogView)
+                .create();
+
+        if (chatDialog.getWindow() != null) {
+            chatDialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> chatDialog.dismiss());
+        }
+
+        btnSend.setOnClickListener(v -> {
+            String rawMsg = inputChat.getText().toString().trim();
+            if (rawMsg.isEmpty()) return;
+
+            inputChat.setText("");
+
+            // Insert user message
+            com.cityscape.app.model.GroupMessage userMsg = new com.cityscape.app.model.GroupMessage(group.id, currentUserId, currentUserName, rawMsg);
+            db.groupMessageDao().insert(userMsg);
+            chatMessages.add(userMsg);
+            chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+            rvChat.scrollToPosition(chatMessages.size() - 1);
+
+            // Award small social XP
+            com.cityscape.app.util.BadgeManager.addExperience(requireContext(), currentUserId, 10);
+
+            // Delayed reply simulation exclusively from other group members (1.5s)
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (!isAdded()) return;
+
+                // Load active group members
+                List<com.cityscape.app.model.GroupMember> membersList = db.groupDao().getMembersForGroup(group.id);
+                List<com.cityscape.app.model.GroupMember> otherMembers = new ArrayList<>();
+                for (com.cityscape.app.model.GroupMember m : membersList) {
+                    if (m.userId != null && !m.userId.equals(currentUserId)) {
+                        otherMembers.add(m);
+                    }
+                }
+
+                // If other members exist in this group, simulate a reply from one of them
+                if (!otherMembers.isEmpty()) {
+                    com.cityscape.app.model.GroupMember replier = otherMembers.get((int) (Math.random() * otherMembers.size()));
+                    String sender = replier.userName;
+                    String senderId = replier.userId;
+
+                    String[] replies = {
+                        "Sună excelent planul ăsta! 🎯",
+                        "Eu ajung exact la fix! Ne vedem acolo.",
+                        "Super tare! Să nu uităm să facem poze! 📸",
+                        "Să ne strângem în fața intrării principale.",
+                        "Eu vin sigur! Sună extraordinar! 🌟",
+                        "De acord! Vreți să ne oprim și la o cafea înainte? ☕"
+                    };
+                    String replyText = replies[(int) (Math.random() * replies.length)];
+
+                    com.cityscape.app.model.GroupMessage replyMsg = new com.cityscape.app.model.GroupMessage(group.id, "simulated_" + senderId + "_" + System.currentTimeMillis(), sender, replyText);
+                    db.groupMessageDao().insert(replyMsg);
+                    chatMessages.add(replyMsg);
+                    chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+                    rvChat.scrollToPosition(chatMessages.size() - 1);
+
+                    com.cityscape.app.util.BadgeManager.addExperience(requireContext(), currentUserId, 15);
+                }
+            }, 1500);
+        });
+
+        chatDialog.show();
+    }
+
 
     private void showVotingDialog(ActivityGroup group) {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_group_voting, null);
@@ -1343,6 +1520,9 @@ public class CalendarFragment extends Fragment {
                 .setPositiveButton("Adaugă", null); // Set to null first to override listener and prevent dismissal
 
         AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
         dialog.show();
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
@@ -1496,6 +1676,9 @@ public class CalendarFragment extends Fragment {
                 .setPositiveButton("Salvează", null)
                 .setNegativeButton("Anulează", null)
                 .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
         dialog.show();
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {

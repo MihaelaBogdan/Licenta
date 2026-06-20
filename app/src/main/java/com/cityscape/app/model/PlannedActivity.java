@@ -31,6 +31,15 @@ public class PlannedActivity {
     public double budget;
     public String currency;
 
+    @SerializedName("priority")
+    public String priority;
+
+    @SerializedName("transit_mode")
+    public String transitMode;
+
+    @SerializedName("end_time")
+    public String endTime;
+
     public PlannedActivity() {
         this.id = java.util.UUID.randomUUID().toString();
     }

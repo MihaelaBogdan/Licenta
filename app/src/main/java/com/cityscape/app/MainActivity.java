@@ -17,7 +17,7 @@ public class MainActivity extends BaseActivity {
 
         com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(this);
         com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null && (currentUser.interests == null || currentUser.interests.isEmpty())) {
+        if (currentUser != null && (currentUser.interests == null || currentUser.interests.isEmpty()) && !sessionManager.isInterestsCompleted()) {
             startActivity(new android.content.Intent(this, InterestsActivity.class));
             finish();
             return;

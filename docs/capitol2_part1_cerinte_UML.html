@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>C2 - Cerinte & Use Cases - CityScape</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; max-width: 1100px; margin: auto; padding: 30px; background: #f9f9f9; color: #222; }
+  h1 { color: #1a237e; border-bottom: 3px solid #1a237e; padding-bottom: 8px; }
+  h2 { color: #283593; margin-top: 40px; }
+  h3 { color: #3949ab; }
+  .diagram-box { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 20px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .text-box { background: #fff; border-left: 4px solid #3949ab; padding: 16px 20px; margin: 16px 0; border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a237e; color: white; padding: 10px; text-align: left; }
+  td { padding: 9px; border: 1px solid #ccc; }
+  tr:nth-child(even) { background: #f0f4ff; }
+  .mermaid { overflow-x: auto; }
+  @media print { body { max-width: 100%; } }
+</style>
+</head>
+<body>
+
+<h1>C2. Analiza și proiectarea sistemului informatic CityScape</h1>
+
+<!-- ===== SECTIUNEA 1 ===== -->
+<h2>1. Specificarea cerințelor funcționale și nefuncționale</h2>
+
+<h3>1.1 Cerințe Funcționale</h3>
+<div class="text-box">
+<p>Cerințele funcționale definesc în mod exhaustiv ansamblul de comportamente, operații și servicii pe care sistemul informatic <em>CityScape</em> le pune la dispoziția utilizatorilor. Acestea sunt structurate pe module principale de business:</p>
+
+<p><strong>Modul de Autentificare și Gestiune a Identității:</strong> Sistemul permite crearea de conturi securizate pe baza adresei de e-mail și a unei parole criptate. Este asigurat suportul pentru autentificarea prin Google Sign-In (OAuth 2.0), gestionată nativ prin Supabase Auth. La prima autentificare, utilizatorul este redirecționat către un flux de configurare a profilului (interese, avatar). Sesiunile sunt persistate prin token-uri JWT, iar sistemul suportă deconectarea și ștergerea contului.</p>
+
+<p><strong>Modul de Explorare Urbană Asistată de AI:</strong> Utilizatorul poate solicita recomandări de locații bazate pe poziția sa geografică curentă, obținută prin GPS. Sistemul interoghează Google Places API pentru a returna locații relevante (restaurante, muzee, parcuri, evenimente). Rezultatele sunt însoțite de rezumate generate de Gemini AI și scoruri de relevanță calculate pe baza preferințelor utilizatorului și a istoricului de vizite.</p>
+
+<p><strong>Modul Chatbot – Crystal Ball:</strong> Un asistent virtual inteligent, denumit <em>Crystal Ball</em>, răspunde în timp real la întrebările utilizatorilor despre locații, restaurante și evenimente, utilizând o arhitectură RAG (Retrieval-Augmented Generation). Chatbot-ul combină un model DistilBERT antrenat local cu răspunsuri augmentate din baza de cunoștințe și API-uri externe. Utilizatorul poate solicita recomandări, detalii despre un loc sau itinerare complete.</p>
+
+<p><strong>Modul Calendar și Planificare:</strong> Utilizatorul poate adăuga activități planificate pentru o dată și oră specifică, asociate unui loc din sistem. Sistemul afișează un calendar lunar interactiv, marcând zilele cu activități programate. Activitățile pot fi marcate ca finalizate, iar la finalizare se acordă puncte XP. Utilizatorul poate adăuga note personale și un buget estimat pentru fiecare activitate.</p>
+
+<p><strong>Modul Social – Grupuri și Invitații:</strong> Utilizatorul poate crea un grup de activitate cu un cod unic de 6 caractere, pe care îl poate distribui altor utilizatori. Membrii unui grup pot vota locația preferată pentru o activitate comună, pot partaja disponibilitatea prin un sistem de scheduling colectiv și pot primi/trimite invitații. Sistemul determină automat intervalul de timp comun disponibil pentru toți membrii grupului.</p>
+
+<p><strong>Modul Feed Social:</strong> Utilizatorii pot publica postări despre locurile vizitate, însoțite de fotografii, rating personal și o legendă descriptivă. Postările sunt vizibile în feed-ul comun, iar alți utilizatori pot aplica like-uri și comentarii. Feed-ul este ordonat cronologic și suportă filtrare după locație sau categorie.</p>
+
+<p><strong>Modul Gamificare:</strong> Sistemul acordă puncte de experiență (XP) pentru fiecare activitate finalizată, vizită nouă înregistrată sau postare publicată. La atingerea unui prag de XP, utilizatorul avansează de nivel. Badge-urile (insigne) sunt acordate automat la îndeplinirea unor condiții specifice (ex: prima vizită, 10 locuri vizitate, primele 5 postări). Un clasament public (Leaderboard) afișează utilizatorii cu cel mai mare XP total.</p>
+
+<p><strong>Modul Hartă Interactivă:</strong> O hartă Google Maps integrată afișează locațiile recomandate ca markere personalizate. Utilizatorul poate filtra locațiile după categorie, rating sau distanță. Selectarea unui marker afișează un card sumar cu opțiunile de navigare, adăugare la favorite sau planificare.</p>
+
+<p><strong>Modul Itinerar AI:</strong> Sistemul poate genera automat un itinerar zilnic optimizat, bazat pe locațiile favorite ale utilizatorului, disponibilitatea sa și distanța geografică dintre obiective. Itinerarul include estimări de timp și buget. Utilizatorul poate salva, edita și exporta itinerarul.</p>
+
+
+</div>
+
+<h3>1.2 Cerințe Nefuncționale</h3>
+<div class="text-box">
+<p><strong>Performanță:</strong> Sistemul trebuie să returneze rezultatele căutărilor de locații în cel mult 3 secunde în condiții normale de rețea. Interfața mobilă trebuie să mențină o rată de randare de minimum 60 cadre/secundă. Backend-ul Flask trebuie să suporte cel puțin 100 de cereri concurente fără degradarea semnificativă a timpului de răspuns.</p>
+
+<p><strong>Securitate:</strong> Toate comunicațiile dintre aplicația mobilă și backend sunt realizate prin HTTPS/TLS. Datele de identificare și sesiunile sunt gestionate securizat de Supabase Auth, parolele fiind criptate prin algoritmi de hashing de nivel industrial. Accesul la datele personale este controlat prin politici Row Level Security (RLS) implementate direct la nivelul tabelelor din baza de date. Token-urile de autentificare au o durată de viață limitată și sunt reîmprospătate automat.</p>
+
+<p><strong>Disponibilitate și Scalabilitate:</strong> Serviciul backend trebuie să asigure o disponibilitate de minimum 99% (SLA). Arhitectura containerizată (Docker) permite scalarea orizontală a serviciilor. Baza de date Supabase (PostgreSQL) asigură redundanță și backup automat.</p>
+
+<p><strong>Portabilitate:</strong> Aplicația mobilă este compatibilă cu dispozitive Android începând cu versiunea API 26 (Android 8.0 Oreo) sau mai nouă. Interfața se adaptează la ecrane cu rezoluții diferite prin utilizarea layout-urilor responsive și a unităților dp/sp.</p>
+
+<p><strong>Mentenabilitate:</strong> Codul sursă respectă principiile arhitecturale MVVM (Model-View-ViewModel), cu separare clară între straturi. Backend-ul este structurat modular (rutare, logică de business, acces la date). Existența unui fișier <code>requirements.txt</code> și a unui <code>Dockerfile</code> asigură reproductibilitatea mediului de execuție.</p>
+
+<p><strong>Uzabilitate:</strong> Aplicația implementează principiile Material Design 3, asigurând o experiență vizuală familiară utilizatorilor Android. Timpul de onboarding (înregistrare + configurare profil) nu depășește 3 minute. Fluxurile principale (căutare locații, planificare activitate) sunt accesibile în cel mult 2 tap-uri de la ecranul principal.</p>
+</div>
+
+<!-- ===== DIAGRAMA GENERALA USE CASE ===== -->
+<h2>1.3 Diagrama Generală a Cazurilor de Utilizare</h2>
+<div class="diagram-box">
+<div class="mermaid">
+graph TB
+    subgraph Actori
+        U((Utilizator\nînregistrat))
+        G((Google\nSign-In))
+        AI((Gemini AI\n/ RAG))
+        Maps((Google\nMaps API))
+    end
+
+    subgraph CityScape_System["Sistemul CityScape"]
+        UC1[Autentificare & Înregistrare]
+        UC2[Explorare locații pe hartă]
+        UC3[Interacțiune cu Chatbot Crystal Ball]
+        UC4[Planificare activitate în Calendar]
+        UC5[Creare / Gestionare grup de activitate]
+        UC6[Publicare postare în Feed social]
+        UC7[Vizualizare profil și progres XP]
+        UC8[Generare Itinerar AI]
+        UC9[Clasament utilizatori]
+    end
+
+    U --> UC1
+    U --> UC2
+    U --> UC3
+    U --> UC4
+    U --> UC5
+    U --> UC6
+    U --> UC7
+    U --> UC8
+    U --> UC9
+
+    G --> UC1
+    AI --> UC3
+    AI --> UC8
+    Maps --> UC2
+</div>
+</div>
+
+<!-- ===== DIAGRAME DETALIATE USE CASE ===== -->
+<h2>1.4 Diagrame Detaliate ale Cazurilor de Utilizare</h2>
+
+<h3>UC1 – Autentificare și Înregistrare</h3>
+<div class="diagram-box">
+<div class="mermaid">
+graph LR
+    U((Utilizator))
+    G((Supabase\nAuth))
+    subgraph UC1_Detail["UC1 - Autentificare"]
+        A1[Creare cont cu email/parolă]
+        A2[Autentificare cu Google OAuth]
+        A3[Configurare profil inițial]
+        A4[Resetare parolă]
+        A5[Deconectare]
+        A3 -.include.-> A1
+        A3 -.include.-> A2
+    end
+    U --> A1
+    U --> A2
+    U --> A4
+    U --> A5
+    G --> A2
+</div>
+</div>
+
+<h3>Descriere textuală UC1 – Autentificare</h3>
+<table>
+<tr><th>Câmp</th><th>Descriere</th></tr>
+<tr><td>Identificator</td><td>UC1</td></tr>
+<tr><td>Nume</td><td>Autentificare și Înregistrare</td></tr>
+<tr><td>Actor principal</td><td>Utilizator neautentificat</td></tr>
+<tr><td>Precondiție</td><td>Aplicația este instalată și pornită; dispozitivul are conexiune la internet</td></tr>
+<tr><td>Flux principal</td><td>1. Utilizatorul accesează ecranul Welcome. 2. Alege „Creare cont" sau „Google Sign-In". 3. Completează datele (email, parolă) sau selectează contul Google. 4. Supabase Auth validează credențialele. 5. Se creează profilul în Supabase. 6. Utilizatorul este redirecționat la selectarea intereselor. 7. Aplicația navighează la ecranul principal (Home).</td></tr>
+<tr><td>Flux alternativ</td><td>A1: Credențiale incorecte → mesaj de eroare, reîncercare. A2: Cont existent → autentificare directă.</td></tr>
+<tr><td>Postcondiție</td><td>Utilizatorul este autentificat; profilul există în baza de date Supabase.</td></tr>
+</table>
+
+<h3>UC3 – Interacțiunea cu Chatbot-ul Crystal Ball</h3>
+<div class="diagram-box">
+<div class="mermaid">
+sequenceDiagram
+    actor U as Utilizator
+    participant App as Android App
+    participant Back as Backend Flask
+    participant RAG as RAG + DistilBERT
+    participant Gemini as Gemini AI
+
+    U->>App: Deschide chatbot
+    U->>App: Scrie întrebare
+    App->>Back: POST /api/chat {message, location}
+    Back->>RAG: classify_intent(message)
+    RAG-->>Back: intent + context
+    Back->>Gemini: generate_response(intent, context)
+    Gemini-->>Back: răspuns augmentat + locații
+    Back-->>App: JSON {reply, places[]}
+    App-->>U: Afișează răspuns + carduri locații
+</div>
+</div>
+
+<h3>UC4 – Planificare Activitate în Calendar</h3>
+<div class="diagram-box">
+<div class="mermaid">
+sequenceDiagram
+    actor U as Utilizator
+    participant Cal as CalendarFragment
+    participant DB as Supabase DB
+    participant XP as XP Engine
+
+    U->>Cal: Selectează o zi din calendar
+    Cal-->>U: Afișează activitățile zilei
+    U->>Cal: Apasă „Adaugă activitate"
+    Cal-->>U: Dialog cu formular (loc, oră, note, buget)
+    U->>Cal: Completează și confirmă
+    Cal->>DB: INSERT planned_activities
+    DB-->>Cal: success
+    Cal-->>U: Activitate apare în calendar
+
+    U->>Cal: Marchează activitate ca finalizată
+    Cal->>DB: UPDATE is_completed = true
+    Cal->>XP: addXp(user_id, 50)
+    XP->>DB: UPDATE user_profiles SET current_xp, level
+    DB-->>Cal: success
+    Cal-->>U: Badge / Level-up notification
+</div>
+</div>
+
+<h3>UC5 – Gestionare Grup de Activitate</h3>
+<div class="diagram-box">
+<div class="mermaid">
+sequenceDiagram
+    actor Creator as Creator grup
+    actor Membru as Membru invitat
+    participant App as App
+    participant Back as Backend
+    participant DB as Supabase
+
+    Creator->>App: Crează grup (nume, activitate)
+    App->>Back: POST /api/groups
+    Back->>DB: INSERT activity_groups (cod unic)
+    DB-->>Back: group_code
+    Back-->>App: group_code
+    App-->>Creator: Afișează codul de invitație
+
+    Membru->>App: Introduce group_code
+    App->>Back: POST /api/groups/join
+    Back->>DB: INSERT group_members
+    DB-->>Back: success
+    App-->>Membru: Acces la grupul de activitate
+
+    Creator->>App: Inițiază voting
+    App->>Back: POST /api/groups/{id}/vote
+    Back->>DB: INSERT group_votes
+    DB-->>Back: rezultate voturi
+    App-->>Creator: Locația câștigătoare afișată
+</div>
+</div>
+
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>

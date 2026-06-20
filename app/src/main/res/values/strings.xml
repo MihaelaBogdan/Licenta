@@ -211,4 +211,9 @@
     <string name="login_to_see_profile">Sign in to see your profile</string>
     <string name="login_prompt">Sign In</string>
     <string name="register_prompt">Create Account</string>
+
+    <!-- Live Battle (Bilingv) -->
+    <string name="live_battle_title">⚔️ Live Battle</string>
+    <string name="live_battle_desc">City landmarks face off! Vote for your favorite today for +50 XP. The winner\'s supporters will share the grand prize of 300 XP! 🚀</string>
+    <string name="live_battle_btn">⚔️ Live Battle</string>
 </resources>

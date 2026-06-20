@@ -41,5 +41,8 @@ public class FeedPost {
     @SerializedName("is_liked")
     public boolean isLiked;
     
+    @SerializedName("is_bookmarked")
+    public boolean isBookmarked;
+    
     public List<FeedComment> comments;
 }

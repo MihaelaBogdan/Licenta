@@ -63,11 +63,13 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
     class PlaceViewHolder extends RecyclerView.ViewHolder {
         ImageView placeImage, btnFavorite;
         TextView placeName, placeType, placeRating, placeAddress, aiSuggestion;
+        TextView confidenceScore, interestMatchScore;
+        android.view.View recommendationInfo, interestMatchLayout;
 
         PlaceViewHolder(@NonNull View itemView) {
             super(itemView);
             placeImage = itemView.findViewById(isHorizontal ? R.id.place_image : R.id.placeImage);
-            btnFavorite = itemView.findViewById(isHorizontal ? R.id.btn_favorite : R.id.btn_favorite); 
+            btnFavorite = itemView.findViewById(isHorizontal ? R.id.btn_favorite : R.id.btn_favorite);
             if (btnFavorite == null)
                 btnFavorite = itemView.findViewById(R.id.btn_favorite);
 
@@ -76,6 +78,12 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             placeRating = itemView.findViewById(isHorizontal ? R.id.place_rating : R.id.placeRating);
             placeAddress = itemView.findViewById(isHorizontal ? R.id.place_address : R.id.placeAddress);
             aiSuggestion = itemView.findViewById(R.id.ai_suggestion);
+
+            // Recommendation scores
+            recommendationInfo = itemView.findViewById(R.id.recommendation_info);
+            confidenceScore = itemView.findViewById(R.id.confidence_score);
+            interestMatchLayout = itemView.findViewById(R.id.interest_match_layout);
+            interestMatchScore = itemView.findViewById(R.id.interest_match_score);
 
             View btnVisited = itemView.findViewById(isHorizontal ? R.id.btn_visited : R.id.btnVisited);
             if (btnVisited != null) {
@@ -134,6 +142,37 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                 placeRating.setText(String.format("%.1f", place.rating));
             if (placeAddress != null) {
                 placeAddress.setText(place.address != null ? place.address : "");
+            }
+
+            // Display recommendation scores if available
+            if (recommendationInfo != null) {
+                if (place.matchHistoryPct > 0) {
+                    recommendationInfo.setVisibility(View.VISIBLE);
+
+                    // Show overall confidence
+                    if (confidenceScore != null) {
+                        confidenceScore.setText(place.matchHistoryPct + "%");
+                        // Color code: green if >= 80, yellow if >= 60, red otherwise
+                        int color = place.matchHistoryPct >= 80 ?
+                            context.getColor(android.R.color.holo_green_dark) :
+                            place.matchHistoryPct >= 60 ?
+                            context.getColor(android.R.color.holo_orange_light) :
+                            context.getColor(android.R.color.holo_red_light);
+                        confidenceScore.setTextColor(color);
+                    }
+
+                    // Show interest match if available
+                    if (interestMatchLayout != null && place.matchPrefsPct > 0) {
+                        interestMatchLayout.setVisibility(View.VISIBLE);
+                        if (interestMatchScore != null) {
+                            interestMatchScore.setText(place.matchPrefsPct + "%");
+                        }
+                    } else if (interestMatchLayout != null) {
+                        interestMatchLayout.setVisibility(View.GONE);
+                    }
+                } else {
+                    recommendationInfo.setVisibility(View.GONE);
+                }
             }
 
             if (aiSuggestion != null) {

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="500dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_premium_dialog_light"
+    android:padding="16dp">
+
+    <!-- Header Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:background="@color/app_divider" />
+
+    <!-- Chat Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:id="@+id/txt_chat_group_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="💬 Chat Room"
+            android:textColor="@color/app_text_primary"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-black" />
+
+        <ImageView
+            android:id="@+id/btn_close_chat"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="@color/app_text_secondary"
+            android:contentDescription="Close Chat" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/app_divider"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Chat Messages List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_chat_messages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingVertical="4dp"
+        android:layout_marginBottom="8dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <!-- Message Composer -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_glass_card"
+        android:padding="6dp">
+
+        <EditText
+            android:id="@+id/input_chat_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Scrie un mesaj..."
+            android:textColorHint="@color/app_text_hint"
+            android:textColor="@color/app_text_primary"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:maxLines="4"
+            android:inputType="textShortMessage|textAutoCorrect|textCapSentences" />
+
+        <ImageView
+            android:id="@+id/btn_send_chat"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="@drawable/circle_primary"
+            android:padding="8dp"
+            android:tint="@android:color/white"
+            android:contentDescription="Trimite"
+            android:layout_marginStart="4dp" />
+    </LinearLayout>
+
+</LinearLayout>

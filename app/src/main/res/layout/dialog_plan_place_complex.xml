@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_premium_dialog_light"
+    android:padding="24dp">
+
+    <!-- Header bar (Handle) -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@color/app_divider" />
+
+    <!-- Dialog Title -->
+    <TextView
+        android:id="@+id/txt_plan_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Planifică aventura"
+        android:textColor="@color/app_text_primary"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginBottom="18dp" />
+
+    <!-- Step 1: Select Date -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📅 Alege data:"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_select_date"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Selectează Data"
+        android:textColor="@color/primary"
+        app:strokeColor="@color/primary"
+        app:cornerRadius="12dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Step 2: Time Range Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🕒 Interval orar:"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_time"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="De la: 10:00"
+            android:textColor="@color/app_text_primary"
+            app:strokeColor="@color/app_divider"
+            app:cornerRadius="12dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:layout_marginEnd="6dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_end_time"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Până la: 12:00"
+            android:textColor="@color/app_text_primary"
+            app:strokeColor="@color/app_divider"
+            app:cornerRadius="12dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <!-- Step 3: Priority Selector -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔥 Nivel de Prioritate:"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/cg_priority"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:checkedChip="@+id/chip_priority_high"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_priority_high"
+            style="@style/Widget.CityScape.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔥 Must See" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_priority_med"
+            style="@style/Widget.CityScape.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🍃 Flexible" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_priority_low"
+            style="@style/Widget.CityScape.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💤 Optional" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Step 4: Budget Allocation -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="💰 Buget estimat (RON):"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/input_budget"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_input_field"
+        android:inputType="number"
+        android:hint="Ex: 100 RON"
+        android:textColorHint="@color/app_text_hint"
+        android:textColor="@color/app_text_primary"
+        android:paddingHorizontal="16dp"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Step 5: Transit Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🚶 Mijloc de transport preferat:"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/cg_transit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:checkedChip="@+id/chip_transit_walk"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_transit_walk"
+            style="@style/Widget.CityScape.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🚶 Pe jos" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_transit_bus"
+            style="@style/Widget.CityScape.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🚌 Transport în comun" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_transit_car"
+            style="@style/Widget.CityScape.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🚗 Auto/Uber" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Step 6: Custom Notes -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📝 Notițe &amp; Amintiri:"
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/input_notes"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/bg_input_field"
+        android:inputType="textMultiLine"
+        android:hint="Ex: Cumpără bilet din timp, fă poze la apus..."
+        android:textColorHint="@color/app_text_hint"
+        android:textColor="@color/app_text_primary"
+        android:padding="12dp"
+        android:gravity="top|start"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel_plan"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="Renunță"
+            android:textColor="@color/app_text_secondary"
+            app:strokeColor="@color/app_divider"
+            app:cornerRadius="14dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:layout_marginEnd="6dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save_plan"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1.5"
+            android:text="Salvează Planul 🎒"
+            android:textColor="@android:color/white"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="14dp"
+            android:fontFamily="sans-serif-medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+</LinearLayout>

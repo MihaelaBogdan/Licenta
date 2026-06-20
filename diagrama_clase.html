@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Diagrama de Clase - CityScape (PSI Seminar 4)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad:true,
+            theme: 'default',
+            class: {
+                hideEmptyMembersBox: true
+            }
+        });
+    </script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: #f4f4f9; 
+            margin: 0;
+        }
+        .container {
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h2 { color: #333; margin-bottom: 20px; }
+        .instruction { color: #666; margin-bottom: 30px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Diagrama de Clase (Forma de Analiză - PSI Seminar 4)</h2>
+        <p class="instruction">Pentru a pune poza în lucrarea de licență: dă click dreapta pe diagramă și alege <b>"Copy Image"</b> sau utilizează un instrument de decupare (Screenshot).</p>
+        
+        <div class="mermaid">
+        classDiagram
+            class User {
+                <<entity>>
+                - id: UUID
+                - nume: String
+                - email: String
+                - locatieCurenta: Coordinates
+                + creeazaActivitate(in titlu: String, in dataStart: DateTime) Activity
+                + adaugaPrieten(in prietenId: UUID) void
+                + getDetaliiProfil() String
+            }
+            class Activity {
+                <<entity>>
+                - id: UUID
+                - titlu: String
+                - dataStart: DateTime
+                - stare: String
+                + editeaza(inout detalii: String) void
+                + anuleaza() void
+            }
+            class Location {
+                <<entity>>
+                - id: UUID
+                - denumire: String
+                - categorie: String
+                - coordonate: Coordinates
+                + getDetalii() String
+            }
+            class Message {
+                <<entity>>
+                - id: UUID
+                - continut: String
+                - timestamp: DateTime
+                - isAI: Boolean
+                + trimite() void
+            }
+
+            ' Relații simple (asocieri simple bidirecționale, reprezentate fără săgeți)
+            User "1" -- "0..*" Activity : planifica
+            User "1" -- "0..*" Message : trimite
+            Activity "0..*" o-- "1" Location : are loc la
+            User "0..*" -- "0..*" User : urmareste
+        </div>
+    </div>
+</body>
+</html>

@@ -42,11 +42,32 @@ public class InterestsActivity extends BaseActivity {
             Chip chip = new Chip(this);
             chip.setText(category);
             chip.setCheckable(true);
-            chip.setChecked(activeInterests.contains(category));
-            chip.setTextColor(getResources().getColor(R.color.app_text_primary));
-            chip.setChipBackgroundColorResource(R.color.app_card);
+            boolean isChecked = activeInterests.contains(category);
+            chip.setChecked(isChecked);
+            
+            // Culoare inițială
+            if (isChecked) {
+                chip.setChipBackgroundColorResource(R.color.primary);
+                chip.setTextColor(getResources().getColor(R.color.app_background));
+            } else {
+                chip.setChipBackgroundColorResource(R.color.app_card);
+                chip.setTextColor(getResources().getColor(R.color.app_text_primary));
+            }
+            
             chip.setChipStrokeColorResource(R.color.primary);
             chip.setChipStrokeWidth(2.0f);
+            
+            // Colorare la click
+            chip.setOnCheckedChangeListener((buttonView, isCheckedNow) -> {
+                if (isCheckedNow) {
+                    chip.setChipBackgroundColorResource(R.color.primary);
+                    chip.setTextColor(getResources().getColor(R.color.app_background));
+                } else {
+                    chip.setChipBackgroundColorResource(R.color.app_card);
+                    chip.setTextColor(getResources().getColor(R.color.app_text_primary));
+                }
+            });
+            
             chipGroup.addView(chip);
         }
         
@@ -59,7 +80,6 @@ public class InterestsActivity extends BaseActivity {
 
         btnContinue.setOnClickListener(v -> {
             List<String> selectedInterests = new ArrayList<>();
-            // Căutăm printre toate variantele care au fost bifate
             for (int i = 0; i < chipGroup.getChildCount(); i++) {
                 Chip chip = (Chip) chipGroup.getChildAt(i);
                 if (chip.isChecked()) {
@@ -72,31 +92,28 @@ public class InterestsActivity extends BaseActivity {
                 return;
             }
 
-            // Actualizăm utilizatorul curent din baza de date internă Room
             User currentUser = sessionManager.getCurrentUser();
             if (currentUser != null) {
-                // Generam String despărțit prin virgulă "Muzee,Parcuri și natură,Artă și design"
                 currentUser.interests = android.text.TextUtils.join(",", selectedInterests);
                 db.userDao().update(currentUser);
-                sessionManager.createSession(currentUser); // re-salvăm sesiunea cu interesele noi
+                sessionManager.createSession(currentUser);
             }
+            sessionManager.setInterestsCompleted(true); // Flag salvat!
 
-            // Apoi, continuăm spre ecranul principal (MainActivity)
             Intent intent = new Intent(InterestsActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
         });
 
-        // Configuram butonul Skip (Sari Peste). Astfel utilizatorul nu va mai fi forțat să aleagă.
         android.widget.TextView btnSkip = findViewById(R.id.btn_skip);
         btnSkip.setOnClickListener(v -> {
             User currentUser = sessionManager.getCurrentUser();
             if (currentUser != null) {
-                // Dacă nu a ales nimic, îi punem "TRENDING" ca să știe aplicația că nu are interese și vrea doar recomandările globale
                 currentUser.interests = "TRENDING";
                 db.userDao().update(currentUser);
                 sessionManager.createSession(currentUser);
             }
+            sessionManager.setInterestsCompleted(true); // Flag salvat!
             startActivity(new Intent(InterestsActivity.this, MainActivity.class));
             finish();
         });

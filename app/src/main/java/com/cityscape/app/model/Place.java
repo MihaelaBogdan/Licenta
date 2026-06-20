@@ -3,6 +3,7 @@ package com.cityscape.app.model;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.annotation.NonNull;
+import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 @Entity(tableName = "places")
@@ -24,7 +25,25 @@ public class Place implements Serializable {
     public int priceLevel; // 1 to 4
     public int reviewCount; // user_ratings_total from Google
     public String aiSuggestion; // Reason from Gemini
+    
+    @SerializedName("match_history_pct")
+    public int matchHistoryPct;
+
+    @SerializedName("match_prefs_pct")
+    public int matchPrefsPct;
+
+    public int confidence; // Overall recommendation confidence (0-100)
     public String ai_summary; // TL;DR from Gemini
+
+    @androidx.room.Ignore
+    public java.util.List<Review> reviews;
+
+    public static class Review implements java.io.Serializable {
+        public String author;
+        public String text;
+        public float rating;
+        public String time;
+    }
 
     public Place() {
         this.id = java.util.UUID.randomUUID().toString();

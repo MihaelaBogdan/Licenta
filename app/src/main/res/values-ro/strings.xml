@@ -202,4 +202,9 @@
     <string name="login_to_see_profile">Autentifică-te pentru a vedea profilul</string>
     <string name="login_prompt">Autentificare</string>
     <string name="register_prompt">Creează Cont</string>
+
+    <!-- Live Battle (Bilingv) -->
+    <string name="live_battle_title">⚔️ Confruntare Live</string>
+    <string name="live_battle_desc">Locațiile emblematice ale orașului se înfruntă! Votează favoritul de azi pentru +50 XP instant. La final, susținătorii liderului câștigă +300 XP! 🚀</string>
+    <string name="live_battle_btn">⚔️ Confruntare Live</string>
 </resources>

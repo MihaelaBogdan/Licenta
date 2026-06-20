@@ -497,6 +497,7 @@ public class ItineraryFragment extends Fragment {
         String currency = isEur ? "EUR" : "RON";
 
         new Thread(() -> {
+            boolean savedOfflineOnly = false;
             try {
                 for (ItineraryItem item : itineraryItems) {
                     PlannedActivity activity = new PlannedActivity(
@@ -512,12 +513,22 @@ public class ItineraryFragment extends Fragment {
                     activity.currency = currency;
 
                     db.activityDao().insert(activity);
-                    syncManager.pushActivityToCloud(activity);
+                    try {
+                        syncManager.pushActivityToCloud(activity);
+                    } catch (Exception e) {
+                        Log.e("ItineraryFragment", "Cloud sync failed, saved locally", e);
+                        savedOfflineOnly = true;
+                    }
                 }
 
                 if (getActivity() != null) {
+                    final boolean isOffline = savedOfflineOnly;
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Itinerariul a fost salvat în calendar!", Toast.LENGTH_LONG).show();
+                        if (isOffline) {
+                            Toast.makeText(getContext(), "Salvat offline cu succes! 🔌 Se va sincroniza cu serverul când revii online.", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getContext(), "Itinerariul a fost salvat în calendar!", Toast.LENGTH_LONG).show();
+                        }
                         // Navigate to calendar to see results
                         try {
                             Navigation.findNavController(getView())

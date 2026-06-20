@@ -66,6 +66,7 @@ except Exception as e:
     print("Fallback to basic response logic will be used.")
 
 bot_name = "CityScape AI"
+CHAT_HISTORIES = {}
 
 # ============================================================
 # Fallback responses (bilingual)
@@ -211,54 +212,102 @@ def _predict_intent(msg):
     return top_tag, top_probability, probs
 
 
-def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", city_name=None):
-    """
-    OPTIMIZED RAG: Reduced network calls for speed.
-    """
+def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", city_name=None, interests=None, user_xp=None, user_level=None, places_visited=None):
     if not msg or not msg.strip():
         return {"answer": _get_empty_message(language), "intent": "empty", "suggestions": _get_fallback_suggestions(language)}
 
-    # Context collection
     user_context = ""
+    if interests or user_xp or user_level or places_visited:
+        user_context = (
+            f"PROFIL UTILIZATOR (Offline/Local Cache):\n"
+            f"- Preferințe & Interese: {interests or 'Generale'}\n"
+            f"- Nivel curent: {user_level or 1}\n"
+            f"- Experiență totală (XP): {user_xp or 0} XP\n"
+            f"- Total locații vizitate: {places_visited or 0}\n\n"
+        )
     nearby_context = ""
     detected_city = city_name or "un oraș nespecificat"
-    
-    # 1. Faster Profile Fetch (only essential fields)
+
+   
     if user_id:
         try:
             from app import SUPABASE_URL, SUPABASE_KEY
             import requests
             headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
-            profile_url = f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}&select=name,interests"
+            profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
             p_res = requests.get(profile_url, headers=headers, timeout=2).json()
+            visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=5"
+            v_res = requests.get(visits_url, headers=headers, timeout=2).json()
+            
             if p_res:
                 u = p_res[0]
-                user_context = f"Utilizator: {u.get('name')}. Interese: {u.get('interests', 'generale')}."
-        except: pass
+                name = u.get("name", "Explorator CityScape")
+                final_interests = u.get("interests") or interests or "Generale (fără preferințe salvate încă)"
+                xp = u.get("total_xp") or user_xp or 0
+                lvl = u.get("level") or user_level or 1
+                badges = u.get("badges", "Nicio insignă momentan")
+                
+                user_context = (
+                    f"PROFIL UTILIZATOR:\n"
+                    f"- Nume: {name}\n"
+                    f"- Nivel curent: {lvl}\n"
+                    f"- Preferințe & Interese: {final_interests}\n"
+                    f"- Experiență (XP): {xp} XP\n"
+                    f"- Insigne deblocate: {badges}\n"
+                )
+                
+                if v_res and isinstance(v_res, list):
+                    visits_list = [f"{v.get('place_name')} ({v.get('place_type', 'Atracție')})" for v in v_res if v.get('place_name')]
+                    if visits_list:
+                        user_context += f"- Istoric vizite recente (reale): {', '.join(visits_list)}\n"
+        except Exception as e:
+            print(f"⚠️ RAG Supabase Context Fetch Error: {e}")
+            pass
 
-    # 2. Faster Place Search (Single call)
+    # 2. Place Search
     if lat and lng:
         try:
             from app import MAPS_API_KEY, google_nearby_search
-            # One single broad search instead of many
             near_results = google_nearby_search(lat, lng, "tourist_attraction", radius=10000)
             if near_results:
-                nearby_context = "Puncte de interes locale: " + ", ".join([r['name'] for r in near_results[:10]])
+                nearby_context = "Puncte de interes reale din apropiere: " + ", ".join([r['name'] for r in near_results[:10]])
         except: pass
 
     system_prompt = (
-        f"Ești 'CityScape AI'. {user_context} Locație: {detected_city}. Context: {nearby_context}. "
-        f"Limba: {'română' if language == 'ro' else 'engleză'}. "
-        "STIL: Răspunde SCURT (max 2 fraze), direct, FĂRĂ markdown. "
-        "OBLIGATORIU: [SUGGESTIONS: S1 | S2 | S3]"
+        f"Ești 'CityScape AI', un asistent urban inteligent și ghid turistic de top, dezvoltat exclusiv pentru platforma CityScape.\n\n"
+        f"CONTEXT DESPRE UTILIZATORUL CURENT:\n{user_context}\n"
+        f"LOCAȚIE & ZONĂ:\n"
+        f"- Oraș detectat: {detected_city}\n"
+        f"- Puncte de interes reale: {nearby_context}\n\n"
+        f"INSTRUCȚIUNI DE CONVERSAȚIE:\n"
+        f"1. Răspunde exclusiv în limba {'română' if language == 'ro' else 'engleză'}.\n"
+        f"2. Adresează-te utilizatorului pe nume dacă îl cunoști din contextul de mai sus. Fii prietenos, deschis, cald și folosește un ton primitor de partener de explorare.\n"
+        f"3. Cunoști tot istoricul lui (locațiile vizitate deja, interesele lui, XP-ul lui și insignele obținute). Folosește-te inteligent de aceste date pentru a-i face recomandări ultra-personalizate (de exemplu, dacă îi place arta, trimite-l la expoziții/muzee; dacă a vizitat deja un loc, recunoaște asta și felicită-l sau sugerează-i ceva similar dar nou!).\n"
+        f"4. Proune doar locații/puncte de interes REALE (dacă ai în contextul local, folosește-le cu încredere).\n"
+        f"5. Păstrează istoricul conversației (conversational memory) activ pe tot parcursul sesiunii, astfel încât utilizatorul să poată purta o discuție fluidă, continuă și naturală cu tine (de genul: 'Recomandă-mi un restaurant' urmat de 'Cât costă?' sau 'Ce pot mânca acolo?').\n"
+        f"6. STIL: Răspunsurile tale trebuie să fie concise, calde și atractive (maxim 3 fraze). Evită codul Markdown încărcat.\n"
+        f"7. GENERARE TRASEE: Dacă utilizatorul îți cere explicit un traseu, plan, itinerariu sau succesiune de locuri de vizitat (ex: 'Fă-mi un traseu de 4 ore' sau 'Planifică-mi un itinerariu de artă'), generează obligatoriu la sfârșitul răspunsului tău un bloc XML compact [ITINERARY: <JSON>] unde <JSON> este un șir valid JSON compact (fără linii noi sau backticks) reprezentând o listă de maxim 3 locații reale în formatul exact: "
+        f'[{{\"slot\": \"Activitate\", \"name\": \"Nume Loc\", \"type\": \"Atracție\", \"time\": \"09:00 - 10:30\", \"estimatedCost\": 50, \"address\": \"Adresă\", \"latitude\": 44.43, \"longitude\": 26.01, \"placeId\": \"id1\", \"travelToNext\": \"10 min mers\", \"proTip\": \"Sfat\"}}]. Folosește locurile REALE din contextul de mai sus dacă se potrivesc.\n\n'
+        f"OBLIGATORIU la sfârșitul fiecărui răspuns (sugestii rapide de răspuns logic): [SUGGESTIONS: S1 | S2 | S3]"
     )
 
     # Try Gemini, if fails, use local model
     try:
-        chat = gemini_model.start_chat()
-        full_msg = f"{system_prompt}\n\nÎntrebare utilizator: {msg}"
-        response = chat.send_message(full_msg)
+        history = CHAT_HISTORIES.get(user_id, []) if user_id else []
+        model_instance = genai.GenerativeModel(
+            model_name="gemini-flash-latest",
+            system_instruction=system_prompt
+        )
+        chat = model_instance.start_chat(history=history)
+        response = chat.send_message(msg)
         text = response.text
+        
+        # Save updated history
+        if user_id:
+            pruned_history = list(chat.history)
+            if len(pruned_history) > 12:
+                pruned_history = pruned_history[-12:]
+            CHAT_HISTORIES[user_id] = pruned_history
         
         # Parse suggestions (More robust parsing)
         suggestions = []
@@ -272,12 +321,21 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
         else:
             # Fallback suggestions if Gemini forgot the tag
             suggestions = ["📍 Ce e în apropiere?", "🍽️ Unde mănânc?", "🗺️ Planifică ziua", "✨ Recomandă ceva nou"]
+        
+        # Parse itinerary if generated dynamically
+        itinerary_json = None
+        iti_match = re.search(r"\[ITINERARY:(.*?)\]", text, re.DOTALL)
+        if iti_match:
+            itinerary_json = iti_match.group(1).strip()
+            # Clean text from the tag
+            text = re.sub(r"\[ITINERARY:.*?\]", "", text, flags=re.DOTALL).strip()
             
         return {
             "answer": text,
             "intent": "rag_gemini",
             "confidence": 1.0,
-            "suggestions": suggestions
+            "suggestions": suggestions,
+            "itinerary_json": itinerary_json
         }
     except Exception as e:
         print(f"⚠️ RAG Gemini Error: {e}. Falling back to local model.")
@@ -291,7 +349,7 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
                     response = _get_response_for_intent(intent_data, language)
                     suggestions = _get_suggestions_for_intent(intent_data, language)
                     return {
-                        "answer": response + " (Notă: Folosesc modelul de rezervă până activezi Gemini)",
+                        "answer": response,
                         "intent": top_tag,
                         "confidence": round(confidence, 4),
                         "suggestions": suggestions
@@ -323,14 +381,22 @@ def generate_personalized_itinerary(lat, lng, style, duration, points_count, con
     unique_candidates = []
     seen_ids = set()
     import random
+    import concurrent.futures
 
-    for cat in categories:
-        results = quick_search(lat, lng, cat)
-        random.shuffle(results) # Randomize before picking top candidates
-        for c in results[:8]:
-            if c['place_id'] not in seen_ids:
-                unique_candidates.append(c)
-                seen_ids.add(c['place_id'])
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(categories)) as executor:
+        future_to_cat = {executor.submit(quick_search, lat, lng, cat): cat for cat in categories}
+        for future in concurrent.futures.as_completed(future_to_cat):
+            cat = future_to_cat[future]
+            try:
+                results = future.result()
+                if results:
+                    random.shuffle(results) # Randomize before picking top candidates
+                    for c in results[:8]:
+                        if c.get('place_id') and c['place_id'] not in seen_ids:
+                            unique_candidates.append(c)
+                            seen_ids.add(c['place_id'])
+            except Exception as e:
+                print(f"Error quick_searching cat {cat}: {e}")
     
     # Shuffle the final pool so Gemini doesn't always see the same order
     random.shuffle(unique_candidates)

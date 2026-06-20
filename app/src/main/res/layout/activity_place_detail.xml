@@ -238,6 +238,320 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- Explainable Recommendation Analysis -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/aiAnalysisSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Title -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🎯 De ce ți-am recomandat asta?"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/confidenceScoreBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="87%"
+                            android:textColor="@color/gold_accent"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:background="@drawable/bg_glass_card"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp" />
+                    </LinearLayout>
+
+                    <!-- Reasoning summary -->
+                    <TextView
+                        android:id="@+id/aiReasonText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Corespunde intereselor tale • Nu ai vizitat încă"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="12sp"
+                        android:lineSpacingMultiplier="1.3" />
+
+                    <!-- Factors Breakdown -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="14dp">
+
+                        <!-- Factor 1: Interest Match -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Potrivire Interese"
+                                    android:textColor="@color/app_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/factor_interest"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="30%"
+                                    android:textColor="@color/accent_green"
+                                    android:textSize="11sp"
+                                    android:fontFamily="sans-serif-medium" />
+                            </LinearLayout>
+
+                            <ProgressBar
+                                android:id="@+id/factor_interest_progress"
+                                style="@android:style/Widget.Material.ProgressBar.Horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="4dp"
+                                android:layout_marginTop="4dp"
+                                android:max="100"
+                                android:progress="30"
+                                android:progressDrawable="@android:drawable/progress_horizontal"
+                                android:indeterminate="false" />
+                        </LinearLayout>
+
+                        <!-- Factor 2: Freshness -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Noutate (Nu ai vizitat)"
+                                    android:textColor="@color/app_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/factor_freshness"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="25%"
+                                    android:textColor="@color/accent_green"
+                                    android:textSize="11sp"
+                                    android:fontFamily="sans-serif-medium" />
+                            </LinearLayout>
+
+                            <ProgressBar
+                                android:id="@+id/factor_freshness_progress"
+                                style="@android:style/Widget.Material.ProgressBar.Horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="4dp"
+                                android:layout_marginTop="4dp"
+                                android:max="100"
+                                android:progress="25"
+                                android:progressDrawable="@android:drawable/progress_horizontal"
+                                android:indeterminate="false" />
+                        </LinearLayout>
+
+                        <!-- Factor 3: Popularity -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Popularitate"
+                                    android:textColor="@color/app_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/factor_popularity"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="20%"
+                                    android:textColor="@color/accent_green"
+                                    android:textSize="11sp"
+                                    android:fontFamily="sans-serif-medium" />
+                            </LinearLayout>
+
+                            <ProgressBar
+                                android:id="@+id/factor_popularity_progress"
+                                style="@android:style/Widget.Material.ProgressBar.Horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="4dp"
+                                android:layout_marginTop="4dp"
+                                android:max="100"
+                                android:progress="20"
+                                android:progressDrawable="@android:drawable/progress_horizontal"
+                                android:indeterminate="false" />
+                        </LinearLayout>
+
+                        <!-- Factor 4: User Level -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Nivel Potrivit"
+                                    android:textColor="@color/app_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/factor_level"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="12%"
+                                    android:textColor="@color/accent_green"
+                                    android:textSize="11sp"
+                                    android:fontFamily="sans-serif-medium" />
+                            </LinearLayout>
+
+                            <ProgressBar
+                                android:id="@+id/factor_level_progress"
+                                style="@android:style/Widget.Material.ProgressBar.Horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="4dp"
+                                android:layout_marginTop="4dp"
+                                android:max="100"
+                                android:progress="12"
+                                android:progressDrawable="@android:drawable/progress_horizontal"
+                                android:indeterminate="false" />
+                        </LinearLayout>
+
+                        <!-- Factor 5: Diversity -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Diversitate"
+                                    android:textColor="@color/app_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/factor_diversity"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="10%"
+                                    android:textColor="@color/accent_green"
+                                    android:textSize="11sp"
+                                    android:fontFamily="sans-serif-medium" />
+                            </LinearLayout>
+
+                            <ProgressBar
+                                android:id="@+id/factor_diversity_progress"
+                                style="@android:style/Widget.Material.ProgressBar.Horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="4dp"
+                                android:layout_marginTop="4dp"
+                                android:max="100"
+                                android:progress="10"
+                                android:progressDrawable="@android:drawable/progress_horizontal"
+                                android:indeterminate="false" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Total Confidence -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="0dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:background="@android:color/darker_gray"
+                        android:alpha="0.1">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Total Încredere"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/totalConfidence"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="97%"
+                            android:textColor="@color/accent_green"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- Address -->
             <LinearLayout
                 android:layout_width="match_parent"

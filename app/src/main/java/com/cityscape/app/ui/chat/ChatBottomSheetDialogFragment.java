@@ -144,7 +144,21 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
             double lng = sessionManager.getLastLng();
             String cityName = sessionManager.getPreferredCity();
             
-            ChatRequest request = new ChatRequest(text, userId, lat, lng, cityName);
+            // Get local profile data
+            String interests = "";
+            int userXp = 0;
+            int userLevel = 1;
+            int placesVisited = 0;
+            
+            com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+            if (currentUser != null) {
+                interests = currentUser.interests != null ? currentUser.interests : "";
+                userXp = currentUser.totalXp;
+                userLevel = currentUser.level;
+                placesVisited = currentUser.placesVisited;
+            }
+            
+            ChatRequest request = new ChatRequest(text, userId, lat, lng, cityName, interests, userXp, userLevel, placesVisited);
             com.cityscape.app.util.BadgeManager.addExperience(requireContext(), userId, 10);
             Call<ChatResponse> call = apiService.chat(request);
 
@@ -155,7 +169,8 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                         return; // Fragment detached
                     if (response.isSuccessful() && response.body() != null) {
                         String reply = response.body().answer;
-                        messages.add(new ChatMessage(reply, false));
+                        String itineraryJson = response.body().itineraryJson;
+                        messages.add(new ChatMessage(reply, false, itineraryJson));
                         adapter.notifyItemInserted(messages.size() - 1);
                         recyclerView.scrollToPosition(messages.size() - 1);
                         

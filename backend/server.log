@@ -17,153 +17,402 @@ https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/READM
   import google.generativeai as genai
 ✅ Chatbot model loaded successfully!
  * Serving Flask app 'app'
- * Debug mode: on
+ * Debug mode: off
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
- * Running on http://172.20.10.9:5001
+ * Running on http://10.33.63.84:5001
 [33mPress CTRL+C to quit[0m
- * Restarting with stat
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
-  warnings.warn(
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
-  warnings.warn(message, FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
-  warnings.warn(eol_message.format("3.9"), FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
-  warnings.warn(eol_message.format("3.9"), FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
-
-All support for the `google.generativeai` package has ended. It will no longer be receiving 
-updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
-See README for more details:
-
-https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
-
-  import google.generativeai as genai
- * Debugger is active!
- * Debugger PIN: 107-020-653
-127.0.0.1 - - [05/May/2026 11:32:58] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.43811798095703&lng=25.993104934692383 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:01] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:07] "GET /map/hype?lat=44.450314&lng=26.0832815 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:10] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450314&lng=26.0832815&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:15] "GET /weather?lat=44.450314&lng=26.0832815 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:17] "GET /nearby?lat=44.450314&lng=26.0832815&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:17] "GET /nearby?lat=44.450314&lng=26.0832815&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:19] "GET /events?lat=44.450314&lng=26.0832815&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:23] "GET /places/search?lat=44.450314&lng=26.0832815&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:25] "GET /recommendations/personalized?lat=44.450314&lng=26.0832815&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:33:25] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:38] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:39] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:40] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.450313568115234&lng=26.083280563354492 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:51] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:53] "GET /map/hype?lat=44.4503093&lng=26.0832938 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:57] "GET /nearby?lat=44.4503093&lng=26.0832938&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:57] "GET /nearby?lat=44.4503093&lng=26.0832938&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:58] "GET /weather?lat=44.4503093&lng=26.0832938 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:35:58] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4503093&lng=26.0832938&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:00] "GET /places/search?lat=44.4503093&lng=26.0832938&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:01] "GET /events?lat=44.4503093&lng=26.0832938&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:02] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.45030975341797&lng=26.083293914794922 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:05] "GET /recommendations/personalized?lat=44.4503093&lng=26.0832938&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:21] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:23] "GET /map/hype?lat=44.4503092&lng=26.0832733 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:26] "GET /nearby?lat=44.4503092&lng=26.0832733&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:26] "GET /nearby?lat=44.4503092&lng=26.0832733&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:27] "GET /weather?lat=44.4503092&lng=26.0832733 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:27] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4503092&lng=26.0832733&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:30] "GET /places/search?lat=44.4503092&lng=26.0832733&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:30] "GET /events?lat=44.4503092&lng=26.0832733&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:36] "GET /recommendations/personalized?lat=44.4503092&lng=26.0832733&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:43] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:43] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:36:44] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:37:06] "GET /itinerary?lat=44.4503092&lng=26.0832733&scope=nearby&radius=3000&type=gastronomic&budget=250&interests=Locuri%20interesante,Restaurante&duration=6&points=6&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:37:16] "GET /places HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:37:48] "[35m[1mGET /users/recommended?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1[0m" 500 -
-Traceback (most recent call last):
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 1536, in __call__
-    return self.wsgi_app(environ, start_response)
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 1514, in wsgi_app
-    response = self.handle_exception(e)
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
-    return cors_after_request(app.make_response(f(*args, **kwargs)))
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 1511, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 919, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask_cors/extension.py", line 176, in wrapped_function
-    return cors_after_request(app.make_response(f(*args, **kwargs)))
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/flask/app.py", line 902, in dispatch_request
-    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/mihaela/Desktop/Licenta/backend/app.py", line 1853, in get_recommended_users
-    following_ids = [f["following_id"] for f in MOCK_DATA["follows"] if f["user_id"] == user_id]
-NameError: name 'MOCK_DATA' is not defined
-127.0.0.1 - - [05/May/2026 11:37:48] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/following HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:06] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:23] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:24] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:25] "GET /weather?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:26] "GET /events?lat=48.1371079&lng=11.5753822&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:29] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:30] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=48.1371079&lng=11.5753822&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:32] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:40] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:38:57] "GET /recommendation/magic?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&type=restaurant HTTP/1.1" 200 -
-127.0.0.1 - - [05/May/2026 11:39:04] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.45030975341797&lng=26.08327293395996 HTTP/1.1" 200 -
- * Detected change in '/Users/mihaela/Desktop/Licenta/backend/app.py', reloading
-✅ Chatbot model loaded successfully!
+127.0.0.1 - - [27/May/2026 17:18:45] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:07] "GET /events?lat=0.0&lng=0.0&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:08] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=0.0&lng=0.0 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:22] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:23] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:23] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:24] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476617&lng=26.0986233&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:24] "GET /map/hype?lat=44.4476617&lng=26.0986233 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:25] "GET /weather?lat=44.4476617&lng=26.0986233 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:25] "GET /nearby?lat=44.4476617&lng=26.0986233&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:25] "GET /nearby?lat=44.4476617&lng=26.0986233&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+/Users/mihaela/Desktop/Licenta/backend/app.py:2220: DeprecationWarning: invalid escape sequence '\/'
+  name = raw_name.encode('utf-8').decode('unicode_escape')
+127.0.0.1 - - [27/May/2026 17:20:26] "GET /events?lat=44.4476617&lng=26.0986233&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:29] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:30] "GET /events?lat=44.4476617&lng=26.0986233&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:30] "GET /nearby?lat=44.4476617&lng=26.0986233&type=mixed&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:32] "GET /places/search?lat=44.4476617&lng=26.0986233&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:20:39] "GET /recommendations/personalized?lat=44.4476617&lng=26.0986233&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:21:04] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:24:57] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/following HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:24:57] "GET /users/recommended?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:36] "GET /events?lat=44.447662353515625&lng=26.098623275756836&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:36] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447662353515625&lng=26.098623275756836 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:40] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447662353515625&lng=26.098623275756836 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:40] "GET /events?lat=44.447662353515625&lng=26.098623275756836&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:41] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447662353515625&lng=26.098623275756836 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:41] "GET /events?lat=44.447662353515625&lng=26.098623275756836&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:52] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:52] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:53] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:54] "GET /map/hype?lat=44.4476735&lng=26.0986166 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:55] "GET /nearby?lat=44.4476735&lng=26.0986166&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:55] "GET /nearby?lat=44.4476735&lng=26.0986166&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:55] "GET /weather?lat=44.4476735&lng=26.0986166 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:56] "GET /events?lat=44.4476735&lng=26.0986166&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:56] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476735&lng=26.0986166&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:26:59] "GET /places/search?lat=44.4476735&lng=26.0986166&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:27:08] "GET /recommendations/personalized?lat=44.4476735&lng=26.0986166&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:27:19] "GET /itinerary?lat=44.4476402&lng=26.0986151&scope=nearby&radius=3000&type=cinema&budget=300&interests=Locuri%20interesante&duration=3&points=5&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:27:19] "GET /itinerary?lat=44.4476402&lng=26.0986151&scope=nearby&radius=3000&type=cinema&budget=300&interests=Locuri%20interesante&duration=3&points=5&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:27:19] "GET /itinerary?lat=44.4476402&lng=26.0986151&scope=nearby&radius=3000&type=cinema&budget=300&interests=Locuri%20interesante&duration=3&points=5&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:27:31] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:03] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:04] "GET /events?lat=44.44767379760742&lng=26.098615646362305&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:04] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.44767379760742&lng=26.098615646362305 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:04] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:04] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:05] "GET /map/hype?lat=44.4476686&lng=26.0986068 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:05] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476686&lng=26.0986068&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:06] "GET /weather?lat=44.4476686&lng=26.0986068 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:06] "GET /nearby?lat=44.4476686&lng=26.0986068&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:06] "GET /nearby?lat=44.4476686&lng=26.0986068&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:07] "GET /events?lat=44.4476686&lng=26.0986068&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:07] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476686&lng=26.0986068&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:08] "GET /map/hype?lat=44.4476686&lng=26.0986068 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:08] "GET /nearby?lat=44.4476686&lng=26.0986068&type=restaurant&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:09] "GET /places/search?lat=44.4476686&lng=26.0986068&query=&type=restaurant&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:09] "GET /places/search?lat=44.4476686&lng=26.0986068&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:10] "[35m[1mGET /places/ChIJmXZCGEz_sUARnpzkDgw9PF0/details HTTP/1.1[0m" 500 -
+127.0.0.1 - - [27/May/2026 17:28:11] "GET /weather?lat=44.444899&lng=26.1016331 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:15] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:19] "GET /recommendations/personalized?lat=44.4476686&lng=26.0986068&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=Restaurante&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:21] "GET /recommendations/personalized?lat=44.4476686&lng=26.0986068&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:22] "GET /recommendations/personalized?lat=44.4476686&lng=26.0986068&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=Restaurante&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:30] "[35m[1mGET /places/ChIJmXZCGEz_sUARnpzkDgw9PF0/details HTTP/1.1[0m" 500 -
+127.0.0.1 - - [27/May/2026 17:28:30] "GET /weather?lat=44.444899&lng=26.1016331 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:41] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:42] "[35m[1mGET /places/ChIJY557b3MCskARCJG7eAnspYw/details HTTP/1.1[0m" 500 -
+127.0.0.1 - - [27/May/2026 17:28:42] "GET /weather?lat=44.4647136&lng=26.0981338 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:28:48] "[35m[1mGET /places/ChIJ8WjAX0__sUARMylWz4YWen8/details HTTP/1.1[0m" 500 -
+127.0.0.1 - - [27/May/2026 17:28:49] "GET /weather?lat=44.4404817&lng=26.09798779999999 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:29:28] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:29:41] "GET /recommendation/magic?lat=44.4476714&lng=26.0986242&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&type=entertainment&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:29:56] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:29:56] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447669982910156&lng=26.09860610961914 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:29:56] "GET /events?lat=44.447669982910156&lng=26.09860610961914&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:10] "GET /events?lat=44.447669982910156&lng=26.09860610961914&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:12] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447669982910156&lng=26.09860610961914 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:14] "GET /events?lat=44.447669982910156&lng=26.09860610961914&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:15] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447669982910156&lng=26.09860610961914 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:21] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:22] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:22] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:23] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476613&lng=26.0986274&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:23] "GET /map/hype?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:23] "GET /weather?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:24] "GET /nearby?lat=44.4476613&lng=26.0986274&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:24] "GET /nearby?lat=44.4476613&lng=26.0986274&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:24] "GET /events?lat=44.4476613&lng=26.0986274&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:27] "GET /itinerary?lat=44.4476613&lng=26.0986274&scope=nearby&radius=3000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:27] "GET /itinerary?lat=44.4476613&lng=26.0986274&scope=nearby&radius=3000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:27] "GET /itinerary?lat=44.4476613&lng=26.0986274&scope=nearby&radius=3000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:27] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476613&lng=26.0986274&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:28] "GET /places/search?lat=44.4476613&lng=26.0986274&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:28] "GET /map/hype?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:28] "GET /nearby?lat=44.4476613&lng=26.0986274&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:28] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:29] "GET /events?lat=44.4476613&lng=26.0986274&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:29] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:30] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:30] "GET /map/hype?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:31] "GET /nearby?lat=44.4476613&lng=26.0986274&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:31] "GET /nearby?lat=44.4476613&lng=26.0986274&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:31] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476613&lng=26.0986274&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:31] "GET /map/hype?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:32] "GET /places/search?lat=44.4476613&lng=26.0986274&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:33] "GET /weather?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:33] "GET /events?lat=44.4476613&lng=26.0986274&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:34] "GET /nearby?lat=44.4476613&lng=26.0986274&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:35] "GET /places/search?lat=44.4476613&lng=26.0986274&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:35] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476613&lng=26.0986274&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:35] "GET /map/hype?lat=44.4476613&lng=26.0986274 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:38] "GET /places/search?lat=44.4476613&lng=26.0986274&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:40] "GET /recommendations/personalized?lat=44.4476613&lng=26.0986274&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:40] "[31m[1mPOST /hype/vote HTTP/1.1[0m" 400 -
+127.0.0.1 - - [27/May/2026 17:31:42] "GET /recommendations/personalized?lat=44.4476613&lng=26.0986274&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:44] "GET /recommendations/personalized?lat=44.4476613&lng=26.0986274&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:45] "GET /recommendations/personalized?lat=44.4476613&lng=26.0986274&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:50] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447662353515625&lng=26.0986270904541 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:51] "GET /events?lat=44.447662353515625&lng=26.0986270904541&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:52] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:52] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:52] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447639&lng=26.0985194&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:52] "GET /nearby?lat=44.447639&lng=26.0985194&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:52] "GET /nearby?lat=44.447639&lng=26.0985194&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:53] "GET /map/hype?lat=44.447639&lng=26.0985194 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:53] "GET /weather?lat=44.447639&lng=26.0985194 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:54] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:54] "GET /events?lat=44.447639&lng=26.0985194&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:55] "GET /recommendations/personalized?lat=44.4476613&lng=26.0986274&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:31:55] "[31m[1mPOST /hype/vote HTTP/1.1[0m" 400 -
+127.0.0.1 - - [27/May/2026 17:31:57] "GET /places/search?lat=44.447639&lng=26.0985194&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:32:01] "GET /weather?lat=44.4373441&lng=26.0910803 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:32:06] "GET /recommendations/personalized?lat=44.447639&lng=26.0985194&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:33:27] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:33:29] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:33:59] "GET /events?lat=0.0&lng=0.0&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:33:59] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=0.0&lng=0.0 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:09] "GET /feed?type=friends&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=0.0&lng=0.0 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:09] "GET /events?lat=0.0&lng=0.0&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:18] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:19] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:19] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:20] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476628&lng=26.0986182&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:20] "GET /map/hype?lat=44.4476628&lng=26.0986182 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:20] "GET /weather?lat=44.4476628&lng=26.0986182 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:21] "GET /nearby?lat=44.4476628&lng=26.0986182&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:21] "GET /nearby?lat=44.4476628&lng=26.0986182&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:22] "GET /events?lat=44.4476628&lng=26.0986182&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:28] "GET /places/search?lat=44.4476628&lng=26.0986182&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:34:35] "GET /recommendations/personalized?lat=44.4476628&lng=26.0986182&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:02] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:14] "GET /feed?type=friends&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.447662353515625&lng=26.098617553710938 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:14] "GET /events?lat=44.447662353515625&lng=26.098617553710938&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:15] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:16] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:16] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:19] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476845&lng=26.0985574&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:19] "GET /map/hype?lat=44.4476845&lng=26.0985574 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:19] "GET /weather?lat=44.4476845&lng=26.0985574 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:20] "GET /nearby?lat=44.4476845&lng=26.0985574&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:20] "GET /nearby?lat=44.4476845&lng=26.0985574&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:20] "GET /events?lat=44.4476845&lng=26.0985574&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:25] "GET /places/search?lat=44.4476845&lng=26.0985574&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:28] "[31m[1mPOST /hype/vote HTTP/1.1[0m" 400 -
+127.0.0.1 - - [27/May/2026 17:35:30] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:34] "GET /recommendations/personalized?lat=44.4476845&lng=26.0985574&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:59] "GET /itinerary?lat=44.4476156&lng=26.0987255&scope=nearby&radius=3000&type=cinema&budget=250&interests=Locuri%20interesante,Muzee&duration=10&points=5&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:59] "GET /itinerary?lat=44.4476156&lng=26.0987255&scope=nearby&radius=3000&type=cinema&budget=250&interests=Locuri%20interesante,Muzee&duration=10&points=5&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:35:59] "GET /itinerary?lat=44.4476156&lng=26.0987255&scope=nearby&radius=3000&type=cinema&budget=250&interests=Locuri%20interesante,Muzee&duration=10&points=5&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:36:15] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:36:24] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/following HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:36:24] "GET /users/recommended?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:01] "GET /feed?type=friends&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.44768524169922&lng=26.098556518554688 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:02] "GET /events?lat=44.44768524169922&lng=26.098556518554688&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:03] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:04] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:04] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:05] "GET /map/hype?lat=44.4476659&lng=26.0986109 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:05] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476659&lng=26.0986109&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:05] "GET /weather?lat=44.4476659&lng=26.0986109 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:05] "GET /nearby?lat=44.4476659&lng=26.0986109&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:06] "GET /nearby?lat=44.4476659&lng=26.0986109&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:06] "GET /events?lat=44.4476659&lng=26.0986109&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:12] "GET /places/search?lat=44.4476659&lng=26.0986109&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:37:22] "GET /recommendations/personalized?lat=44.4476659&lng=26.0986109&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:38:06] "GET /events?lat=44.447613&lng=26.0986671&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:38:06] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:38:07] "GET /nearby?lat=44.447613&lng=26.0986671&type=mixed&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:38:47] "GET /places HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:38:51] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:38:54] "GET /reports/user/8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:10] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/liked_posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:29] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:29] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:30] "GET /weather?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:30] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:31] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:32] "GET /events?lat=48.1371079&lng=11.5753822&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:37] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:44] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:56] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=city&radius=20000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:56] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=city&radius=20000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:39:56] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=city&radius=20000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:04] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=city&radius=20000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:10] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+📍 Events for: București (Lat: 0.0, Lng: 0.0) | Real TM events: 25
+✅ Returning 18 events (0 real RO events, global mapping active)
+🎉 New daily battle generated deterministically: Ganesha Caffe Victoriei vs Izvor Park
+🎉 New daily battle generated deterministically: Ganesha Caffe Victoriei vs Izvor Park
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476617, Lng: 26.0986233) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+✅ [GET /places] Successfully fetched 80 places from Supabase.
+📍 Events for: București (Lat: 44.4476617, Lng: 26.0986233) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+✅ [GET /places] Successfully fetched 80 places from Supabase.
+📍 Events for: București (Lat: 44.447662353515625, Lng: 26.098623275756836) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 44.447662353515625, Lng: 26.098623275756836) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 44.447662353515625, Lng: 26.098623275756836) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476735, Lng: 26.0986166) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+✅ [GET /places] Successfully fetched 80 places from Supabase.
+📍 Events for: București (Lat: 44.44767379760742, Lng: 26.098615646362305) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476686, Lng: 26.0986068) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
 ⚠️ Context Fetch Error: 'str' object has no attribute 'get'
 ⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+⚠️ Details Error: local variable 'requests' referenced before assignment
+⚠️ Details Error: local variable 'requests' referenced before assignment
+⚠️ Details Error: local variable 'requests' referenced before assignment
+⚠️ Details Error: local variable 'requests' referenced before assignment
+📍 Events for: București (Lat: 44.447669982910156, Lng: 26.09860610961914) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 44.447669982910156, Lng: 26.09860610961914) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 44.447669982910156, Lng: 26.09860610961914) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
 ⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476613, Lng: 26.0986274) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476613, Lng: 26.0986274) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476613, Lng: 26.0986274) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.447662353515625, Lng: 26.0986270904541) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.447639, Lng: 26.0985194) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 0.0, Lng: 0.0) | Real TM events: 25
+✅ Returning 18 events (0 real RO events, global mapping active)
+📍 Events for: București (Lat: 0.0, Lng: 0.0) | Real TM events: 25
+✅ Returning 18 events (0 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476628, Lng: 26.0986182) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 44.447662353515625, Lng: 26.098617553710938) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476845, Lng: 26.0985574) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+✅ [GET /places] Successfully fetched 80 places from Supabase.
+📍 Events for: București (Lat: 44.44768524169922, Lng: 26.098556518554688) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+⚠️ Context Fetch Error: 'str' object has no attribute 'get'
+📍 Events for: București (Lat: 44.4476659, Lng: 26.0986109) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+📍 Events for: București (Lat: 44.447613, Lng: 26.0986671) | Real TM events: 0
+🎯 Nearest iabilet city: București (for București)
+✅ iabilet scraped 16 real events for București
+✅ Returning 16 events (16 real RO events, global mapping active)
+✅ [GET /places] Successfully fetched 80 places from Supabase.
 ✅ [GET /places] Successfully fetched 80 places from Supabase.
 ⚠️ Context Fetch Error: 'str' object has no attribute 'get'
- * Restarting with stat
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
-  warnings.warn(
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
-  warnings.warn(message, FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
-  warnings.warn(eol_message.format("3.9"), FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
-  warnings.warn(eol_message.format("3.9"), FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
-
-All support for the `google.generativeai` package has ended. It will no longer be receiving 
-updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
-See README for more details:
-
-https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
-
-  import google.generativeai as genai
- * Debugger is active!
- * Debugger PIN: 107-020-653
- * Detected change in '/Users/mihaela/Desktop/Licenta/backend/app.py', reloading
-✅ Chatbot model loaded successfully!
- * Restarting with stat
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
-  warnings.warn(
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
-  warnings.warn(message, FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
-  warnings.warn(eol_message.format("3.9"), FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
-  warnings.warn(eol_message.format("3.9"), FutureWarning)
-/Users/mihaela/Desktop/Licenta/backend/chatbot.py:25: FutureWarning: 
-
-All support for the `google.generativeai` package has ended. It will no longer be receiving 
-updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
-See README for more details:
-
-https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
-
-  import google.generativeai as genai
- * Debugger is active!
- * Debugger PIN: 107-020-653
-/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
-  warnings.warn('resource_tracker: There appear to be %d '
-/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
-  warnings.warn('resource_tracker: There appear to be %d '
+⚠️ Ticketmaster run failed: 
+📍 Events for: București (Lat: 48.1371079, Lng: 11.5753822) | Real TM events: 0
+✅ Returning 0 events (0 real RO events, global mapping active)
+127.0.0.1 - - [27/May/2026 17:40:11] "GET /events?lat=48.1371079&lng=11.5753822&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:11] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:11] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:14] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:14] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:15] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:16] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:18] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:19] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:20] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:24] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:25] "GET /weather?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:25] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:25] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:26] "GET /events?lat=48.1371079&lng=11.5753822&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:29] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:31] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:51] "GET /map/hype?lat=44.4476132&lng=26.0985595 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:51] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4476132&lng=26.0985595&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:52] "GET /weather?lat=44.4476132&lng=26.0985595 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:52] "GET /nearby?lat=44.4476132&lng=26.0985595&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:52] "GET /nearby?lat=44.4476132&lng=26.0985595&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:52] "GET /events?lat=44.4476132&lng=26.0985595&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:40:59] "GET /places/search?lat=44.4476132&lng=26.0985595&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:41:05] "GET /recommendations/personalized?lat=44.4476132&lng=26.0985595&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:41:14] "GET /recommendation/magic?lat=44.4476132&lng=26.0985595&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&type=restaurant&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:41:29] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:41:56] "POST /predict HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:13] "POST /predict HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:36] "GET /map/hype?lat=44.44806&lng=26.0993484 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:36] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.44806&lng=26.0993484&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:37] "GET /places/search?lat=44.44806&lng=26.0993484&query=&type=cafe&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:37] "GET /nearby?lat=44.44806&lng=26.0993484&type=cafe&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:44] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.44806&lng=26.0993484&interests=Locuri%20interesante&language=ro HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:44] "GET /map/hype?lat=44.44806&lng=26.0993484 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:44] "GET /nearby?lat=44.44806&lng=26.0993484&type=shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:45] "GET /places/search?lat=44.44806&lng=26.0993484&query=&type=shopping&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:49] "GET /recommendations/personalized?lat=44.44806&lng=26.0993484&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=Cafenele&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:50] "GET /recommendations/personalized?lat=44.44806&lng=26.0993484&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=Cafenele&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:59] "GET /recommendations/personalized?lat=44.44806&lng=26.0993484&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=Comercial&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:42:59] "GET /recommendations/personalized?lat=44.44806&lng=26.0993484&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=Comercial&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:11] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:16] "GET /recommendation/magic?lat=44.4480418&lng=26.0993353&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&type=entertainment&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:19] "GET /feed?type=friends&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.44761276245117&lng=26.098560333251953 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:20] "GET /events?lat=44.44761276245117&lng=26.098560333251953&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:20] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:21] "GET /map/hype?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:21] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:21] "GET /weather?lat=48.1371079&lng=11.5753822 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:22] "GET /nearby?lat=48.1371079&lng=11.5753822&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:22] "GET /events?lat=48.1371079&lng=11.5753822&radius=50&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:25] "GET /places/search?lat=48.1371079&lng=11.5753822&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=München HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:27] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=nearby&radius=3000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:27] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=nearby&radius=3000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:27] "GET /itinerary?lat=48.1371079&lng=11.5753822&scope=nearby&radius=3000&type=exploration&budget=250&interests=Locuri%20interesante&duration=6&points=4&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:31] "GET /recommendations/personalized?lat=48.1371079&lng=11.5753822&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=München&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:34] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:40] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.44761276245117&lng=26.098560333251953 HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:40] "GET /events?lat=44.44761276245117&lng=26.098560333251953&radius=15&interests=Locuri%20interesante HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:43] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [27/May/2026 17:43:46] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+127.0.0.1 - - [28/May/2026 15:01:17] "GET / HTTP/1.1" 200 -

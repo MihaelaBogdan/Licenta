@@ -91,6 +91,11 @@ public class SessionManager {
         return "Explorer";
     }
 
+    public void updateUserName(String newName) {
+        editor.putString(KEY_USER_NAME, newName);
+        editor.apply();
+    }
+
     public String getEmail() {
         String email = prefs.getString(KEY_USER_EMAIL, null);
         if (email != null) return email;
@@ -110,6 +115,15 @@ public class SessionManager {
 
     public boolean isDarkMode() {
         return prefs.getBoolean(KEY_DARK_MODE, false);
+    }
+
+    public void setInterestsCompleted(boolean completed) {
+        editor.putBoolean("interests_completed", completed);
+        editor.apply();
+    }
+
+    public boolean isInterestsCompleted() {
+        return prefs.getBoolean("interests_completed", false);
     }
 
     public void setPreferredCity(String city) {
@@ -135,6 +149,7 @@ public class SessionManager {
             db.badgeDao().insert(new UserBadge(userId, "foodie", "Foodie", "Pasionat de gastronomie", "ic_badge_default", "Vizitează 10 restaurante recomandate"));
             db.badgeDao().insert(new UserBadge(userId, "social", "Social Butterfly", "Activ în comunitate", "ic_badge_default", "Postează 5 experiențe în feed"));
             db.badgeDao().insert(new UserBadge(userId, "reviewer", "Top Reviewer", "Criticul orașului", "ic_badge_default", "Scrie 10 recenzii detaliate"));
+            db.badgeDao().insert(new UserBadge(userId, "hype_master", "Hype Master", "Votant activ în confruntări", "ic_badge_generic", "Votează în bătăliile live Hype Battles"));
         }
     }
 

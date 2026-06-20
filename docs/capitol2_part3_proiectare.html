@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>C2 - Proiectarea Sistemului - CityScape</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { font-family:'Segoe UI',sans-serif; max-width:1100px; margin:auto; padding:30px; background:#f9f9f9; color:#222; }
+  h1 { color:#1a237e; border-bottom:3px solid #1a237e; padding-bottom:8px; }
+  h2 { color:#283593; margin-top:40px; }
+  h3 { color:#3949ab; }
+  .box { background:white; border:1px solid #ccc; border-radius:8px; padding:20px; margin:20px 0; box-shadow:0 2px 8px rgba(0,0,0,.1); overflow-x:auto; }
+  .txt { background:#fff; border-left:4px solid #3949ab; padding:16px 20px; margin:16px 0; border-radius:4px; }
+  table { border-collapse:collapse; width:100%; margin:16px 0; font-size:14px; }
+  th { background:#1a237e; color:white; padding:9px; text-align:left; }
+  td { padding:8px; border:1px solid #ccc; vertical-align:top; }
+  tr:nth-child(even) { background:#f0f4ff; }
+  code { background:#eef; padding:2px 5px; border-radius:3px; }
+</style>
+</head>
+<body>
+<h1>C2 – Secțiunea 3: Proiectarea Sistemului</h1>
+
+<!-- 3.1 RAFINAREA DIAGRAMELOR -->
+<h2>3.1 Rafinarea Diagramelor (Diagrame Îmbunătățite)</h2>
+<div class="txt">
+<p>În faza de proiectare, diagramele de analiză sunt rafinate prin adăugarea detaliilor de implementare: tipuri concrete de date, pattern-uri arhitecturale (MVVM, Repository), mecanisme de persistență (Room DB local + Supabase remote) și interfețe de comunicare REST. Relațiile dintre clase sunt precizate cu multiplicități exacte, iar clasele de control sunt mapate la ViewModel-uri Android specifice.</p>
+</div>
+
+<!-- Diagrama de clase rafinata -->
+<h3>Diagrama de Clase Rafinată (cu Repository Pattern)</h3>
+<div class="box">
+<div class="mermaid">
+classDiagram
+    direction TB
+
+    class HomeViewModel {
+        <<control>>
+        - placesRepo : PlaceRepository
+        - eventsRepo : EventRepository
+        - _places : MutableLiveData
+        - _events : MutableLiveData
+        + loadNearbyPlaces(lat:double, lng:double)
+        + loadEvents(lat:double, lng:double)
+        + applyFilters(type:String, maxDist:float)
+    }
+
+    class CalendarViewModel {
+        <<control>>
+        - activityRepo : ActivityRepository
+        - xpEngine : XPEngine
+        + getActivitiesForDate(date:long) LiveData
+        + addActivity(act:PlannedActivity)
+        + completeActivity(id:String)
+        + deleteActivity(id:String)
+    }
+
+    class PlaceRepository {
+        <<control>>
+        - roomDb : AppDatabase
+        - apiService : ApiService
+        + getNearby(lat:double,lng:double) Flow
+        + getFavorites(userId:String) List
+        + toggleFavorite(placeId:String)
+        + syncWithRemote()
+    }
+
+    class ActivityRepository {
+        <<control>>
+        - roomDb : AppDatabase
+        - supabaseClient : SupabaseClient
+        + getAll(userId:String) Flow
+        + insert(act:PlannedActivity)
+        + update(act:PlannedActivity)
+        + delete(id:String)
+    }
+
+    class AppDatabase {
+        <<boundary>>
+        + userDao() UserDao
+        + placeDao() PlaceDao
+        + activityDao() ActivityDao
+    }
+
+    class ApiService {
+        <<boundary>>
+        + getPlaces(lat,lng,interests) Response
+        + getEvents(lat,lng) Response
+        + sendChatMessage(msg,loc) Response
+        + createGroup(body) Response
+        + joinGroup(code,userId) Response
+        + vote(groupId,placeId) Response
+    }
+
+    class XPEngine {
+        <<control>>
+        - supabaseClient : SupabaseClient
+        + awardXp(userId:String, amount:int)
+        + checkAndUnlockBadges(userId:String)
+        + updateLeaderboard(userId:String)
+    }
+
+    HomeViewModel --> PlaceRepository : uses
+    CalendarViewModel --> ActivityRepository : uses
+    CalendarViewModel --> XPEngine : calls
+    PlaceRepository --> AppDatabase : reads/writes
+    PlaceRepository --> ApiService : fetches
+    ActivityRepository --> AppDatabase : reads/writes
+    XPEngine --> ApiService : updates remote
+</div>
+</div>
+
+<!-- 3.2 DIAGRAMA DE CLASE COMPLETA -->
+<h2>3.2 Diagrama de Clase – Variantă Completă cu Atribute și Operații</h2>
+<div class="box">
+<div class="mermaid">
+classDiagram
+    direction LR
+
+    class User {
+        <<entity>>
+        + id : String
+        + name : String
+        + username : String
+        + email : String
+        + password : String
+        + level : int
+        + currentXp : int
+        + totalXp : int
+        + placesVisited : int
+        + badgesEarned : int
+        + interests : String
+        + avatar : String
+        + isFollowing : boolean
+        + User()
+        + User(name,email,password)
+        + addXp(amount:int) void
+        + getProgressPercentage() int
+        + getXpForNextLevel() int
+    }
+
+    class Place {
+        <<entity>>
+        + id : String
+        + googlePlaceId : String
+        + name : String
+        + description : String
+        + rating : float
+        + imageUrl : String
+        + latitude : double
+        + longitude : double
+        + type : String
+        + address : String
+        + isFavorite : boolean
+        + priceLevel : int
+        + reviewCount : int
+        + aiSuggestion : String
+        + ai_summary : String
+        + Place()
+        + Place(name,desc,rating,img,lat,lng,type,addr)
+    }
+
+    class PlannedActivity {
+        <<entity>>
+        + id : String
+        + userId : String
+        + placeId : String
+        + placeName : String
+        + placeType : String
+        + placeImageUrl : String
+        + scheduledDate : long
+        + scheduledTime : String
+        + isCompleted : boolean
+        + notes : String
+        + budget : double
+        + currency : String
+        + PlannedActivity()
+        + PlannedActivity(userId,placeId,placeName,...)
+    }
+
+    class ActivityGroup {
+        <<entity>>
+        + id : String
+        + activityId : String
+        + creatorId : String
+        + groupName : String
+        + groupCode : String
+        + maxMembers : int
+        + createdAt : long
+        + ActivityGroup()
+        + ActivityGroup(activityId,creatorId,groupName)
+        + generateGroupCode() String
+    }
+
+    class GroupMember {
+        <<entity>>
+        + id : String
+        + groupId : String
+        + userId : String
+        + userName : String
+        + status : String
+        + isCreator : boolean
+        + joinedAt : long
+    }
+
+    class Invitation {
+        <<entity>>
+        + id : String
+        + fromUserId : String
+        + fromUserName : String
+        + toUserId : String
+        + groupId : String
+        + groupName : String
+        + activityName : String
+        + activityDate : String
+        + activityTime : String
+        + status : String
+        + sentAt : long
+        + Invitation()
+        + Invitation(from,fromName,to,groupId,...)
+    }
+
+    class Event {
+        <<entity>>
+        + title : String
+        + time : String
+        + location : String
+        + imageUrl : String
+        + url : String
+        + latitude : double
+        + longitude : double
+        + eventType : String
+        + price : String
+        + date_str : String
+        + source : String
+        + category : String
+        + relevance_score : int
+        + Event()
+        + Event(title,date,location,img,url)
+    }
+
+    class FeedPost {
+        <<entity>>
+        + id : String
+        + userId : String
+        + userName : String
+        + userAvatar : String
+        + placeName : String
+        + placeId : String
+        + imageUrl : String
+        + caption : String
+        + rating : double
+        + latitude : double
+        + longitude : double
+        + createdAt : String
+        + likesCount : int
+        + commentsCount : int
+        + isLiked : boolean
+        + comments : List~FeedComment~
+    }
+
+    class FeedComment {
+        <<entity>>
+        + id : String
+        + postId : String
+        + userId : String
+        + userName : String
+        + text : String
+        + createdAt : String
+    }
+
+    class Badge {
+        <<entity>>
+        + name : String
+        + description : String
+        + requirement : String
+        + iconResId : int
+        + isUnlocked : boolean
+        + Badge(name,desc,req,icon,unlocked)
+    }
+
+    class MemberSchedule {
+        <<entity>>
+        + id : String
+        + groupId : String
+        + userId : String
+        + userName : String
+        + date : long
+        + startTime : String
+        + endTime : String
+        + isAvailable : boolean
+        + note : String
+    }
+
+    class Vote {
+        <<entity>>
+        + id : String
+        + groupId : String
+        + userId : String
+        + placeId : String
+        + placeName : String
+        + createdAt : long
+    }
+
+    User "1" --> "0..*" PlannedActivity : planifică
+    User "1" --> "0..*" FeedPost : publică
+    User "1" --> "0..*" Badge : deține
+    User "1" --> "0..*" Invitation : trimite/primește
+    User "1" --> "0..*" ActivityGroup : creează
+    ActivityGroup "1" --> "1..*" GroupMember : are
+    ActivityGroup "1" --> "0..*" Vote : acumulează
+    ActivityGroup "1" --> "0..*" MemberSchedule : stochează
+    GroupMember "0..*" --> "1" User : referință
+    PlannedActivity "0..*" --> "1" Place : referențiază
+    ActivityGroup "0..1" --> "1" PlannedActivity : bazat pe
+    FeedPost "1" --> "0..*" FeedComment : conține
+    Invitation "0..*" --> "1" ActivityGroup : pentru
+</div>
+</div>
+
+<!-- 3.3 BAZA DE DATE -->
+<h2>3.3 Proiectarea Bazei de Date</h2>
+
+<h3>Descrierea Tabelelor</h3>
+<table>
+<tr><th>Tabel</th><th>Cheie Primară</th><th>Atribute Principale</th><th>Relații</th></tr>
+<tr><td><code>user_profiles</code></td><td>id (UUID, FK→auth.users)</td><td>name, email, level, current_xp, total_xp, places_visited, badges_earned</td><td>—</td></tr>
+<tr><td><code>places</code></td><td>id (SERIAL)</td><td>name, description, rating, image_url, latitude, longitude, type, address</td><td>—</td></tr>
+<tr><td><code>visited_places</code></td><td>id (SERIAL)</td><td>user_id, place_id, google_place_id, place_name, place_type, visited_at</td><td>FK→user_profiles, FK→places</td></tr>
+<tr><td><code>planned_activities</code></td><td>id (SERIAL)</td><td>user_id, place_id, place_name, scheduled_date, scheduled_time, is_completed, notes, budget</td><td>FK→user_profiles</td></tr>
+<tr><td><code>activity_groups</code></td><td>id (SERIAL)</td><td>activity_id, creator_id, group_name, group_code (UNIQUE), max_members</td><td>FK→planned_activities, FK→user_profiles</td></tr>
+<tr><td><code>group_members</code></td><td>id (SERIAL)</td><td>group_id, user_id, user_name, status, is_creator, joined_at</td><td>FK→activity_groups, FK→user_profiles; UNIQUE(group_id,user_id)</td></tr>
+<tr><td><code>invitations</code></td><td>id (SERIAL)</td><td>from_user_id, to_user_id, group_id, status, sent_at</td><td>FK→user_profiles, FK→activity_groups</td></tr>
+<tr><td><code>group_votes</code></td><td>id (SERIAL)</td><td>group_id, user_id, place_id, place_name</td><td>FK→activity_groups; UNIQUE(group_id,user_id)</td></tr>
+<tr><td><code>member_schedules</code></td><td>id (SERIAL)</td><td>group_id, user_id, date, start_time, end_time, is_available</td><td>FK→activity_groups, FK→user_profiles</td></tr>
+<tr><td><code>user_badges</code></td><td>id (SERIAL)</td><td>user_id, badge_id, name, description, is_unlocked, unlocked_at</td><td>FK→user_profiles; UNIQUE(user_id,badge_id)</td></tr>
+<tr><td><code>user_achievements</code></td><td>id (SERIAL)</td><td>user_id, title, xp_reward, earned_at</td><td>FK→user_profiles</td></tr>
+</table>
+
+<h3>Schema Conceptuală (ERD)</h3>
+<div class="box">
+<div class="mermaid">
+erDiagram
+    USER_PROFILES {
+        uuid id PK
+        text name
+        text email
+        int level
+        int current_xp
+        int total_xp
+        int places_visited
+        int badges_earned
+        timestamp created_at
+    }
+    PLACES {
+        serial id PK
+        text name
+        text description
+        float rating
+        text image_url
+        float latitude
+        float longitude
+        text type
+        text address
+    }
+    PLANNED_ACTIVITIES {
+        serial id PK
+        uuid user_id FK
+        int place_id FK
+        text place_name
+        bigint scheduled_date
+        text scheduled_time
+        bool is_completed
+        text notes
+        float budget
+    }
+    ACTIVITY_GROUPS {
+        serial id PK
+        int activity_id FK
+        uuid creator_id FK
+        text group_name
+        text group_code
+        int max_members
+    }
+    GROUP_MEMBERS {
+        serial id PK
+        int group_id FK
+        uuid user_id FK
+        text status
+        bool is_creator
+    }
+    INVITATIONS {
+        serial id PK
+        uuid from_user_id FK
+        uuid to_user_id FK
+        int group_id FK
+        text status
+    }
+    GROUP_VOTES {
+        serial id PK
+        int group_id FK
+        uuid user_id FK
+        text place_id
+        text place_name
+    }
+    MEMBER_SCHEDULES {
+        serial id PK
+        int group_id FK
+        uuid user_id FK
+        bigint date
+        text start_time
+        text end_time
+        bool is_available
+    }
+    USER_BADGES {
+        serial id PK
+        uuid user_id FK
+        text badge_id
+        text name
+        bool is_unlocked
+    }
+
+    USER_PROFILES ||--o{ PLANNED_ACTIVITIES : "planifică"
+    USER_PROFILES ||--o{ USER_BADGES : "deține"
+    USER_PROFILES ||--o{ ACTIVITY_GROUPS : "creează"
+    USER_PROFILES ||--o{ GROUP_MEMBERS : "participă"
+    USER_PROFILES ||--o{ INVITATIONS : "trimite/primește"
+    PLACES ||--o{ PLANNED_ACTIVITIES : "referențiat de"
+    ACTIVITY_GROUPS ||--o{ GROUP_MEMBERS : "conține"
+    ACTIVITY_GROUPS ||--o{ INVITATIONS : "generat de"
+    ACTIVITY_GROUPS ||--o{ GROUP_VOTES : "acumulează"
+    ACTIVITY_GROUPS ||--o{ MEMBER_SCHEDULES : "stochează"
+    PLANNED_ACTIVITIES ||--o| ACTIVITY_GROUPS : "stă la baza"
+</div>
+</div>
+
+<h3>Normalizare</h3>
+<div class="txt">
+<p><strong>Forma Normală 1 (1NF):</strong> Toate tabelele respectă 1NF – fiecare coloană conține valori atomice, nu există grupuri repetitive, iar fiecare rând este identificat unic prin cheia primară. De exemplu, interesele utilizatorului sunt stocate ca text serializat (JSON string), nu ca coloane multiple.</p>
+<p><strong>Forma Normală 2 (2NF):</strong> Toate tabelele sunt în 2NF – fiecare atribut non-cheie depinde funcțional de întreaga cheie primară. Tabelele cu chei compuse (ex: <code>group_members</code> cu UNIQUE(group_id, user_id)) nu prezintă dependențe parțiale.</p>
+<p><strong>Forma Normală 3 (3NF):</strong> Nu există dependențe tranzitive – atributele non-cheie nu depind de alți atribuți non-cheie. De exemplu, <code>place_name</code> din <code>planned_activities</code> este denormalizat intenționat (redundanță controlată) pentru performanță, deoarece locațiile pot proveni din surse externe (Google Places) și nu au un ID fix în tabelul <code>places</code>.</p>
+</div>
+
+<!-- 3.4 INTERFETE -->
+<h2>3.4 Proiectarea Interfețelor</h2>
+
+<h3>Ierarhia Ferestrelor Aplicației</h3>
+<div class="box">
+<div class="mermaid">
+graph TD
+    W[WelcomeActivity] --> L[LoginActivity]
+    W --> R[RegisterActivity]
+    L --> I[InterestsActivity]
+    R --> I
+    I --> M[MainActivity]
+    M --> HF[HomeFragment]
+    M --> MapF[MapFragment]
+    M --> FeedF[FeedFragment]
+    M --> CalF[CalendarFragment]
+    M --> ProfF[ProfileFragment]
+    M --> ItinF[ItineraryFragment]
+    HF --> PD[PlaceDetailActivity]
+    HF --> ED[EventDetailActivity]
+    PD --> ChatA[ChatbotActivity]
+    CalF --> DAA[Dialog: AddActivity]
+    CalF --> DGA[Dialog: CreateGroup]
+    DGA --> DGS[Dialog: GroupSchedule]
+    DGA --> DGV[Dialog: GroupVoting]
+    FeedF --> DNP[Dialog: NewPost]
+    FeedF --> DC[Dialog: Comments]
+    M --> Set[SettingsActivity]
+    M --> US[UserSearchActivity]
+    M --> LB[LeaderboardActivity]
+    M --> DI[Dialog: Invitations]
+</div>
+</div>
+
+<h3>Proiectarea Formatelor de Intrare-Ieșire</h3>
+<table>
+<tr><th>Ecran / Dialog</th><th>Intrări (Input)</th><th>Ieșiri (Output)</th></tr>
+<tr><td>RegisterActivity</td><td>Nume complet, Email, Parolă, Confirmare parolă</td><td>Cont creat în Supabase Auth + profil în USER_PROFILES; redirect → InterestsActivity</td></tr>
+<tr><td>LoginActivity</td><td>Email, Parolă sau Google Account</td><td>Token JWT; redirect → MainActivity</td></tr>
+<tr><td>HomeFragment</td><td>Locație GPS automată; filtru categorie (opțional)</td><td>CardView-uri cu locații (Nume, Rating, Distanță, AI Summary), secțiune evenimente</td></tr>
+<tr><td>MapFragment</td><td>Locație GPS; filtru tip loc</td><td>Google Map cu markere colorate per tip; InfoWindow cu date loc</td></tr>
+<tr><td>PlaceDetailActivity</td><td>Tap pe un loc</td><td>Imagine, descriere, rating, adresă, buton Planifică, buton Favorite, buton Navigare</td></tr>
+<tr><td>ChatbotActivity</td><td>Mesaj text liber; locație curentă (automată)</td><td>Răspuns text + carduri locații recomandate</td></tr>
+<tr><td>Dialog: AddActivity</td><td>Selectare loc, dată (DatePicker), oră (TimePicker), note, buget</td><td>Activitate salvată în Supabase; apare în calendar</td></tr>
+<tr><td>Dialog: CreateGroup</td><td>Nume grup, selectare activitate</td><td>Cod grup unic (6 caractere); buton Share</td></tr>
+<tr><td>Dialog: GroupVoting</td><td>Selecție dintr-o listă de locații candidate</td><td>Grafic cu voturi; locație câștigătoare evidențiată</td></tr>
+<tr><td>Dialog: GroupSchedule</td><td>Dată, interval orar, disponibilitate (toggle)</td><td>Calendar cu disponibilitatea tuturor membrilor; slot comun evidențiat</td></tr>
+<tr><td>FeedFragment</td><td>Scroll infinit; buton Like; buton Comentariu</td><td>RecyclerView postări cu: avatar, foto loc, rating stele, like-uri, comentarii</td></tr>
+<tr><td>ProfileFragment</td><td>Editare avatar, username</td><td>Statistici (nivel, XP, locuri vizitate), insigne, istoricul activităților</td></tr>
+<tr><td>ItineraryFragment</td><td>Buton „Generează" sau selecție manuală de locații</td><td>Listă ordonată de locații cu timp estimat, rută pe hartă, buget total</td></tr>
+
+</table>
+
+<!-- 3.5 ARHITECTURA SISTEMULUI -->
+<h2>3.5 Arhitectura Sistemului</h2>
+
+<h3>Diagrama de Componente</h3>
+<div class="box">
+<div class="mermaid">
+graph TB
+    subgraph Android_App["📱 Android Application (MVVM)"]
+        UI["UI Layer\n(Activities / Fragments)"]
+        VM["ViewModel Layer\n(HomeVM, CalendarVM, FeedVM...)"]
+        REPO["Repository Layer\n(PlaceRepo, ActivityRepo, GroupRepo)"]
+        ROOM["Room Database\n(local cache)"]
+        UI --> VM
+        VM --> REPO
+        REPO --> ROOM
+    end
+
+    subgraph Backend["🖥️ Backend Flask (Python)"]
+        REST["REST API\n(/api/places, /api/events, /api/chat\n/api/groups, /api/feed)"]
+        CHATBOT["Chatbot Module\n(DistilBERT + RAG)"]
+        SCRAPER["Event Scraper\n(scrape_events.py)"]
+        REST --> CHATBOT
+        REST --> SCRAPER
+    end
+
+    subgraph External["☁️ Servicii Externe"]
+        SUPABASE["Supabase\n(Auth & PostgreSQL)"]
+        GPLACES["Google Places API"]
+        GEMINI["Gemini AI API"]
+    end
+
+    subgraph Tunnel["🌐 Tunnel / Deploy"]
+        CLOUDFLARE["Cloudflare Tunnel\n(HTTPS)"]
+        DOCKER["Docker Container"]
+    end
+
+    REPO -- "HTTPS REST" --> REST
+    REST --> SUPABASE
+    Android_App -- "OAuth / Supabase Auth" --> SUPABASE
+    REST --> GPLACES
+    REST --> GEMINI
+    DOCKER --> REST
+    CLOUDFLARE --> DOCKER
+    Android_App -- "HTTPS via Cloudflare" --> CLOUDFLARE
+</div>
+</div>
+
+<h3>Diagrama de Deployment (Desfășurare)</h3>
+<div class="box">
+<div class="mermaid">
+graph LR
+    subgraph UserDevice["Dispozitiv utilizator\n(Android 8+)"]
+        APK["CityScape APK\nRoom DB local"]
+    end
+
+    subgraph DeveloperMac["Server macOS local\n(Development)"]
+        DOCKER_C["Docker Container\nFlask:5000"]
+        CF_DAEMON["cloudflared daemon\n(tunnel HTTPS)"]
+        DOCKER_C --- CF_DAEMON
+    end
+
+    subgraph Cloud["Cloud Services"]
+        CF_EDGE["Cloudflare Edge\n(DNS + TLS)"]
+        SB["Supabase\n(Auth & PostgreSQL)"]
+        GM["Google Maps SDK"]
+        GAPI["Google Places API"]
+        GMAI["Gemini AI API"]
+    end
+
+    APK -- "HTTPS 443" --> CF_EDGE
+    CF_EDGE -- "Tunnel" --> CF_DAEMON
+    APK -- "Supabase SDK / Auth" --> SB
+    APK -- "Maps SDK" --> GM
+    DOCKER_C -- "REST" --> GAPI
+    DOCKER_C -- "REST" --> GMAI
+    DOCKER_C -- "Supabase REST" --> SB
+</div>
+</div>
+
+<script>
+mermaid.initialize({startOnLoad:true, theme:'default', securityLevel:'loose', er:{useMaxWidth:true}, flowchart:{useMaxWidth:true}});
+</script>
+</body>
+</html>

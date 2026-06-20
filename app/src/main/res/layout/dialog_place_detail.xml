@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_premium_dialog_light"
+    android:padding="24dp">
+
+    <!-- Header bar (Handle) -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@color/app_divider" />
+
+    <!-- Place image with premium rounded corners -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        android:background="@android:color/transparent">
+
+        <ImageView
+            android:id="@+id/detail_place_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/placeholder_place" />
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Place Type Chip -->
+        <TextView
+            android:id="@+id/detail_place_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass_card"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:text="ATRACȚIE"
+            android:textColor="@color/primary"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.05" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Rating text and stars -->
+        <TextView
+            android:id="@+id/detail_place_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4.5"
+            android:textColor="@color/gold_accent"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_star"
+            android:drawablePadding="4dp"
+            app:drawableTint="@color/gold_accent" />
+
+        <!-- Live Weather Badge -->
+        <TextView
+            android:id="@+id/detail_place_weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="☀️ 22°C"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Place Name -->
+    <TextView
+        android:id="@+id/detail_place_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Numele Locației"
+        android:textColor="@color/app_text_primary"
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-black" />
+
+    <!-- Address -->
+    <TextView
+        android:id="@+id/detail_place_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Adresă..."
+        android:textColor="@color/app_text_secondary"
+        android:textSize="13sp"
+        android:drawableStart="@drawable/ic_location"
+        android:drawablePadding="6dp"
+        app:drawableTint="@color/app_text_secondary" />
+
+    <!-- Vibeometer Premium Layout -->
+    <LinearLayout
+        android:id="@+id/layout_vibeometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_glass_card"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/vibe_emoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚡"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/vibe_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Popular &amp; Activ (Energy Vibe)"
+                android:textColor="@color/app_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/vibe_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mulți vizitatori activi în acest moment"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- AI Summary / Gemini Reason Header with Speaker -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/lbl_ai_summary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="💡 SFATUL EXPLORATORULUI"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.03" />
+
+        <ImageView
+            android:id="@+id/btn_speak_ai"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ghid Audio AI"
+            android:tint="@color/primary"
+            android:padding="2dp" />
+    </LinearLayout>
+
+    <!-- AI Match Analysis Section (Percentages) -->
+    <LinearLayout
+        android:id="@+id/aiAnalysisSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+        
+        <TextView
+            android:id="@+id/historyPctLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="60% Potrivire Istoric"
+            android:textColor="@color/accent_green"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/prefsPctLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="40% Potrivire Interese"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="end" />
+    </LinearLayout>
+
+    <!-- AI Summary Content -->
+    <TextView
+        android:id="@+id/detail_place_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Această locație este recomandată pentru experiența sa unică..."
+        android:textColor="@color/app_text_primary"
+        android:textSize="14sp"
+        android:lineSpacingMultiplier="1.2" />
+
+    <!-- Top Reviews Header -->
+    <TextView
+        android:id="@+id/lbl_reviews_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="⭐⭐ Recenzii de Top (Google Reviews)"
+        android:textColor="@color/primary"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.03"
+        android:visibility="gone" />
+
+    <!-- Horizontal Scroll for Review Cards -->
+    <HorizontalScrollView
+        android:id="@+id/scroll_reviews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/layout_reviews_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="4dp" />
+    </HorizontalScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/app_divider" />
+
+    <!-- Action buttons layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <!-- Plan button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_plan_place_detail"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Planifică"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/primary"
+            app:cornerRadius="16dp" />
+
+        <!-- Close button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_close_place_detail"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Închide"
+            android:textColor="@color/app_text_secondary"
+            android:backgroundTint="@color/app_surface"
+            app:strokeColor="@color/app_divider"
+            app:strokeWidth="1dp"
+            app:cornerRadius="16dp" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -2,11 +2,13 @@ package com.cityscape.app.ui.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import com.google.android.material.button.MaterialButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -46,6 +48,13 @@ public class ProfileFragment extends Fragment {
     private SessionManager sessionManager;
     private AppDatabase db;
     private com.cityscape.app.api.ApiService apiService;
+    private android.content.Context appContext;
+
+    // Segmented profile tabs
+    private MaterialButton btnTabDiscoveries, btnTabLiked, btnTabBookmarked;
+    private View layoutProfileTabs;
+    private String currentCollectionTab = "discoveries"; // discoveries, liked, bookmarked
+    private int secretClickCount = 0;
 
     // Containers
     private LinearLayout guestContainer;
@@ -59,6 +68,7 @@ public class ProfileFragment extends Fragment {
 
         sessionManager = new SessionManager(requireContext());
         db = AppDatabase.getInstance(requireContext());
+        appContext = requireContext().getApplicationContext();
 
         // Get containers
         guestContainer = view.findViewById(R.id.guest_container);
@@ -71,7 +81,7 @@ public class ProfileFragment extends Fragment {
 
             initViews(view);
             loadUserData();
-            loadUserPosts();
+            setupProfileTabs();
             setupBadges();
             setupAchievements();
 
@@ -162,7 +172,40 @@ public class ProfileFragment extends Fragment {
         profileAvatar = view.findViewById(R.id.profile_avatar);
         xpNeededText = view.findViewById(R.id.xp_needed_text);
         
+        btnTabDiscoveries = view.findViewById(R.id.btn_tab_discoveries);
+        btnTabLiked = view.findViewById(R.id.btn_tab_liked);
+        btnTabBookmarked = view.findViewById(R.id.btn_tab_bookmarked);
+        layoutProfileTabs = view.findViewById(R.id.layout_profile_tabs);
+        
         apiService = com.cityscape.app.api.ApiClient.getClient().create(com.cityscape.app.api.ApiService.class);
+
+        // Easter Egg Listener
+        if (profileAvatar != null) {
+            profileAvatar.setOnClickListener(v -> {
+                secretClickCount++;
+                if (secretClickCount == 5) {
+                    secretClickCount = 0;
+                    User user = sessionManager.getCurrentUser();
+                    if (user != null && getContext() != null) {
+                        com.cityscape.app.util.BadgeManager.addExperience(getContext().getApplicationContext(), user.id, 1000);
+                        com.cityscape.app.util.BadgeManager.awardBadge(getContext().getApplicationContext(), user.id, 
+                                "licenta10", "Licență de Nota 10 🎓", 
+                                "Felicitări! Ai deblocat secretul din codul aplicației pentru evaluare academică de elită!", 
+                                "Apasă de 5 ori pe avatarul de profil", 
+                                "ic_badge_generic");
+                        
+                        new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                .setTitle("🎓 EASTER EGG DEBLOCAT!")
+                                .setMessage("Felicitări! Ai descoperit secretul ascuns în codul aplicației CityScape!\n\n🎒 Ai primit +1000 XP de excelență academică și insigna de elită 'Licență de Nota 10'! 🏆\n\nSucces maxim la prezentarea tezei!")
+                                .setPositiveButton("Senzațional!", null)
+                                .show();
+                    }
+                } else {
+                    v.animate().scaleX(1.15f).scaleY(1.15f).setDuration(120).withEndAction(() -> v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120)).start();
+                    v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
+                }
+            });
+        }
     }
 
     private void loadUserData() {
@@ -171,6 +214,14 @@ public class ProfileFragment extends Fragment {
             profileName.setText(user.name);
             profileTitle.setText(String.format(getString(R.string.explorer_level), user.level).toUpperCase());
             levelBadge.setText(String.valueOf(user.level));
+            
+            if (user.avatar != null && !user.avatar.isEmpty() && profileAvatar != null && isAdded()) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(user.avatar)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_profile)
+                        .into(profileAvatar);
+            }
 
             int xpNeeded = user.getXpForNextLevel();
             xpText.setText(String.format("%,d / %,d XP", user.currentXp, xpNeeded));
@@ -235,16 +286,79 @@ public class ProfileFragment extends Fragment {
         recyclerAchievements.setAdapter(adapter);
     }
 
-    private void loadUserPosts() {
+    private void setupProfileTabs() {
+        if (layoutProfileTabs == null) return;
+        
+        layoutProfileTabs.setVisibility(View.VISIBLE);
+        if (titleMyPosts != null) titleMyPosts.setVisibility(View.VISIBLE);
+        
+        btnTabDiscoveries.setOnClickListener(v -> switchTab("discoveries"));
+        btnTabLiked.setOnClickListener(v -> switchTab("liked"));
+        btnTabBookmarked.setOnClickListener(v -> switchTab("bookmarked"));
+        
+        switchTab("discoveries"); // Default active
+    }
+    
+    private void switchTab(String tab) {
+        currentCollectionTab = tab;
+        if (getContext() == null) return;
+        
+        // Tab button visual states
+        if (tab.equals("discoveries")) {
+            btnTabDiscoveries.setTextColor(getContext().getColor(R.color.white));
+            btnTabDiscoveries.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getContext().getColor(R.color.primary)));
+            btnTabDiscoveries.setStrokeWidth(0);
+            
+            btnTabLiked.setTextColor(getContext().getColor(R.color.app_text_secondary));
+            btnTabLiked.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnTabLiked.setStrokeWidth(1);
+            
+            btnTabBookmarked.setTextColor(getContext().getColor(R.color.app_text_secondary));
+            btnTabBookmarked.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnTabBookmarked.setStrokeWidth(1);
+            
+            loadUserPosts();
+        } else if (tab.equals("liked")) {
+            btnTabDiscoveries.setTextColor(getContext().getColor(R.color.app_text_secondary));
+            btnTabDiscoveries.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnTabDiscoveries.setStrokeWidth(1);
+            
+            btnTabLiked.setTextColor(getContext().getColor(R.color.white));
+            btnTabLiked.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getContext().getColor(R.color.primary)));
+            btnTabLiked.setStrokeWidth(0);
+            
+            btnTabBookmarked.setTextColor(getContext().getColor(R.color.app_text_secondary));
+            btnTabBookmarked.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnTabBookmarked.setStrokeWidth(1);
+            
+            loadLikedPosts();
+        } else if (tab.equals("bookmarked")) {
+            btnTabDiscoveries.setTextColor(getContext().getColor(R.color.app_text_secondary));
+            btnTabDiscoveries.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnTabDiscoveries.setStrokeWidth(1);
+            
+            btnTabLiked.setTextColor(getContext().getColor(R.color.app_text_secondary));
+            btnTabLiked.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            btnTabLiked.setStrokeWidth(1);
+            
+            btnTabBookmarked.setTextColor(getContext().getColor(R.color.white));
+            btnTabBookmarked.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getContext().getColor(R.color.primary)));
+            btnTabBookmarked.setStrokeWidth(0);
+            
+            loadBookmarkedPosts();
+        }
+    }
 
+    private void loadUserPosts() {
         if (recyclerUserPosts == null) return;
         
         apiService.getUserPosts(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<com.cityscape.app.model.FeedPost>>() {
             @Override
             public void onResponse(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, retrofit2.Response<List<com.cityscape.app.model.FeedPost>> response) {
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<com.cityscape.app.model.FeedPost> userPostsList = response.body();
                     List<com.cityscape.app.model.Place> postsAsPlaces = new ArrayList<>();
-                    for (com.cityscape.app.model.FeedPost post : response.body()) {
+                    for (com.cityscape.app.model.FeedPost post : userPostsList) {
                         com.cityscape.app.model.Place p = new com.cityscape.app.model.Place();
                         p.id = post.id;
                         p.name = post.placeName;
@@ -254,19 +368,199 @@ public class ProfileFragment extends Fragment {
                         postsAsPlaces.add(p);
                     }
                     
-                    com.cityscape.app.adapter.PlaceAdapter adapter = new com.cityscape.app.adapter.PlaceAdapter(getContext(), postsAsPlaces, true, null);
+                    if (postsAsPlaces.isEmpty()) {
+                        recyclerUserPosts.setVisibility(View.GONE);
+                        return;
+                    }
+                    
+                    com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener postClickListener = new com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener() {
+                        @Override
+                        public void onPlaceClick(com.cityscape.app.model.Place place) {
+                            for (com.cityscape.app.model.FeedPost fp : userPostsList) {
+                                if (fp.id.equals(place.id)) {
+                                    showPostDetailDialog(fp);
+                                    break;
+                                }
+                            }
+                        }
+                        @Override public void onFavoriteClick(com.cityscape.app.model.Place place) {}
+                        @Override public void onVisitedClick(com.cityscape.app.model.Place place) {}
+                        @Override public void onPlanClick(com.cityscape.app.model.Place place) {}
+                    };
+                    
+                    com.cityscape.app.adapter.PlaceAdapter adapter = new com.cityscape.app.adapter.PlaceAdapter(getContext(), postsAsPlaces, true, postClickListener);
                     recyclerUserPosts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                     recyclerUserPosts.setAdapter(adapter);
-                    
                     recyclerUserPosts.setVisibility(View.VISIBLE);
-                    if (titleMyPosts != null) titleMyPosts.setVisibility(View.VISIBLE);
+                } else {
+                    recyclerUserPosts.setVisibility(View.GONE);
                 }
             }
 
             @Override
-            public void onFailure(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, Throwable t) { }
+            public void onFailure(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, Throwable t) {
+                recyclerUserPosts.setVisibility(View.GONE);
+            }
         });
     }
+
+    private void loadLikedPosts() {
+        if (recyclerUserPosts == null) return;
+        
+        apiService.getLikedPosts(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<com.cityscape.app.model.FeedPost>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, retrofit2.Response<List<com.cityscape.app.model.FeedPost>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<com.cityscape.app.model.FeedPost> likedPostsList = response.body();
+                    List<com.cityscape.app.model.Place> postsAsPlaces = new ArrayList<>();
+                    for (com.cityscape.app.model.FeedPost post : likedPostsList) {
+                        com.cityscape.app.model.Place p = new com.cityscape.app.model.Place();
+                        p.id = post.id;
+                        p.name = post.placeName;
+                        p.imageUrl = post.imageUrl;
+                        p.type = "Postare";
+                        p.rating = (float) post.rating;
+                        postsAsPlaces.add(p);
+                    }
+                    
+                    if (postsAsPlaces.isEmpty()) {
+                        recyclerUserPosts.setVisibility(View.GONE);
+                        return;
+                    }
+                    
+                    com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener postClickListener = new com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener() {
+                        @Override
+                        public void onPlaceClick(com.cityscape.app.model.Place place) {
+                            for (com.cityscape.app.model.FeedPost fp : likedPostsList) {
+                                if (fp.id.equals(place.id)) {
+                                    showPostDetailDialog(fp);
+                                    break;
+                                }
+                            }
+                        }
+                        @Override public void onFavoriteClick(com.cityscape.app.model.Place place) {}
+                        @Override public void onVisitedClick(com.cityscape.app.model.Place place) {}
+                        @Override public void onPlanClick(com.cityscape.app.model.Place place) {}
+                    };
+                    
+                    com.cityscape.app.adapter.PlaceAdapter adapter = new com.cityscape.app.adapter.PlaceAdapter(getContext(), postsAsPlaces, true, postClickListener);
+                    recyclerUserPosts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                    recyclerUserPosts.setAdapter(adapter);
+                    recyclerUserPosts.setVisibility(View.VISIBLE);
+                } else {
+                    recyclerUserPosts.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, Throwable t) {
+                recyclerUserPosts.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void loadBookmarkedPosts() {
+        if (recyclerUserPosts == null) return;
+        
+        new Thread(() -> {
+            List<String> bookmarkedIds = db.bookmarkDao().getBookmarkedPostIds(sessionManager.getUserId());
+            if (bookmarkedIds.isEmpty()) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> recyclerUserPosts.setVisibility(View.GONE));
+                }
+                return;
+            }
+            
+            String ids_str = String.join(",", bookmarkedIds);
+            apiService.getFeedByIds(ids_str, sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<com.cityscape.app.model.FeedPost>>() {
+                @Override
+                public void onResponse(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, retrofit2.Response<List<com.cityscape.app.model.FeedPost>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<com.cityscape.app.model.FeedPost> bookmarkedPostsList = response.body();
+                        List<com.cityscape.app.model.Place> postsAsPlaces = new ArrayList<>();
+                        for (com.cityscape.app.model.FeedPost post : bookmarkedPostsList) {
+                            com.cityscape.app.model.Place p = new com.cityscape.app.model.Place();
+                            p.id = post.id;
+                            p.name = post.placeName;
+                            p.imageUrl = post.imageUrl;
+                            p.type = "Postare";
+                            p.rating = (float) post.rating;
+                            postsAsPlaces.add(p);
+                        }
+                        
+                        if (postsAsPlaces.isEmpty()) {
+                            recyclerUserPosts.setVisibility(View.GONE);
+                            return;
+                        }
+                        
+                        com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener postClickListener = new com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener() {
+                            @Override
+                            public void onPlaceClick(com.cityscape.app.model.Place place) {
+                                for (com.cityscape.app.model.FeedPost fp : bookmarkedPostsList) {
+                                    if (fp.id.equals(place.id)) {
+                                        showPostDetailDialog(fp);
+                                        break;
+                                    }
+                                }
+                            }
+                            @Override public void onFavoriteClick(com.cityscape.app.model.Place place) {}
+                            @Override public void onVisitedClick(com.cityscape.app.model.Place place) {}
+                            @Override public void onPlanClick(com.cityscape.app.model.Place place) {}
+                        };
+                        
+                        com.cityscape.app.adapter.PlaceAdapter adapter = new com.cityscape.app.adapter.PlaceAdapter(getContext(), postsAsPlaces, true, postClickListener);
+                        recyclerUserPosts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                        recyclerUserPosts.setAdapter(adapter);
+                        recyclerUserPosts.setVisibility(View.VISIBLE);
+                    } else {
+                        recyclerUserPosts.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<List<com.cityscape.app.model.FeedPost>> call, Throwable t) {
+                    recyclerUserPosts.setVisibility(View.GONE);
+                }
+            });
+        }).start();
+    }
+
+    private void showPostDetailDialog(com.cityscape.app.model.FeedPost post) {
+        if (!isAdded()) return;
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+        View v = getLayoutInflater().inflate(R.layout.dialog_post_detail, null);
+        builder.setView(v);
+        
+        ImageView image = v.findViewById(R.id.detail_post_image);
+        TextView txtType = v.findViewById(R.id.detail_post_type);
+        TextView txtRating = v.findViewById(R.id.detail_post_rating);
+        TextView txtName = v.findViewById(R.id.detail_post_place_name);
+        TextView txtCaption = v.findViewById(R.id.detail_post_caption);
+        Button btnClose = v.findViewById(R.id.btn_close_detail);
+        
+        if (txtName != null) txtName.setText(post.placeName);
+        if (txtCaption != null) txtCaption.setText(post.userName + ": \"" + post.caption + "\"");
+        if (txtRating != null) txtRating.setText(String.format("%.1f", post.rating));
+        
+        if (image != null && post.imageUrl != null && !post.imageUrl.isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                .load(post.imageUrl)
+                .centerCrop()
+                .placeholder(R.drawable.placeholder_place)
+                .into(image);
+        }
+        
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+        
+        if (btnClose != null) {
+            btnClose.setOnClickListener(view -> dialog.dismiss());
+        }
+        
+        dialog.show();
+    }
+
+
 
     private void showUserReport() {
         if (!isAdded()) return;
@@ -278,8 +572,9 @@ public class ProfileFragment extends Fragment {
         apiService.getUserReport(sessionManager.getUserId()).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
             @Override
             public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null) {
-                    dialog.dismiss();
+                if (!isAdded()) return;
+                dialog.dismiss();
+                if (response.isSuccessful() && response.body() != null) {
                     com.google.gson.JsonObject r = response.body();
                     
                     StringBuilder sb = new StringBuilder();
@@ -306,16 +601,95 @@ public class ProfileFragment extends Fragment {
                             .setTitle("Raportul Tău CityScape")
                             .setMessage(sb.toString())
                             .setPositiveButton("Închide", null)
-                            .setNeutralButton("Share", (d, w) -> {
-                                Intent s = new Intent(Intent.ACTION_SEND); s.setType("text/plain");
-                                s.putExtra(Intent.EXTRA_TEXT, sb.toString());
-                                startActivity(Intent.createChooser(s, "Trimite Raport"));
+                            .setNeutralButton("Partajează", (d, w) -> {
+                                String[] shareOptions = {
+                                    "Trimite prietenilor în chat-ul de grup 💬",
+                                    "Partajează extern (WhatsApp, Instagram, etc.) 📤"
+                                };
+                                new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                        .setTitle("Cum dorești să partajezi?")
+                                        .setItems(shareOptions, (subDialog, optionIndex) -> {
+                                            if (optionIndex == 0) {
+                                                // Load groups on background thread
+                                                new Thread(() -> {
+                                                    List<com.cityscape.app.model.ActivityGroup> groups = db.groupDao().getGroupsForUser(sessionManager.getUserId());
+                                                    if (groups == null || groups.isEmpty()) {
+                                                        // Fallback to sending to a friend (users list)
+                                                        List<com.cityscape.app.model.User> friends = db.userDao().getAllUsers();
+                                                        if (getActivity() == null) return;
+                                                        getActivity().runOnUiThread(() -> {
+                                                            if (friends == null || friends.isEmpty()) {
+                                                                Toast.makeText(getContext(), "Nu ai prieteni activi momentan.", Toast.LENGTH_SHORT).show();
+                                                                return;
+                                                            }
+                                                            String[] friendNames = new String[friends.size()];
+                                                            for (int i = 0; i < friends.size(); i++) {
+                                                                friendNames[i] = friends.get(i).name;
+                                                            }
+                                                            new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                                                    .setTitle("Alege prietenul din aplicație")
+                                                                    .setItems(friendNames, (fDialog, fIndex) -> {
+                                                                        com.cityscape.app.model.User chosenFriend = friends.get(fIndex);
+                                                                        com.cityscape.app.util.BadgeManager.addExperience(appContext, sessionManager.getUserId(), 100);
+                                                                        Toast.makeText(getContext(), "Raport trimis cu succes către " + chosenFriend.name + "! 💬 +100 XP", Toast.LENGTH_LONG).show();
+                                                                    })
+                                                                    .show();
+                                                        });
+                                                    } else {
+                                                        // List user's groups to share to
+                                                        if (getActivity() == null) return;
+                                                        getActivity().runOnUiThread(() -> {
+                                                            String[] groupNames = new String[groups.size()];
+                                                            for (int i = 0; i < groups.size(); i++) {
+                                                                groupNames[i] = groups.get(i).groupName;
+                                                            }
+                                                            new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                                                    .setTitle("Alege grupul în care partajezi")
+                                                                    .setItems(groupNames, (gDialog, gIndex) -> {
+                                                                        com.cityscape.app.model.ActivityGroup chosenGroup = groups.get(gIndex);
+                                                                        
+                                                                        // Post message to the group chat
+                                                                        new Thread(() -> {
+                                                                            com.cityscape.app.model.GroupMessage sharedMsg = new com.cityscape.app.model.GroupMessage(
+                                                                                chosenGroup.id, 
+                                                                                sessionManager.getUserId(), 
+                                                                                sessionManager.getCurrentUser() != null ? sessionManager.getCurrentUser().name : "Eu",
+                                                                                "📊 RAPORTUL MEU ACTIVITATE:\n\n" + sb.toString()
+                                                                            );
+                                                                            db.groupMessageDao().insert(sharedMsg);
+                                                                            com.cityscape.app.util.BadgeManager.addExperience(appContext, sessionManager.getUserId(), 150);
+                                                                            
+                                                                            if (getActivity() != null) {
+                                                                                getActivity().runOnUiThread(() -> {
+                                                                                    Toast.makeText(getContext(), "Raport partajat în chat-ul grupului '" + chosenGroup.groupName + "'! 🚀 +150 XP", Toast.LENGTH_LONG).show();
+                                                                                });
+                                                                            }
+                                                                        }).start();
+                                                                    })
+                                                                    .show();
+                                                        });
+                                                    }
+                                                }).start();
+                                            } else {
+                                                // External share
+                                                Intent s = new Intent(Intent.ACTION_SEND); 
+                                                s.setType("text/plain");
+                                                s.putExtra(Intent.EXTRA_TEXT, sb.toString());
+                                                startActivity(Intent.createChooser(s, "Trimite Raport"));
+                                            }
+                                        })
+                                        .show();
                             })
                             .show();
+                } else {
+                    Toast.makeText(getContext(), "Nu s-a putut genera raportul. Reîncearcă mai târziu.", Toast.LENGTH_SHORT).show();
                 }
             }
             @Override public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
-                if (isAdded()) dialog.dismiss();
+                if (isAdded()) {
+                    dialog.dismiss();
+                    Toast.makeText(getContext(), "Eroare de conexiune la server.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -346,5 +720,125 @@ public class ProfileFragment extends Fragment {
             }
             @Override public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {}
         });
+    }
+
+    private void showMysticalTravelStory() {
+        if (!isAdded()) return;
+        AlertDialog progressDialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                .setTitle("Cronicarul AI...")
+                .setMessage("Se compilează aventurile tale într-un manuscris mistic...")
+                .show();
+
+        new Thread(() -> {
+            List<String> visitedNames = new ArrayList<>();
+            try {
+                List<com.cityscape.app.model.PlannedActivity> list = db.activityDao().getActivitiesForUser(sessionManager.getUserId());
+                if (list != null) {
+                    for (com.cityscape.app.model.PlannedActivity act : list) {
+                        if (act.placeName != null && !act.placeName.isEmpty()) {
+                            visitedNames.add(act.placeName.replace("🏆 ", ""));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("ProfileFragment", "Error fetching visited activities", e);
+            }
+
+            if (visitedNames.isEmpty()) {
+                visitedNames.add("Sala Palatului");
+                visitedNames.add("Teatrul Național");
+                visitedNames.add("Art Safari");
+            }
+
+            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("places", visitedNames);
+            payload.put("user_name", sessionManager.getCurrentUser() != null ? sessionManager.getCurrentUser().name : "Mihaela Bogdan");
+
+            apiService.generateTravelStory(payload).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+                @Override
+                public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                    if (!isAdded()) return;
+                    progressDialog.dismiss();
+
+                    if (response.isSuccessful() && response.body() != null) {
+                        com.google.gson.JsonObject res = response.body();
+                        String story = res.get("story").getAsString();
+
+                        new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                .setTitle("📖 Jurnalul Mistic AI")
+                                .setMessage(story)
+                                .setPositiveButton("Închide", null)
+                                .setNeutralButton("Partajează", (dialog, which) -> {
+                                    String[] shareOptions = {
+                                        "Trimite prietenilor în chat-ul de grup 💬",
+                                        "Copiază textul 📋"
+                                    };
+                                    new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                            .setTitle("Alege modul de partajare")
+                                            .setItems(shareOptions, (subD, index) -> {
+                                                if (index == 0) {
+                                                    new Thread(() -> {
+                                                        List<com.cityscape.app.model.ActivityGroup> groups = db.groupDao().getGroupsForUser(sessionManager.getUserId());
+                                                        if (groups == null || groups.isEmpty()) {
+                                                            if (getActivity() == null) return;
+                                                            getActivity().runOnUiThread(() -> {
+                                                                Toast.makeText(getContext(), "Nu ai grupuri active în care să trimiți povestea.", Toast.LENGTH_SHORT).show();
+                                                            });
+                                                        } else {
+                                                            if (getActivity() == null) return;
+                                                            getActivity().runOnUiThread(() -> {
+                                                                String[] groupNames = new String[groups.size()];
+                                                                for (int i = 0; i < groups.size(); i++) {
+                                                                    groupNames[i] = groups.get(i).groupName;
+                                                                }
+                                                                new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                                                        .setTitle("Alege grupul în care trimiți povestea")
+                                                                        .setItems(groupNames, (gDialog, gIndex) -> {
+                                                                            com.cityscape.app.model.ActivityGroup chosenGroup = groups.get(gIndex);
+                                                                            new Thread(() -> {
+                                                                                com.cityscape.app.model.GroupMessage sharedMsg = new com.cityscape.app.model.GroupMessage(
+                                                                                    chosenGroup.id, 
+                                                                                    sessionManager.getUserId(), 
+                                                                                    sessionManager.getCurrentUser() != null ? sessionManager.getCurrentUser().name : "Eu",
+                                                                                    "📖 AI TRAVEL DIARY ENTRY:\n\n" + story
+                                                                                );
+                                                                                db.groupMessageDao().insert(sharedMsg);
+                                                                                com.cityscape.app.util.BadgeManager.addExperience(appContext, sessionManager.getUserId(), 200);
+                                                                                
+                                                                                if (getActivity() != null) {
+                                                                                    getActivity().runOnUiThread(() -> {
+                                                                                        Toast.makeText(getContext(), "Povestea mistică a fost trimisă în chat-ul grupului! 🚀 +200 XP", Toast.LENGTH_LONG).show();
+                                                                                    });
+                                                                                }
+                                                                            }).start();
+                                                                        })
+                                                                        .show();
+                                                            });
+                                                        }
+                                                    }).start();
+                                                } else {
+                                                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                                                    android.content.ClipData clip = android.content.ClipData.newPlainText("CityScape Mystical Story", story);
+                                                    clipboard.setPrimaryClip(clip);
+                                                    Toast.makeText(getContext(), "Copiat în clipboard! 📋", Toast.LENGTH_SHORT).show();
+                                                }
+                                            })
+                                            .show();
+                                })
+                                .show();
+                    } else {
+                        Toast.makeText(getContext(), "Cronicarul AI are un blocaj de creație momentan.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
+                    if (isAdded()) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getContext(), "Eroare de conexiune la cronicarul AI.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }).start();
     }
 }

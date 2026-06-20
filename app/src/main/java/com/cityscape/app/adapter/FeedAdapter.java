@@ -25,6 +25,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         void onCommentClicked(FeedPost post);
         void onShareClicked(FeedPost post);
         void onReportClicked(FeedPost post);
+        void onBookmarkClicked(FeedPost post, int position);
     }
 
     public FeedAdapter(OnPostActionListener listener) {
@@ -57,6 +58,18 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         String likesText = String.format("%,d aprecieri", post.likesCount);
         holder.likesCount.setText(likesText);
 
+        // Comments formatting (Pro addition)
+        if (holder.commentsCount != null) {
+            if (post.commentsCount > 0) {
+                holder.commentsCount.setText(String.format("Vezi toate cele %d comentarii", post.commentsCount));
+            } else {
+                holder.commentsCount.setText("Adaugă primul comentariu...");
+            }
+            holder.commentsCount.setOnClickListener(v -> {
+                if (listener != null) listener.onCommentClicked(post);
+            });
+        }
+
         // Time ago - uppercase for style
         holder.timeAgo.setText(getTimeAgo(post.createdAt).toUpperCase());
 
@@ -80,10 +93,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
 
         // Like state - change icon if liked
         if (post.isLiked) {
-            holder.btnLike.setImageResource(R.drawable.ic_heart); // Should be filled heart
-            holder.btnLike.setColorFilter(holder.itemView.getContext().getColor(R.color.primary));
+            holder.btnLike.setImageResource(R.drawable.ic_favorite_filled);
+            holder.btnLike.setColorFilter(holder.itemView.getContext().getColor(R.color.error));
         } else {
-            holder.btnLike.setImageResource(R.drawable.ic_heart); // Should be outline heart
+            holder.btnLike.setImageResource(R.drawable.ic_favorite_border);
             holder.btnLike.setColorFilter(holder.itemView.getContext().getColor(R.color.app_text_primary));
         }
 
@@ -99,6 +112,18 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         holder.btnShare.setOnClickListener(v -> {
             if (listener != null) listener.onShareClicked(post);
         });
+
+        // Bookmark state
+        if (holder.btnBookmark != null) {
+            if (post.isBookmarked) {
+                holder.btnBookmark.setColorFilter(holder.itemView.getContext().getColor(R.color.gold_accent));
+            } else {
+                holder.btnBookmark.setColorFilter(holder.itemView.getContext().getColor(R.color.app_text_primary));
+            }
+            holder.btnBookmark.setOnClickListener(v -> {
+                if (listener != null) listener.onBookmarkClicked(post, position);
+            });
+        }
 
         holder.btnOptions.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(v.getContext(), v);
@@ -141,7 +166,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
         ImageView userAvatar, postImage;
-        TextView userName, placeName, caption, captionUser, timeAgo, likesCount;
+        TextView userName, placeName, caption, captionUser, timeAgo, likesCount, commentsCount;
         ImageButton btnLike, btnComment, btnShare, btnBookmark, btnOptions;
 
         PostViewHolder(@NonNull View v) {
@@ -154,6 +179,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             captionUser = v.findViewById(R.id.post_caption_user);
             timeAgo = v.findViewById(R.id.post_time_ago);
             likesCount = v.findViewById(R.id.post_likes_count);
+            commentsCount = v.findViewById(R.id.post_comments_count);
             btnLike = v.findViewById(R.id.btn_like);
             btnComment = v.findViewById(R.id.btn_comment);
             btnShare = v.findViewById(R.id.btn_share_post);

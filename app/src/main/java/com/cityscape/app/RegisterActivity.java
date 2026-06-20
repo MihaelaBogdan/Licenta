@@ -41,6 +41,10 @@ public class RegisterActivity extends BaseActivity {
     private AppDatabase db;
     private SessionManager sessionManager;
     private View progressOverlay;
+    private android.widget.CheckBox chkTerms;
+    private TextView txtTermsLink;
+    private de.hdodenhof.circleimageview.CircleImageView imgLogo;
+    private String selectedAvatarPath = null;
 
     // Supabase
     private SupabaseAuthManager supabaseAuth;
@@ -63,6 +67,31 @@ public class RegisterActivity extends BaseActivity {
                 } catch (Exception e) {
                     Log.e(TAG, "Unexpected error during Google sign-in", e);
                     Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private final ActivityResultLauncher<String> imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    try {
+                        java.io.InputStream is = getContentResolver().openInputStream(uri);
+                        java.io.File file = new java.io.File(getFilesDir(), "avatar_" + System.currentTimeMillis() + ".jpg");
+                        java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                        fos.close();
+                        is.close();
+                        selectedAvatarPath = file.getAbsolutePath();
+                        if (imgLogo != null) {
+                            com.bumptech.glide.Glide.with(this).load(file).into(imgLogo);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Eroare la încărcarea imaginii", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
 
@@ -93,8 +122,17 @@ public class RegisterActivity extends BaseActivity {
         loginPrompt = findViewById(R.id.btnLogin);
         btnGoogle = findViewById(R.id.btn_google_sign_in);
         progressOverlay = findViewById(R.id.progressOverlay);
+        chkTerms = findViewById(R.id.chkTerms);
+        txtTermsLink = findViewById(R.id.txtTermsLink);
+        imgLogo = findViewById(R.id.imgLogo);
+
+        if (imgLogo != null) {
+            imgLogo.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
+        }
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        
+        txtTermsLink.setOnClickListener(v -> showTermsDialog());
 
         registerButton.setOnClickListener(v -> {
             String name = nameEditText.getText().toString().trim();
@@ -102,30 +140,39 @@ public class RegisterActivity extends BaseActivity {
             String password = passwordEditText.getText().toString().trim();
 
             if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-                Toast.makeText(this, getString(R.string.please_fill_all_fields), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Completează toate câmpurile", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (name.length() < 2) {
+                Toast.makeText(this, "Numele trebuie să aibă cel puțin 2 caractere", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!isValidEmail(email)) {
-                Toast.makeText(this, getString(R.string.invalid_email), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Adresa de email este invalidă", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!isPasswordStrong(password)) {
-                Toast.makeText(this, getString(R.string.password_too_weak), Toast.LENGTH_LONG).show();
+                String msg = getPasswordStrengthMessage(password);
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
                 return;
             }
 
-            // Show progress
+            if (!chkTerms.isChecked()) {
+                Toast.makeText(this, "Trebuie să accepți Termenii și Condițiile", Toast.LENGTH_LONG).show();
+                return;
+            }
+
             if (progressOverlay != null) progressOverlay.setVisibility(View.VISIBLE);
 
-            // Register with Supabase
             new Thread(() -> {
                 User existingLocalUser = db.userDao().getUserByEmail(email);
                 if (existingLocalUser != null) {
                     runOnUiThread(() -> {
                         if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
-                        Toast.makeText(this, getString(R.string.email_already_registered), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Această adresă de email este deja înregistrată", Toast.LENGTH_SHORT).show();
                     });
                     return;
                 }
@@ -135,19 +182,27 @@ public class RegisterActivity extends BaseActivity {
                     public void onSuccess(String userEmail, String displayName) {
                         runOnUiThread(() -> {
                             handleSupabaseUserSession(userEmail, displayName);
-                            
                             if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
-                            
-                            // Check if confirmed
+
+                            supabaseAuth.sendWelcomeEmail(userEmail, displayName, new SupabaseAuthManager.EmailNotificationCallback() {
+                                @Override
+                                public void onEmailSent(String email) {
+                                    Log.d(TAG, "Welcome email sent to: " + email);
+                                }
+
+                                @Override
+                                public void onEmailFailed(String error) {
+                                    Log.w(TAG, "Welcome email failed: " + error);
+                                }
+                            });
+
                             if (supabaseAuth.isUserConfirmed()) {
-                                // Already confirmed (could happen with some providers/backend settings)
                                 Toast.makeText(RegisterActivity.this,
-                                        String.format(getString(R.string.welcome_new_user), displayName != null ? displayName : name),
+                                        "Bine ai venit, " + displayName + "!",
                                         Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                                 finish();
                             } else {
-                                // Needs confirmation - Show dialog instead of auto-logging in
                                 showVerificationNeededDialog(userEmail != null ? userEmail : email);
                             }
                         });
@@ -157,7 +212,7 @@ public class RegisterActivity extends BaseActivity {
                     public void onFailure(String errorMessage) {
                         runOnUiThread(() -> {
                             if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
-                            Log.w(TAG, "Supabase registration failed: " + errorMessage);
+                            Log.w(TAG, "Registration failed: " + errorMessage);
                             Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                         });
                     }
@@ -267,17 +322,33 @@ public class RegisterActivity extends BaseActivity {
     }
 
     private void showVerificationNeededDialog(String email) {
-        new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
-                .setTitle("Confirmă Adresa de Email")
-                .setMessage("Un link de confirmare a fost trimis la: " + email + "\n\nTe rugăm să verifici inbox-ul (și folderul Spam) pentru a-ți activa contul CityScape.")
-                .setPositiveButton("Am înțeles", (dialog, which) -> {
-                    dialog.dismiss();
-                    // Clear session since it's unconfirmed and we want them to login after confirming
-                    supabaseAuth.signOut();
-                    finish();
-                })
-                .setCancelable(false)
-                .show();
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme);
+        builder.setTitle("Confirmă Adresa de Email");
+        builder.setMessage("Un link de confirmare a fost trimis la:\n" + email + "\n\nTe rugăm să verifici inbox-ul (și folderul Spam) pentru a-ți activa contul CityScape.\n\nLink-ul expiră în 24 de ore.");
+
+        builder.setPositiveButton("Am confirmat email-ul", (dialog, which) -> {
+            dialog.dismiss();
+            supabaseAuth.signOut();
+            finish();
+        });
+
+        builder.setNegativeButton("Retrimite Email", (dialog, which) -> {
+            Toast.makeText(this, "Retrimitem email-ul de verificare...", Toast.LENGTH_SHORT).show();
+            supabaseAuth.resendVerificationEmail(email, new SupabaseAuthManager.VerificationCallback() {
+                @Override
+                public void onSent() {
+                    Toast.makeText(RegisterActivity.this, "Email retrimis! Verifică inbox-ul.", Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    Toast.makeText(RegisterActivity.this, "Eroare la retrimisie: " + errorMessage, Toast.LENGTH_LONG).show();
+                }
+            });
+        });
+
+        builder.setCancelable(false);
+        builder.show();
     }
 
     private boolean isValidEmail(String email) {
@@ -285,7 +356,48 @@ public class RegisterActivity extends BaseActivity {
     }
 
     private boolean isPasswordStrong(String password) {
-        // Just check for minimum length for testing
-        return password != null && password.length() >= 6;
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        boolean hasUppercase = password.matches(".*[A-Z].*");
+        boolean hasLowercase = password.matches(".*[a-z].*");
+        boolean hasNumber = password.matches(".*\\d.*");
+        return hasUppercase && hasLowercase && hasNumber;
+    }
+
+    private String getPasswordStrengthMessage(String password) {
+        if (password == null || password.isEmpty()) {
+            return "Parola este obligatorie";
+        }
+        if (password.length() < 8) {
+            return "Parola trebuie să aibă cel puțin 8 caractere";
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            return "Parola trebuie să conțină cel puțin o literă mare";
+        }
+        if (!password.matches(".*[a-z].*")) {
+            return "Parola trebuie să conțină cel puțin o literă mică";
+        }
+        if (!password.matches(".*\\d.*")) {
+            return "Parola trebuie să conțină cel puțin o cifră";
+        }
+        return "";
+    }
+
+    private void showTermsDialog() {
+        String termsText = "Termeni și Condiții - CityScape\n\n" +
+                "1. Prin utilizarea aplicației, ești de acord să respecți regulile comunității.\n" +
+                "2. Datele tale (nume, preferințe) sunt folosite exclusiv pentru personalizarea recomandărilor prin AI.\n" +
+                "3. Nu stocăm parole în clar, iar autentificarea este securizată via Supabase.\n" +
+                "4. Ne rezervăm dreptul de a suspenda conturile care fac spam în modulul 'Hype Battle'.\n\n" +
+                "Ultima actualizare: Astăzi.";
+
+        new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                .setTitle(getString(R.string.terms_of_service))
+                .setMessage(termsText)
+                .setPositiveButton("Am Înțeles", (dialog, which) -> {
+                    if (chkTerms != null) chkTerms.setChecked(true);
+                })
+                .show();
     }
 }

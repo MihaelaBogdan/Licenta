@@ -9,6 +9,10 @@ public class ApiClient {
     private static final String BASE_URL = com.cityscape.app.BuildConfig.FLASK_API_URL;
     private static Retrofit retrofit = null;
 
+    public static String getBaseUrl() {
+        return BASE_URL;
+    }
+
     public static Retrofit getClient() {
         if (retrofit == null) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();

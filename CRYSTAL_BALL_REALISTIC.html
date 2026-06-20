@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 Crystal Ball - Realistic</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #FF00FF;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #00FFFF;
+            min-width: 250px;
+        }
+
+        .hud-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .label {
+            color: #FF00FF;
+        }
+
+        .value {
+            color: #00FFFF;
+            font-weight: bold;
+        }
+
+        .prediction-hud {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00FFFF;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 300px;
+        }
+
+        .prediction-title {
+            color: #FF00FF;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .prediction-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 0, 255, 0.1);
+            border-left: 3px solid #FF00FF;
+            padding-left: 10px;
+        }
+
+        .prediction-text {
+            color: #00FFFF;
+            font-size: 12px;
+        }
+
+        .prediction-bar {
+            background: rgba(0, 255, 255, 0.2);
+            height: 4px;
+            margin-top: 5px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .prediction-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00FFFF, #FF00FF);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="hud">
+        <div style="text-align: center; margin-bottom: 15px; color: #FF00FF; font-size: 14px; font-weight: bold;">
+            🔮 CRYSTAL BALL STATS
+        </div>
+        <div class="hud-item">
+            <span class="label">Confidence:</span>
+            <span class="value" id="confidence">65%</span>
+        </div>
+        <div class="hud-item">
+            <span class="label">Particles:</span>
+            <span class="value" id="particles">250</span>
+        </div>
+        <div class="hud-item">
+            <span class="label">FPS:</span>
+            <span class="value" id="fps">60</span>
+        </div>
+        <div class="hud-item">
+            <span class="label">Light Power:</span>
+            <span class="value" id="lightPower">85%</span>
+        </div>
+        <div class="hud-item">
+            <span class="label">Refraction:</span>
+            <span class="value" id="refraction">1.50</span>
+        </div>
+        <div class="hud-item">
+            <span class="label">Bloom:</span>
+            <span class="value" id="bloom">Active</span>
+        </div>
+    </div>
+
+    <div class="prediction-hud">
+        <div class="prediction-title">📊 NEXT INTERESTS</div>
+        <div class="prediction-item">
+            <div class="prediction-text">🏛️ Museums</div>
+            <div class="prediction-bar">
+                <div class="prediction-fill" style="width: 65%"></div>
+            </div>
+        </div>
+        <div class="prediction-item">
+            <div class="prediction-text">🌳 Parks</div>
+            <div class="prediction-bar">
+                <div class="prediction-fill" style="width: 55%"></div>
+            </div>
+        </div>
+        <div class="prediction-item">
+            <div class="prediction-text">🍽️ Restaurants</div>
+            <div class="prediction-bar">
+                <div class="prediction-fill" style="width: 60%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Scene setup
+        const canvas = document.getElementById('canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x000000, 1);
+        camera.position.z = 4;
+
+        // Post-processing setup
+        const composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new THREE.UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            1.5,   // strength
+            0.4,   // radius
+            0.85   // threshold
+        );
+        composer.addPass(bloomPass);
+
+        // Custom shader for realistic glass sphere
+        const sphereVertexShader = `
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            varying vec3 vViewDir;
+
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                vPosition = position;
+                vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                vViewDir = normalize(cameraPosition - worldPosition.xyz);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+
+        const sphereFragmentShader = `
+            uniform vec3 uColor;
+            uniform float uTime;
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            varying vec3 vViewDir;
+
+            void main() {
+                // Fresnel effect
+                float fresnel = pow(1.0 - dot(vNormal, vViewDir), 3.0);
+
+                // Base color with glow
+                vec3 color = uColor;
+
+                // Pulsing internal glow
+                float pulse = 0.5 + 0.5 * sin(uTime * 2.0);
+                color += uColor * 0.5 * pulse;
+
+                // Add gradient based on normal
+                float gradient = dot(vNormal, vec3(0.0, 1.0, 0.0)) * 0.5 + 0.5;
+                color += vec3(0.0, 1.0, 1.0) * gradient * 0.3;
+
+                // Fresnel glow
+                color += uColor * fresnel * 0.8;
+
+                gl_FragColor = vec4(color, 0.9 + fresnel * 0.1);
+            }
+        `;
+
+        const sphereMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uColor: { value: new THREE.Color(0xFF00FF) },
+                uTime: { value: 0 }
+            },
+            vertexShader: sphereVertexShader,
+            fragmentShader: sphereFragmentShader,
+            transparent: true,
+            side: THREE.FrontSide
+        });
+
+        // Create sphere with many segments for smooth appearance
+        const sphereGeometry = new THREE.IcosahedronGeometry(1.2, 8);
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(sphere);
+
+        // Add outline sphere for extra glow
+        const outlineGeometry = new THREE.IcosahedronGeometry(1.25, 6);
+        const outlineMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFF00FF,
+            wireframe: false,
+            transparent: true,
+            opacity: 0.3,
+            emissive: 0xFF00FF
+        });
+        const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+        scene.add(outline);
+
+        // Advanced lighting setup
+        const mainLight = new THREE.PointLight(0xFF00FF, 2, 100);
+        mainLight.position.set(3, 4, 3);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+
+        const secondaryLight = new THREE.PointLight(0x00FFFF, 1.5, 100);
+        secondaryLight.position.set(-3, -2, 3);
+        scene.add(secondaryLight);
+
+        const glowLight = new THREE.PointLight(0xFFFF00, 1, 100);
+        glowLight.position.set(2, -3, -3);
+        scene.add(glowLight);
+
+        const ambientLight = new THREE.AmbientLight(0x4a0080, 0.4);
+        scene.add(ambientLight);
+
+        // Enhanced particle system with better geometry
+        const particleGroup = new THREE.Group();
+        scene.add(particleGroup);
+
+        const particles = [];
+        const particleCount = 250;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particleGeometry = new THREE.SphereGeometry(0.02 + Math.random() * 0.03, 8, 8);
+            const particleMaterial = new THREE.MeshBasicMaterial({
+                color: new THREE.Color().setHSL(Math.random() * 0.3 + 0.7, 1, 0.5),
+                emissive: new THREE.Color().setHSL(Math.random() * 0.3 + 0.7, 1, 0.5),
+                transparent: true,
+                opacity: Math.random() * 0.7 + 0.3
+            });
+            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 1.5 + Math.random() * 1.5;
+            const height = (Math.random() - 0.5) * 2;
+
+            particle.position.set(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+            );
+
+            particle.velocity = {
+                x: (Math.random() - 0.5) * 0.02,
+                y: (Math.random() - 0.5) * 0.01,
+                z: (Math.random() - 0.5) * 0.02
+            };
+
+            particles.push(particle);
+            particleGroup.add(particle);
+        }
+
+        // Animation variables
+        let time = 0;
+        const clock = new THREE.Clock();
+        let frameCount = 0;
+        let lastTime = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            time += clock.getDelta();
+            frameCount++;
+
+            // FPS counter
+            if (time - lastTime >= 1) {
+                document.getElementById('fps').textContent = frameCount;
+                frameCount = 0;
+                lastTime = time;
+            }
+
+            // Rotate sphere with smooth animation
+            sphere.rotation.x += 0.002;
+            sphere.rotation.y += 0.003;
+            sphere.rotation.z += 0.0005;
+
+            // Pulsing and breathing effect
+            const breathe = Math.sin(time * 0.7) * 0.15 + 1;
+            sphere.scale.set(breathe, breathe, breathe);
+            outline.scale.set(breathe * 1.04, breathe * 1.04, breathe * 1.04);
+
+            // Update shader uniforms
+            sphereMaterial.uniforms.uTime.value = time;
+
+            // Orbit lights around sphere
+            const lightOrbitRadius = 4;
+            mainLight.position.x = Math.cos(time * 0.5) * lightOrbitRadius;
+            mainLight.position.y = Math.sin(time * 0.3) * lightOrbitRadius;
+            mainLight.position.z = Math.sin(time * 0.7) * lightOrbitRadius;
+
+            secondaryLight.position.x = Math.cos(time * 0.4 + Math.PI) * lightOrbitRadius;
+            secondaryLight.position.y = Math.sin(time * 0.6 + Math.PI) * lightOrbitRadius;
+            secondaryLight.position.z = Math.sin(time * 0.5 + Math.PI) * lightOrbitRadius;
+
+            // Update particles
+            particles.forEach((particle, index) => {
+                particle.position.x += particle.velocity.x;
+                particle.position.y += particle.velocity.y;
+                particle.position.z += particle.velocity.z;
+
+                // Orbit particles around sphere
+                const orbitAngle = (time * 0.3 + (index / particleCount) * Math.PI * 2);
+                const orbitRadius = 1.8 + Math.sin(time * 0.5 + index) * 0.5;
+
+                particle.position.x = Math.cos(orbitAngle) * orbitRadius;
+                particle.position.y = Math.sin(time * 0.7 + index * 0.05) * 0.8;
+                particle.position.z = Math.sin(orbitAngle + Math.PI * 0.5) * orbitRadius;
+
+                // Pulsing opacity
+                particle.material.opacity = (Math.sin(time * 2 + index * 0.1) * 0.3 + 0.4) * (0.7 + Math.sin(index) * 0.3);
+
+                // Color cycling
+                const hue = (time * 0.1 + index * 0.01) % 1;
+                particle.material.color.setHSL(hue * 0.3 + 0.65, 1, 0.5);
+                particle.material.emissive.setHSL(hue * 0.3 + 0.65, 1, 0.5);
+            });
+
+            // Update HUD
+            const confidence = 65 + Math.sin(time) * 15;
+            document.getElementById('confidence').textContent = Math.floor(confidence) + '%';
+            document.getElementById('lightPower').textContent = Math.floor(50 + Math.sin(time * 0.5) * 35) + '%';
+
+            // Render with bloom effect
+            composer.render();
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

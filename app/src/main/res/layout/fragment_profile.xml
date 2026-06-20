@@ -326,6 +326,7 @@
                     app:iconGravity="textStart"
                     app:iconPadding="10dp" />
 
+
                 <Button
                     android:id="@+id/btn_admin_stats"
                     android:layout_width="match_parent"
@@ -359,17 +360,80 @@
                     android:clipToPadding="false"
                     android:orientation="horizontal" />
 
-                <!-- POSTS SECTION -->
+                <!-- POSTS SECTION (COLLECTION SELECTOR) -->
                 <TextView
                     android:id="@+id/title_my_posts"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
-                    android:text="Descoperirile tale"
+                    android:text="Colecțiile Tale"
                     android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:fontFamily="sans-serif-black"
                     android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/layout_profile_tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_tab_discoveries"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:text="Postări"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        android:textColor="@color/white"
+                        android:backgroundTint="@color/primary"
+                        app:cornerRadius="19dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_tab_liked"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="2dp"
+                        android:text="Apreciate"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        android:textColor="@color/app_text_secondary"
+                        android:backgroundTint="@android:color/transparent"
+                        app:strokeColor="@color/app_divider"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="19dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_tab_bookmarked"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="Salvate"
+                        android:textAllCaps="false"
+                        android:textSize="12sp"
+                        android:textColor="@color/app_text_secondary"
+                        android:backgroundTint="@android:color/transparent"
+                        app:strokeColor="@color/app_divider"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="19dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp" />
+
+                </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_user_posts"
