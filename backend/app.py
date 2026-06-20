@@ -2605,7 +2605,7 @@ def generate_gemini_events(city_name, lat, lng):
 
 @app.get("/events")
 def get_events():
-    """Returns 100% real events for ANY location in the world. Scraped from iabilet.ro in RO, Ticketmaster globally."""
+    """Returns REAL events: concerts, movies, theater shows from multiple sources."""
     lat_val = request.args.get("lat", "44.4268")
     lng_val = request.args.get("lng", "26.1025")
     radius = int(request.args.get("radius", 50))
@@ -2617,53 +2617,43 @@ def get_events():
     except Exception:
         lat, lng = 44.4268, 26.1025
 
-    # Resolve city_name upfront
     city_name = get_city_name(lat, lng) or "România"
-
-    # Geographical detection: Is the location in Romania?
     is_romania = (43.0 <= lat <= 49.0) and (20.0 <= lng <= 30.2)
 
-    import concurrent.futures
+    print(f"🎭 Fetching events for: {city_name} (Romania: {is_romania})")
+
     events = []
+    real_events_count = 0
 
-    # ---- PARALLEL WEB SCRAPING from multiple sources ----
-    def run_tm():
+    # ==================== 1. iabilet.ro (ROMANIA ONLY) ====================
+    if is_romania:
+        _RO_CITIES = {
+            "București": "https://www.iabilet.ro/bilete/bucuresti",
+            "Cluj-Napoca": "https://www.iabilet.ro/bilete/cluj-napoca",
+            "Timișoara": "https://www.iabilet.ro/bilete/timisoara",
+            "Iași": "https://www.iabilet.ro/bilete/iasi",
+            "Brașov": "https://www.iabilet.ro/bilete/brasov",
+            "Constanța": "https://www.iabilet.ro/bilete/constanta",
+            "Sibiu": "https://www.iabilet.ro/bilete/sibiu",
+        }
+
+        nearest_city = min(_RO_CITIES.keys(), key=lambda c: haversine(lat, lng, *_RO_CITIES_COORDS.get(c, (44.4268, 26.1025))))
+
         try:
-            return fetch_ticketmaster_events(lat, lng, radius) or []
-        except: return []
+            iab_events = scrape_iabilet_events(nearest_city, lat, lng) or []
+            events.extend(iab_events)
+            real_events_count = len(iab_events)
+            print(f"✅ iabilet: {len(iab_events)} events from {nearest_city}")
+        except Exception as e:
+            print(f"⚠️ iabilet error: {e}")
 
-    def run_bandsintown():
-        try:
-            return scrape_bandsintown_events(lat, lng, city_name) or []
-        except: return []
-
-    def run_cinemagia():
-        try:
-            return scrape_cinemagia_events(city_name) or []
-        except: return []
-
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
-    future_tm = executor.submit(run_tm)
-    future_bandsintown = executor.submit(run_bandsintown)
-    future_cinemagia = executor.submit(run_cinemagia)
-
-    # Collect results from all sources
+    # ==================== 2. Ticketmaster (GLOBAL) ====================
     try:
-        events.extend(future_tm.result(timeout=2.0))
+        tm_events = fetch_ticketmaster_events(lat, lng, radius) or []
+        events.extend(tm_events)
+        print(f"✅ Ticketmaster: {len(tm_events)} events")
     except Exception as e:
-        print(f"⚠️ Ticketmaster failed: {e}")
-
-    try:
-        events.extend(future_bandsintown.result(timeout=2.0))
-    except Exception as e:
-        print(f"⚠️ Bandsintown failed: {e}")
-
-    try:
-        events.extend(future_cinemagia.result(timeout=2.0))
-    except Exception as e:
-        print(f"⚠️ Cinemagia failed: {e}")
-
-    print(f"📍 Events so far: {len(events)} (TM, Bandsintown, Cinemagia)")
+        print(f"⚠️ Ticketmaster error: {e}")
 
     print(f"📍 Events for: {city_name} (Lat: {lat}, Lng: {lng}) | Real TM events: {len(events)}")
 
