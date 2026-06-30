@@ -27,12 +27,18 @@ public class Place implements Serializable {
     public String aiSuggestion; // Reason from Gemini
     
     @SerializedName("match_history_pct")
-    public int matchHistoryPct;
+    public float matchHistoryPct;
 
     @SerializedName("match_prefs_pct")
-    public int matchPrefsPct;
+    public float matchPrefsPct;
 
-    public int confidence; // Overall recommendation confidence (0-100)
+    public float freshnessPct;
+    public float popularityPct;
+    public float userLevelPct;
+    public float diversityPct;
+    public float weatherMatchPct;
+
+    public float confidence; // Overall recommendation confidence (0-100)
     public String ai_summary; // TL;DR from Gemini
 
     @androidx.room.Ignore
@@ -45,6 +51,7 @@ public class Place implements Serializable {
     public Boolean isOpen;
 
     public String website;
+    public String photo;
 
     public static class Review implements java.io.Serializable {
         public String author;

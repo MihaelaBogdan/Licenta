@@ -46,6 +46,33 @@
     <!-- UI Backgrounds -->
     <color name="bg_chat_bot">#F3F4F6</color>
 
+    <!-- Smart Recommendation Card Colors (Light Mode) -->
+    <color name="smart_card_start">#E0F7FA</color>
+    <color name="smart_card_center">#F2FCFD</color>
+    <color name="smart_card_end">#FFFFFF</color>
+    <color name="smart_card_stroke">#8000BCD4</color>
+    <color name="smart_card_text_primary">#006064</color>
+    <color name="smart_card_text_secondary">#00838F</color>
+    <color name="smart_card_text_body">#1F2937</color>
+
+    <!-- Daily Quest Card Colors (Light Mode) -->
+    <color name="quest_card_start">#E6F4EA</color>
+    <color name="quest_card_center">#F4FAF6</color>
+    <color name="quest_card_end">#FFFFFF</color>
+    <color name="quest_card_stroke">#8010B981</color>
+    <color name="quest_card_text_primary">#065F46</color>
+    <color name="quest_card_text_secondary">#047857</color>
+    <color name="quest_card_text_body">#1F2937</color>
+    <color name="quest_reward_bg">#2610B981</color>
+    <color name="quest_reward_stroke">#4D10B981</color>
+    <color name="quest_reward_text">#059669</color>
+
+    <!-- Live Battle Card Colors (Light Mode) -->
+    <color name="battle_card_start">#FDF2F8</color>
+    <color name="battle_card_center">#F5F3FF</color>
+    <color name="battle_card_end">#FFFFFF</color>
+    <color name="battle_card_stroke">#4D8B5CF6</color>
+
 
 
     <!-- Legacy / Backup pointers to avoid breaking existing styles -->

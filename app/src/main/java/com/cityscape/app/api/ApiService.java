@@ -65,14 +65,44 @@ public interface ApiService {
                         @retrofit2.http.Query("interests") String interests,
                         @retrofit2.http.Query("duration") Integer duration,
                         @retrofit2.http.Query("points") Integer points,
-                        @retrofit2.http.Query("user_id") String userId);
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("travel_mode") String travelMode,
+                        @retrofit2.http.Query("start_hour") Integer startHour,
+                        @retrofit2.http.Query("companion") String companion,
+                        @retrofit2.http.Query("avoid_crowds") Boolean avoidCrowds);
+
+        @GET("itinerary/replace")
+        Call<ItineraryItem> replaceItinerarySlot(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("label") String label,
+                        @retrofit2.http.Query("time") String time,
+                        @retrofit2.http.Query("budget_per_slot") double budgetPerSlot,
+                        @retrofit2.http.Query("used_ids") String usedIds);
+
+        @GET("itinerary/enhanced")
+        Call<com.google.gson.JsonObject> getEnhancedItinerary(
+                        @retrofit2.http.Query("lat") double lat,
+                        @retrofit2.http.Query("lng") double lng,
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("type") String type,
+                        @retrofit2.http.Query("duration") int duration,
+                        @retrofit2.http.Query("points") int points,
+                        @retrofit2.http.Query("optimize") boolean optimize,
+                        @retrofit2.http.Query("budget") Integer budget);
+
+        @GET("analytics/personal/{user_id}")
+        Call<com.google.gson.JsonObject> getPersonalAnalytics(
+                        @retrofit2.http.Path("user_id") String userId);
 
         @GET("events")
         Call<List<com.cityscape.app.model.Event>> getEvents(
                         @retrofit2.http.Query("lat") double lat,
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("radius") int radius,
-                        @retrofit2.http.Query("interests") String interests);
+                        @retrofit2.http.Query("interests") String interests,
+                        @retrofit2.http.Query("user_id") String userId);
 
 
         @POST("visit")
@@ -81,13 +111,24 @@ public interface ApiService {
         @GET("visited")
         Call<List<Place>> getVisited(@retrofit2.http.Query("user_id") String userId);
 
-        // ===== SOCIAL FEED =====
         @GET("feed")
         Call<List<com.cityscape.app.model.FeedPost>> getFeed(
                         @retrofit2.http.Query("type") String type,
                         @retrofit2.http.Query("user_id") String userId,
                         @retrofit2.http.Query("lat") Double lat,
                         @retrofit2.http.Query("lng") Double lng);
+
+        @GET("social/trending")
+        Call<com.google.gson.JsonObject> getSocialTrending();
+
+        @GET("trending/stories")
+        Call<List<Place>> getTrendingStories(@retrofit2.http.Query("city") String city);
+
+        @GET("groups/{groupId}/recommendations")
+        Call<List<java.util.Map<String, String>>> getGroupRecommendations(
+                @retrofit2.http.Path("groupId") String groupId,
+                @retrofit2.http.Query("lat") double lat,
+                @retrofit2.http.Query("lng") double lng);
 
         @GET("users/{userId}/posts")
         Call<List<com.cityscape.app.model.FeedPost>> getUserPosts(

@@ -987,6 +987,85 @@ public class CalendarFragment extends Fragment {
         rvChat.setAdapter(chatAdapter);
         rvChat.scrollToPosition(chatMessages.size() - 1);
 
+        com.google.android.material.chip.Chip chipAskAi = dialogView.findViewById(R.id.chip_ask_ai);
+        if (chipAskAi != null) {
+            chipAskAi.setOnClickListener(v -> {
+                chipAskAi.setEnabled(false);
+                
+                // Show loading message
+                String loadingMsgText = "CityScape AI: 🧠 Analizez profilurile membrilor și interesele combinate pentru a găsi cele mai bune recomandări... Vă rog așteptați.";
+                com.cityscape.app.model.GroupMessage loadingMsg = new com.cityscape.app.model.GroupMessage(
+                        group.id, "cityscape_ai_loading", "CityScape AI", loadingMsgText);
+                chatMessages.add(loadingMsg);
+                chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+                rvChat.scrollToPosition(chatMessages.size() - 1);
+                
+                double finalLat = sessionManager.getLastLat();
+                double finalLng = sessionManager.getLastLng();
+                if (finalLat == 0 && finalLng == 0) {
+                    finalLat = 44.4323;
+                    finalLng = 26.0984;
+                }
+                
+                com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                        .create(com.cityscape.app.api.ApiService.class);
+                
+                api.getGroupRecommendations(group.id, finalLat, finalLng)
+                        .enqueue(new retrofit2.Callback<java.util.List<java.util.Map<String, String>>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<java.util.List<java.util.Map<String, String>>> call,
+                            retrofit2.Response<java.util.List<java.util.Map<String, String>>> response) {
+                        if (!isAdded()) return;
+                        chipAskAi.setEnabled(true);
+                        
+                        // Remove loading message
+                        for (int i = 0; i < chatMessages.size(); i++) {
+                            if ("cityscape_ai_loading".equals(chatMessages.get(i).userId)) {
+                                chatMessages.remove(i);
+                                chatAdapter.notifyItemRemoved(i);
+                                break;
+                            }
+                        }
+                        
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("🧠 *Recomandări AI speciale pentru grupul vostru:*\n\n");
+                            for (java.util.Map<String, String> rec : response.body()) {
+                                sb.append("📍 *").append(rec.get("name")).append("* (").append(rec.get("type")).append(")\n");
+                                sb.append("🏠 ").append(rec.get("address")).append("\n");
+                                sb.append("✨ ").append(rec.get("why_for_group")).append("\n\n");
+                            }
+                            
+                            // Insert real AI message to DB
+                            com.cityscape.app.model.GroupMessage aiMsg = new com.cityscape.app.model.GroupMessage(
+                                    group.id, "cityscape_ai", "CityScape AI", sb.toString());
+                            db.groupMessageDao().insert(aiMsg);
+                            chatMessages.add(aiMsg);
+                            chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+                            rvChat.scrollToPosition(chatMessages.size() - 1);
+                        } else {
+                            Toast.makeText(getContext(), "Eroare la generarea recomandărilor AI", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    
+                    @Override
+                    public void onFailure(retrofit2.Call<java.util.List<java.util.Map<String, String>>> call, Throwable t) {
+                        if (!isAdded()) return;
+                        chipAskAi.setEnabled(true);
+                        // Remove loading message
+                        for (int i = 0; i < chatMessages.size(); i++) {
+                            if ("cityscape_ai_loading".equals(chatMessages.get(i).userId)) {
+                                chatMessages.remove(i);
+                                chatAdapter.notifyItemRemoved(i);
+                                break;
+                            }
+                        }
+                        Toast.makeText(getContext(), "Eroare de rețea la recomandările AI", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }
+
         AlertDialog chatDialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
                 .setView(dialogView)
                 .create();
@@ -1435,6 +1514,90 @@ public class CalendarFragment extends Fragment {
         });
     }
 
+    private void setupDynamicAutocomplete(android.widget.AutoCompleteTextView inputName, EditText inputType) {
+        if (inputName == null) return;
+
+        final List<String> suggestions = new ArrayList<>();
+        final android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
+        inputName.setAdapter(adapter);
+        inputName.setDropDownBackgroundResource(R.color.app_card);
+
+        final List<java.util.Map<String, String>> currentSuggestions = new ArrayList<>();
+
+        inputName.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 2 && apiService != null) {
+                    double lat = sessionManager.getLastLat();
+                    double lng = sessionManager.getLastLng();
+                    apiService.getAutocomplete(s.toString(), lat, lng).enqueue(new retrofit2.Callback<List<java.util.Map<String, String>>>() {
+                        @Override
+                        public void onResponse(retrofit2.Call<List<java.util.Map<String, String>>> call,
+                                               retrofit2.Response<List<java.util.Map<String, String>>> response) {
+                            if (isAdded() && response.isSuccessful() && response.body() != null) {
+                                suggestions.clear();
+                                currentSuggestions.clear();
+                                currentSuggestions.addAll(response.body());
+                                for (java.util.Map<String, String> m : response.body()) {
+                                    suggestions.add(m.get("name"));
+                                }
+                                adapter.clear();
+                                adapter.addAll(suggestions);
+                                adapter.notifyDataSetChanged();
+                                try {
+                                    if (inputName.hasFocus()) {
+                                        inputName.showDropDown();
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(retrofit2.Call<List<java.util.Map<String, String>>> call, Throwable t) {
+                            Log.e("CalendarFragment", "Autocomplete fetch failed", t);
+                        }
+                    });
+                }
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        inputName.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedName = (String) parent.getItemAtPosition(position);
+            String placeId = null;
+            for (java.util.Map<String, String> m : currentSuggestions) {
+                if (selectedName.equals(m.get("name"))) {
+                    placeId = m.get("place_id");
+                    break;
+                }
+            }
+            if (placeId != null) {
+                final String finalPlaceId = placeId;
+                apiService.getPlaceDetails(placeId).enqueue(new retrofit2.Callback<com.cityscape.app.model.Place>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.cityscape.app.model.Place> call, retrofit2.Response<com.cityscape.app.model.Place> response) {
+                        if (isAdded() && response.isSuccessful() && response.body() != null) {
+                            com.cityscape.app.model.Place p = response.body();
+                            if (inputType != null) {
+                                inputType.setText(p.type);
+                            }
+                            java.util.Map<String, String> selectedPlace = new java.util.HashMap<>();
+                            selectedPlace.put("place_id", finalPlaceId);
+                            selectedPlace.put("image_url", p.imageUrl);
+                            inputName.setTag(selectedPlace);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<com.cityscape.app.model.Place> call, Throwable t) {
+                        Log.e("CalendarFragment", "Failed to fetch place details", t);
+                    }
+                });
+            }
+        });
+    }
+
     private void showAddActivityDialog() {
         if (!isAdded() || getContext() == null) return;
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.DarkDialogTheme);
@@ -1450,24 +1613,7 @@ public class CalendarFragment extends Fragment {
         EditText inputNotes = dialogView.findViewById(R.id.input_notes);
 
         // Setup AutoComplete
-        List<String> placeNames = new ArrayList<>();
-        for (com.cityscape.app.model.Place p : allPlaces) {
-            placeNames.add(p.name);
-        }
-        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
-                getContext(), android.R.layout.simple_dropdown_item_1line, placeNames);
-        inputName.setAdapter(adapter);
-        inputName.setDropDownBackgroundResource(R.color.app_card);
-
-        inputName.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedName = (String) parent.getItemAtPosition(position);
-            for (com.cityscape.app.model.Place p : allPlaces) {
-                if (p.name.equals(selectedName)) {
-                    inputType.setText(p.type);
-                    break;
-                }
-            }
-        });
+        setupDynamicAutocomplete(inputName, inputType);
 
         com.google.android.material.chip.ChipGroup suggestionChips = dialogView.findViewById(R.id.dialog_activity_suggestions);
         if (suggestionChips != null) {
@@ -1516,7 +1662,6 @@ public class CalendarFragment extends Fragment {
         });
 
         builder.setView(dialogView)
-                .setTitle("Adaugă Activitate")
                 .setPositiveButton("Adaugă", null); // Set to null first to override listener and prevent dismissal
 
         AlertDialog dialog = builder.create();
@@ -1535,30 +1680,20 @@ public class CalendarFragment extends Fragment {
                 return;
             }
 
-            // Validate against list
-            boolean isValid = false;
-            for (com.cityscape.app.model.Place p : allPlaces) {
-                if (p.name.equalsIgnoreCase(name)) {
-                    isValid = true;
-                    // Ensure exact casing from the list
-                    name = p.name;
-                    if (type.isEmpty())
-                        type = p.type;
-                    break;
-                }
-            }
-
-            if (!isValid) {
-                inputName.setError("Te rugăm să alegi o locație validă din listă!");
-                return;
+            String placeId = null;
+            String imageUrl = "";
+            if (inputName.getTag() instanceof java.util.Map) {
+                java.util.Map<String, String> tagMap = (java.util.Map<String, String>) inputName.getTag();
+                placeId = tagMap.get("place_id");
+                imageUrl = tagMap.get("image_url");
             }
 
             PlannedActivity activity = new PlannedActivity(
                     sessionManager.getUserId(),
-                    null,
+                    placeId,
                     name,
                     type.isEmpty() ? "Activitate" : type,
-                    "",
+                    imageUrl != null ? imageUrl : "",
                     selectedDate,
                     selectedTime[0]);
             activity.notes = notes;
@@ -1638,12 +1773,12 @@ public class CalendarFragment extends Fragment {
         }
 
         // Autocomplete
-        List<String> placeNames = new ArrayList<>();
-        for (com.cityscape.app.model.Place p : allPlaces) placeNames.add(p.name);
-        android.widget.ArrayAdapter<String> acAdapter = new android.widget.ArrayAdapter<>(
-                getContext(), android.R.layout.simple_dropdown_item_1line, placeNames);
-        inputName.setAdapter(acAdapter);
-        inputName.setDropDownBackgroundResource(R.color.app_card);
+        setupDynamicAutocomplete(inputName, inputType);
+
+        TextView dialogTitle = dialogView.findViewById(R.id.dialog_title);
+        if (dialogTitle != null) {
+            dialogTitle.setText("Editează Activitate");
+        }
 
         final String[] selectedTime = { existingActivity.scheduledTime != null ? existingActivity.scheduledTime : "10:00" };
         inputTime.setText(selectedTime[0]);
@@ -1672,7 +1807,6 @@ public class CalendarFragment extends Fragment {
         });
 
         AlertDialog dialog = builder.setView(dialogView)
-                .setTitle("Editează Activitate")
                 .setPositiveButton("Salvează", null)
                 .setNegativeButton("Anulează", null)
                 .create();
@@ -1690,6 +1824,11 @@ public class CalendarFragment extends Fragment {
 
             existingActivity.placeName    = name;
             existingActivity.placeType    = type.isEmpty() ? existingActivity.placeType : type;
+            if (inputName.getTag() instanceof java.util.Map) {
+                java.util.Map<String, String> tagMap = (java.util.Map<String, String>) inputName.getTag();
+                existingActivity.placeId = tagMap.get("place_id");
+                existingActivity.placeImageUrl = tagMap.get("image_url");
+            }
             existingActivity.scheduledTime = selectedTime[0];
             existingActivity.notes        = notes;
 

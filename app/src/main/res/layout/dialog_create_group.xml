@@ -1,170 +1,180 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_glass_card"
-    android:orientation="vertical"
-    android:padding="24dp">
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@color/app_card"
+    app:strokeWidth="0dp">
 
-    <!-- Header Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Header Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👥"
+                android:textSize="24sp"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Creează o Aventură în Grup"
+                android:textColor="@color/primary"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-black" />
+        </LinearLayout>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="👥"
-            android:textSize="24sp"
-            android:layout_marginEnd="10dp" />
+            android:layout_marginBottom="16dp"
+            android:text="Planifică această activitate împreună cu prietenii tăi și adunați XP împreună!"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="13sp" />
 
+        <!-- Group Name Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.CityScape.TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Numele grupului"
+            app:startIconDrawable="@drawable/ic_group"
+            app:startIconTint="@color/primary"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeColor="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_group_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/app_text_primary"
+                android:textSize="15sp"
+                android:padding="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Recommended Friends Section -->
         <TextView
+            android:id="@+id/text_recommended_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Creează o Aventură în Grup"
+            android:layout_marginTop="20dp"
+            android:text="💡 Prieteni recomandați:"
             android:textColor="@color/primary"
-            android:textSize="20sp"
-            android:fontFamily="sans-serif-black" />
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Planifică această activitate împreună cu prietenii tăi și adunați XP împreună!"
-        android:textColor="@color/app_text_secondary"
-        android:textSize="13sp" />
-
-    <!-- Group Name Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.CityScape.TextInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="Numele grupului"
-        app:startIconDrawable="@drawable/ic_group"
-        app:startIconTint="@color/primary"
-        app:boxStrokeWidth="1.5dp"
-        app:boxStrokeColor="@color/primary">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_group_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:textColor="@color/app_text_primary"
-            android:textSize="15sp"
-            android:padding="16dp" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Recommended Friends Section -->
-    <TextView
-        android:id="@+id/text_recommended_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="💡 Prieteni recomandați:"
-        android:textColor="@color/primary"
-        android:textSize="14sp"
-        android:fontFamily="sans-serif-medium" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_recommended_friends"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        android:orientation="horizontal"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-    <!-- Invite Following Section -->
-    <TextView
-        android:id="@+id/text_following_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="✨ Prieteni pe care îi urmărești:"
-        android:textColor="@color/primary"
-        android:textSize="14sp"
-        android:fontFamily="sans-serif-medium"
-        android:visibility="gone" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_following_to_invite"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-    <!-- Invite by email Section -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.CityScape.TextInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Caută prieteni după email sau @utilizator"
-        app:startIconDrawable="@drawable/ic_search"
-        app:startIconTint="@color/app_text_hint"
-        app:boxStrokeWidth="1dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_search_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:textColor="@color/app_text_primary"
-            android:textSize="14sp"
-            android:padding="14dp" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Action Section -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_create_group_action"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="24dp"
-        android:text="Creează Grupul 🚀"
-        android:textAllCaps="false"
-        android:textSize="15sp"
-        android:textColor="@color/white"
-        android:fontFamily="sans-serif-medium"
-        android:backgroundTint="@color/primary"
-        app:cornerRadius="16dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_glass_card"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="14dp"
-        android:backgroundTint="#1A25D366"
-        android:clickable="true"
-        android:focusable="true">
-
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_whatsapp"
-            app:tint="#25D366" />
-
-        <TextView
-            android:id="@+id/btn_share_link"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="Trimite invitație prin WhatsApp 💬"
-            android:textColor="#25D366"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium" />
-    </LinearLayout>
 
-</LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_recommended_friends"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- Invite Following Section -->
+        <TextView
+            android:id="@+id/text_following_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="✨ Prieteni pe care îi urmărești:"
+            android:textColor="@color/primary"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_following_to_invite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- Invite by email Section -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.CityScape.TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Caută prieteni după email sau @utilizator"
+            app:startIconDrawable="@drawable/ic_search"
+            app:startIconTint="@color/app_text_hint"
+            app:boxStrokeWidth="1dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_search_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/app_text_primary"
+                android:textSize="14sp"
+                android:padding="14dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Action Section -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_create_group_action"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="Creează Grupul 🚀"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:textColor="@color/white"
+            android:fontFamily="sans-serif-medium"
+            android:backgroundTint="@color/primary"
+            app:cornerRadius="16dp" />
+
+        <!-- WhatsApp Share Button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_rounded_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="14dp"
+            android:backgroundTint="#1A25D366"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_whatsapp"
+                app:tint="#25D366" />
+
+            <TextView
+                android:id="@+id/btn_share_link"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Trimite invitație prin WhatsApp 💬"
+                android:textColor="#25D366"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

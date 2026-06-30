@@ -3,7 +3,7 @@
     <string name="app_name">CityScape</string>
 
     <!-- Google OAuth Web Client ID (from Google Cloud Console) -->
-    <string name="google_web_client_id">295858702969-pkn50ei09o97cmb69018dss6gdlv9j6q.apps.googleusercontent.com</string>
+    <string name="google_web_client_id">295858702969-fbog9vjhppg41tk1rb0r8tks61p9lur8.apps.googleusercontent.com</string>
 
     <!-- Auth strings -->
     <string name="sign_in">Sign In</string>

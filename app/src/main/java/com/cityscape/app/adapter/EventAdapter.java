@@ -43,8 +43,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = events.get(position);
         holder.title.setText(event.title);
-        holder.time.setText((event.time != null && !event.time.isEmpty()) ? event.time : event.date_str);
-        holder.location.setText(event.location);
+
+        String dateDisplay = (event.date != null && !event.date.isEmpty()) ? event.date
+                : (event.date_str != null ? event.date_str : (event.time != null ? event.time : ""));
+        holder.time.setText(dateDisplay);
+        holder.location.setText(event.location != null ? event.location : "");
 
         if (event.imageUrl != null && !event.imageUrl.isEmpty()) {
             Glide.with(holder.itemView.getContext())
@@ -57,19 +60,34 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             if (listener != null) listener.onEventClick(event);
         });
 
-        // Highlight if matches interests
-        boolean isRecommended = event.relevance_score > 0;
-        if (!isRecommended && !userInterests.isEmpty()) {
-            String[] splitInterests = userInterests.split(",");
-            for (String interest : splitInterests) {
-                String trimInt = interest.trim();
-                if (!trimInt.isEmpty() && event.title.toLowerCase().contains(trimInt)) {
-                    isRecommended = true;
+        // AI confidence badge
+        int confidence = event.confidence > 0 ? event.confidence
+                : (event.relevance_score > 0 ? event.relevance_score : 0);
+
+        // Fallback: check if title matches interests manually
+        if (confidence == 0 && !userInterests.isEmpty()) {
+            for (String interest : userInterests.split(",")) {
+                String kw = interest.trim();
+                if (!kw.isEmpty() && event.title != null && event.title.toLowerCase().contains(kw)) {
+                    confidence = 60;
                     break;
                 }
             }
         }
-        holder.badgeRecommended.setVisibility(isRecommended ? View.VISIBLE : View.GONE);
+
+        if (confidence > 0) {
+            holder.badgeContainer.setVisibility(View.VISIBLE);
+            holder.badgeRecommended.setText("🎯 " + confidence + "%");
+
+            if (event.aiReason != null && !event.aiReason.isEmpty()) {
+                holder.textAiReasonCard.setVisibility(View.VISIBLE);
+                holder.textAiReasonCard.setText(event.aiReason);
+            } else {
+                holder.textAiReasonCard.setVisibility(View.GONE);
+            }
+        } else {
+            holder.badgeContainer.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -78,8 +96,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     static class EventViewHolder extends RecyclerView.ViewHolder {
-        TextView title, time, location, badgeRecommended;
+        TextView title, time, location, badgeRecommended, textAiReasonCard;
         ImageView image;
+        View badgeContainer;
 
         EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -87,7 +106,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             time = itemView.findViewById(R.id.text_event_time);
             location = itemView.findViewById(R.id.text_event_location);
             image = itemView.findViewById(R.id.img_event);
+            badgeContainer = itemView.findViewById(R.id.badge_ai_container);
             badgeRecommended = itemView.findViewById(R.id.badge_recommended);
+            textAiReasonCard = itemView.findViewById(R.id.text_ai_reason_card);
         }
     }
 }

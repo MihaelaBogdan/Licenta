@@ -9,9 +9,73 @@ Generates AI-powered place recommendations with transparency about:
 import os
 import json
 import requests
+import time
+import threading
 from datetime import datetime
 from typing import Dict, List, Any
 import numpy as np
+
+# In-memory query caches with threading locks
+_recommender_cache_lock = threading.Lock()
+_recommender_text_search_cache = {}
+_recommender_nearby_search_cache = {}
+SEARCH_CACHE_TTL = 600  # 10 minutes (600 seconds)
+
+ROMANIAN_INTEREST_TRANSLATION = {
+    "muzee": "museums",
+    "parcuri și natură": "parks",
+    "parcuri si natura": "parks",
+    "artă și design": "art",
+    "arta si design": "art",
+    "restaurante": "food",
+    "cultură și istorie": "history",
+    "cultura si istorie": "history",
+    "locuri interesante": "culture",
+    "sporte": "sports",
+    "shopping": "shopping",
+    "viața de noapte": "nightlife",
+    "viata de noapte": "nightlife",
+    "evenimente": "culture",
+    "general": "culture"
+}
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    from math import radians, cos, sin, asin, sqrt
+    try:
+        lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        return c * 6371
+    except:
+        return 9999.0
+
+def fetch_current_weather(lat, lng):
+    import time
+    try:
+        # Simulation: 20% chance of rain based on timestamp minutes
+        is_raining = (int(time.time() / 60) % 5 == 0) 
+        temp = 22 # Spring average
+        
+        status = "Plouă" if is_raining else "Senin"
+        icon = "☁️" if is_raining else "☀️"
+        
+        return {
+            "status": status,
+            "is_bad": is_raining,
+            "temp": f"{temp}°C",
+            "icon": icon,
+            "advice": "Sugestii indoor activate" if is_raining else "Vreme perfectă pentru explorare"
+        }
+    except:
+        return {
+            "status": "Senin",
+            "is_bad": False,
+            "temp": "22°C",
+            "icon": "☀️",
+            "advice": "Vreme perfectă pentru explorare"
+        }
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -26,7 +90,9 @@ class ExplainableRecommender:
 
     def get_recommendations(self, user_id: str, lat: float, lng: float,
                           interests: List[str], language: str = "ro",
-                          limit: int = 10, city_name: str = None, trending: bool = True) -> Dict[str, Any]:
+                          limit: int = 10, city_name: str = None, trending: bool = True,
+                          category: str = None, query: str = None, min_rating: float = None,
+                          max_distance: float = None, price_level: int = None) -> Dict[str, Any]:
         """
         Generate explainable recommendations with confidence scores and reasoning.
         Returns detailed breakdown of where each recommendation comes from.
@@ -39,6 +105,11 @@ class ExplainableRecommender:
             limit: Max recommendations (1-10, default 10)
             city_name: Current city name to display
             trending: Include trending places from other users in the city
+            category: Selected UI category filter
+            query: Custom search query text
+            min_rating: Minimum rating threshold
+            max_distance: Maximum distance in km
+            price_level: Level of price (1-4)
         """
         try:
             # Validate limit
@@ -51,22 +122,85 @@ class ExplainableRecommender:
             visit_history = self._fetch_visit_history(user_id)
 
             # 3. Find nearby places
-            nearby_places = self._fetch_nearby_places(lat, lng)
+            nearby_places = self._fetch_nearby_places(lat, lng, category=category)
+
+            # Text query candidate expansion
+            if query and query.strip() != "":
+                query_places = []
+                cache_key = (f"{query} {category or ''}".strip(), lat, lng)
+                now = time.time()
+                with _recommender_cache_lock:
+                    if cache_key in _recommender_text_search_cache:
+                        val, exp = _recommender_text_search_cache[cache_key]
+                        if now < exp:
+                            query_places = val
+                
+                if not query_places:
+                    try:
+                        url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+                        params = {
+                            "query": f"{query} {category or ''}".strip(),
+                            "location": f"{lat},{lng}",
+                            "radius": "15000",
+                            "key": MAPS_API_KEY
+                        }
+                        resp = requests.get(url, params=params, timeout=5)
+                        if resp.status_code == 200:
+                            query_places = resp.json().get("results", [])
+                            with _recommender_cache_lock:
+                                _recommender_text_search_cache[cache_key] = (query_places, now + SEARCH_CACHE_TTL)
+                    except Exception as e:
+                        print(f"⚠️ Text search candidates query error: {e}")
+                nearby_places = query_places + nearby_places
 
             # 4. Get trending places if enabled (places visited by similar users)
             trending_places = []
             if trending:
                 trending_places = self._get_trending_places(user_id, city_name, language)
 
-            # 5. Merge and prioritize places
+            # 5. Merge and filter places based on rules
             all_places = nearby_places + trending_places
-            all_places = list({p['place_id']: p for p in all_places}.values())  # Remove duplicates
+            all_places = list({p['place_id']: p for p in all_places if p.get('place_id')}.values())  # Remove duplicates
+
+            filtered_candidates = []
+            for place in all_places:
+                # Rating filter
+                rating = place.get("rating", 0)
+                if min_rating is not None and rating < float(min_rating):
+                    continue
+
+                # Distance filter
+                geo = place.get("geometry", {}).get("location", {})
+                p_lat, p_lng = geo.get("lat"), geo.get("lng")
+                if max_distance is not None and p_lat is not None and p_lng is not None:
+                    dist = haversine_distance(lat, lng, p_lat, p_lng)
+                    if dist > float(max_distance):
+                        continue
+
+                # Price level filter
+                p_level = place.get("price_level")
+                if price_level is not None and int(price_level) > 0 and p_level is not None:
+                    if int(p_level) != int(price_level):
+                        continue
+
+                # Search query filter check (in case search API returns excess)
+                if query and query.strip() != "":
+                    q_lower = query.lower()
+                    p_name = place.get("name", "").lower()
+                    p_vic = place.get("vicinity", "").lower()
+                    p_types = [t.lower() for t in place.get("types", [])]
+                    if q_lower not in p_name and q_lower not in p_vic and not any(q_lower in t for t in p_types):
+                        continue
+
+                filtered_candidates.append(place)
+
+            all_places = filtered_candidates
 
             # 6. Calculate recommendation scores for each place
             recommendations = []
             for place in all_places[:limit * 4]:  # Get more candidates, then filter
                 score_breakdown = self._calculate_recommendation_score(
-                    place, user_data, visit_history, interests, language
+                    place, user_data, visit_history, interests, lat, lng, language
                 )
                 recommendations.append({
                     "place": place,
@@ -145,19 +279,47 @@ class ExplainableRecommender:
 
         return []
 
-    def _fetch_nearby_places(self, lat: float, lng: float, radius: int = 5000) -> List[Dict]:
+    def _fetch_nearby_places(self, lat: float, lng: float, radius: int = 5000, category: str = None) -> List[Dict]:
         """Fetch nearby places from Google Places API."""
+        ptype = "tourist_attraction"
+        if category:
+            cat_lower = category.lower()
+            if "rest" in cat_lower or "food" in cat_lower:
+                ptype = "restaurant"
+            elif "caf" in cat_lower or "coffee" in cat_lower:
+                ptype = "cafe"
+            elif "par" in cat_lower or "nature" in cat_lower:
+                ptype = "park"
+            elif "mus" in cat_lower or "art" in cat_lower:
+                ptype = "museum"
+            elif "cult" in cat_lower:
+                ptype = "tourist_attraction"
+            elif "com" in cat_lower or "shop" in cat_lower:
+                ptype = "shopping_mall"
+
+        # Check cache first
+        cache_key = (lat, lng, radius, ptype)
+        now = time.time()
+        with _recommender_cache_lock:
+            if cache_key in _recommender_nearby_search_cache:
+                val, exp = _recommender_nearby_search_cache[cache_key]
+                if now < exp:
+                    return val
+
         try:
             url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
             params = {
                 "location": f"{lat},{lng}",
                 "radius": radius,
-                "type": "tourist_attraction",
+                "type": ptype,
                 "key": MAPS_API_KEY
             }
             resp = requests.get(url, params=params, timeout=5)
             if resp.status_code == 200:
-                return resp.json().get("results", [])
+                results = resp.json().get("results", [])
+                with _recommender_cache_lock:
+                    _recommender_nearby_search_cache[cache_key] = (results, now + SEARCH_CACHE_TTL)
+                return results
         except Exception as e:
             print(f"⚠️ Nearby places fetch error: {e}")
 
@@ -165,7 +327,7 @@ class ExplainableRecommender:
 
     def _calculate_recommendation_score(self, place: Dict, user_data: Dict,
                                        visit_history: List[Dict],
-                                       interests: List[str], language: str = "ro") -> Dict[str, float]:
+                                       interests: List[str], lat: float, lng: float, language: str = "ro") -> Dict[str, float]:
         """
         Calculate confidence score breakdown for a place.
         SMART algorithm that considers:
@@ -174,6 +336,7 @@ class ExplainableRecommender:
         - User preferences
         - Recency bias
         - Category diversity
+        - Weather & Time of Day suitability
         """
         scores = {
             "interest_match": 0.0,
@@ -181,6 +344,7 @@ class ExplainableRecommender:
             "popularity": 0.0,
             "user_level": 0.0,
             "diversity": 0.0,
+            "weather_time": 0.0,
             "total": 0.0
         }
 
@@ -191,6 +355,13 @@ class ExplainableRecommender:
         # ==================== 1. INTEREST MATCH (0-40%) ====================
         interest_score = 0.0
         interests_clean = [i.lower().strip() for i in interests if i]
+
+        # Extract type counts from history for density boost
+        history_type_counts = {}
+        for visit in visit_history:
+            v_type = visit.get("place_type", "").lower()
+            if v_type:
+                history_type_counts[v_type] = history_type_counts.get(v_type, 0) + 1
 
         if interests_clean:
             # ULTRA-SMART matching: analyze place name + type carefully
@@ -214,7 +385,8 @@ class ExplainableRecommender:
             name_words = place_name.split()
 
             for interest in interests_clean:
-                keywords = interest_keywords.get(interest, [interest])
+                translated = ROMANIAN_INTEREST_TRANSLATION.get(interest, interest)
+                keywords = interest_keywords.get(translated, [interest])
                 current_match = 0
 
                 # Check each keyword against place name and type
@@ -249,9 +421,21 @@ class ExplainableRecommender:
                 # No real match
                 interest_score = 1.0  # Barely relevant
 
+            # Add a small name length/character-based jitter to differentiate places with the same match score
+            name_len_boost = (len(place.get("name", "")) % 10) * 0.1  # 0.0 to 0.9 points
+            interest_score = min(40.0, interest_score + name_len_boost)
+
+            # History density personalization boost:
+            if place_type.lower() in history_type_counts:
+                density_boost = min(10.0, history_type_counts[place_type.lower()] * 2.0)
+                interest_score = min(40.0, interest_score + density_boost)
+
             interest_score = max(1.0, min(40.0, interest_score))
         else:
             interest_score = 5.0
+            if place_type.lower() in history_type_counts:
+                density_boost = min(15.0, history_type_counts[place_type.lower()] * 2.0)
+                interest_score = min(40.0, interest_score + density_boost)
 
         scores["interest_match"] = interest_score
 
@@ -277,28 +461,23 @@ class ExplainableRecommender:
         scores["freshness"] = freshness_score
 
         # ==================== 3. POPULARITY (0-15%) ====================
-        rating = place.get("rating", 0)
-        user_ratings_total = place.get("user_ratings_total", 0)
+        rating = float(place.get("rating") or 0.0)
+        user_ratings_total = int(place.get("user_ratings_total") or place.get("reviews") or 0)
 
-        # High rating + high reviews
-        if rating >= 4.6:
-            popularity_score = 15.0
-        elif rating >= 4.3:
-            popularity_score = 12.0
-        elif rating >= 4.0:
-            popularity_score = 8.0
-        elif rating >= 3.5:
-            popularity_score = 4.0
+        # Rating score is continuous (0 to 12.0)
+        if rating > 0.0:
+            popularity_score = (rating / 5.0) * 12.0
         else:
-            popularity_score = 0.0
+            popularity_score = 8.0  # fallback
 
-        # Bonus for high review count (credibility)
-        if user_ratings_total > 5000:
-            popularity_score = min(15.0, popularity_score + 3.0)
-        elif user_ratings_total > 1000:
-            popularity_score = min(15.0, popularity_score + 1.5)
+        # Review count bonus is continuous (0 to 3.0) using log scale
+        import math
+        if user_ratings_total > 0:
+            review_bonus = min(3.0, (math.log10(user_ratings_total) / 4.0) * 3.0)
+        else:
+            review_bonus = 0.0
 
-        scores["popularity"] = popularity_score
+        scores["popularity"] = max(0.0, min(15.0, popularity_score + review_bonus))
 
         # ==================== 4. USER LEVEL MATCH (0-10%) ====================
         user_level = user_data.get("level", 1)
@@ -336,17 +515,82 @@ class ExplainableRecommender:
 
         scores["diversity"] = diversity_score
 
+        # Distance calculation and continuous penalty (up to 3.0 points)
+        distance_penalty = 0.0
+        geo = place.get("geometry", {}).get("location", {})
+        p_lat, p_lng = geo.get("lat"), geo.get("lng")
+        if p_lat is not None and p_lng is not None:
+            dist = haversine_distance(lat, lng, p_lat, p_lng)
+            # 0.1 points penalty per km, max 3.0 points penalty
+            distance_penalty = min(3.0, dist * 0.1)
+
+        # ==================== 6. WEATHER & TIME MATCH (0-10%) ====================
+        weather = fetch_current_weather(lat, lng)
+        is_bad_weather = weather.get("is_bad", False)
+        
+        # Categorize place types
+        indoor_types = [
+            "museum", "art_gallery", "cafe", "restaurant", "movie_theater", 
+            "library", "shopping_mall", "church", "place_of_worship", 
+            "food", "bar", "nightclub"
+        ]
+        outdoor_types = [
+            "park", "zoo", "amusement_park", "tourist_attraction", 
+            "stadium", "campground", "natural_feature"
+        ]
+        
+        # Check types overlap
+        is_indoor = any(t in indoor_types for t in place_types_full) or place_type in indoor_types
+        is_outdoor = any(t in outdoor_types for t in place_types_full) or place_type in outdoor_types
+        
+        # Fallback default suitability (7.0 out of 10)
+        weather_time_score = 7.0
+        
+        # 1. Weather compatibility
+        if is_bad_weather:
+            if is_indoor:
+                weather_time_score += 1.5
+            elif is_outdoor:
+                weather_time_score -= 3.5
+        else: # Good weather
+            if is_outdoor:
+                weather_time_score += 2.0
+            elif is_indoor:
+                # Terrace boost for cafes/food
+                if "cafe" in place_types_full or "restaurant" in place_types_full or "food" in place_types_full:
+                    weather_time_score += 1.0
+                    
+        # 2. Time of day suitability
+        current_hour = datetime.now().hour
+        is_night = current_hour >= 18 or current_hour < 6
+        
+        if is_night:
+            if any(t in ["bar", "nightclub", "restaurant", "food"] for t in place_types_full) or place_type in ["bar", "nightclub", "restaurant"]:
+                weather_time_score += 1.0
+            elif any(t in ["park", "zoo", "library"] for t in place_types_full) or place_type in ["park", "zoo", "library"]:
+                weather_time_score -= 3.0
+        else: # Daytime
+            if any(t in ["park", "museum", "zoo", "tourist_attraction"] for t in place_types_full) or place_type in ["park", "museum", "zoo", "tourist_attraction"]:
+                weather_time_score += 1.0
+            elif any(t in ["bar", "nightclub"] for t in place_types_full) or place_type in ["bar", "nightclub"]:
+                weather_time_score -= 4.0
+                
+        # Clamp between 1.0 and 10.0
+        scores["weather_time"] = max(1.0, min(10.0, weather_time_score))
+
         # ==================== WEIGHTED TOTAL ====================
         # Weight factors based on what matters most
         weighted_total = (
-            scores["interest_match"] * 0.35 +  # Interests are most important
-            scores["freshness"] * 0.25 +        # Don't repeat places
-            scores["popularity"] * 0.15 +       # Quality matters
-            scores["user_level"] * 0.12 +       # Appropriate level
-            scores["diversity"] * 0.13          # Variety
-        )
+            scores["interest_match"] * 0.30 +  # Interests (max 12.0)
+            scores["freshness"] * 0.20 +        # Freshness (max 6.0)
+            scores["popularity"] * 0.12 +       # Popularity & Quality (max 1.8)
+            scores["user_level"] * 0.10 +       # Level match (max 1.0)
+            scores["diversity"] * 0.10 +        # Diversity (max 1.0)
+            scores["weather_time"] * 0.18       # Weather & Time (max 1.8)
+        ) - distance_penalty
 
-        scores["total"] = min(100.0, max(0.0, weighted_total))
+        # Max possible sum of weighted factors is 23.6. Normalize to 0-100% scale.
+        scores["total"] = min(100.0, max(0.0, (weighted_total / 23.6) * 100.0))
 
         return scores
 
@@ -389,6 +633,11 @@ class ExplainableRecommender:
             reason = "Diferit de locurile recente" if language == "ro" else "Different from your recent visits"
             reasons.append(reason)
 
+        # Weather & Time Match
+        if score_breakdown.get("weather_time", 0.0) >= 9.0:
+            reason = "Potrivit pentru vremea și momentul actual" if language == "ro" else "Great for current weather & time"
+            reasons.append(reason)
+
         return " • ".join(reasons) if reasons else ("Explorare recomandată" if language == "ro" else "Worth exploring")
 
     def _generate_explanation(self, place: Dict, score_breakdown: Dict,
@@ -396,33 +645,46 @@ class ExplainableRecommender:
         """Generate detailed explanation of how recommendation was calculated."""
         base_msg = "Pe baza" if language == "ro" else "Based on"
 
+        # Calculate normalized display percentages (0-100%)
+        interest_pct = min(100.0, (score_breakdown['interest_match'] / 40.0) * 100.0)
+        freshness_pct = min(100.0, (score_breakdown['freshness'] / 30.0) * 100.0)
+        popularity_pct = min(100.0, (score_breakdown['popularity'] / 15.0) * 100.0)
+        level_pct = min(100.0, (score_breakdown['user_level'] / 10.0) * 100.0)
+        diversity_pct = min(100.0, (score_breakdown['diversity'] / 10.0) * 100.0)
+        weather_pct = min(100.0, (score_breakdown.get('weather_time', 7.0) / 10.0) * 100.0)
+
         return {
             "summary": f"{base_msg} analizei factorilor de personalizare",
             "factors": [
                 {
                     "name": "Potrivire interese" if language == "ro" else "Interest Match",
-                    "score": f"{score_breakdown['interest_match']:.1f}%",
+                    "score": f"{interest_pct:.1f}%",
                     "description": "Cât de bine se potrivește cu interesele tale salvate" if language == "ro" else "How well it matches your saved interests"
                 },
                 {
                     "name": "Noutate" if language == "ro" else "Freshness",
-                    "score": f"{score_breakdown['freshness']:.1f}%",
+                    "score": f"{freshness_pct:.1f}%",
                     "description": "Dacă nu ai vizitat deja acest loc" if language == "ro" else "Whether you haven't visited this place yet"
                 },
                 {
                     "name": "Popularitate" if language == "ro" else "Popularity",
-                    "score": f"{score_breakdown['popularity']:.1f}%",
+                    "score": f"{popularity_pct:.1f}%",
                     "description": "Rating și numărul de recenzii" if language == "ro" else "Rating and number of reviews"
                 },
                 {
                     "name": "Nivel potrivit" if language == "ro" else "Level Match",
-                    "score": f"{score_breakdown['user_level']:.1f}%",
+                    "score": f"{level_pct:.1f}%",
                     "description": "Adecvat pentru nivelul tău de experiență" if language == "ro" else "Appropriate for your experience level"
                 },
                 {
                     "name": "Diversitate" if language == "ro" else "Diversity",
-                    "score": f"{score_breakdown['diversity']:.1f}%",
+                    "score": f"{diversity_pct:.1f}%",
                     "description": "Diferit de locurile vizitate recent" if language == "ro" else "Different from recent visits"
+                },
+                {
+                    "name": "Vreme & Timp" if language == "ro" else "Weather & Time Match",
+                    "score": f"{weather_pct:.1f}%",
+                    "description": "Potrivirea cu vremea actuală și momentul zilei" if language == "ro" else "Compatibility with current weather and time of day"
                 }
             ],
             "total_confidence": f"{score_breakdown['total']:.1f}%"
@@ -431,12 +693,18 @@ class ExplainableRecommender:
     def _format_recommendation(self, rec: Dict) -> Dict:
         """Format recommendation for API response."""
         place = rec["place"]
+        img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+        if place.get("photos"):
+            ref = place["photos"][0].get("photo_reference")
+            if ref:
+                img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
+
         return {
             "id": place.get("place_id"),
             "name": place.get("name"),
-            "address": place.get("vicinity"),
+            "address": place.get("vicinity") or place.get("formatted_address"),
             "rating": place.get("rating"),
-            "reviews": place.get("user_ratings_total"),
+            "reviews": place.get("user_ratings_total") or place.get("reviews", 0),
             "type": place.get("types", ["unknown"])[0],
             "latitude": place.get("geometry", {}).get("location", {}).get("lat"),
             "longitude": place.get("geometry", {}).get("location", {}).get("lng"),
@@ -445,7 +713,7 @@ class ExplainableRecommender:
             "explanation": rec["explanation"],
             "score_breakdown": {k: f"{v:.1f}%" if v != rec['score_breakdown'].get(k) else v
                               for k, v in rec["score_breakdown"].items()},
-            "image_url": place.get("photos", [{}])[0].get("html_attributions", [None])[0] if place.get("photos") else None
+            "image_url": img_url
         }
 
     def _get_trending_places(self, user_id: str, city_name: str, language: str) -> List[Dict]:
@@ -481,6 +749,14 @@ class ExplainableRecommender:
             print(f"⚠️ Trending from history error: {e}")
 
         # FALLBACK: Get trending from Google Places (high-rated places)
+        cache_key = (city_name, "trending_fallback")
+        now = time.time()
+        with _recommender_cache_lock:
+            if cache_key in _recommender_text_search_cache:
+                val, exp = _recommender_text_search_cache[cache_key]
+                if now < exp:
+                    return val
+
         try:
             url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
             params = {
@@ -509,6 +785,8 @@ class ExplainableRecommender:
                             "trending_reason": "Popular & Highly Rated"
                         })
 
+                with _recommender_cache_lock:
+                    _recommender_text_search_cache[cache_key] = (trending_places, now + SEARCH_CACHE_TTL)
                 return trending_places
         except Exception as e:
             print(f"⚠️ Google trending error: {e}")

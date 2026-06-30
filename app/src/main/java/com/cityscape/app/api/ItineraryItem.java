@@ -12,4 +12,8 @@ public class ItineraryItem {
     public String type;
     public String time;
     public boolean is_open = true;
+    public String tip;
+    public String mapsUrl;
+    public int travelMinutes;
+    public String travelLabel;
 }

@@ -183,31 +183,79 @@ public class SettingsActivity extends BaseActivity {
     }
 
     private void showCitySelectionDialog() {
-        android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint("Ex: Cluj-Napoca, London...");
-        input.setPadding(40, 40, 40, 40);
-        String currentCity = sessionManager.getPreferredCity();
-        if (currentCity != null) input.setText(currentCity);
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_select_city, null);
+        android.widget.EditText input = dialogView.findViewById(R.id.input_city_name);
+        com.google.android.material.chip.ChipGroup chipGroup = dialogView.findViewById(R.id.chip_group_popular_cities);
+        android.widget.Button btnCancel = dialogView.findViewById(R.id.btn_cancel_city);
+        android.widget.Button btnExplore = dialogView.findViewById(R.id.btn_explore_city);
 
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Selectează Orașul")
-                .setMessage("Introdu orașul unde vrei să explorezi locuri:")
-                .setView(input)
-                .setPositiveButton("Salvează", (dialog, which) -> {
-                    String city = input.getText().toString().trim();
-                    if (!city.isEmpty()) {
-                        sessionManager.setPreferredCity(city);
-                        Toast.makeText(this, "Oraș salvat: " + city, Toast.LENGTH_SHORT).show();
-                        
-                        // Go back to feed
-                        Intent intent = new Intent(this, MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        startActivity(intent);
-                        finish();
-                    }
-                })
-                .setNegativeButton("Anulează", null)
-                .show();
+        // Change title and button text for Settings context
+        android.widget.TextView dialogTitle = dialogView.findViewById(R.id.dialog_title);
+        if (dialogTitle != null) dialogTitle.setText("Selectează Orașul");
+        android.widget.TextView dialogSubtitle = dialogView.findViewById(R.id.dialog_subtitle);
+        if (dialogSubtitle != null) dialogSubtitle.setText("Introdu orașul preferat sau alege unul popular:");
+        if (btnExplore != null) btnExplore.setText("Salvează");
+
+        String currentCity = sessionManager.getPreferredCity();
+        if (currentCity != null && input != null) input.setText(currentCity);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
+        }
+
+        // Populate popular cities
+        String[] popularCities = {"București", "Cluj-Napoca", "Brașov", "Constanța", "London", "Paris"};
+        if (chipGroup != null) {
+            for (String city : popularCities) {
+                com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(this);
+                chip.setText(city);
+                chip.setChipBackgroundColorResource(R.color.app_card);
+                chip.setTextColor(getResources().getColor(R.color.app_text_primary));
+                chip.setChipStrokeColorResource(R.color.app_divider);
+                chip.setChipStrokeWidth(1.0f);
+                chip.setOnClickListener(v -> {
+                    sessionManager.setPreferredCity(city);
+                    Toast.makeText(this, "Oraș salvat: " + city, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    
+                    // Go back to feed
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+                    finish();
+                });
+                chipGroup.addView(chip);
+            }
+        }
+
+        if (btnExplore != null) {
+            btnExplore.setOnClickListener(v -> {
+                String city = input.getText().toString().trim();
+                if (!city.isEmpty()) {
+                    sessionManager.setPreferredCity(city);
+                    Toast.makeText(this, "Oraș salvat: " + city, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    
+                    // Go back to feed
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Toast.makeText(this, "Introdu numele unui oraș", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
     }
 
     private void showEditProfileDialog() {

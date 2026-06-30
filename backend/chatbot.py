@@ -10,9 +10,16 @@ Supports bilingual responses (Romanian and English).
 import os
 import random
 import json
-import torch
-from transformers import DistilBertTokenizerFast
-from model import IntentClassifier
+
+# Try to import torch + transformers (optional — only needed for local DistilBERT fallback)
+try:
+    import torch
+    from transformers import DistilBertTokenizerFast
+    from model import IntentClassifier
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    print("⚠️ torch/transformers not installed — local DistilBERT fallback disabled. Gemini will be used.")
 
 # ============================================================
 # Load model and data
@@ -20,7 +27,11 @@ from model import IntentClassifier
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 SAVE_DIR = os.path.join(BASE_PATH, "distilbert_model")
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+if TORCH_AVAILABLE:
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+else:
+    device = None
 
 import google.generativeai as genai
 import os
@@ -39,31 +50,39 @@ intent_lookup = {}
 for intent in intents['intents']:
     intent_lookup[intent['tag']] = intent
 
-# Load model data
-model_data = torch.load(
-    os.path.join(SAVE_DIR, 'model_data.pth'),
-    map_location=device
-)
-
-tags = model_data['tags']
-tag_to_idx = model_data['tag_to_idx']
-num_classes = model_data['num_classes']
-MAX_LENGTH = model_data['max_length']
-dropout_rate = model_data.get('dropout_rate', 0.3)
-
-# Load tokenizer (saved locally during training)
-tokenizer = DistilBertTokenizerFast.from_pretrained(SAVE_DIR)
-
-# Load model
+# Load model data (only if torch available)
+tags = []
+tag_to_idx = {}
+num_classes = 0
+MAX_LENGTH = 64
+dropout_rate = 0.3
+tokenizer = None
 model = None
-try:
-    model = IntentClassifier(num_classes=num_classes, dropout_rate=dropout_rate).to(device)
-    model.load_state_dict(model_data['model_state'], strict=False)
-    model.eval()
-    print("✅ Chatbot model loaded successfully!")
-except Exception as e:
-    print(f"⚠️ Warning: Chatbot model failed to load: {e}")
-    print("Fallback to basic response logic will be used.")
+
+if TORCH_AVAILABLE:
+    try:
+        model_data = torch.load(
+            os.path.join(SAVE_DIR, 'model_data.pth'),
+            map_location=device
+        )
+        tags = model_data['tags']
+        tag_to_idx = model_data['tag_to_idx']
+        num_classes = model_data['num_classes']
+        MAX_LENGTH = model_data['max_length']
+        dropout_rate = model_data.get('dropout_rate', 0.3)
+
+        # Load tokenizer (saved locally during training)
+        tokenizer = DistilBertTokenizerFast.from_pretrained(SAVE_DIR)
+
+        # Load model
+        model = IntentClassifier(num_classes=num_classes, dropout_rate=dropout_rate).to(device)
+        model.load_state_dict(model_data['model_state'], strict=False)
+        model.eval()
+        print("✅ Chatbot model loaded successfully!")
+    except Exception as e:
+        print(f"⚠️ Warning: Chatbot model failed to load: {e}")
+        print("Fallback to basic response logic will be used.")
+        model = None
 
 bot_name = "CityScape AI"
 CHAT_HISTORIES = {}
@@ -153,11 +172,13 @@ def _get_gemini_response(msg, language="ro"):
     confidence is low.
     """
     system_prompt = (
-        "Ești 'CityScape AI', un ghid urban inteligent și rapid. "
+        "Ești 'CityScape AI', ghidul urban și asistentul aplicației CityScape. "
         f"Limba: {'română' if language == 'ro' else 'engleză'}. "
-        "STIL: Răspunde scurt (max 2 fraze), direct. "
-        "IMPORTANT: Respectă locația cerută de utilizator. Dacă întreabă de Brașov, oferă recomandări din Brașov, chiar dacă el este în alt oraș. "
-        "OBLIGATORIU la final: [SUGGESTIONS: S1 | S2 | S3] unde propui acțiuni LOGICE."
+        "MAXIM 1-2 propoziții. Fără introduceri, fără polologhii. Răspunde DIRECT și la obiect. "
+        "LIMITARE STRICTĂ DOMENIU (CRITIC): Răspunde EXCLUSIV la întrebări legate de turism urban, recomandări de locuri (restaurante, cafenele, parcuri, muzee, atracții), evenimente locale sau funcționalități ale aplicației CityScape. "
+        "REGULI DE EXCLUDERE CATEGORICĂ: Este STRICT INTERZIS să oferi rețete de bucătărie sau instrucțiuni de gătit, să scrii cod sau scripturi de programare, să rezolvi teme de școală sau probleme academice, sau să oferi detalii de cultură generală (cum ar fi istoria generală a unor personalități). Dacă întrebarea nu are legătură cu turismul urban sau aplicația CityScape, refuză politicos în maximum o propoziție (ex: 'Sunt conceput exclusiv pentru a te ajuta cu recomandări de locuri, evenimente și utilizarea aplicației CityScape.'). "
+        "LINK-URI GOOGLE MAPS: Când recomanzi o locație, include întotdeauna link-ul ei Google Maps sub formă de hyperlink HTML, de exemplu: <a href=\"https://www.google.com/maps/search/?api=1&query=LAT,LNG(NUME)\">Nume Locație</a>. Fără markdown bold/italic, doar text simplu și hyperlink-uri HTML."
+        "OBLIGATORIU la final: [SUGGESTIONS: S1 | S2 | S3] (scurte, 2-4 cuvinte)."
     )
     
     try:
@@ -212,11 +233,104 @@ def _predict_intent(msg):
     return top_tag, top_probability, probs
 
 
+def format_event_date_ro(date_str):
+    if not date_str or date_str == "TBA":
+        return "TBA"
+    days_names = ["Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă", "Duminică"]
+    if any(date_str.startswith(d) for d in days_names):
+        return date_str
+    
+    # Try parsing as ISO date (YYYY-MM-DD)
+    try:
+        from datetime import datetime
+        dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+        months_ro = ["Ian","Feb","Mar","Apr","Mai","Iun","Iul","Aug","Sep","Oct","Nov","Dec"]
+        days_ro = ["Luni","Marți","Miercuri","Joi","Vineri","Sâmbătă","Duminică"]
+        return f"{days_ro[dt.weekday()]}, {dt.day} {months_ro[dt.month-1]}"
+    except:
+        return date_str
+
+
+# App-related keywords filter
+APP_KEYWORDS_RO = [
+    "locație", "loc", "locuri", "restaurant", "café", "cafenea", "parc", "muzeu",
+    "atracție", "recomandare", "recomanzi", "recomanda", "explore", "vizita", "vizitez",
+    "hartă", "harta", "rută", "ruta", "distanță", "rating", "review", "eveniment",
+    "activitate", "plan", "itinerar", "nearby", "trending", "popular", "vizitat",
+    "calitate", "liber", "open", "închis", "pret", "cost", "gratis", "city", "oras",
+    "bucuresti", "cluj", "iasi", "timisoara", "locuri", "unde", "cum", "mers",
+    "ce fac", "ce sa fac", "buna", "salut", "azi", "azi", "weekend", "seara",
+    "plimbare", "iesire", "distractie", "manca", "bea", "cafea", "bar", "club",
+    "concert", "festival", "teatru", "film", "sport", "ajung", "directii",
+    "aproape", "zona", "cartier", "centru", "vechi", "nou", "mai bun", "top",
+    "zi", "noapte", "dimineata", "pranz", "cina", "copii", "familie", "prieteni",
+    "romantic", "solo", "ieftin", "scump", "buget", "gratuit", "deschis"
+]
+APP_KEYWORDS_EN = ["location", "place", "restaurant", "cafe", "park", "museum", "attraction", "recommendation", "explore", "visit", "map", "route", "distance", "rating", "review", "event", "activity", "plan", "itinerary", "nearby", "trending", "popular", "visited", "rate", "quality", "open", "closed", "price", "cost", "free", "city", "bucharest", "where", "how", "go"]
+
+def is_app_related(msg, language="ro"):
+    """Check if message is related to app functionality"""
+    msg_lower = msg.lower().strip()
+
+    keywords = APP_KEYWORDS_RO if language == "ro" else APP_KEYWORDS_EN
+
+    # Check if any app keyword is in the message
+    for keyword in keywords:
+        if keyword in msg_lower:
+            return True
+
+    # If contains location-like terms
+    if any(c in msg_lower for c in ["@", "lat:", "lng:", "52°", "°", "m away", "km"]):
+        return True
+
+    return False
+
+def format_location_links(text, locations=None):
+    """Format location names as clickable Google Maps links"""
+    if not text or not locations:
+        return text
+
+    # Known trending locations in Bucharest with coordinates
+    location_coords = {
+        "Piața Constituției": (44.4272, 26.0915),
+        "Grădina Cișmigiu": (44.4373, 26.0910),
+        "Arcul de Triumf": (44.4723, 26.0843),
+        "Lipscani": (44.4270, 26.1090),
+        "Parcul Herăstrău": (44.4760, 26.0850),
+        "Mănăstirea Stavropoleos": (44.4265, 26.1035),
+        "Palatul Parlamentului": (44.4267, 26.0893),
+        "Grădina Botanică": (44.4372, 26.0626),
+        "Cafeneaua Capșa": (44.4383, 26.1037),
+        "Crama Domnească": (44.4268, 26.1050),
+    }
+
+    result = text
+    for loc_name, (lat, lng) in location_coords.items():
+        if loc_name in text:
+            # Format: [Name](https://www.google.com/maps/search/lat,lng (Name))
+            maps_url = f"https://www.google.com/maps/search/{lat},{lng}+({loc_name})"
+            html_link = f'<a href="{maps_url}"><b>{loc_name}</b></a>'
+            result = result.replace(loc_name, html_link)
+
+    return result
+
 def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", city_name=None, interests=None, user_xp=None, user_level=None, places_visited=None):
     if not msg or not msg.strip():
         return {"answer": _get_empty_message(language), "intent": "empty", "suggestions": _get_fallback_suggestions(language)}
 
+    # Soft filter: mesaje complet off-topic (cod, retete, teme scoala) => refuz scurt
+    HARD_OFFTOPIC = ["recipe", "rețetă", "reteta", "cod python", "homework", "tema scoala",
+                     "write code", "scrie cod", "rezolva ecuatia", "integral", "derivata"]
+    if any(kw in msg.lower() for kw in HARD_OFFTOPIC):
+        response = ("Sunt ghidul tău urban CityScape — mă pricep la locuri, evenimente și explorare în oraș. "
+                    "Cu ce te pot ajuta să descoperi?") if language == "ro" else \
+                   ("I'm your CityScape urban guide — I know places, events and city exploration. "
+                    "How can I help you discover something?")
+        return {"answer": response, "intent": "out_of_scope", "suggestions": _get_fallback_suggestions(language)}
+
     user_context = ""
+    visited_places_list = []
+
     if interests or user_xp or user_level or places_visited:
         user_context = (
             f"PROFIL UTILIZATOR (Offline/Local Cache):\n"
@@ -226,9 +340,10 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             f"- Total locații vizitate: {places_visited or 0}\n\n"
         )
     nearby_context = ""
+    events_context = ""
     detected_city = city_name or "un oraș nespecificat"
 
-   
+
     if user_id:
         try:
             from app import SUPABASE_URL, SUPABASE_KEY
@@ -236,9 +351,9 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
             profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
             p_res = requests.get(profile_url, headers=headers, timeout=2).json()
-            visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=5"
+            visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=10"
             v_res = requests.get(visits_url, headers=headers, timeout=2).json()
-            
+
             if p_res:
                 u = p_res[0]
                 name = u.get("name", "Explorator CityScape")
@@ -246,7 +361,7 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
                 xp = u.get("total_xp") or user_xp or 0
                 lvl = u.get("level") or user_level or 1
                 badges = u.get("badges", "Nicio insignă momentan")
-                
+
                 user_context = (
                     f"PROFIL UTILIZATOR:\n"
                     f"- Nume: {name}\n"
@@ -255,8 +370,9 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
                     f"- Experiență (XP): {xp} XP\n"
                     f"- Insigne deblocate: {badges}\n"
                 )
-                
+
                 if v_res and isinstance(v_res, list):
+                    visited_places_list = [v.get('place_name') for v in v_res if v.get('place_name')]
                     visits_list = [f"{v.get('place_name')} ({v.get('place_type', 'Atracție')})" for v in v_res if v.get('place_name')]
                     if visits_list:
                         user_context += f"- Istoric vizite recente (reale): {', '.join(visits_list)}\n"
@@ -264,31 +380,107 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             print(f"⚠️ RAG Supabase Context Fetch Error: {e}")
             pass
 
-    # 2. Place Search
+    # 2. Fetch REAL EVENTS + NEARBY PLACES
     if lat and lng:
         try:
             from app import MAPS_API_KEY, google_nearby_search
+            import requests
+
+            # Get EVENTS (NEW!)
+            try:
+                events_url = f"http://localhost:5001/events?lat={lat}&lng={lng}&interests={interests or ''}"
+                events_res = requests.get(events_url, timeout=3).json()
+                if events_res and isinstance(events_res, list):
+                    # Format events date using helper
+                    for event in events_res:
+                        event['formatted_date'] = format_event_date_ro(event.get('date', 'TBA'))
+                    
+                    # Detect weekend query
+                    msg_lower = msg.lower()
+                    is_weekend_query = any(w in msg_lower for w in ["weekend", "sâmbătă", "sambata", "duminică", "duminica", "sfarsit de saptamana", "sfârșit de săptămână"])
+                    
+                    if is_weekend_query:
+                        weekend_days = ["Vineri", "Sâmbătă", "Duminică"]
+                        events_res = [e for e in events_res if any(d in e.get('formatted_date', '') for d in weekend_days)]
+
+                    # Format events nicely
+                    events_list = []
+                    for event in events_res[:10]:  # Top 10 events
+                        evt = f"📌 {event.get('title', 'Event')[:40]} ({event.get('formatted_date', 'TBA')}) [lat: {event.get('latitude', lat)}, lng: {event.get('longitude', lng)}]"
+                        events_list.append(evt)
+
+                    if events_list:
+                        events_context = "🎭 EVENIMENTE DIN APROPIERE:\n" + "\n".join(events_list) + "\n\n"
+                    elif is_weekend_query:
+                        events_context = "🎭 EVENIMENTE DIN APROPIERE:\n(Nu s-au găsit evenimente pentru weekend-ul acesta în zona utilizatorului. Spune-i politicos utilizatorului că nu sunt evenimente în weekend-ul acesta, fără să inventezi altele.)\n\n"
+            except Exception as e:
+                print(f"⚠️ Events fetch error: {e}")
+
+            # Get SOCIAL TRENDS (NEW!)
+            social_trends_context = ""
+            try:
+                msg_lower = msg.lower()
+                if any(x in msg_lower for x in ["trend", "popular", "social", "hype", "vibe", "ce se poarta"]):
+                    trends_url = "http://localhost:5001/social/trending"
+                    trends_res = requests.get(trends_url, timeout=3).json()
+                    if trends_res:
+                        social_trends_context = (
+                            f"🔥 TRENDURI SOCIAL MEDIA RECENTE (extrase din feed-ul comunității):\n"
+                            f"- Rezumat: {trends_res.get('trending_summary')}\n"
+                            f"- Hashtag-uri populare: {', '.join(trends_res.get('top_hashtags', []))}\n"
+                            f"- Locații cu cel mai mare Hype: " + 
+                            ", ".join([f"{p['name']} (Hype Score: {p['hype_score']})" for p in trends_res.get('hype_places', [])]) + "\n\n"
+                        )
+            except Exception as e:
+                print(f"⚠️ Social trends fetch error for chatbot: {e}")
+
+            # Get nearby places
             near_results = google_nearby_search(lat, lng, "tourist_attraction", radius=10000)
             if near_results:
-                nearby_context = "Puncte de interes reale din apropiere: " + ", ".join([r['name'] for r in near_results[:10]])
-        except: pass
+                places_formatted = []
+                for place in near_results[:8]:
+                    place_name = place.get('name', 'Locație')
+                    rating = place.get('rating', 0)
+                    place_type = place.get('types', ['place'])[0].replace('_', ' ').title()
+                    
+                    loc = place.get('geometry', {}).get('location', {})
+                    plat = loc.get('lat', lat)
+                    plng = loc.get('lng', lng)
+                    
+                    places_formatted.append(f"📍 {place_name} ({place_type}, ⭐{rating}) [lat: {plat}, lng: {plng}]")
+
+                nearby_context = "LOCURI REALE ÎN ZONĂ:\n" + "\n".join(places_formatted) + "\n\n"
+        except Exception as e:
+            print(f"⚠️ Places/Events fetch error: {e}")
+
+    nav_keywords = ["ajung", "directii", "ruta", "ruta", "navigatie", "maps", "cum merg", "drum"]
+    wants_navigation = any(k in msg.lower() for k in nav_keywords)
+    lang_str = "română" if language == "ro" else "engleză"
+    visited_str = ", ".join(visited_places_list[:5]) if visited_places_list else "niciunul"
+    user_ctx_str = user_context.strip() if user_context else "Anonim"
+    nearby_block = ("LOCURI REALE DIN ZONA (foloseste-le in recomandari):\n" + nearby_context) if nearby_context else ""
+    events_block = ("EVENIMENTE DISPONIBILE:\n" + events_context) if events_context else ""
+    nav_instruction = (
+        "IMPORTANT: Utilizatorul cere directii. La finalul raspunsului adauga [MAPS:Nume:LAT:LNG] "
+        "pentru fiecare loc mentionat (coordonatele le gasesti in contextul de mai sus). "
+        "Exemplu: [MAPS:Parcul Herastrau:44.4706:26.0827]"
+        if wants_navigation else
+        "NU adauga taguri [MAPS:...] — utilizatorul nu cere directii."
+    )
 
     system_prompt = (
-        f"Ești 'CityScape AI', un asistent urban inteligent și ghid turistic de top, dezvoltat exclusiv pentru platforma CityScape.\n\n"
-        f"CONTEXT DESPRE UTILIZATORUL CURENT:\n{user_context}\n"
-        f"LOCAȚIE & ZONĂ:\n"
-        f"- Oraș detectat: {detected_city}\n"
-        f"- Puncte de interes reale: {nearby_context}\n\n"
-        f"INSTRUCȚIUNI DE CONVERSAȚIE:\n"
-        f"1. Răspunde exclusiv în limba {'română' if language == 'ro' else 'engleză'}.\n"
-        f"2. Adresează-te utilizatorului pe nume dacă îl cunoști din contextul de mai sus. Fii prietenos, deschis, cald și folosește un ton primitor de partener de explorare.\n"
-        f"3. Cunoști tot istoricul lui (locațiile vizitate deja, interesele lui, XP-ul lui și insignele obținute). Folosește-te inteligent de aceste date pentru a-i face recomandări ultra-personalizate (de exemplu, dacă îi place arta, trimite-l la expoziții/muzee; dacă a vizitat deja un loc, recunoaște asta și felicită-l sau sugerează-i ceva similar dar nou!).\n"
-        f"4. Proune doar locații/puncte de interes REALE (dacă ai în contextul local, folosește-le cu încredere).\n"
-        f"5. Păstrează istoricul conversației (conversational memory) activ pe tot parcursul sesiunii, astfel încât utilizatorul să poată purta o discuție fluidă, continuă și naturală cu tine (de genul: 'Recomandă-mi un restaurant' urmat de 'Cât costă?' sau 'Ce pot mânca acolo?').\n"
-        f"6. STIL: Răspunsurile tale trebuie să fie concise, calde și atractive (maxim 3 fraze). Evită codul Markdown încărcat.\n"
-        f"7. GENERARE TRASEE: Dacă utilizatorul îți cere explicit un traseu, plan, itinerariu sau succesiune de locuri de vizitat (ex: 'Fă-mi un traseu de 4 ore' sau 'Planifică-mi un itinerariu de artă'), generează obligatoriu la sfârșitul răspunsului tău un bloc XML compact [ITINERARY: <JSON>] unde <JSON> este un șir valid JSON compact (fără linii noi sau backticks) reprezentând o listă de maxim 3 locații reale în formatul exact: "
-        f'[{{\"slot\": \"Activitate\", \"name\": \"Nume Loc\", \"type\": \"Atracție\", \"time\": \"09:00 - 10:30\", \"estimatedCost\": 50, \"address\": \"Adresă\", \"latitude\": 44.43, \"longitude\": 26.01, \"placeId\": \"id1\", \"travelToNext\": \"10 min mers\", \"proTip\": \"Sfat\"}}]. Folosește locurile REALE din contextul de mai sus dacă se potrivesc.\n\n'
-        f"OBLIGATORIU la sfârșitul fiecărui răspuns (sugestii rapide de răspuns logic): [SUGGESTIONS: S1 | S2 | S3]"
+        "Esti CityScape AI, ghidul urban prietenos al aplicatiei CityScape.\n\n"
+        f"CONTEXT:\n"
+        f"- Oras: {detected_city}\n"
+        f"- Utilizator: {user_ctx_str}\n"
+        f"- Locuri deja vizitate (nu le recomanda): {visited_str}\n\n"
+        f"{nearby_block}\n"
+        f"{events_block}\n"
+        f"{social_trends_context}\n"
+        f"RASPUNDE in {lang_str}, natural si prietenos, ca un prieten care cunoaste bine orasul. "
+        f"MAXIM 2 propozitii scurte (sub 30 cuvinte total). Fara bullet points, fara markdown.\n\n"
+        f"{nav_instruction}\n\n"
+        f"La final adauga exact: [SUGGESTIONS: sugestie1 | sugestie2 | sugestie3]"
     )
 
     # Try Gemini, if fails, use local model
@@ -296,11 +488,25 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
         history = CHAT_HISTORIES.get(user_id, []) if user_id else []
         model_instance = genai.GenerativeModel(
             model_name="gemini-flash-latest",
-            system_instruction=system_prompt
+            system_instruction=system_prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.9,
+                top_p=0.95,
+                top_k=40,
+                max_output_tokens=2048,
+            )
         )
         chat = model_instance.start_chat(history=history)
         response = chat.send_message(msg)
-        text = response.text
+        try:
+            text = response.text
+            # Debug: log finish reason
+            if response.candidates:
+                fr = response.candidates[0].finish_reason
+                print(f"[Gemini] finish_reason={fr}, text_len={len(text)}")
+        except Exception as e:
+            print(f"[Gemini] response.text error: {e}")
+            text = "".join(part.text for part in response.candidates[0].content.parts)
         
         # Save updated history
         if user_id:
@@ -361,81 +567,349 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             "suggestions": _get_fallback_suggestions(language)
         }
 
-def generate_personalized_itinerary(lat, lng, style, duration, points_count, context, user_query):
+def generate_personalized_itinerary(lat, lng, style, duration, points_count, context, user_query, user_id=None, budget=250, travel_mode="walking", start_hour=8, companion="solo", avoid_crowds=False):
     """
-    Uses Gemini to generate a highly personalized itinerary based on real nearby places.
+    Generates a fully personalized itinerary using:
+    - RAG: real user profile + visit history from Supabase
+    - Real nearby places from Google Maps
+    - Gemini for intelligent planning
+    - Budget filtering + blacklisting bad place types
     """
-    import requests
+    import requests, random, concurrent.futures
     from os import getenv
     MAPS_API_KEY = getenv("MAPS_API_KEY")
-    
-    # Simple nearby search helper inside the function to avoid circular imports
-    def quick_search(lat, lng, p_type):
-        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-        params = {"location": f"{lat},{lng}", "radius": "10000", "type": p_type, "key": MAPS_API_KEY, "language": "ro"}
-        try: return requests.get(url, params=params, timeout=10).json().get("results", [])
-        except: return []
 
-    # 1. Gather candidates with larger radius and more diversity
-    categories = ["tourist_attraction", "museum", "park", "restaurant", "cafe", "art_gallery", "landmark"]
+    FORBIDDEN_ITINERARY_WORDS = {
+        "stație", "statie", "bus stop", "bus station", "gară", "gara",
+        "metrou", "parcare", "parking", "benzinărie", "benzinarie",
+        "strip", "erotic", "casino", "cazino", "pacanele", "păcănele",
+        "superbet", "maxbet", "admiral", "winbet", "betano", "loto",
+        "pompe funebre", "cimitir", "vulcanizare", "service auto",
+    }
+    FORBIDDEN_TYPES = {
+        "bus_station", "transit_station", "subway_station", "train_station",
+        "parking", "gas_station", "casino", "adult_entertainment",
+        "funeral_home", "cemetery", "car_repair", "car_dealer",
+        "real_estate_agency", "lawyer", "accounting", "insurance_agency",
+        "doctor", "hospital", "dentist", "lodging",
+    }
+
+    def is_worthy(place):
+        name = (place.get("name") or "").lower()
+        types = place.get("types") or []
+        rating = place.get("rating") or 0
+        reviews = place.get("user_ratings_total") or 0
+        if any(t in FORBIDDEN_TYPES for t in types):
+            return False
+        if any(w in name for w in FORBIDDEN_ITINERARY_WORDS):
+            return False
+        if reviews > 20 and rating < 3.5:
+            return False
+        return True
+
+    def quick_search(p_type):
+        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+        params = {"location": f"{lat},{lng}", "radius": "8000", "type": p_type,
+                  "key": MAPS_API_KEY, "language": "ro"}
+        try:
+            return requests.get(url, params=params, timeout=8).json().get("results", [])
+        except:
+            return []
+
+    # 1. RAG: fetch real user profile + visit history from Supabase
+    user_rag = ""
+    visited_place_names = []
+    try:
+        from app import SUPABASE_URL, SUPABASE_KEY
+        headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        if user_id:
+            p_res = requests.get(
+                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*",
+                headers=headers, timeout=3
+            ).json()
+            v_res = requests.get(
+                f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=15",
+                headers=headers, timeout=3
+            ).json()
+            fav_res = requests.get(
+                f"{SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.{user_id}&select=place_name,place_type&limit=10",
+                headers=headers, timeout=3
+            ).json()
+
+            if p_res:
+                u = p_res[0]
+                interests = u.get("interests") or context.get("interests") or "generale"
+                user_rag = (
+                    f"PROFIL UTILIZATOR (RAG):\n"
+                    f"- Nume: {u.get('name', 'Explorator')}\n"
+                    f"- Nivel: {u.get('level', 1)} | XP: {u.get('total_xp', 0)}\n"
+                    f"- Interese declarate: {interests}\n"
+                    f"- Insigne: {u.get('badges', 'niciuna')}\n"
+                )
+            if v_res and isinstance(v_res, list):
+                visited_place_names = [v.get("place_name") for v in v_res if v.get("place_name")]
+                user_rag += f"- Locuri vizitate recent: {', '.join(visited_place_names[:10])}\n"
+            if fav_res and isinstance(fav_res, list):
+                favs = [f.get("place_name") for f in fav_res if f.get("place_name")]
+                if favs:
+                    user_rag += f"- Locuri favorite (bookmark): {', '.join(favs)}\n"
+    except Exception as e:
+        print(f"⚠️ RAG Supabase fetch error: {e}")
+
+    companion_labels = {"solo": "singur", "couple": "cuplu", "family": "familie cu copii", "friends": "grup de prieteni"}
+    user_rag += f"- Companie: {companion_labels.get(companion, companion)}\n"
+    if avoid_crowds:
+        user_rag += "- Preferă locuri mai liniștite, fără aglomerație\n"
+
+    # 2. Fetch real nearby candidates in parallel
+    style_categories = {
+        "cultural": ["museum", "art_gallery", "library", "tourist_attraction", "restaurant", "cafe"],
+        "relax":    ["park", "spa", "cafe", "restaurant", "tourist_attraction"],
+        "gastronomic": ["restaurant", "cafe", "bakery", "bar", "food"],
+        "sport":    ["gym", "park", "stadium", "tourist_attraction", "restaurant"],
+        "cinema":   ["movie_theater", "cafe", "restaurant", "bar"],
+    }
+    categories = next((v for k, v in style_categories.items() if k in style),
+                      ["tourist_attraction", "museum", "park", "restaurant", "cafe", "art_gallery"])
+
     unique_candidates = []
     seen_ids = set()
-    import random
-    import concurrent.futures
-
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(categories)) as executor:
-        future_to_cat = {executor.submit(quick_search, lat, lng, cat): cat for cat in categories}
-        for future in concurrent.futures.as_completed(future_to_cat):
-            cat = future_to_cat[future]
-            try:
-                results = future.result()
-                if results:
-                    random.shuffle(results) # Randomize before picking top candidates
-                    for c in results[:8]:
-                        if c.get('place_id') and c['place_id'] not in seen_ids:
-                            unique_candidates.append(c)
-                            seen_ids.add(c['place_id'])
-            except Exception as e:
-                print(f"Error quick_searching cat {cat}: {e}")
+        futures = {executor.submit(quick_search, cat): cat for cat in categories}
+        for future in concurrent.futures.as_completed(futures):
+            for c in (future.result() or []):
+                pid = c.get("place_id")
+                if pid and pid not in seen_ids and is_worthy(c):
+                    # Skip already visited (to keep itinerary fresh)
+                    if c.get("name") not in visited_place_names:
+                        unique_candidates.append(c)
+                        seen_ids.add(pid)
+
+    # Calculate distance for each candidate and sort them by distance (geographic clustering)
+    from app import calculate_distance
+    for c in unique_candidates:
+        c_lat = c.get("geometry", {}).get("location", {}).get("lat", lat)
+        c_lng = c.get("geometry", {}).get("location", {}).get("lng", lng)
+        c["_dist"] = calculate_distance(lat, lng, c_lat, c_lng)
+        
+        # Estimate a realistic cost in RON based on type and price level
+        p_type = (c.get("types") or ["place"])[0]
+        price_level = c.get("price_level", 2)
+        
+        est_cost = 0
+        if p_type in ["cafe", "bakery"]:
+            est_cost = 20 if price_level <= 1 else (35 if price_level == 2 else 55)
+        elif p_type in ["restaurant", "bar", "food"]:
+            est_cost = 45 if price_level <= 1 else (75 if price_level == 2 else (130 if price_level == 3 else 220))
+        elif p_type in ["museum", "art_gallery"]:
+            est_cost = 20
+        elif p_type in ["spa"]:
+            est_cost = 150
+        elif p_type in ["park"]:
+            est_cost = 0
+        else:
+            est_cost = 30
+            
+        c["_est_cost"] = est_cost
+
+    # Sort by distance so they are clustered together
+    unique_candidates.sort(key=lambda x: x["_dist"])
+
+    # Budget per slot estimate for Gemini context
+    budget_per_slot = round(budget / max(points_count, 1))
+
+    candidates_for_prompt = [
+        {
+            "name": c["name"],
+            "type": (c.get("types") or ["place"])[0],
+            "rating": c.get("rating", 0),
+            "reviews": c.get("user_ratings_total", 0),
+            "price_level": c.get("price_level", 2),
+            "estimated_cost_ron": c["_est_cost"],
+            "distance_from_start_km": round(c["_dist"], 1),
+            "id": c["place_id"],
+        }
+        for c in unique_candidates[:35]
+    ]
+
+    # Build sequential schedule starting at 08:00
+    # Label is determined by the actual hour of day, not index
+    TRAVEL_MINS = 15
+
+    def label_for_hour(h):
+        if h < 9:    return "Mic Dejun"
+        if h < 11:   return "Cafea & Plimbare"
+        if h < 13:   return "Activitate Dimineață"
+        if h < 14:   return "Prânz"
+        if h < 16:   return "Activitate După-Amiază"
+        if h < 17:   return "Pauză / Ceai"
+        if h < 19:   return "Activitate Seară"
+        if h < 21:   return "Cină"
+        return "Ieșire de Seară"
+
+    def duration_for_label(lbl):
+        return {
+            "Mic Dejun": 60, "Cafea & Plimbare": 50,
+            "Activitate Dimineață": 80, "Prânz": 70,
+            "Activitate După-Amiază": 80, "Pauză / Ceai": 40,
+            "Activitate Seară": 80, "Cină": 75,
+            "Ieșire de Seară": 70,
+        }.get(lbl, 70)
+
+    # Build schedule sequentially
+    current_min = start_hour * 60
+    slot_labels, slot_starts, slot_durations = [], [], []
+    used_labels = set()
+    for _ in range(points_count):
+        lbl = label_for_hour(current_min // 60)
+        # avoid duplicate labels — append number if needed
+        if lbl in used_labels:
+            lbl = f"{lbl} +"
+        used_labels.add(lbl)
+        dur = duration_for_label(lbl)
+        slot_labels.append(lbl)
+        slot_starts.append(current_min)
+        slot_durations.append(dur)
+        current_min += dur + TRAVEL_MINS
+
+    # 4. Build Gemini prompt — Gemini only picks & orders places, NO times
+    prompt = f"""Ești CityScape AI, expertul în explorare urbană. Alege și ordonează {points_count} locuri pentru o zi completă care se potrivesc cel mai bine profilului utilizatorului.
     
-    # Shuffle the final pool so Gemini doesn't always see the same order
-    random.shuffle(unique_candidates)
+{user_rag}
+CERERE SPECIALĂ: {user_query or "nicio cerință specială"}
+STIL CĂLĂTORIE: {style}
+BUGET TOTAL: {budget} RON (~{budget_per_slot} RON/oprire)
+COORDONATE PORNIRE: lat={lat}, lng={lng}
 
-    candidates_context = json.dumps([
-        {"name": c['name'], "type": c.get('types', [])[0] if c.get('types') else 'place', "rating": c.get('rating', 0), "id": c['place_id']}
-        for c in unique_candidates[:25] # Limit context but keep it diverse
-    ])
+SLOTURILE ZILEI (în această ordine exactă):
+{chr(10).join(f"  {i+1}. {lbl}" for i, lbl in enumerate(slot_labels))}
 
-    prompt = (
-        f"Ești 'CityScape AI', expertul nostru în explorări urbane. Generează un plan de {duration} ore cu {points_count} puncte de oprire. "
-        f"Coordonate plecare: {lat}, {lng}. Stil: {style}. Cerință specială: {user_query}. "
-        f"Interese utilizator: {context.get('interests', [])}. "
-        f"Locații REALE în această zonă (alege cu grijă): {candidates_context}. "
-        "Cerințe RĂSPUNS: EXCLUSIV un cod JSON formatat ca o listă de obiecte [{}, {}...], fără explicații. "
-        "Fiecare obiect TREBUIE să conțină: "
-        "1. 'slot' (ex: 'Dejun'), 'name' (Nume REAL), 'type', 'time' (ex: '09:00 - 10:30'). "
-        "2. 'estimatedCost' (preț în RON), 'address', 'latitude', 'longitude', 'placeId'. "
-        "3. 'travelToNext' (estimare timp/metodă transport către următorul punct, ex: '15 min de mers pe jos' sau '10 min cu Uber'). "
-        "4. 'proTip' (un sfat scurt și inteligent despre locație, ex: 'Cere masa de la fereastră' sau 'Îarcă specialitatea casei'). "
-        "IMPORTANT: Planifică logic traseul (proximitate) și asigură diversitate maximă!"
-    )
+LOCURI REALE DISPONIBILE (alege DOAR din această listă, ordonate după distanța de la pornire):
+{json.dumps(candidates_for_prompt, ensure_ascii=False)}
+
+REGULI:
+1. Returnează EXACT {points_count} obiecte, în ordinea sloturilor de mai sus.
+2. Fiecare obiect din răspuns trebuie să corespundă unui loc din lista de mai sus. Folosește ID-ul corect.
+3. Alege locuri care sunt geografic apropiate între ele pentru a minimiza timpul de deplasare (preferabil sub 2-3 km între opriri succesive).
+4. Respectă bugetul total de {budget} RON. Suma costurilor estimate ale locurilor alese ("estimatedCost") nu trebuie să depășească bugetul.
+5. Personalizează alegerea în funcție de interesele utilizatorului și cererea specială.
+6. Pentru fiecare loc, scrie un sfat scurt și util în câmpul "tip" (ex: ce să încerce acolo, ce masă să rezerve).
+
+RĂSPUNDE EXCLUSIV cu un bloc JSON valid, fără alte explicații sau text:
+[
+  {{
+    "slot": "Mic Dejun",
+    "name": "Nume real din listă",
+    "type": "tipul locului",
+    "estimatedCost": 35,
+    "address": "adresa reală",
+    "latitude": 44.xxx,
+    "longitude": 26.xxx,
+    "placeId": "ID-ul din listă",
+    "tip": "Sfat practic în limba română"
+  }}
+]"""
 
     try:
         response = gemini_model.generate_content(prompt)
-        text = response.text
-        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
-        
+        text = response.text.strip()
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+
         plan = json.loads(text)
-        for item in plan:
-            matched = next((c for c in unique_candidates if c['place_id'] == item.get('placeId') or c['name'] == item['name']), None)
-            if matched and matched.get("photos") and not item.get("imageUrl"):
-                ref = matched["photos"][0]["photo_reference"]
-                item["imageUrl"] = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
-            elif not item.get("imageUrl"):
+
+        # Trim/pad plan to match exactly points_count
+        plan = plan[:len(slot_labels)]
+
+        candidates_map = {c["place_id"]: c for c in unique_candidates}
+
+        # Calculate real travel time between consecutive stops using Haversine
+        import math
+
+        def haversine_minutes(lat1, lon1, lat2, lon2, mode="walking"):
+            R = 6371
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1))*math.cos(math.radians(lat2))*math.sin(dlon/2)**2
+            dist_km = R * 2 * math.asin(math.sqrt(a))
+            speeds = {"walking": 5, "transit": 20, "driving": 40}
+            speed = speeds.get(mode, 5)
+            return max(5, int((dist_km / speed) * 60))
+
+        def travel_label(mins, mode):
+            icons = {"walking": "🚶", "transit": "🚌", "driving": "🚗"}
+            icon = icons.get(mode, "🚶")
+            return f"{icon} ~{mins} min"
+
+        travel_mode_param = travel_mode  # passed in from caller
+
+        current_min = slot_starts[0]
+        for i, item in enumerate(plan):
+            lbl = slot_labels[i]
+            dur = slot_durations[i]
+
+            item["slot"] = lbl
+            start = current_min
+            end = current_min + dur
+            item["time"] = f"{start // 60:02d}:{start % 60:02d} - {end // 60:02d}:{end % 60:02d}"
+
+            if i > 0:
+                prev = plan[i - 1]
+                try:
+                    travel_mins = haversine_minutes(
+                        float(prev.get("latitude", 0)), float(prev.get("longitude", 0)),
+                        float(item.get("latitude", 0)), float(item.get("longitude", 0)),
+                        travel_mode_param
+                    )
+                except:
+                    travel_mins = TRAVEL_MINS
+                item["travelMinutes"] = travel_mins
+                item["travelLabel"] = travel_label(travel_mins, travel_mode_param)
+                current_min = end + travel_mins
+            else:
+                item["travelMinutes"] = 0
+                item["travelLabel"] = ""
+                current_min = end + TRAVEL_MINS
+
+            # Google Maps directions link from previous stop to this one
+            if i == 0:
+                item["mapsUrl"] = f"https://www.google.com/maps/search/?api=1&query={item.get('latitude')},{item.get('longitude')}"
+            else:
+                prev = plan[i - 1]
+                item["mapsUrl"] = (
+                    f"https://www.google.com/maps/dir/?api=1"
+                    f"&origin={prev.get('latitude')},{prev.get('longitude')}"
+                    f"&destination={item.get('latitude')},{item.get('longitude')}"
+                    f"&travelmode=walking"
+                )
+
+            # Attach real photo and coordinates/address to ensure 100% geographic accuracy
+            matched = candidates_map.get(item.get("placeId"))
+            if not matched:
+                matched = next((c for c in unique_candidates if c["name"] == item.get("name")), None)
+            
+            if matched:
+                # Overwrite with 100% accurate coordinates & details from Google Places candidate
+                item["latitude"] = matched.get("geometry", {}).get("location", {}).get("lat", item.get("latitude"))
+                item["longitude"] = matched.get("geometry", {}).get("location", {}).get("lng", item.get("longitude"))
+                item["address"] = matched.get("vicinity", item.get("address"))
+                item["name"] = matched.get("name", item.get("name"))
+                item["placeId"] = matched.get("place_id", item.get("placeId"))
+                
+                if matched.get("photos"):
+                    ref = matched["photos"][0]["photo_reference"]
+                    item["imageUrl"] = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
+            
+            if not item.get("imageUrl"):
                 item["imageUrl"] = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
-            item["is_open"] = True
+            item.setdefault("is_open", True)
+            item.setdefault("tip", "")
+
+        print(f"✅ Gemini personalized itinerary: {len(plan)} stops for user {user_id}")
         return plan
+
     except Exception as e:
         print(f"⚠️ Gemini Itinerary Error: {e}")
         return []

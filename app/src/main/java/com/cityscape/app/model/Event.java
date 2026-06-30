@@ -28,6 +28,22 @@ public class Event {
     @SerializedName("relevance_score")
     public int relevance_score;
 
+    @SerializedName("confidence")
+    public int confidence;
+
+    @SerializedName("ai_reason")
+    public String aiReason;
+
+    @SerializedName("ai_factors")
+    public AiFactors aiFactors;
+
+    public static class AiFactors {
+        @SerializedName("interest_match") public int interestMatch;
+        @SerializedName("novelty")        public int novelty;
+        @SerializedName("history_match")  public int historyMatch;
+        @SerializedName("info_quality")   public int infoQuality;
+    }
+
     // New enriched fields
     public String description;
     public List<Photo> photos;

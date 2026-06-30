@@ -75,11 +75,14 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
 
         // Post Image
         if (post.imageUrl != null && !post.imageUrl.isEmpty()) {
+            holder.postImage.setVisibility(View.VISIBLE);
             Glide.with(holder.itemView.getContext())
                 .load(post.imageUrl)
                 .centerCrop()
                 .placeholder(R.color.app_surface)
                 .into(holder.postImage);
+        } else {
+            holder.postImage.setVisibility(View.GONE);
         }
 
         // User Avatar
@@ -89,6 +92,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
                 .circleCrop()
                 .placeholder(R.drawable.ic_profile)
                 .into(holder.userAvatar);
+        } else {
+            holder.userAvatar.setImageResource(R.drawable.ic_profile);
         }
 
         // Like state - change icon if liked

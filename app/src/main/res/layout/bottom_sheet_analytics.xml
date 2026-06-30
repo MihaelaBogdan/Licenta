@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/app_background"
+    android:padding="24dp">
+
+    <!-- Header -->
+    <TextView
+        android:id="@+id/tv_analytics_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📊 Raportul Personal"
+        android:textColor="@color/app_text_primary"
+        android:textSize="24sp"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Stats Section -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/card_background">
+
+        <TextView
+            android:id="@+id/tv_analytics_stats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Loading stats..."
+            android:textColor="@color/app_text_primary"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.6" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Insights Section -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/card_background">
+
+        <TextView
+            android:id="@+id/tv_analytics_insights"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Loading insights..."
+            android:textColor="@color/gold_accent"
+            android:textSize="13sp"
+            android:lineSpacingMultiplier="1.6" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Achievements Section -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/card_background">
+
+        <TextView
+            android:id="@+id/tv_analytics_achievements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Loading achievements..."
+            android:textColor="@color/primary"
+            android:textSize="13sp"
+            android:lineSpacingMultiplier="1.8" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Export Button -->
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="📥 Exporta Raportul"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        app:cornerRadius="12dp"
+        app:backgroundTint="@color/primary" />
+
+</LinearLayout>

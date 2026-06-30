@@ -26,13 +26,16 @@ import com.cityscape.app.model.MemberSchedule;
         com.cityscape.app.model.GroupSuggestion.class,
         com.cityscape.app.model.Vote.class,
         com.cityscape.app.model.FeedBookmark.class,
-        com.cityscape.app.model.GroupMessage.class
-}, version = 18, exportSchema = false)
+        com.cityscape.app.model.GroupMessage.class,
+        com.cityscape.app.model.Place.class
+}, version = 20, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
 
     public abstract UserDao userDao();
+
+    public abstract PlaceDao placeDao();
 
     public abstract BadgeDao badgeDao();
 

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@color/app_card"
+    app:strokeColor="#1A10B981"
+    app:strokeWidth="1.5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔮 Recomandarea Ta"
+            android:textColor="@color/primary"
+            android:textSize="22sp"
+            android:fontFamily="sans-serif-black"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Place Name -->
+        <TextView
+            android:id="@+id/reveal_place_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Locație Secretă"
+            android:textColor="@color/app_text_primary"
+            android:textSize="24sp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Destiny Reason Box -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#F0FDF4"
+            app:strokeColor="#3310B981"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/reveal_reason"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="&quot;O alegere excelentă pentru a te relaxa și a descoperi farmecul local!&quot;"
+                    android:textColor="#065F46"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="italic"
+                    android:gravity="center"
+                    android:lineSpacingMultiplier="1.2"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Activities Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨ CE POȚI FACE ACOLO:"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="start"/>
+
+        <!-- Activities List -->
+        <TextView
+            android:id="@+id/reveal_activities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="  ✨ Explorează împrejurimile în ritmul tău.\n  ✨ Admiră detaliile arhitecturale și farmecul locului."
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp"
+            android:lineSpacingExtra="6dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:spacing="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reveal_navigate"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="ARATĂ-MI TRASEUL"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-black"
+                app:cornerRadius="27dp"
+                app:backgroundTint="@color/primary"
+                app:icon="@drawable/ic_direction"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:elevation="4dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reveal_share"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="INVITĂ PRIETENII"
+                android:textColor="@color/primary"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-black"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1.5dp"
+                app:cornerRadius="27dp"
+                app:icon="@drawable/ic_share"
+                app:iconGravity="textStart"
+                app:iconTint="@color/primary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reveal_close"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="ÎNCHIDE"
+                android:textColor="@color/app_text_hint"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,12 +1,15 @@
 package com.cityscape.app.ui.chat;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -21,6 +24,8 @@ import com.cityscape.app.api.ChatRequest;
 import com.cityscape.app.api.ChatResponse;
 import com.cityscape.app.data.LocaleHelper;
 import com.cityscape.app.model.ChatMessage;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +43,39 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private EditText inputField;
     private ImageButton sendButton;
     private ApiService apiService;
+
+    @Override
+    public int getTheme() {
+        return R.style.TransparentBottomSheetDialogTheme;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Dialog dialog = getDialog();
+        if (dialog != null) {
+            View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
+                if (getActivity() != null) {
+                    getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                    int height = (int) (displayMetrics.heightPixels * 0.75);
+                    
+                    ViewGroup.LayoutParams params = bottomSheet.getLayoutParams();
+                    params.height = height;
+                    bottomSheet.setLayoutParams(params);
+                    
+                    BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                    behavior.setPeekHeight(height);
+                    behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    behavior.setSkipCollapsed(true);
+                }
+            }
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            }
+        }
+    }
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -90,6 +128,11 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         sendButton.setOnClickListener(v -> sendMessage());
 
+        View closeButton = view.findViewById(R.id.btn_close_chat);
+        if (closeButton != null) {
+            closeButton.setOnClickListener(v -> dismiss());
+        }
+
         return view;
     }
 
@@ -108,12 +151,9 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         };
 
         for (String theme : themes) {
-            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+            com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) LayoutInflater.from(requireContext())
+                    .inflate(R.layout.item_chat_suggestion_chip, themesGroup, false);
             chip.setText(theme);
-            chip.setCheckable(false);
-            chip.setClickable(true);
-            chip.setChipBackgroundColorResource(R.color.app_surface);
-            chip.setTextColor(getResources().getColor(R.color.app_text_primary));
             chip.setOnClickListener(v -> {
                 inputField.setText(theme);
                 sendMessage();
@@ -205,10 +245,9 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         
         group.removeAllViews();
         for (String suggestion : suggestions) {
-            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+            com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) LayoutInflater.from(requireContext())
+                    .inflate(R.layout.item_chat_suggestion_chip, group, false);
             chip.setText(suggestion);
-            chip.setCheckable(false);
-            chip.setClickable(true);
             chip.setOnClickListener(v -> {
                 inputField.setText(suggestion);
                 sendMessage();

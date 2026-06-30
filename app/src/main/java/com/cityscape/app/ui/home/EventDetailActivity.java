@@ -51,12 +51,19 @@ public class EventDetailActivity extends AppCompatActivity {
         TextView titleText = findViewById(R.id.event_detail_title);
         TextView timeText = findViewById(R.id.event_detail_time);
         TextView locationText = findViewById(R.id.event_detail_location);
+        TextView descText = findViewById(R.id.event_detail_description);
         MaterialButton btnTickets = findViewById(R.id.btn_buy_tickets);
         MaterialButton btnShare = findViewById(R.id.btn_share_event);
 
         titleText.setText(event.title);
-        timeText.setText(event.time);
-        locationText.setText(event.location);
+
+        String dateStr = event.date != null ? event.date : event.date_str;
+        timeText.setText(dateStr != null && !dateStr.isEmpty() ? dateStr : (event.time != null ? event.time : ""));
+        locationText.setText(event.location != null ? event.location : "");
+
+        if (event.description != null && !event.description.isEmpty()) {
+            descText.setText(event.description);
+        }
 
         if (event.imageUrl != null && !event.imageUrl.isEmpty()) {
             Glide.with(this)
@@ -72,6 +79,27 @@ public class EventDetailActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(event.url));
                 startActivity(intent);
             });
+        }
+
+        // Explainable AI section
+        android.view.View aiSection = findViewById(R.id.ai_section);
+        TextView txtConfidence = findViewById(R.id.txt_event_confidence);
+        TextView txtAiReason = findViewById(R.id.txt_ai_reason);
+        android.widget.ProgressBar progressInterests = findViewById(R.id.progress_interests);
+        android.widget.ProgressBar progressNovelty = findViewById(R.id.progress_novelty);
+        android.widget.ProgressBar progressHistory = findViewById(R.id.progress_history);
+
+        if (event.confidence > 0 && aiSection != null) {
+            aiSection.setVisibility(android.view.View.VISIBLE);
+            if (txtConfidence != null)
+                txtConfidence.setText(event.confidence + "% Potrivire");
+            if (txtAiReason != null && event.aiReason != null)
+                txtAiReason.setText(event.aiReason);
+            if (event.aiFactors != null) {
+                if (progressInterests != null) progressInterests.setProgress(event.aiFactors.interestMatch);
+                if (progressNovelty != null) progressNovelty.setProgress(event.aiFactors.novelty);
+                if (progressHistory != null) progressHistory.setProgress(event.aiFactors.historyMatch);
+            }
         }
 
         btnShare.setOnClickListener(v -> {

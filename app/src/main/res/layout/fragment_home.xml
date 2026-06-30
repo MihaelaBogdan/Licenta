@@ -63,9 +63,19 @@
                     </LinearLayout>
 
                     <ImageButton
+                        android:id="@+id/btn_filter_header"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_filter"
+                        app:tint="@color/primary" />
+
+                    <ImageButton
                         android:id="@+id/btn_reset_location"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
+                        android:layout_marginEnd="8dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_location"
                         android:visibility="gone"
@@ -84,46 +94,116 @@
                     app:tint="@color/primary" />
             </RelativeLayout>
 
+            <!-- Offline Banner Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_offline_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/app_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📴"
+                        android:textSize="28sp"
+                        android:layout_marginEnd="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mod Offline Activ"
+                            android:textColor="@color/primary"
+                            android:textSize="14sp"
+                            android:fontFamily="sans-serif-black" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Chiar dacă ești în avion, la metrou sau fără semnal, CityScape continuă să funcționeze și îți arată ultimele recomandări explorate!"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- NEXT LEVEL: Weather/Contextual Smart Recommendation Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_smart_recommendation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:cardMaxElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardPreventCornerOverlap="false"
+                app:cardUseCompatPadding="false"
                 android:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:background="@drawable/bg_glass_card"
-                    android:padding="16dp">
+                    android:background="@drawable/bg_smart_rec_card"
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
+                        android:layout_marginBottom="12dp">
 
                         <TextView
                             android:id="@+id/txt_smart_emoji"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="💡"
-                            android:textSize="22sp"
-                            android:layout_marginEnd="8dp" />
+                            android:textSize="24sp"
+                            android:layout_marginEnd="12dp" />
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Recomandarea Smart a Zilei"
-                            android:textColor="@color/primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:fontFamily="sans-serif-medium" />
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="RECOMANDARE INTELIGENTĂ"
+                                android:textColor="@color/smart_card_text_primary"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.08"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Sugestia Personalizată"
+                                android:textColor="@color/app_text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:fontFamily="sans-serif-black" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <TextView
@@ -131,9 +211,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Se analizează vremea și preferințele tale..."
-                        android:textColor="@color/app_text_primary"
-                        android:textSize="13sp"
-                        android:lineSpacingExtra="3sp" />
+                        android:textColor="@color/smart_card_text_body"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.25" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -144,63 +224,93 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:visibility="gone"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:cardMaxElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardPreventCornerOverlap="false"
+                app:cardUseCompatPadding="false">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_premium"
+                    android:background="@drawable/bg_daily_quest_card"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
-                        
-                        <TextView
-                            android:id="@+id/text_quest_title"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_badge"
+                            android:layout_marginEnd="12dp"
+                            app:tint="@color/quest_card_text_primary" />
+
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Misiunea Zilei"
-                            android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="MISIUNEA ZILEI"
+                                android:textColor="@color/quest_card_text_primary"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.08"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/text_quest_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Exploratorul Urban"
+                                android:textColor="@color/app_text_primary"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:fontFamily="sans-serif-black" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/text_quest_reward"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_badge"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp"
+                            android:background="@drawable/bg_quest_reward_badge"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="6dp"
                             android:text="+500 XP"
-                            android:textColor="@color/gold_accent"
+                            android:textColor="@color/quest_reward_text"
                             android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
 
                     <TextView
                         android:id="@+id/text_quest_objective"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:text="Vizitează 2 cafenele și postează o poză mistică."
-                        android:textColor="#E0E0E0"
-                        android:textSize="14sp" />
+                        android:textColor="@color/quest_card_text_body"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.2" />
 
                     <TextView
                         android:id="@+id/text_quest_reason"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="6dp"
                         android:text="Pentru că e soare, e timpul perfect!"
-                        android:textColor="#B0B0B0"
-                        android:textSize="11sp"
-                        android:fontFamily="sans-serif-light" />
+                        android:textColor="@color/quest_card_text_secondary"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-italic" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -268,6 +378,7 @@
                 app:iconGravity="textStart" />
 
             <!-- Interactive Live Battle Home Screen Widget Card -->
+            <!-- Interactive Live Battle Home Screen Widget Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_home_live_battle"
                 android:layout_width="match_parent"
@@ -276,14 +387,16 @@
                 android:layout_marginBottom="8dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/app_surface"
-                app:strokeColor="#2610B981"
-                app:strokeWidth="1.5dp">
+                app:cardMaxElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardPreventCornerOverlap="false"
+                app:cardUseCompatPadding="false">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="@drawable/bg_live_battle_card"
                     android:padding="16dp">
 
                     <!-- Header -->
@@ -316,92 +429,153 @@
                             android:paddingVertical="3dp" />
                     </LinearLayout>
 
-                    <!-- Place A Short Info -->
+                    <!-- Leader Indicator -->
+                    <TextView
+                        android:id="@+id/txt_home_battle_leader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="14dp"
+                        android:text="⚔️ Este egalitate acum! (50%)"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center" />
+
+                    <!-- Clash Row (Horizontal) -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
-                        <TextView
-                            android:id="@+id/home_battle_name_a"
+                        <!-- Place A Column -->
+                        <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="Ateneul Român"
-                            android:textColor="@color/app_text_primary"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
 
+                            <TextView
+                                android:id="@+id/home_battle_name_a"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Ateneul Român"
+                                android:textColor="@color/app_text_primary"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:gravity="center"
+                                android:maxLines="2"
+                                android:ellipsize="end" />
+
+                            <TextView
+                                android:id="@+id/home_battle_pct_a"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="50%"
+                                android:textColor="@color/primary"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="4dp" />
+
+                            <ProgressBar
+                                android:id="@+id/home_battle_progress_a"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="6dp"
+                                android:layout_marginTop="4dp"
+                                android:layout_marginBottom="10dp"
+                                android:max="100"
+                                android:progress="50"
+                                android:progressTint="@color/primary" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_home_vote_a"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:text="Votează"
+                                android:textSize="11sp"
+                                android:textAllCaps="false"
+                                android:textColor="@color/white"
+                                android:backgroundTint="@color/primary"
+                                app:cornerRadius="18dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:paddingHorizontal="16dp" />
+                        </LinearLayout>
+
+                        <!-- VS Indicator in Middle -->
                         <TextView
-                            android:id="@+id/home_battle_pct_a"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="50%"
-                            android:textColor="@color/primary"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                    <ProgressBar
-                        android:id="@+id/home_battle_progress_a"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="5dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="8dp"
-                        android:max="100"
-                        android:progress="50"
-                        android:progressTint="@color/primary" />
-
-                    <!-- Place B Short Info -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/home_battle_name_b"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="Teatrul Național"
-                            android:textColor="@color/app_text_primary"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/home_battle_pct_b"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="50%"
-                            android:textColor="#8B5CF6"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                    <ProgressBar
-                        android:id="@+id/home_battle_progress_b"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="5dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="12dp"
-                        android:max="100"
-                        android:progress="50"
-                        android:progressTint="#8B5CF6" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_home_vote_a"
-                            android:layout_width="match_parent"
-                            android:layout_height="36dp"
-                            android:text="Votează"
-                            android:textSize="11sp"
-                            android:textAllCaps="false"
+                            android:text="VS"
                             android:textColor="@color/white"
-                            android:backgroundTint="@color/primary"
-                            app:cornerRadius="8dp"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp" />
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/bg_quest_reward_badge"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:layout_marginHorizontal="10dp"
+                            android:gravity="center" />
+
+                        <!-- Place B Column -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:id="@+id/home_battle_name_b"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Teatrul Național"
+                                android:textColor="@color/app_text_primary"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:gravity="center"
+                                android:maxLines="2"
+                                android:ellipsize="end" />
+
+                            <TextView
+                                android:id="@+id/home_battle_pct_b"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="50%"
+                                android:textColor="#8B5CF6"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="4dp" />
+
+                            <ProgressBar
+                                android:id="@+id/home_battle_progress_b"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="6dp"
+                                android:layout_marginTop="4dp"
+                                android:layout_marginBottom="10dp"
+                                android:max="100"
+                                android:progress="50"
+                                android:progressTint="#8B5CF6" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_home_vote_b"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:text="Votează"
+                                android:textSize="11sp"
+                                android:textAllCaps="false"
+                                android:textColor="@color/white"
+                                android:backgroundTint="#8B5CF6"
+                                app:cornerRadius="18dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:paddingHorizontal="16dp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -453,6 +627,22 @@
                     android:src="@drawable/ic_filter"
                     app:tint="@color/primary" />
             </LinearLayout>
+
+            <!-- Active Filters List -->
+            <HorizontalScrollView
+                android:id="@+id/scroll_active_filters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/active_filters_chip_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true" />
+            </HorizontalScrollView>
 
             <!-- Categories -->
             <HorizontalScrollView
@@ -695,7 +885,8 @@
                 android:layout_marginTop="12dp"
                 android:clipToPadding="false"
                 android:paddingHorizontal="16dp"
-                android:orientation="horizontal" />
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <!-- Enhanced Trending Section Container -->
             <LinearLayout
@@ -718,7 +909,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="12dp"
-                        android:src="@drawable/ic_search"
+                        android:src="@drawable/ic_explore"
                         app:tint="@color/gold_accent" />
 
                     <TextView

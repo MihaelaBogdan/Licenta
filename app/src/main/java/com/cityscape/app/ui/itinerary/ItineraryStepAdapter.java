@@ -68,9 +68,34 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             holder.textTime.setText("09:00 - 10:00");
         }
 
+        // Travel time separator
+        if (holder.travelSeparator != null) {
+            if (position > 0 && item.travelMinutes > 0) {
+                holder.travelSeparator.setVisibility(View.VISIBLE);
+                if (holder.textTravelTime != null) {
+                    String label = (item.travelLabel != null && !item.travelLabel.isEmpty())
+                        ? item.travelLabel + " până aici"
+                        : "🚶 ~" + item.travelMinutes + " min până aici";
+                    holder.textTravelTime.setText(label);
+                }
+            } else {
+                holder.travelSeparator.setVisibility(View.GONE);
+            }
+        }
+
         // Show warning if place is closed
         if (holder.badgeWarning != null) {
             holder.badgeWarning.setVisibility(item.is_open ? View.GONE : View.VISIBLE);
+        }
+
+        // Show tip / recommendation
+        if (holder.textTip != null) {
+            if (item.tip != null && !item.tip.isEmpty()) {
+                holder.textTip.setText("💡 " + item.tip);
+                holder.textTip.setVisibility(View.VISIBLE);
+            } else {
+                holder.textTip.setVisibility(View.GONE);
+            }
         }
 
         // Mock distance for demo (improved calculation)
@@ -83,9 +108,29 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
                 .into(holder.imgStep);
 
         holder.itemView.setOnClickListener(v -> listener.onStepClick(item));
-        
         holder.btnSwap.setOnClickListener(v -> listener.onStepSwap(position));
         holder.btnDelete.setOnClickListener(v -> listener.onStepDelete(position));
+
+        // Google Maps navigation button
+        if (holder.btnNavigate != null) {
+            if (item.mapsUrl != null && !item.mapsUrl.isEmpty()) {
+                holder.btnNavigate.setVisibility(View.VISIBLE);
+                String label = position == 0 ? "Vezi pe hartă →" : "Navighează din punctul anterior →";
+                holder.btnNavigate.setText(label);
+                holder.btnNavigate.setOnClickListener(v -> {
+                    android.net.Uri uri = android.net.Uri.parse(item.mapsUrl);
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, uri);
+                    intent.setPackage("com.google.android.apps.maps");
+                    if (intent.resolveActivity(v.getContext().getPackageManager()) != null) {
+                        v.getContext().startActivity(intent);
+                    } else {
+                        v.getContext().startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, uri));
+                    }
+                });
+            } else {
+                holder.btnNavigate.setVisibility(View.GONE);
+            }
+        }
     }
 
     @Override
@@ -94,21 +139,27 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView textSlot, textName, textAddress, textDistance, textCost, textTime, badgeWarning;
+        TextView textSlot, textName, textAddress, textDistance, textCost, textTime, badgeWarning, textTip, textTravelTime;
+        View travelSeparator;
         ImageView imgStep;
+        android.widget.Button btnNavigate;
 
         ViewHolder(View view) {
             super(view);
+            travelSeparator = view.findViewById(R.id.travel_separator);
+            textTravelTime  = view.findViewById(R.id.text_travel_time);
             textSlot = view.findViewById(R.id.text_slot_label);
             textName = view.findViewById(R.id.text_step_name);
             textAddress = view.findViewById(R.id.text_step_address);
             textDistance = view.findViewById(R.id.text_distance);
             textCost = view.findViewById(R.id.text_step_cost);
             textTime = view.findViewById(R.id.text_step_time);
-            badgeWarning =  view.findViewById(R.id.badge_closed_warning);
+            badgeWarning = view.findViewById(R.id.badge_closed_warning);
+            textTip = view.findViewById(R.id.text_step_tip);
             imgStep = view.findViewById(R.id.img_step);
             btnSwap = view.findViewById(R.id.btn_step_swap);
             btnDelete = view.findViewById(R.id.btn_step_delete);
+            btnNavigate = view.findViewById(R.id.btn_navigate);
         }
 
         android.widget.ImageButton btnSwap, btnDelete;

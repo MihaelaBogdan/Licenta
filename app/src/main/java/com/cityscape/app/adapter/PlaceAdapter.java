@@ -138,24 +138,32 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                 placeName.setText(place.name != null ? place.name : "");
             if (placeType != null)
                 placeType.setText(place.type != null ? place.type : "");
-            if (placeRating != null)
-                placeRating.setText(String.format("%.1f", place.rating));
+            if (placeRating != null) {
+                StringBuilder stars = new StringBuilder();
+                int r = Math.round(place.rating);
+                for (int i = 0; i < 5; i++) {
+                    stars.append(i < r ? "★" : "☆");
+                }
+                String reviewStr = place.reviewCount > 0 ? " (" + place.reviewCount + " recenzii)" : "";
+                placeRating.setText(String.format(java.util.Locale.US, "%.1f %s%s", place.rating, stars.toString(), reviewStr));
+            }
             if (placeAddress != null) {
                 placeAddress.setText(place.address != null ? place.address : "");
             }
 
             // Display recommendation scores if available
             if (recommendationInfo != null) {
-                if (place.matchHistoryPct > 0) {
+                float displayPct = place.confidence > 0 ? place.confidence : place.matchHistoryPct;
+                if (displayPct > 0) {
                     recommendationInfo.setVisibility(View.VISIBLE);
 
                     // Show overall confidence
                     if (confidenceScore != null) {
-                        confidenceScore.setText(place.matchHistoryPct + "%");
+                        confidenceScore.setText(String.format(java.util.Locale.US, "%.1f%%", displayPct));
                         // Color code: green if >= 80, yellow if >= 60, red otherwise
-                        int color = place.matchHistoryPct >= 80 ?
+                        int color = displayPct >= 80f ?
                             context.getColor(android.R.color.holo_green_dark) :
-                            place.matchHistoryPct >= 60 ?
+                            displayPct >= 60f ?
                             context.getColor(android.R.color.holo_orange_light) :
                             context.getColor(android.R.color.holo_red_light);
                         confidenceScore.setTextColor(color);
@@ -165,7 +173,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                     if (interestMatchLayout != null && place.matchPrefsPct > 0) {
                         interestMatchLayout.setVisibility(View.VISIBLE);
                         if (interestMatchScore != null) {
-                            interestMatchScore.setText(place.matchPrefsPct + "%");
+                            interestMatchScore.setText(String.format(java.util.Locale.US, "%.1f%%", place.matchPrefsPct));
                         }
                     } else if (interestMatchLayout != null) {
                         interestMatchLayout.setVisibility(View.GONE);

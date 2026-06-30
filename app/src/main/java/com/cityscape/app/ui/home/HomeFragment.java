@@ -23,6 +23,7 @@ import android.widget.Toast;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.HorizontalScrollView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -92,6 +93,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private String currentCategory = "All";
         private String searchQuery = "";
         private String currentMusicFilter = "All";
+        private double currentRatingFilter = 0.0;
+        private int currentPriceFilter = 0;
+        private double currentDistanceFilter = 50.0;
         private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         private Runnable searchRunnable;
         private String eventMusicFilter = "All";
@@ -138,7 +142,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 // DEBUG: Show the current API URL on start to verify build updates
                 try {
                     String apiUrl = BuildConfig.FLASK_API_URL;
-                    // Removed connection toast
+                    Toast.makeText(getContext(), "Conectat la: " + apiUrl, Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     Log.e("HomeFragment", "Debug URL toast failed", e);
                 }
@@ -213,6 +217,15 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         }
 
                         com.google.android.material.chip.ChipGroup interestChips = dialogView.findViewById(R.id.dialog_interest_chips);
+
+                        com.google.android.material.slider.Slider startHourSlider = dialogView.findViewById(R.id.dialog_start_hour_slider);
+                        TextView tvStartHourValue = dialogView.findViewById(R.id.tv_start_hour_value);
+                        if (startHourSlider != null && tvStartHourValue != null) {
+                            startHourSlider.addOnChangeListener((slider, value, fromUser) -> {
+                                tvStartHourValue.setText(String.format("%02d:00", (int) value));
+                            });
+                        }
+
                         View btnPlan = dialogView.findViewById(R.id.btn_generate_itinerary);
 
                         btnPlan.setOnClickListener(v1 -> {
@@ -242,12 +255,41 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 String interestsString = String.join(",", selectedInterests);
 
                                 int budget = (int) budgetSlider.getValue();
-                                
+
                                 int duration = (int) (durationSlider != null ? durationSlider.getValue() : 6);
                                 int points = (int) (densitySlider != null ? densitySlider.getValue() : 4);
 
+                                // Read transport mode
+                                String travelMode = "walking";
+                                com.google.android.material.chip.ChipGroup transportChips = dialogView.findViewById(R.id.dialog_transport_chips);
+                                if (transportChips != null) {
+                                    int transportChipId = transportChips.getCheckedChipId();
+                                    if (transportChipId == R.id.chip_transport_transit) travelMode = "transit";
+                                    else if (transportChipId == R.id.chip_transport_driving) travelMode = "driving";
+                                }
+
+                                // Read companion
+                                String companion = "solo";
+                                com.google.android.material.chip.ChipGroup companionChips = dialogView.findViewById(R.id.dialog_companion_chips);
+                                if (companionChips != null) {
+                                    int companionChipId = companionChips.getCheckedChipId();
+                                    if (companionChipId == R.id.chip_companion_couple) companion = "couple";
+                                    else if (companionChipId == R.id.chip_companion_friends) companion = "friends";
+                                    else if (companionChipId == R.id.chip_companion_family) companion = "family";
+                                }
+
+                                // Read start hour
+                                int startHour = (startHourSlider != null) ? (int) startHourSlider.getValue() : 8;
+
+                                // Read avoid crowds
+                                boolean avoidCrowds = false;
+                                com.google.android.material.materialswitch.MaterialSwitch switchAvoidCrowds = dialogView.findViewById(R.id.switch_avoid_crowds);
+                                if (switchAvoidCrowds != null) {
+                                    avoidCrowds = switchAvoidCrowds.isChecked();
+                                }
+
                                 dialog.dismiss();
-                                fetchItinerary(scope, type, budget, duration, points, interestsString);
+                                fetchItinerary(scope, type, budget, duration, points, interestsString, travelMode, startHour, companion, avoidCrowds);
                         });
 
                         dialog.show();
@@ -280,18 +322,33 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
 
                 TextView textStatus = dialogView.findViewById(R.id.text_magic_status);
+                TextView textInstruction = dialogView.findViewById(R.id.text_magic_instruction);
                 TextView textReveal = dialogView.findViewById(R.id.text_magic_reveal_name);
                 ImageView imgBall = dialogView.findViewById(R.id.img_magic_reveal_ball);
                 ImageView imgMist = dialogView.findViewById(R.id.img_magic_reveal_mist);
+                View glow1 = dialogView.findViewById(R.id.view_glow_1);
+                View glow2 = dialogView.findViewById(R.id.view_glow_2);
                 com.google.android.material.chip.ChipGroup chipGroup = dialogView.findViewById(R.id.chip_group_magic_cats);
                 com.google.android.material.button.MaterialButton btnGo = dialogView.findViewById(R.id.btn_magic_go);
+                com.google.android.material.button.MaterialButton btnClose = dialogView.findViewById(R.id.btn_magic_close);
                 View ballContainer = dialogView.findViewById(R.id.layout_magic_ball_container);
 
                 com.google.android.material.chip.Chip prediction1 = dialogView.findViewById(R.id.prediction_1);
                 com.google.android.material.chip.Chip prediction2 = dialogView.findViewById(R.id.prediction_2);
                 com.google.android.material.chip.Chip prediction3 = dialogView.findViewById(R.id.prediction_3);
 
+                // Setup initial state
                 ballContainer.setVisibility(View.GONE);
+                imgMist.setAlpha(0.3f);
+                textReveal.setAlpha(0f);
+                btnGo.setVisibility(View.GONE);
+
+                // Gentle pulse for the glows
+                android.animation.ObjectAnimator pulseGlow = android.animation.ObjectAnimator.ofFloat(glow1, "alpha", 0.3f, 0.6f);
+                pulseGlow.setDuration(1500);
+                pulseGlow.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                pulseGlow.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                pulseGlow.start();
 
                 // Fetch predictions when dialog opens
                 fetchAndDisplayPredictions(prediction1, prediction2, prediction3);
@@ -307,11 +364,20 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                         chipGroup.setVisibility(View.GONE);
                         ballContainer.setVisibility(View.VISIBLE);
-                        textStatus.setText("CITIM DESTINUL...");
+                        
+                        textStatus.setText("SE CAUTĂ IDEI...");
+                        textInstruction.setText("Se analizează opțiunile...");
 
-                        startMagicAnimations(imgBall, imgMist);
+                        // Fast rotating mist and bright glows
+                        startMagicAnimations(imgBall, imgMist, glow1, glow2);
+                        
+                        // Fetch recommendation immediately
                         fetchMagicRecommendation(dialog, category, textStatus, textReveal, imgMist, btnGo);
                 });
+
+                if (btnClose != null) {
+                    btnClose.setOnClickListener(v -> dialog.dismiss());
+                }
 
                 dialog.show();
         }
@@ -351,20 +417,26 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
         }
 
-        private void startMagicAnimations(ImageView imgBall, ImageView imgMist) {
-                android.animation.ObjectAnimator scaleX = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleX", 1.0f, 1.1f);
-                android.animation.ObjectAnimator scaleY = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleY", 1.0f, 1.1f);
-                scaleX.setDuration(1200); scaleY.setDuration(1200);
+        private void startMagicAnimations(ImageView imgBall, ImageView imgMist, View glow1, View glow2) {
+                // Pulsate inner ball
+                android.animation.ObjectAnimator scaleX = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleX", 1.0f, 1.2f);
+                android.animation.ObjectAnimator scaleY = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleY", 1.0f, 1.2f);
+                scaleX.setDuration(500); scaleY.setDuration(500);
                 scaleX.setRepeatCount(android.animation.ValueAnimator.INFINITE); scaleY.setRepeatCount(android.animation.ValueAnimator.INFINITE);
                 scaleX.setRepeatMode(android.animation.ValueAnimator.REVERSE); scaleY.setRepeatMode(android.animation.ValueAnimator.REVERSE);
                 scaleX.start(); scaleY.start();
 
-                imgMist.setAlpha(0.9f);
+                // Fast mist rotation
+                imgMist.setAlpha(0.95f);
                 android.animation.ObjectAnimator rotateMist = android.animation.ObjectAnimator.ofFloat(imgMist, "rotation", 0f, 360f);
-                rotateMist.setDuration(8000);
+                rotateMist.setDuration(2000); // 2 seconds per rotation (very fast)
                 rotateMist.setRepeatCount(android.animation.ValueAnimator.INFINITE);
                 rotateMist.setInterpolator(new android.view.animation.LinearInterpolator());
                 rotateMist.start();
+
+                // Brighten the glows
+                glow1.animate().alpha(0.9f).setDuration(500).start();
+                glow2.animate().alpha(0.7f).setDuration(500).start();
         }
 
         private void fetchMagicRecommendation(androidx.appcompat.app.AlertDialog dialog, String category, TextView textStatus, TextView textReveal, ImageView imgMist, com.google.android.material.button.MaterialButton btnGo) {
@@ -383,8 +455,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 
                                 textReveal.postDelayed(() -> {
                                     if (dialog.isShowing()) {
-                                        textStatus.setText("DESTINUL TĂU:");
-                                        imgMist.animate().alpha(0.1f).setDuration(1000).start();
+                                        textStatus.setText("SUGESTIA TA:");
+                                        imgMist.animate().alpha(0.05f).setDuration(1000).start();
                                         textReveal.setText(name);
                                         textReveal.animate().alpha(1.0f).setDuration(800).start();
                                         
@@ -394,7 +466,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                             showMagicDetailDialog(result);
                                         });
                                     }
-                                }, 800);
+                                }, 1800); // Keep the incantation going for 1.8s
                             } else {
                                 fallbackToRandomPlace(dialog, textStatus, textReveal, imgMist, btnGo);
                             }
@@ -407,13 +479,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     });
         }
 
-        private void fallbackToRandomPlace(androidx.appcompat.app.AlertDialog dialog, TextView textStatus, TextView textReveal, ImageView imgMist, View btnGo) {
+        private void fallbackToRandomPlace(androidx.appcompat.app.AlertDialog dialog, TextView textStatus, TextView textReveal, ImageView imgMist, com.google.android.material.button.MaterialButton btnGo) {
              if (!combinedPlacesList.isEmpty()) {
                 com.cityscape.app.model.Place result = combinedPlacesList.get(new java.util.Random().nextInt(combinedPlacesList.size()));
                 textReveal.postDelayed(() -> {
                     if (dialog.isShowing()) {
-                        textStatus.setText("Destinul tău este:");
-                        imgMist.animate().alpha(0.1f).setDuration(1000).start();
+                        textStatus.setText("SUGESTIA TA:");
+                        imgMist.animate().alpha(0.05f).setDuration(1000).start();
                         textReveal.setText(result.name);
                         textReveal.animate().alpha(1.0f).setDuration(800).start();
                         
@@ -426,10 +498,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             obj.addProperty("address", result.address);
                             obj.addProperty("rating", result.rating);
                             obj.addProperty("place_id", result.id);
+                            obj.addProperty("latitude", result.latitude);
+                            obj.addProperty("longitude", result.longitude);
                             showMagicDetailDialog(obj);
                         });
                     }
-                }, 800);
+                }, 1800);
             }
         }
 
@@ -451,41 +525,57 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                  actStr.append("  ✨ Descoperă secretele ascunse ale comunității.\n");
              }
 
-             new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle("🔮 DESTINUL TĂU")
-                .setMessage("\n" + name.toUpperCase() + "\n\n" + 
-                           "\"" + reason + "\"\n\n" + 
-                           "ACTIVITĂȚI PROFETIZATE:\n" + actStr.toString())
-                .setPositiveButton("VEZI TRASEU", (d, w) -> {
-                     try {
-                         if (result.has("latitude") && !result.get("latitude").isJsonNull()) {
-                             double lat = result.get("latitude").getAsDouble();
-                             double lng = result.get("longitude").getAsDouble();
-                             String uri = String.format(java.util.Locale.ENGLISH, "google.navigation:q=%f,%f", lat, lng);
-                             android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
-                             intent.setPackage("com.google.android.apps.maps");
-                             startActivity(intent);
-                         } else {
-                             Toast.makeText(getContext(), "Coordonate indisponibile", Toast.LENGTH_SHORT).show();
-                         }
-                     } catch (Exception e) {
-                         Toast.makeText(getContext(), "Eroare navigație", Toast.LENGTH_SHORT).show();
+             // Create custom reveal dialog
+             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+             View dialogView = getLayoutInflater().inflate(R.layout.dialog_magic_reveal, null);
+             builder.setView(dialogView);
+             androidx.appcompat.app.AlertDialog revealDialog = builder.create();
+             revealDialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+             TextView textName = dialogView.findViewById(R.id.reveal_place_name);
+             TextView textReason = dialogView.findViewById(R.id.reveal_reason);
+             TextView textActivities = dialogView.findViewById(R.id.reveal_activities);
+             com.google.android.material.button.MaterialButton btnNavigate = dialogView.findViewById(R.id.btn_reveal_navigate);
+             com.google.android.material.button.MaterialButton btnShare = dialogView.findViewById(R.id.btn_reveal_share);
+             com.google.android.material.button.MaterialButton btnClose = dialogView.findViewById(R.id.btn_reveal_close);
+
+             textName.setText(name);
+             textReason.setText("\"" + reason + "\"");
+             textActivities.setText(actStr.toString());
+
+             btnNavigate.setOnClickListener(v -> {
+                 try {
+                     if (result.has("latitude") && !result.get("latitude").isJsonNull()) {
+                         double lat = result.get("latitude").getAsDouble();
+                         double lng = result.get("longitude").getAsDouble();
+                         String uri = String.format(java.util.Locale.ENGLISH, "google.navigation:q=%f,%f", lat, lng);
+                         android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                         intent.setPackage("com.google.android.apps.maps");
+                         startActivity(intent);
+                     } else {
+                         Toast.makeText(getContext(), "Coordonate indisponibile pentru navigație", Toast.LENGTH_SHORT).show();
                      }
-                 })
-                 .setNeutralButton("INVITĂ PRIETENI", (d, w) -> {
-                     try {
-                        String shareMsg = "Hei! Globul de Cristal CityScape mi-a prezis o aventură la " + (name != null ? name : "o locație secretă") + ". Vrei să vii cu mine? ✨🚀";
-                        android.content.Intent sendIntent = new android.content.Intent();
-                        sendIntent.setAction(android.content.Intent.ACTION_SEND);
-                        sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMsg);
-                        sendIntent.setType("text/plain");
-                        startActivity(android.content.Intent.createChooser(sendIntent, "Invită prieteni prin..."));
-                     } catch (Exception e) {
-                        Toast.makeText(getContext(), "Eroare la partajare", Toast.LENGTH_SHORT).show();
-                     }
-                 })
-                 .setNegativeButton("ÎNCHIDE", null)
-                .show();
+                 } catch (Exception e) {
+                     Toast.makeText(getContext(), "Eroare navigație", Toast.LENGTH_SHORT).show();
+                 }
+             });
+
+             btnShare.setOnClickListener(v -> {
+                 try {
+                     String shareMsg = "Hei! Globul de Cristal CityScape mi-a prezis o aventură la " + name + ". Vrei să vii cu mine? ✨🚀";
+                     android.content.Intent sendIntent = new android.content.Intent();
+                     sendIntent.setAction(android.content.Intent.ACTION_SEND);
+                     sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMsg);
+                     sendIntent.setType("text/plain");
+                     startActivity(android.content.Intent.createChooser(sendIntent, "Invită prieteni prin..."));
+                 } catch (Exception e) {
+                     Toast.makeText(getContext(), "Eroare la partajare", Toast.LENGTH_SHORT).show();
+                 }
+             });
+
+             btnClose.setOnClickListener(v -> revealDialog.dismiss());
+
+             revealDialog.show();
         }
 
         private void showRecommendationDialog(com.cityscape.app.model.Place place) {
@@ -679,24 +769,67 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 
                 if (cardSmart == null || txtEmoji == null || txtRec == null) return;
                 
+                com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                String interests = (currentUser != null && currentUser.interests != null) ? currentUser.interests.toLowerCase() : "";
+                
                 String conditionLower = condition != null ? condition.toLowerCase() : "";
                 boolean isRainy = conditionLower.contains("rain") || conditionLower.contains("drizzle") || conditionLower.contains("ploaie") || conditionLower.contains("storm");
                 
                 String recText;
                 String emoji;
                 
+                // Helper to check user interests
+                boolean likesMuseums = interests.contains("muzee") || interests.contains("cultur") || interests.contains("istor");
+                boolean likesParks = interests.contains("parc") || interests.contains("natur");
+                boolean likesArt = interests.contains("art") || interests.contains("design");
+                boolean likesFood = interests.contains("restaurante") || interests.contains("cafenele") || interests.contains("mancare");
+                boolean likesNightlife = interests.contains("noapte") || interests.contains("club") || interests.contains("bar");
+                boolean likesShopping = interests.contains("shop") || interests.contains("cumparaturi");
+
                 if (isRainy) {
                     emoji = "🌧️";
-                    recText = "Vremea e ploioasă în oraș acum! 🌧️ Recomandarea noastră este o activitate culturală de interior. Ce zici de o vizită caldă la Muzeul Național de Artă al României sau o cafea aromată la o cafenea de specialitate din centru?";
+                    if (likesMuseums || likesArt) {
+                        recText = "Afară plouă, dar e momentul perfect pentru pasiunea ta! 🌧️ Îți sugerăm o vizită culturală la Muzeul Național de Artă al României sau la Muzeul Național de Istorie.";
+                    } else if (likesFood) {
+                        recText = "Plouă torențial! 🌧️ Refugiază-te într-o cafenea caldă de specialitate din centru sau savurează un prânz delicios la un restaurant primitor.";
+                    } else if (likesShopping) {
+                        recText = "Vremea e ploioasă! 🌧️ Sună ca o zi perfectă pentru shopping într-unul din marile mall-uri acoperite din oraș.";
+                    } else {
+                        recText = "Vremea e ploioasă în oraș acum! 🌧️ Recomandarea noastră este o activitate culturală de interior. Ce zici de o expoziție sau o cafenea liniștită?";
+                    }
                 } else if (temp < 12) {
                     emoji = "❄️";
-                    recText = "Este destul de răcoros afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Îți recomandăm să explorezi spațiile indoor călduroase. O expoziție la Art Safari sau un ceai cald ar fi opțiunile perfecte pentru azi.";
+                    if (likesFood) {
+                        recText = "Este frig afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ O ciocolată caldă sau un ceai aromat la o ceainărie cochetă te vor încălzi imediat.";
+                    } else if (likesMuseums || likesArt) {
+                        recText = "Este răcoros afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Îți sugerăm să te adăpostești într-o galerie de artă caldă sau la muzeu.";
+                    } else if (likesNightlife) {
+                        recText = "Seara e rece (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Distracția se mută în interior într-un pub primitor sau un club plin de energie.";
+                    } else {
+                        recText = "Este destul de răcoros afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Îți recomandăm să explorezi spațiile indoor călduroase. O expoziție sau o băutură caldă ar fi ideale.";
+                    }
                 } else if (temp >= 12 && temp <= 22) {
                     emoji = "🌤️";
-                    recText = "Vreme excelentă de plimbare urbană (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ O vizită la Grădina Botanică sau o plimbare pe Calea Victoriei ar fi o experiență perfectă.";
+                    if (likesParks) {
+                        recText = "Vreme perfectă pentru natură (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ Grădina Botanică sau Parcul Herăstrău te așteaptă pentru o plimbare revigorantă.";
+                    } else if (likesMuseums || likesArt) {
+                        recText = "Vreme excelentă de plimbare urbană (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ Fă o vizită pe Calea Victoriei și intră la Muzeul Colecțiilor de Artă.";
+                    } else if (likesFood) {
+                        recText = "Vreme plăcută în oraș (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ Savurează un brunch delicios la o terasă exterioară cochetă din centru.";
+                    } else {
+                        recText = "Vreme excelentă de plimbare urbană (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ O vizită la Grădina Botanică sau o plimbare pe Calea Victoriei ar fi o experiență perfectă.";
+                    }
                 } else {
                     emoji = "☀️";
-                    recText = "Este o zi călduroasă și însorită (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Perfect pentru o terasă sau relaxare în parc. Îți recomandăm Parcul Herăstrău și o plimbare cu barca pe lac!";
+                    if (likesParks) {
+                        recText = "O zi caldă și însorită (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Parcul Cișmigiu sau Herăstrău sunt locurile ideale. Încearcă o plimbare cu barca!";
+                    } else if (likesFood) {
+                        recText = "Zi foarte caldă în oraș (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Răcorește-te cu o limonadă rece pe o terasă la umbră din Centrul Vechi.";
+                    } else if (likesNightlife) {
+                        recText = "Seară perfectă de vară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ O ieșire la o terasă deschisă sau pe un rooftop bar este alegerea ideală.";
+                    } else {
+                        recText = "Este o zi călduroasă și însorită (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Perfect pentru o terasă sau relaxare în parc. Îți recomandăm Parcul Herăstrău sau o plimbare pe lac!";
+                    }
                 }
                 
                 txtEmoji.setText(emoji);
@@ -723,8 +856,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void fetchItinerary(String scope, String type, int budget, int duration, int points, String manualInterests) {
+                fetchItinerary(scope, type, budget, duration, points, manualInterests, "walking", 8, "solo", false);
+        }
+
+        private void fetchItinerary(String scope, String type, int budget, int duration, int points, String manualInterests, String travelMode, int startHour, String companion, boolean avoidCrowds) {
                 if (currentLocation == null) return;
-                
+
                 Bundle args = new Bundle();
                 args.putDouble("lat", currentLocation.getLatitude());
                 args.putDouble("lng", currentLocation.getLongitude());
@@ -733,16 +870,20 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 args.putInt("itinerary_budget", budget);
                 args.putInt("itinerary_duration", duration);
                 args.putInt("itinerary_points", points);
-                
+                args.putString("itinerary_travel_mode", travelMode);
+                args.putInt("itinerary_start_hour", startHour);
+                args.putString("itinerary_companion", companion);
+                args.putBoolean("itinerary_avoid_crowds", avoidCrowds);
+
                 User user = sessionManager.getCurrentUser();
                 String profileInterests = user != null && user.interests != null ? user.interests : "";
-                
+
                 // Combine profile interests with manual ones from dialog
                 String combinedInterests = profileInterests;
                 if (manualInterests != null && !manualInterests.isEmpty()) {
                     combinedInterests = combinedInterests.isEmpty() ? manualInterests : combinedInterests + "," + manualInterests;
                 }
-                
+
                 args.putString("itinerary_interests", combinedInterests);
                 Navigation.findNavController(binding.getRoot()).navigate(R.id.navigation_itinerary, args);
         }
@@ -1021,6 +1162,22 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 Chip chip = (Chip) child;
                                 chip.setOnClickListener(v -> {
                                         currentCategory = chip.getText().toString();
+                                        
+                                        // Highlight selected chip and reset others
+                                        for (int j = 0; j < chipGroup.getChildCount(); j++) {
+                                            View c = chipGroup.getChildAt(j);
+                                            if (c instanceof Chip) {
+                                                Chip singleChip = (Chip) c;
+                                                if (singleChip == chip) {
+                                                    singleChip.setChipBackgroundColorResource(R.color.primary);
+                                                    singleChip.setTextColor(getResources().getColor(R.color.white));
+                                                } else {
+                                                    singleChip.setChipBackgroundColorResource(R.color.app_card);
+                                                    singleChip.setTextColor(getResources().getColor(R.color.app_text_primary));
+                                                }
+                                            }
+                                        }
+                                        
                                         fetchPlaces(false); 
                                         fetchAIPicks();
                                 });
@@ -1055,6 +1212,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (binding.btnFilter != null) {
                         binding.btnFilter.setOnClickListener(v -> showFilterBottomSheet(false));
                 }
+                if (binding.btnFilterHeader != null) {
+                        binding.btnFilterHeader.setOnClickListener(v -> showFilterBottomSheet(false));
+                }
                 if (binding.btnFilterEvents != null) {
                     binding.btnFilterEvents.setOnClickListener(v -> showFilterBottomSheet(true));
                 }
@@ -1065,35 +1225,110 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 View view = getLayoutInflater().inflate(R.layout.dialog_filters, null);
                 dialog.setContentView(view);
 
-                TextView titleTv = (TextView) ((LinearLayout)view).getChildAt(1); 
-                titleTv.setText(forEvents ? "Filtre Evenimente" : "Filtre Avansate");
+                TextView titleTv = view.findViewById(R.id.dialog_filter_title);
+                if (titleTv != null) {
+                    titleTv.setText(forEvents ? "Filtre Evenimente" : "Filtre Avansate");
+                }
 
                 com.google.android.material.chip.ChipGroup musicGroup = view.findViewById(R.id.filter_music_group);
-                
-                // Set initial states
-                String activeMusic = forEvents ? eventMusicFilter : currentMusicFilter;
+                com.google.android.material.chip.ChipGroup ratingGroup = view.findViewById(R.id.filter_rating_group);
+                com.google.android.material.chip.ChipGroup distanceGroup = view.findViewById(R.id.filter_distance_group);
+                com.google.android.material.chip.ChipGroup budgetGroup = view.findViewById(R.id.filter_budget_group);
 
-                // Music chips match by text
-                for (int i = 0; i < musicGroup.getChildCount(); i++) {
+                // If filtering for events, hide rating, distance and budget filters
+                if (forEvents) {
+                    if (ratingGroup != null) ratingGroup.setVisibility(View.GONE);
+                    if (distanceGroup != null) distanceGroup.setVisibility(View.GONE);
+                    if (budgetGroup != null) budgetGroup.setVisibility(View.GONE);
+                    
+                    // Also hide headers by traversing parent or finding them
+                    for (int i = 0; i < ((LinearLayout)view).getChildCount(); i++) {
+                        View child = ((LinearLayout)view).getChildAt(i);
+                        if (child instanceof TextView) {
+                            String text = ((TextView) child).getText().toString();
+                            if (text.contains("Rating") || text.contains("Distan") || text.contains("preț") || text.contains("Buget")) {
+                                child.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                } else {
+                    // Populate initial states for advanced filters
+                    if (ratingGroup != null) {
+                        if (currentRatingFilter == 4.0) ratingGroup.check(R.id.chip_rating_4);
+                        else if (currentRatingFilter == 4.5) ratingGroup.check(R.id.chip_rating_45);
+                        else ratingGroup.check(R.id.chip_rating_any);
+                    }
+                    if (distanceGroup != null) {
+                        if (currentDistanceFilter == 2.0) distanceGroup.check(R.id.chip_distance_2);
+                        else if (currentDistanceFilter == 5.0) distanceGroup.check(R.id.chip_distance_5);
+                        else if (currentDistanceFilter == 10.0) distanceGroup.check(R.id.chip_distance_10);
+                        else if (currentDistanceFilter == 20.0) distanceGroup.check(R.id.chip_distance_20);
+                        else distanceGroup.check(R.id.chip_distance_any);
+                    }
+                    if (budgetGroup != null) {
+                        if (currentPriceFilter == 1) budgetGroup.check(R.id.chip_budget_1);
+                        else if (currentPriceFilter == 2) budgetGroup.check(R.id.chip_budget_2);
+                        else if (currentPriceFilter == 3) budgetGroup.check(R.id.chip_budget_3);
+                        else budgetGroup.check(R.id.chip_budget_any);
+                    }
+                }
+
+                // Music filter setup
+                if (musicGroup != null) {
+                    String activeMusic = forEvents ? eventMusicFilter : currentMusicFilter;
+                    for (int i = 0; i < musicGroup.getChildCount(); i++) {
                         com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) musicGroup.getChildAt(i);
                         if (chip.getText().toString().equals(activeMusic)) {
-                                chip.setChecked(true);
+                            chip.setChecked(true);
                         }
+                    }
                 }
 
                 view.findViewById(R.id.btn_apply_filters).setOnClickListener(v -> {
-                        int checkedMusic = musicGroup.getCheckedChipId();
-                        String musicVal = "All";
-                        if (checkedMusic != View.NO_ID) {
-                                musicVal = ((com.google.android.material.chip.Chip)view.findViewById(checkedMusic)).getText().toString();
-                        }
+                        if (musicGroup != null) {
+                            int checkedMusic = musicGroup.getCheckedChipId();
+                            String musicVal = "All";
+                            if (checkedMusic != View.NO_ID) {
+                                    musicVal = ((com.google.android.material.chip.Chip)view.findViewById(checkedMusic)).getText().toString();
+                            }
 
-                        if (forEvents) {
-                            eventMusicFilter = musicVal;
-                            fetchEvents();
-                        } else {
-                            currentMusicFilter = musicVal;
-                            updateFilters();
+                            if (forEvents) {
+                                eventMusicFilter = musicVal;
+                                fetchEvents();
+                            } else {
+                                currentMusicFilter = musicVal;
+
+                                // Read rating
+                                if (ratingGroup != null) {
+                                    int checkedRating = ratingGroup.getCheckedChipId();
+                                    if (checkedRating == R.id.chip_rating_4) currentRatingFilter = 4.0;
+                                    else if (checkedRating == R.id.chip_rating_45) currentRatingFilter = 4.5;
+                                    else currentRatingFilter = 0.0;
+                                }
+
+                                // Read distance
+                                if (distanceGroup != null) {
+                                    int checkedDistance = distanceGroup.getCheckedChipId();
+                                    if (checkedDistance == R.id.chip_distance_2) currentDistanceFilter = 2.0;
+                                    else if (checkedDistance == R.id.chip_distance_5) currentDistanceFilter = 5.0;
+                                    else if (checkedDistance == R.id.chip_distance_10) currentDistanceFilter = 10.0;
+                                    else if (checkedDistance == R.id.chip_distance_20) currentDistanceFilter = 20.0;
+                                    else currentDistanceFilter = 50.0;
+                                }
+
+                                // Read budget
+                                if (budgetGroup != null) {
+                                    int checkedBudget = budgetGroup.getCheckedChipId();
+                                    if (checkedBudget == R.id.chip_budget_1) currentPriceFilter = 1;
+                                    else if (checkedBudget == R.id.chip_budget_2) currentPriceFilter = 2;
+                                    else if (checkedBudget == R.id.chip_budget_3) currentPriceFilter = 3;
+                                    else currentPriceFilter = 0;
+                                }
+
+                                updateFilters();
+                                fetchPlaces(false);
+                                fetchAIPicks();
+                            }
                         }
                         dialog.dismiss();
                 });
@@ -1197,12 +1432,22 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                             if (binding == null) return;
                             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                // Hide offline banner on success
+                                binding.cardOfflineBanner.setVisibility(View.GONE);
+
+                                // Cache fetched places in Room
+                                final List<Place> places = response.body();
+                                new Thread(() -> {
+                                    try {
+                                        com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().insertPlaces(places);
+                                    } catch (Exception ignored) {}
+                                }).start();
+
                                 // Only add if explainable didn't already populate
                                 if (aiPicksList.isEmpty()) {
                                     aiPicksList.clear();
-                                    aiPicksList.addAll(response.body());
-                                    if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
-                                    binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                                    aiPicksList.addAll(places);
+                                    updateFilters();
                                 }
                             }
                         }
@@ -1210,6 +1455,24 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         @Override
                         public void onFailure(Call<List<Place>> call, Throwable t) {
                             Log.e("HomeFragment", "AI Picks fetch failed", t);
+                            // Load from Room cache and show offline banner
+                            new Thread(() -> {
+                                try {
+                                    final List<Place> cached = com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().getAllPlaces();
+                                    if (cached != null && !cached.isEmpty() && getActivity() != null) {
+                                        getActivity().runOnUiThread(() -> {
+                                            if (binding != null) {
+                                                binding.cardOfflineBanner.setVisibility(View.VISIBLE);
+                                                if (aiPicksList.isEmpty()) {
+                                                    aiPicksList.clear();
+                                                    aiPicksList.addAll(cached);
+                                                    updateFilters();
+                                                }
+                                            }
+                                        });
+                                    }
+                                } catch (Exception ignored) {}
+                            }).start();
                         }
                     });
         }
@@ -1218,6 +1481,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
          * Fetch recommendations with explainable confidence scores and match percentages
          */
         private void fetchExplainableRecommendations(String userId, String city, String interestsStr) {
+                final String categoryParam = isAllCategory(currentCategory) ? null : currentCategory;
+                final String queryParam = searchQuery.isEmpty() ? null : searchQuery;
+                final double ratingParam = currentRatingFilter;
+                final double distanceParam = currentDistanceFilter;
+                final int priceParam = currentPriceFilter;
+
                 new Thread(() -> {
                     try {
                         // Build interests array from string
@@ -1243,6 +1512,22 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         requestBody.put("limit", 10);
                         requestBody.put("trending", true);
                         requestBody.put("language", "ro");
+
+                        if (categoryParam != null) {
+                            requestBody.put("category", categoryParam);
+                        }
+                        if (queryParam != null) {
+                            requestBody.put("query", queryParam);
+                        }
+                        if (ratingParam > 0) {
+                            requestBody.put("min_rating", ratingParam);
+                        }
+                        if (distanceParam > 0 && distanceParam < 50.0) {
+                            requestBody.put("max_distance", distanceParam);
+                        }
+                        if (priceParam > 0) {
+                            requestBody.put("price_level", priceParam);
+                        }
 
                         // Make HTTP request to explainable recommendations endpoint
                         String baseUrl = ApiClient.getBaseUrl();
@@ -1280,10 +1565,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         if (binding != null) {
                                             aiPicksList.clear();
                                             aiPicksList.addAll(places);
-                                            if (aiPicksAdapter != null) {
-                                                aiPicksAdapter.notifyDataSetChanged();
-                                            }
-                                            binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                                            updateFilters();
                                             Log.d("HomeFragment", "Loaded " + places.size() + " explainable recommendations");
                                         }
                                     });
@@ -1330,7 +1612,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                     binding.sectionTrending.setVisibility(View.VISIBLE);
                     binding.recyclerRecommended.setVisibility(View.VISIBLE);
-                    binding.trendingTitle.setText("Fii la curent din " + (city != null && !city.isEmpty() ? city : "București"));
+                    binding.trendingTitle.setText("Trending în " + (city != null && !city.isEmpty() ? city : "București"));
                 } else {
                     binding.sectionTrending.setVisibility(View.GONE);
                     binding.recyclerRecommended.setVisibility(View.GONE);
@@ -1361,6 +1643,19 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 // 3. Populate Lists
                 List<Place> filteredNearby = new ArrayList<>(nearbyPlacesList);
                 updateNearYouAdapter(filteredNearby);
+
+                List<Place> filteredAiPicks = new ArrayList<>();
+                for (Place p : aiPicksList) {
+                    if (matchesCategoryAndFilters(p)) {
+                        filteredAiPicks.add(p);
+                    }
+                }
+                updateAiPicksAdapter(filteredAiPicks);
+                if (filteredAiPicks.isEmpty()) {
+                    binding.sectionAiPicks.setVisibility(View.GONE);
+                } else {
+                    binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                }
 
                 com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
                 final String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests.toLowerCase() : "";
@@ -1471,6 +1766,83 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     // If absolutely nothing unique found in 50km (unlikely), hide section
                     binding.sectionTrending.setVisibility(View.GONE);
                 }
+                updateActiveFilterChips();
+        }
+
+        private void updateActiveFilterChips() {
+            if (binding == null || getContext() == null) return;
+            HorizontalScrollView scrollActiveFilters = binding.getRoot().findViewById(R.id.scroll_active_filters);
+            com.google.android.material.chip.ChipGroup activeFiltersChipGroup = binding.getRoot().findViewById(R.id.active_filters_chip_group);
+            
+            if (scrollActiveFilters == null || activeFiltersChipGroup == null) return;
+            
+            activeFiltersChipGroup.removeAllViews();
+            boolean hasFilters = false;
+            
+            // 1. Rating filter chip
+            if (currentRatingFilter > 0) {
+                hasFilters = true;
+                com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                chip.setText(String.format(java.util.Locale.US, "⭐ %.1f+", currentRatingFilter));
+                chip.setCloseIconVisible(true);
+                chip.setOnCloseIconClickListener(v -> {
+                    currentRatingFilter = 0.0;
+                    updateActiveFilterChips();
+                    fetchPlaces(false);
+                });
+                activeFiltersChipGroup.addView(chip);
+            }
+            
+            // 2. Budget/Price filter chip
+            if (currentPriceFilter > 0) {
+                hasFilters = true;
+                com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                String budgetStr = "$";
+                if (currentPriceFilter == 2) budgetStr = "$$";
+                else if (currentPriceFilter >= 3) budgetStr = "$$$";
+                chip.setText("💰 " + budgetStr);
+                chip.setCloseIconVisible(true);
+                chip.setOnCloseIconClickListener(v -> {
+                    currentPriceFilter = 0;
+                    updateActiveFilterChips();
+                    fetchPlaces(false);
+                });
+                activeFiltersChipGroup.addView(chip);
+            }
+            
+            // 3. Distance filter chip
+            if (currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
+                hasFilters = true;
+                com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                chip.setText(String.format(java.util.Locale.US, "📍 %d km", (int) currentDistanceFilter));
+                chip.setCloseIconVisible(true);
+                chip.setOnCloseIconClickListener(v -> {
+                    currentDistanceFilter = 50.0;
+                    updateActiveFilterChips();
+                    fetchPlaces(false);
+                });
+                activeFiltersChipGroup.addView(chip);
+            }
+            
+            // 4. Search query chip
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                hasFilters = true;
+                com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                chip.setText("🔍 \"" + searchQuery + "\"");
+                chip.setCloseIconVisible(true);
+                chip.setOnCloseIconClickListener(v -> {
+                    searchQuery = "";
+                    EditText searchInput = binding.getRoot().findViewById(R.id.search_input);
+                    if (searchInput != null) {
+                        searchInput.setText("");
+                    }
+                    updateActiveFilterChips();
+                    fetchPlaces(false);
+                });
+                activeFiltersChipGroup.addView(chip);
+            }
+            
+            scrollActiveFilters.setVisibility(hasFilters ? View.VISIBLE : View.GONE);
         }
 
         private boolean isCuratedDiscoveryType(com.cityscape.app.model.Place p) {
@@ -1518,6 +1890,26 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
             if (!currentMusicFilter.equals("All") && !currentMusicFilter.equals("Oricare")) {
                 if (!pName.contains(currentMusicFilter.toLowerCase()) && !pType.contains(currentMusicFilter.toLowerCase())) return false;
+            }
+
+            // Rating filter
+            if (currentRatingFilter > 0 && p.rating < currentRatingFilter) {
+                return false;
+            }
+
+            // Price level filter
+            if (currentPriceFilter > 0 && p.priceLevel > 0 && p.priceLevel != currentPriceFilter) {
+                return false;
+            }
+
+            // Distance filter
+            if (currentLocation != null && currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
+                float[] results = new float[1];
+                android.location.Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.latitude, p.longitude, results);
+                double distanceKm = results[0] / 1000.0;
+                if (distanceKm > currentDistanceFilter) {
+                    return false;
+                }
             }
 
             return true;
@@ -1642,9 +2034,46 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             binding.recyclerVisited.setAdapter(adapter);
         }
 
+        private void updateAiPicksAdapter(List<Place> list) {
+                if (binding == null) return;
+                PlaceAdapter adapter = new PlaceAdapter(getContext(), list, true,
+                                new PlaceAdapter.OnPlaceClickListener() {
+                                        @Override
+                                        public void onPlaceClick(Place place) {
+                                                sessionManager.recordPlaceVisit(place.name);
+                                                com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                                                com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                                                showPlaceDetailDialog(place);
+                                        }
+
+                                        @Override
+                                        public void onFavoriteClick(Place place) {
+                                                sessionManager.setPlaceFavorite(place.id, place.isFavorite);
+                                        }
+
+                                        @Override
+                                        public void onVisitedClick(Place place) {
+                                                handleVisitedClick(place);
+                                        }
+
+                                        @Override
+                                        public void onPlanClick(Place place) {
+                                                showPlanPlaceDialog(place);
+                                        }
+                                });
+                binding.recyclerAiPicks.setAdapter(adapter);
+        }
+
         private void updateRecommendedAdapter(List<Place> list) {
                 if (binding == null) return;
-                PlaceAdapter adapter = new PlaceAdapter(getContext(), list, false,
+                
+                // Show exactly up to 10 locations in the trending section
+                List<Place> limitedList = list;
+                if (list != null && list.size() > 10) {
+                        limitedList = new java.util.ArrayList<>(list.subList(0, 10));
+                }
+                
+                PlaceAdapter adapter = new PlaceAdapter(getContext(), limitedList, false,
                                 new PlaceAdapter.OnPlaceClickListener() {
                                         @Override
                                         public void onPlaceClick(Place place) {
@@ -1698,7 +2127,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             
             if (txtName != null) txtName.setText(place.name);
             if (txtType != null) txtType.setText(place.type != null ? place.type.toUpperCase() : "ATRACȚIE");
-            if (txtRating != null) txtRating.setText(String.format(java.util.Locale.US, "%.1f", place.rating));
+            if (txtRating != null) {
+                StringBuilder stars = new StringBuilder();
+                int r = Math.round(place.rating);
+                for (int i = 0; i < 5; i++) {
+                    stars.append(i < r ? "★" : "☆");
+                }
+                txtRating.setText(String.format(java.util.Locale.US, "%.1f %s", place.rating, stars.toString()));
+            }
             if (txtAddress != null) txtAddress.setText(place.address != null ? place.address : "Nespecificată");
             
             // Dynamic Live Weather Fetch for this specific place location
@@ -1729,8 +2165,19 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             String desc = place.aiSuggestion;
             
             LinearLayout aiAnalysisSection = v.findViewById(R.id.aiAnalysisSection);
-            TextView historyPctLabel = v.findViewById(R.id.historyPctLabel);
-            TextView prefsPctLabel = v.findViewById(R.id.prefsPctLabel);
+            TextView txtTotalConfidence = v.findViewById(R.id.txt_total_confidence);
+            TextView txtFactorInterests = v.findViewById(R.id.txt_factor_interests);
+            ProgressBar progressFactorInterests = v.findViewById(R.id.progress_factor_interests);
+            TextView txtFactorFreshness = v.findViewById(R.id.txt_factor_freshness);
+            ProgressBar progressFactorFreshness = v.findViewById(R.id.progress_factor_freshness);
+            TextView txtFactorPopularity = v.findViewById(R.id.txt_factor_popularity);
+            ProgressBar progressFactorPopularity = v.findViewById(R.id.progress_factor_popularity);
+            TextView txtFactorLevel = v.findViewById(R.id.txt_factor_level);
+            ProgressBar progressFactorLevel = v.findViewById(R.id.progress_factor_level);
+            TextView txtFactorDiversity = v.findViewById(R.id.txt_factor_diversity);
+            ProgressBar progressFactorDiversity = v.findViewById(R.id.progress_factor_diversity);
+            TextView txtFactorWeather = v.findViewById(R.id.txt_factor_weather);
+            ProgressBar progressFactorWeather = v.findViewById(R.id.progress_factor_weather);
 
             if (desc == null || desc.isEmpty()) {
                 desc = place.ai_summary;
@@ -1744,11 +2191,127 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             } else {
                 if (lblAiSummary != null) lblAiSummary.setText("💡 SFATUL EXPLORATORULUI");
                 
-                // Show AI Analysis Percentages if they exist (usually means it's a personalized rec)
-                if (place.matchHistoryPct > 0 || place.matchPrefsPct > 0) {
-                    if (aiAnalysisSection != null) aiAnalysisSection.setVisibility(View.VISIBLE);
-                    if (historyPctLabel != null) historyPctLabel.setText(place.matchHistoryPct + "% Potrivire Istoric");
-                    if (prefsPctLabel != null) prefsPctLabel.setText(place.matchPrefsPct + "% Potrivire Interese");
+                // Show AI Analysis Percentages if confidence score exists
+                if (place.confidence > 0) {
+                    if (aiAnalysisSection != null) {
+                        aiAnalysisSection.setVisibility(View.VISIBLE);
+                    }
+                    if (txtTotalConfidence != null) {
+                        txtTotalConfidence.setText(String.format(java.util.Locale.US, "%.1f%% Potrivire", place.confidence));
+                    }
+                    if (txtFactorInterests != null) {
+                        txtFactorInterests.setText(String.format(java.util.Locale.US, "%.1f%%", place.matchPrefsPct));
+                    }
+                    if (progressFactorInterests != null) {
+                        progressFactorInterests.setProgress(Math.round(place.matchPrefsPct));
+                    }
+                    if (txtFactorFreshness != null) {
+                        txtFactorFreshness.setText(String.format(java.util.Locale.US, "%.1f%%", place.freshnessPct));
+                    }
+                    if (progressFactorFreshness != null) {
+                        progressFactorFreshness.setProgress(Math.round(place.freshnessPct));
+                    }
+                    if (txtFactorPopularity != null) {
+                        txtFactorPopularity.setText(String.format(java.util.Locale.US, "%.1f%%", place.popularityPct));
+                    }
+                    if (progressFactorPopularity != null) {
+                        progressFactorPopularity.setProgress(Math.round(place.popularityPct));
+                    }
+                    if (txtFactorLevel != null) {
+                        txtFactorLevel.setText(String.format(java.util.Locale.US, "%.1f%%", place.userLevelPct));
+                    }
+                    if (progressFactorLevel != null) {
+                        progressFactorLevel.setProgress(Math.round(place.userLevelPct));
+                    }
+                    if (txtFactorDiversity != null) {
+                        txtFactorDiversity.setText(String.format(java.util.Locale.US, "%.1f%%", place.diversityPct));
+                    }
+                    if (progressFactorDiversity != null) {
+                        progressFactorDiversity.setProgress(Math.round(place.diversityPct));
+                    }
+                    if (txtFactorWeather != null) {
+                        txtFactorWeather.setText(String.format(java.util.Locale.US, "%.1f%%", place.weatherMatchPct));
+                    }
+                    if (progressFactorWeather != null) {
+                        progressFactorWeather.setProgress(Math.round(place.weatherMatchPct));
+                    }
+
+                    // Dynamically build filter and interest chips inside dialog
+                    com.google.android.material.chip.ChipGroup dialogCriteriaChips = v.findViewById(R.id.dialog_criteria_chips);
+                    if (dialogCriteriaChips != null) {
+                        dialogCriteriaChips.removeAllViews();
+                        
+                        // 1. Category chip
+                        if (currentCategory != null && !currentCategory.equalsIgnoreCase("All")) {
+                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                            chip.setText("📂 Categorie: " + currentCategory);
+                            chip.setChipBackgroundColorResource(android.R.color.transparent);
+                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                            chip.setChipStrokeWidth(1.0f);
+                            dialogCriteriaChips.addView(chip);
+                        }
+                        
+                        // 2. Rating chip
+                        if (currentRatingFilter > 0) {
+                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                            chip.setText(String.format(java.util.Locale.US, "⭐ Rating > %.1f", currentRatingFilter));
+                            chip.setChipBackgroundColorResource(android.R.color.transparent);
+                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                            chip.setChipStrokeWidth(1.0f);
+                            dialogCriteriaChips.addView(chip);
+                        }
+                        
+                        // 3. Budget chip
+                        if (currentPriceFilter > 0) {
+                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                            String budgetStr = "Ieftin ($)";
+                            if (currentPriceFilter == 2) budgetStr = "Mediu ($$)";
+                            else if (currentPriceFilter >= 3) budgetStr = "Lux ($$$)";
+                            chip.setText("💰 Buget: " + budgetStr);
+                            chip.setChipBackgroundColorResource(android.R.color.transparent);
+                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                            chip.setChipStrokeWidth(1.0f);
+                            dialogCriteriaChips.addView(chip);
+                        }
+                        
+                        // 4. Distance chip
+                        if (currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
+                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                            chip.setText(String.format(java.util.Locale.US, "📍 Distanță < %d km", (int) currentDistanceFilter));
+                            chip.setChipBackgroundColorResource(android.R.color.transparent);
+                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                            chip.setChipStrokeWidth(1.0f);
+                            dialogCriteriaChips.addView(chip);
+                        }
+                        
+                        // 5. Query chip
+                        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                            chip.setText("🔍 Căutare: \"" + searchQuery + "\"");
+                            chip.setChipBackgroundColorResource(android.R.color.transparent);
+                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                            chip.setChipStrokeWidth(1.0f);
+                            dialogCriteriaChips.addView(chip);
+                        }
+                        
+                        // 6. User Interests chips
+                        com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                        String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests : "";
+                        if (userInterests != null && !userInterests.isEmpty()) {
+                            String[] parts = userInterests.split(",");
+                            for (String part : parts) {
+                                String clean = part.trim();
+                                if (!clean.isEmpty()) {
+                                    com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                                    chip.setText("💡 " + clean);
+                                    chip.setChipBackgroundColorResource(android.R.color.transparent);
+                                    chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                                    chip.setChipStrokeWidth(1.0f);
+                                    dialogCriteriaChips.addView(chip);
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
@@ -1846,11 +2409,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
             }
 
-            // Hide reviews section
-            TextView lblReviewsHide = v.findViewById(R.id.lbl_reviews_title);
-            android.widget.HorizontalScrollView scrollReviewsHide = v.findViewById(R.id.scroll_reviews);
-            if (lblReviewsHide != null) lblReviewsHide.setVisibility(View.GONE);
-            if (scrollReviewsHide != null) scrollReviewsHide.setVisibility(View.GONE);
+            // Show reviews section
+            if (place.reviews != null && !place.reviews.isEmpty()) {
+                renderReviews(v, place.reviews);
+            } else {
+                loadFallbackReviews(v, place);
+            }
             
             dialog.show();
         }
@@ -2068,7 +2632,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 User user = sessionManager.getCurrentUser();
                 String interests = user != null && user.interests != null ? user.interests : "";
 
-                apiService.getEvents(currentLocation.getLatitude(), currentLocation.getLongitude(), 50, interests)
+                String userId = sessionManager.getUserId();
+                apiService.getEvents(currentLocation.getLatitude(), currentLocation.getLongitude(), 50, interests, userId)
                                 .enqueue(new Callback<List<com.cityscape.app.model.Event>>() {
                                         @Override
                                         public void onResponse(Call<List<com.cityscape.app.model.Event>> call,
@@ -2090,7 +2655,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                                         @Override
                                         public void onFailure(Call<List<com.cityscape.app.model.Event>> call, Throwable t) {
-                                                Log.e("HomeFragment", "Events fetch failed", t);
+                                                Log.e("HomeFragment", "Events fetch failed: " + t.getMessage(), t);
+                                                if (isAdded()) {
+                                                        android.widget.Toast.makeText(getContext(), "Nu s-au putut încărca evenimentele", android.widget.Toast.LENGTH_SHORT).show();
+                                                }
                                         }
                                 });
         }
@@ -2124,6 +2692,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 intent.putExtra("event_json", new com.google.gson.Gson().toJson(event));
                                 startActivity(intent);
                 });
+                User user = sessionManager.getCurrentUser();
+                if (user != null && user.interests != null) {
+                        adapter.setUserInterests(user.interests);
+                }
+                if (binding.recyclerEvents.getLayoutManager() == null) {
+                        binding.recyclerEvents.setLayoutManager(
+                                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                }
                 binding.recyclerEvents.setAdapter(adapter);
         }
 
@@ -2543,7 +3119,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     android.widget.ProgressBar progB   = root.findViewById(R.id.home_battle_progress_b);
                     android.widget.TextView leaderView = root.findViewById(R.id.txt_home_battle_leader);
                     com.google.android.material.button.MaterialButton voteABtn = root.findViewById(R.id.btn_home_vote_a);
-
+                    com.google.android.material.button.MaterialButton voteBBtn = root.findViewById(R.id.btn_home_vote_b);
                     View cardView = root.findViewById(R.id.card_home_live_battle);
 
                     if (nameAView != null) nameAView.setText(nameA);
@@ -2567,15 +3143,23 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         cardView.setOnClickListener(v2 -> showHypeBattleDialog());
                     }
 
-                    // FIX: Butoanele de vot - animația rulează pe ROOT, nu pe CardView
                     if (voteABtn != null) {
                         voteABtn.setText(placeAId.equals(userChoice) ? "⭐ Votat" : "Votează");
                         voteABtn.setEnabled(true);
                         voteABtn.setOnClickListener(v2 -> {
                             v2.setEnabled(false); // previne dublu-click
-                            // Animația pe root fragment, nu pe card (CardView clipează copiii)
                             ViewGroup animRoot = (ViewGroup) root;
                             playClashAnimation(animRoot, () -> submitHomeVote(placeAId, battleId, nameA, nameB));
+                        });
+                    }
+
+                    if (voteBBtn != null) {
+                        voteBBtn.setText(placeBId.equals(userChoice) ? "⭐ Votat" : "Votează");
+                        voteBBtn.setEnabled(true);
+                        voteBBtn.setOnClickListener(v2 -> {
+                            v2.setEnabled(false); // previne dublu-click
+                            ViewGroup animRoot = (ViewGroup) root;
+                            playClashAnimation(animRoot, () -> submitHomeVote(placeBId, battleId, nameA, nameB));
                         });
                     }
 
@@ -2864,106 +3448,23 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 return;
             }
 
-            // Create a semi-transparent black overlay
-            android.widget.FrameLayout animContainer = new android.widget.FrameLayout(requireContext());
-            animContainer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            animContainer.setBackgroundColor(android.graphics.Color.parseColor("#80000000"));
-            rootView.addView(animContainer);
+            // SIMPLES: Quick flash + run callback immediately (NO fancy animations)
+            android.widget.FrameLayout flashView = new android.widget.FrameLayout(requireContext());
+            flashView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            flashView.setBackgroundColor(android.graphics.Color.parseColor("#30FFFFFF"));  // Light white flash
+            rootView.addView(flashView);
 
-            // Left fist (boxing glove representation)
-            TextView txtLeftFist = new TextView(requireContext());
-            txtLeftFist.setText("🤜");
-            txtLeftFist.setTextSize(64);
-            android.widget.FrameLayout.LayoutParams lpLeft = new android.widget.FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lpLeft.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START;
-            lpLeft.leftMargin = 16;
-            txtLeftFist.setLayoutParams(lpLeft);
-            animContainer.addView(txtLeftFist);
-
-            // Right fist (boxing glove representation)
-            TextView txtRightFist = new TextView(requireContext());
-            txtRightFist.setText("🤛");
-            txtRightFist.setTextSize(64);
-            android.widget.FrameLayout.LayoutParams lpRight = new android.widget.FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lpRight.gravity = android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END;
-            lpRight.rightMargin = 16;
-            txtRightFist.setLayoutParams(lpRight);
-            animContainer.addView(txtRightFist);
-
-            // Spark/Explosion
-            TextView txtBoom = new TextView(requireContext());
-            txtBoom.setText("💥");
-            txtBoom.setTextSize(88);
-            android.widget.FrameLayout.LayoutParams lpBoom = new android.widget.FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lpBoom.gravity = android.view.Gravity.CENTER;
-            txtBoom.setLayoutParams(lpBoom);
-            txtBoom.setVisibility(View.INVISIBLE);
-            animContainer.addView(txtBoom);
-
-            // Animate Left Fist to Center
-            float width = getResources().getDisplayMetrics().widthPixels;
-            float targetXLeft = (width / 2f) - 120f;
-            android.animation.ObjectAnimator animLeft = android.animation.ObjectAnimator.ofFloat(
-                    txtLeftFist, "translationX", 0f, targetXLeft);
-            animLeft.setDuration(450);
-            animLeft.setInterpolator(new android.view.animation.AccelerateInterpolator());
-
-            // Animate Right Fist to Center
-            float targetXRight = -(width / 2f) + 120f;
-            android.animation.ObjectAnimator animRight = android.animation.ObjectAnimator.ofFloat(
-                    txtRightFist, "translationX", 0f, targetXRight);
-            animRight.setDuration(450);
-            animRight.setInterpolator(new android.view.animation.AccelerateInterpolator());
-
-            android.animation.AnimatorSet set = new android.animation.AnimatorSet();
-            set.playTogether(animLeft, animRight);
-            set.addListener(new android.animation.AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(android.animation.Animator animation) {
-                    txtLeftFist.setVisibility(View.GONE);
-                    txtRightFist.setVisibility(View.GONE);
-                    txtBoom.setVisibility(View.VISIBLE);
-
-                    // Explosion Pulse
-                    txtBoom.setScaleX(0.4f);
-                    txtBoom.setScaleY(0.4f);
-                    txtBoom.animate()
-                        .scaleX(2.0f)
-                        .scaleY(2.0f)
-                        .alpha(0f)
-                        .setDuration(600)
-                        .setListener(new android.animation.AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(android.animation.Animator animation1) {
-                                rootView.removeView(animContainer);
-                                onEnd.run();
-                            }
-                        });
-
-                    // Screen shake effect on dialog layout
-                    rootView.animate()
-                        .translationX(20f)
-                        .setDuration(40)
-                        .setListener(new android.animation.AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(android.animation.Animator animation2) {
-                                rootView.animate()
-                                    .translationX(-20f)
-                                    .setDuration(40)
-                                    .setListener(new android.animation.AnimatorListenerAdapter() {
-                                        @Override
-                                        public void onAnimationEnd(android.animation.Animator animation3) {
-                                            rootView.animate().translationX(0f).setDuration(40);
-                                        }
-                                    });
-                            }
-                        });
-                }
-            });
-            set.start();
+            // Quick fade out in 200ms and remove
+            flashView.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .setListener(new android.animation.AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(android.animation.Animator animation) {
+                        rootView.removeView(flashView);
+                        onEnd.run();  // Run vote immediately after flash
+                    }
+                });
         }
 
         private void castVote(androidx.appcompat.app.AlertDialog dialog, String placeId, String battleId) {

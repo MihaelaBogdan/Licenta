@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/global_travel_bg" />
+            android:background="@color/primary" />
 
         <View
             android:layout_width="match_parent"
@@ -68,21 +68,45 @@
 
         </LinearLayout>
 
-        <!-- Premium Badge -->
-        <TextView
-            android:id="@+id/badge_recommended"
+        <!-- AI Match Badge (top-right) -->
+        <LinearLayout
+            android:id="@+id/badge_ai_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:background="@drawable/bg_button_premium"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:text="RECOMANDAT"
-            android:textColor="@color/white"
-            android:textSize="9sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            app:backgroundTint="@null"/>
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/badge_recommended"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_button_premium"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="🎯 92%"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                app:backgroundTint="@null"/>
+
+            <TextView
+                android:id="@+id/text_ai_reason_card"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_glass_card"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textColor="#EEFFFFFF"
+                android:textSize="9sp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:visibility="gone" />
+
+        </LinearLayout>
 
     </FrameLayout>
 </androidx.cardview.widget.CardView>

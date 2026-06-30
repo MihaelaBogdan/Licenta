@@ -7,11 +7,11 @@
         android:gradientRadius="180dp"
         android:centerX="0.5"
         android:centerY="0.5"
-        android:startColor="#FF00FF"
-        android:endColor="#1a0033"
+        android:startColor="#A7F3D0"
+        android:endColor="#059669"
         android:angle="0" />
 
     <stroke
         android:width="2dp"
-        android:color="#00FFFF" />
+        android:color="#10B981" />
 </shape>

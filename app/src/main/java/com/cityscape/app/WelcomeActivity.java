@@ -31,6 +31,48 @@ public class WelcomeActivity extends BaseActivity {
     private AppDatabase db;
     private SessionManager sessionManager;
 
+    private String getSigningCertificateSHA1() {
+        try {
+            android.content.pm.Signature[] signatures;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                android.content.pm.PackageInfo packageInfo = getPackageManager().getPackageInfo(
+                        getPackageName(), android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES);
+                if (packageInfo.signingInfo != null) {
+                    if (packageInfo.signingInfo.hasMultipleSigners()) {
+                        signatures = packageInfo.signingInfo.getApkContentsSigners();
+                    } else {
+                        signatures = packageInfo.signingInfo.getSigningCertificateHistory();
+                    }
+                } else {
+                    return null;
+                }
+            } else {
+                android.content.pm.PackageInfo packageInfo = getPackageManager().getPackageInfo(
+                        getPackageName(), android.content.pm.PackageManager.GET_SIGNATURES);
+                signatures = packageInfo.signatures;
+            }
+
+            if (signatures != null && signatures.length > 0) {
+                byte[] cert = signatures[0].toByteArray();
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-1");
+                byte[] publicKey = md.digest(cert);
+                StringBuilder hexString = new StringBuilder();
+                for (byte b : publicKey) {
+                    String appendString = Integer.toHexString(0xFF & b).toUpperCase();
+                    if (appendString.length() == 1) hexString.append("0");
+                    hexString.append(appendString).append(":");
+                }
+                if (hexString.length() > 0) {
+                    hexString.setLength(hexString.length() - 1);
+                }
+                return hexString.toString();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting signing SHA-1", e);
+        }
+        return null;
+    }
+
     private final ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 try {
@@ -44,15 +86,22 @@ public class WelcomeActivity extends BaseActivity {
                         Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
                     }
                 } catch (ApiException e) {
-                    // Critical: Identify the exact Google error code
-                    Log.e(TAG, "Google sign-in failed with ApiException status code: " + e.getStatusCode(), e);
-                    String errorMsg = "Google Auth Error (" + e.getStatusCode() + ")";
-                    if (e.getStatusCode() == 10) {
-                        errorMsg = "Developer Error (check SHA-1 and Client ID)";
-                    } else if (e.getStatusCode() == 12500) {
-                        errorMsg = "Google Sign-In failed (code 12500)";
-                    }
-                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+                    String sha1 = getSigningCertificateSHA1();
+                    Log.e(TAG, "Google sign-in failed, code: " + e.getStatusCode() + ". Actual SHA-1: " + sha1, e);
+                    
+                    new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                        .setTitle("Eroare Conectare Google (10/12500)")
+                        .setMessage("Pentru a rezolva eroarea, adaugă această amprentă SHA-1 în Google Cloud Console la clientul tău de Android:\n\n" + (sha1 != null ? sha1 : "Nu s-a putut genera"))
+                        .setPositiveButton("Copiază SHA-1", (dialog, which) -> {
+                            if (sha1 != null) {
+                                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                                android.content.ClipData clip = android.content.ClipData.newPlainText("SHA-1", sha1);
+                                clipboard.setPrimaryClip(clip);
+                                Toast.makeText(this, "Copiat în clipboard!", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton("Închide", null)
+                        .show();
                 } catch (Exception e) {
                     Log.e(TAG, "Unexpected error during Google sign-in", e);
                     Toast.makeText(this, "Eroare neașteptată: " + e.getMessage(), Toast.LENGTH_SHORT).show();

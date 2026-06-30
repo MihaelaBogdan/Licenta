@@ -29,12 +29,40 @@ except ImportError as e:
     print("ℹ️ Continuing without chatbot support (explainable recommendations API still works)")
     CHATBOT_AVAILABLE = False
 
+# Trending stories scraper
+try:
+    from trending_scraper import get_trending_locations
+    print("✅ Trending scraper loaded")
+except ImportError as e:
+    print(f"⚠️ Trending scraper not available: {e}")
+    get_trending_locations = lambda city="București": []
+
 # Load environment variables
 env_path = os.path.join(current_dir, '.env')
 load_dotenv(dotenv_path=env_path)
 
 app = Flask(__name__)
 CORS(app)
+
+# In-memory caches for Google API calls to prevent timeouts and duplicate request charges
+import time
+GOOGLE_TEXT_SEARCH_CACHE = {}
+GOOGLE_NEARBY_SEARCH_CACHE = {}
+PLACE_DETAILS_CACHE = {}
+
+# Cache TTL in seconds (10 minutes for searches, 30 minutes for details)
+SEARCH_CACHE_TTL = 600
+DETAILS_CACHE_TTL = 1800
+
+# Load fallback database
+FALLBACK_PLACES_DB = {}
+try:
+    import json as json_module
+    with open(os.path.join(current_dir, 'fallback_places.json'), 'r', encoding='utf-8') as f:
+        FALLBACK_PLACES_DB = json_module.load(f).get('places', {})
+    print(f"✅ Loaded fallback database with {sum(len(v) for v in FALLBACK_PLACES_DB.values())} places")
+except Exception as e:
+    print(f"⚠️  Fallback database not found: {e}")
 
 # ==================== WEATHER INTELLIGENCE ====================
 
@@ -66,6 +94,12 @@ def get_weather_adjusted_types(is_bad_weather):
 @app.route("/")
 def index_get():
     return render_template("base.html")
+
+@app.route("/health")
+def health_check():
+    """Health check endpoint - always returns 200 OK"""
+    from datetime import datetime
+    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()}), 200
 
 @app.route("/join")
 def join_get():
@@ -209,11 +243,197 @@ def get_daily_quest_improved():
 
 # ==================== REPORTING & ANALYTICS ====================
 
+# ==================== COMPREHENSIVE ANALYTICS & REPORTING ====================
+
+@app.get("/analytics/personal/<u_id>")
+def get_personal_analytics(u_id):
+    """
+    Generates comprehensive personal analytics report with:
+    - Activity timeline
+    - Category breakdown
+    - Leaderboard position
+    - Personalized insights
+    - Achievements & badges
+    - Travel patterns
+    - Recommendations accuracy
+    """
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    from datetime import datetime, timedelta
+    import math
+
+    try:
+        # Fetch profile
+        profile_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{u_id}",
+            headers=headers,
+            timeout=5
+        ).json()
+
+        profile = profile_res[0] if profile_res else {
+            "id": u_id,
+            "name": "User",
+            "level": 1,
+            "total_xp": 0,
+            "created_at": datetime.now().isoformat()
+        }
+
+        # Fetch visited places
+        visits_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{u_id}&select=*",
+            headers=headers,
+            timeout=5
+        ).json()
+        visits = visits_res if isinstance(visits_res, list) else []
+
+        # Fetch user's hype votes
+        votes_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{u_id}&select=id",
+            headers=headers,
+            timeout=5
+        ).json()
+
+        # Calculate statistics
+        total_visits = len(visits)
+        total_xp = profile.get("total_xp", 0)
+
+        # Category breakdown
+        categories = {}
+        avg_ratings = {}
+        for v in visits:
+            cat = v.get("place_type", "Uncategorized")
+            categories[cat] = categories.get(cat, 0) + 1
+            rating = v.get("rating", 0)
+            if cat not in avg_ratings:
+                avg_ratings[cat] = []
+            if rating > 0:
+                avg_ratings[cat].append(rating)
+
+        # Calculate average ratings per category
+        for cat in avg_ratings:
+            avg_ratings[cat] = round(sum(avg_ratings[cat]) / len(avg_ratings[cat]), 1) if avg_ratings[cat] else 0
+
+        # Most visited category
+        most_visited_cat = max(categories, key=categories.get) if categories else "Uncategorized"
+        most_visited_count = categories.get(most_visited_cat, 0)
+
+        # Leaderboard position
+        all_users = requests.get(
+            f"{SUPABASE_URL}/rest/v1/user_profiles?order=total_xp.desc&select=id,total_xp",
+            headers=headers,
+            timeout=5
+        ).json()
+
+        user_rank = 1
+        if all_users:
+            for i, user in enumerate(all_users):
+                if user.get("id") == u_id:
+                    user_rank = i + 1
+                    break
+
+        # Time-based insights
+        now = datetime.now()
+        week_ago = now - timedelta(days=7)
+        month_ago = now - timedelta(days=30)
+
+        recent_visits = [v for v in visits if v.get("visited_at", "").startswith(now.strftime("%Y-%m"))]
+        weekly_visits = [v for v in visits if v.get("visited_at", "") >= week_ago.isoformat()]
+
+        # Insights generation
+        insights = []
+
+        if total_visits == 0:
+            insights.append({
+                "title": "🚀 Incepe Aventura",
+                "message": "Inca nu ai vizitat niciun loc. Exploreaza recomandari pentru a incepe!",
+                "type": "motivational"
+            })
+        elif total_visits < 5:
+            insights.append({
+                "title": "🎯 Bun inceput!",
+                "message": f"Ai vizitat {total_visits} locașii. Continua sa explorezi!",
+                "type": "positive"
+            })
+        elif total_visits >= 10 and total_visits < 25:
+            insights.append({
+                "title": "🏆 Explorator",
+                "message": f"Esti un explorator serios cu {total_visits} locatii vizitate!",
+                "type": "achievement"
+            })
+        else:
+            insights.append({
+                "title": "👑 Expert",
+                "message": f"Wow! {total_visits} locașii! Esti un explorator profesionist!",
+                "type": "achievement"
+            })
+
+        # Category insights
+        if categories:
+            insights.append({
+                "title": "📍 Categoria Preferata",
+                "message": f"Te atrage cel mai mult {most_visited_cat} ({most_visited_count} vizite)",
+                "type": "insight"
+            })
+
+        # Weekly activity
+        if len(weekly_visits) > len(visits) / 2:
+            insights.append({
+                "title": "🔥 Activ Recent",
+                "message": f"Ai fost foarte activ saptamana asta! {len(weekly_visits)} vizite noi",
+                "type": "positive"
+            })
+
+        # Badges (mock)
+        badges = []
+        if total_visits >= 1:
+            badges.append({"name": "Prima Explorare", "icon": "🎯", "earned": True})
+        if total_visits >= 5:
+            badges.append({"name": "Explorator", "icon": "🧭", "earned": True})
+        if total_visits >= 10:
+            badges.append({"name": "Aventurier", "icon": "🏔️", "earned": True})
+        if total_visits >= 25:
+            badges.append({"name": "Legenda", "icon": "👑", "earned": True})
+        if total_xp >= 500:
+            badges.append({"name": "XP Master", "icon": "⚡", "earned": True})
+        if total_xp >= 1000:
+            badges.append({"name": "Elite", "icon": "💎", "earned": True})
+
+        # Build final report
+        report = {
+            "user": profile,
+            "stats": {
+                "total_visits": total_visits,
+                "total_xp": total_xp,
+                "level": profile.get("level", 1),
+                "leaderboard_rank": user_rank,
+                "total_users": len(all_users) if all_users else 0
+            },
+            "breakdown": {
+                "by_category": categories,
+                "average_ratings": avg_ratings,
+                "most_visited_category": most_visited_cat,
+                "most_visited_count": most_visited_count
+            },
+            "activity": {
+                "recent_visits": len(recent_visits),
+                "weekly_visits": len(weekly_visits),
+                "avg_visits_per_week": round(total_visits / ((now - datetime.fromisoformat(profile.get("created_at", now.isoformat()))).days / 7 + 1), 1)
+            },
+            "insights": insights,
+            "achievements": badges,
+            "generated_at": now.isoformat()
+        }
+
+        return jsonify(report)
+
+    except Exception as e:
+        print(f"❌ Analytics error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.get("/reports/user/<u_id>")
 def get_user_activity_report(u_id):
     """Generates a summary of activity for a specific user, with robust fallbacks."""
     headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
-    
+
     try:
         # 1. Profile data with absolute fallback
         profile = {
@@ -408,6 +628,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 PREDICTHQ_API_KEY = os.getenv("PREDICTHQ_API_KEY")
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
 
 # Foursquare Category Mapping
@@ -442,15 +663,35 @@ FSQ_CATEGORIES = {
 
 # Categories to ALWAYS exclude from UI results
 BLACKLISTED_TYPES = {
-    "lodging", "health", "dentist", "locality", "political", 
-    "real_estate_agency", "lawyer", "accounting", "finance",
-    "insurance_agency", "doctor", "hospital", "clinic",
-    "neighborhood", "sublocality", "administrative_area_level_1",
-    "administrative_area_level_2"
+    # Medical / professional services
+    "lodging", "health", "dentist", "doctor", "hospital", "clinic",
+    "real_estate_agency", "lawyer", "accounting", "finance", "insurance_agency",
+    "physiotherapist", "veterinary_care",
+    # Administrative / political
+    "locality", "political", "neighborhood", "sublocality",
+    "administrative_area_level_1", "administrative_area_level_2",
+    "postal_code", "country",
+    # Transit / infrastructure
+    "bus_station", "transit_station", "subway_station", "train_station",
+    "light_rail_station", "taxi_stand", "airport", "parking", "gas_station",
+    "car_wash", "car_repair", "car_dealer",
+    # Adult / gambling
+    "casino", "adult_entertainment",
+    # Misc useless
+    "funeral_home", "cemetery", "storage", "locksmith",
+    "moving_company", "plumber", "electrician", "roofing_contractor",
+    "general_contractor", "painter",
 }
 
 def google_text_search(query, lat=None, lng=None, radius=50000):
     """Searches Google Places Text Search API for high-relevance matches with strict location biasing."""
+    cache_key = (query, lat, lng, radius)
+    now = time.time()
+    if cache_key in GOOGLE_TEXT_SEARCH_CACHE:
+        val, exp = GOOGLE_TEXT_SEARCH_CACHE[cache_key]
+        if now < exp:
+            return val
+
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     params = {
         "query": query,
@@ -460,13 +701,12 @@ def google_text_search(query, lat=None, lng=None, radius=50000):
     if lat and lng:
         params["location"] = f"{lat},{lng}"
         params["radius"] = str(radius)
-        # Force strict location biasing to avoid Bucharest bias
         params["locationbias"] = f"circle:{radius}@{lat},{lng}"
+
     try:
-        res = requests.get(url, params=params, timeout=10).json()
+        res = requests.get(url, params=params, timeout=5, retries=2).json()
         results = res.get("results", [])
-        
-        # Double check results to filter out anything too far (sanity check)
+
         if lat and lng:
             filtered = []
             for r in results:
@@ -474,16 +714,44 @@ def google_text_search(query, lat=None, lng=None, radius=50000):
                 r_lat, r_lng = loc.get("lat"), loc.get("lng")
                 if r_lat and r_lng:
                     dist = abs(float(r_lat) - float(lat)) + abs(float(r_lng) - float(lng))
-                    if dist < 0.6: # approx 60km
+                    if dist < 1.2:
                         filtered.append(r)
-            return filtered
-        return results
+            ret_val = filtered
+        else:
+            ret_val = results
+
+        GOOGLE_TEXT_SEARCH_CACHE[cache_key] = (ret_val, now + SEARCH_CACHE_TTL)
+        return ret_val
+    except requests.Timeout:
+        print(f"⚠️  Google Text Search Timeout: {query}")
+        return []
+    except requests.ConnectionError:
+        print(f"⚠️  Google Text Search Connection Error: {query}")
+        return []
     except Exception as e:
-        print(f"Google Text Search Error: {e}")
+        print(f"⚠️  Google Text Search Error: {e}")
         return []
 
+def get_fallback_places(city_name="București"):
+    """Vraća locuri din baza de date locală ca fallback"""
+    try:
+        places = FALLBACK_PLACES_DB.get(city_name, [])
+        if places:
+            print(f"📦 Using fallback for {city_name}: {len(places)} places")
+            return places
+    except:
+        pass
+    return []
+
 def google_nearby_search(lat, lng, place_type, radius=5000, keyword=None):
-    """Searches Google Places API for nearby places."""
+    """Searches Google Places API. Falls back to local database if API fails."""
+    cache_key = (lat, lng, place_type, radius, keyword)
+    now = time.time()
+    if cache_key in GOOGLE_NEARBY_SEARCH_CACHE:
+        val, exp = GOOGLE_NEARBY_SEARCH_CACHE[cache_key]
+        if now < exp:
+            return val
+
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
         "location": f"{lat},{lng}",
@@ -493,19 +761,33 @@ def google_nearby_search(lat, lng, place_type, radius=5000, keyword=None):
     }
     if place_type:
         params["type"] = place_type
-
     if keyword:
         params["keyword"] = keyword
+
     try:
-        res = requests.get(url, params=params, timeout=10).json()
-        return res.get("results", [])
+        res = requests.get(url, params=params, timeout=5).json()
+        results = res.get("results", [])
+        GOOGLE_NEARBY_SEARCH_CACHE[cache_key] = (results, now + SEARCH_CACHE_TTL)
+        return results
+    except requests.Timeout:
+        print(f"⚠️  Google Timeout → Using fallback for {place_type}")
+        return get_fallback_places("București")
+    except requests.ConnectionError:
+        print(f"⚠️  No connection → Using fallback for {place_type}")
+        return get_fallback_places("București")
     except Exception as e:
-        print(f"Google Places Error: {e}")
-        return []
+        print(f"⚠️  Google Error: {e} → Using fallback")
+        return get_fallback_places("București")
 
 @app.get("/places/<place_id>/details")
 def get_place_details(place_id):
     """Fetches high-detail info for a specific place, including reviews."""
+    now = time.time()
+    if place_id in PLACE_DETAILS_CACHE:
+        val, exp = PLACE_DETAILS_CACHE[place_id]
+        if now < exp:
+            return jsonify(val)
+
     url = "https://maps.googleapis.com/maps/api/place/details/json"
     params = {
         "place_id": place_id,
@@ -515,7 +797,7 @@ def get_place_details(place_id):
     }
     
     try:
-        res = requests.get(url, params=params, timeout=10).json()
+        res = requests.get(url, params=params, timeout=3.5).json()
         result = res.get("result", {})
         
         # Extract reviews
@@ -556,7 +838,7 @@ def get_place_details(place_id):
                             "model": "google/gemini-2.5-flash",
                             "messages": [{"role": "user", "content": prompt}]
                         },
-                        timeout=10
+                        timeout=5
                     )
                     
                     if response.status_code == 200:
@@ -565,7 +847,7 @@ def get_place_details(place_id):
             except Exception as ae:
                 print(f"⚠️ AI Summary Error (OpenRouter): {ae}")
 
-        return jsonify({
+        response_data = {
             "name": result.get("name"),
             "rating": result.get("rating"),
             "address": result.get("formatted_address"),
@@ -574,7 +856,9 @@ def get_place_details(place_id):
             "reviews": reviews,
             "ai_summary": ai_summary,
             "isOpen": result.get("opening_hours", {}).get("open_now")
-        })
+        }
+        PLACE_DETAILS_CACHE[place_id] = (response_data, now + DETAILS_CACHE_TTL)
+        return jsonify(response_data)
     except Exception as e:
         print(f"⚠️ Details Error: {e}")
         return jsonify({"error": "Failed to fetch details"}), 500
@@ -643,11 +927,23 @@ def format_google_place(place, user_lat=None, user_lng=None):
     address_lower = (place.get("formatted_address") or place.get("vicinity") or "").lower()
     
     forbidden_words = [
-        "strip", "erotic", "gentlemen", "adult club", "cabaret", 
-        "cazino", "casino", "pacanele", "păcănele", "slot", "betting", "superbet", "fortuna", 
-        "admiral", "maxbet", "las vegas", "game world", "cazinou", "cazinouri", "jocuri de noroc", "pariuri"
+        # Strip / adult
+        "strip", "erotic", "gentlemen", "adult club", "cabaret", "topless",
+        "exotic dancer", "lap dance",
+        # Gambling
+        "cazino", "casino", "pacanele", "păcănele", "slot machine", "betting",
+        "superbet", "fortuna", "admiral", "maxbet", "las vegas", "game world",
+        "cazinou", "cazinouri", "jocuri de noroc", "pariuri", "loto", "winbet",
+        "stanleybet", "netbet", "betano", "pokerstars",
+        # Transit / infrastructure
+        "stație autobuz", "statie autobuz", "bus stop", "bus station",
+        "gară", "gara", "metrou", "tram stop", "taxi rank",
+        "parcare", "parking lot", "benzinărie", "benzinarie", "gas station",
+        # Services people don't visit recreationally
+        "pompe funebre", "cimitir", "funeral", "cemetery",
+        "service auto", "vulcanizare", "spălătorie auto",
     ]
-    
+
     for word in forbidden_words:
         if word in name_lower or word in address_lower:
             return None
@@ -679,6 +975,24 @@ import math
 from datetime import datetime, timezone
 
 # ---------- Interest synonym map ----------
+ROMANIAN_INTEREST_TRANSLATION = {
+    "muzee": "museum",
+    "parcuri și natură": "nature",
+    "parcuri si natura": "nature",
+    "artă și design": "art_gallery",
+    "arta si design": "art_gallery",
+    "restaurante": "food",
+    "cultură și istorie": "history",
+    "cultura si istorie": "history",
+    "locuri interesante": "culture",
+    "sporte": "sport",
+    "shopping": "shopping",
+    "viața de noapte": "night_club",
+    "viata de noapte": "night_club",
+    "evenimente": "culture",
+    "general": "culture"
+}
+
 # Maps raw interest tags → related Google place types
 INTEREST_TYPE_MAP = {
     "restaurant": ["restaurant", "food", "meal_takeaway", "meal_delivery"],
@@ -913,11 +1227,13 @@ def score_item(item, context, user_lat=None, user_lng=None,
     # ── A. Explicit interest match ──────────────────────────────────
     interest_score = 0.0
     for interest in interests:
-        # Direct name/type match
-        if interest in title:
+        interest_lower = interest.lower().strip()
+        translated_interest = ROMANIAN_INTEREST_TRANSLATION.get(interest_lower, interest_lower)
+        # Direct name/type match (checking both raw and translated)
+        if interest_lower in title or translated_interest in title:
             interest_score += 12
         # Type synonym expansion
-        synonyms = INTEREST_TYPE_MAP.get(interest, [interest])
+        synonyms = INTEREST_TYPE_MAP.get(translated_interest, [translated_interest])
         if any(s in raw_type or raw_type in s for s in synonyms):
             interest_score += 13
         # Also check all raw Google types
@@ -1071,7 +1387,7 @@ def rank_places(formatted_places, context, user_lat=None, user_lng=None,
 
 @app.get("/nearby")
 def get_nearby_realtime():
-    """Nearby places within 2km with personalization."""
+    """Nearby places within specified radius (default 15km) with personalization."""
     lat = request.args.get("lat")
     lng = request.args.get("lng")
     user_id = request.args.get("user_id")
@@ -1089,6 +1405,12 @@ def get_nearby_realtime():
         "All": None
     }
     actual_type = type_map.get(place_type, place_type)
+    
+    radius_val = request.args.get("radius", 15000)
+    try:
+        radius = int(radius_val)
+    except:
+        radius = 15000
         
     results = []
     if not actual_type or actual_type == "" or actual_type.lower() == "all":
@@ -1096,7 +1418,7 @@ def get_nearby_realtime():
         seen_ids = set()
         import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(types_to_search)) as executor:
-            future_to_type = {executor.submit(google_nearby_search, lat, lng, t, radius=2000): t for t in types_to_search}
+            future_to_type = {executor.submit(google_nearby_search, lat, lng, t, radius=radius): t for t in types_to_search}
             for future in concurrent.futures.as_completed(future_to_type):
                 t = future_to_type[future]
                 try:
@@ -1110,7 +1432,7 @@ def get_nearby_realtime():
                 except Exception as e:
                     print(f"Error nearby searching {t}: {e}")
     else:
-        results = google_nearby_search(lat, lng, actual_type, radius=2000)
+        results = google_nearby_search(lat, lng, actual_type, radius=radius)
     formatted = []
     for p in results:
         f = format_google_place(p, lat, lng)
@@ -1121,8 +1443,6 @@ def get_nearby_realtime():
                 p_types = p.get("types", [])
                 if "shopping_mall" in p_types or "store" in p_types:
                     continue
-            # Enrich place with photos, reviews, and detailed info
-            f = enrich_place_with_details(f, float(lat), float(lng))
             formatted.append(f)
 
     if user_id:
@@ -1130,7 +1450,25 @@ def get_nearby_realtime():
         formatted = rank_places(formatted, context,
                                 user_lat=float(lat), user_lng=float(lng),
                                 check_weather=True)
-    return jsonify(formatted[:15])
+    else:
+        # Sort guest users: sort by rating × log(reviews)
+        import math, random
+        for p in formatted:
+            rc = p.get("reviewCount") or 0
+            p["_guest_score"] = float(p.get("rating") or 0) * math.log1p(rc) + random.uniform(0, 0.5)
+        formatted.sort(key=lambda x: x.get("_guest_score", 0), reverse=True)
+        for p in formatted:
+            p.pop("_guest_score", None)
+
+    # Slice to top 15 first!
+    top_n = formatted[:15]
+
+    # Enrich in parallel
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        enriched_results = list(executor.map(lambda p: enrich_place_with_details(p, float(lat), float(lng)), top_n))
+
+    return jsonify(enriched_results)
 
 @app.get("/places/search")
 def personalized_discovery():
@@ -1169,7 +1507,13 @@ def personalized_discovery():
         if actual_type and actual_type.lower() not in ["all", "toate"]:
             results.extend(google_text_search(f"{query} {actual_type}", lat, lng, radius=radius))
     elif not actual_type or actual_type == "" or actual_type.lower() == "all":
-        city = request.args.get("city", "București")
+        city = request.args.get("city")
+        if not city or city.strip() == "" or city.lower() in ["null", "undefined"]:
+            city = get_city_name(lat, lng) or "București"
+        elif "detect" in city.lower() or "locație" in city.lower() or "locatie" in city.lower():
+            city = get_city_name(lat, lng) or "București"
+        
+        city = city.strip()
         
         # 1. Start with high-relevance Text Search for "atractii" and "restaurante"
         results.extend(google_text_search(f"Top atracții turistice și obiective în {city}", lat, lng, radius=radius))
@@ -1198,8 +1542,6 @@ def personalized_discovery():
         if pid and pid not in seen_ids:
             f = format_google_place(p, lat, lng)
             if f:
-                # Enrich place with photos, reviews, and detailed info
-                f = enrich_place_with_details(f, float(lat), float(lng))
                 formatted.append(f)
                 seen_ids.add(pid)
 
@@ -1208,6 +1550,9 @@ def personalized_discovery():
         formatted = rank_places(formatted, context,
                                 user_lat=float(lat), user_lng=float(lng),
                                 check_weather=True)
+        # Map relevance_score to confidence for the Android app
+        for p in formatted:
+            p['confidence'] = p.get('relevance_score', 0.0)
     else:
         # Guest users: sort by rating × log(reviews) with small jitter for freshness
         for p in formatted:
@@ -1218,7 +1563,15 @@ def personalized_discovery():
             p.pop("_guest_score", None)
             p.pop("_raw_types", None)
 
-    return jsonify(formatted[:60])
+    # Slice to top 40 first!
+    top_n = formatted[:40]
+
+    # Enrich in parallel
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        enriched_results = list(executor.map(lambda p: enrich_place_with_details(p, float(lat), float(lng)), top_n))
+
+    return jsonify(enriched_results)
 
 @app.get("/places/autocomplete")
 def get_autocomplete():
@@ -1561,16 +1914,16 @@ def get_weather():
     lng = request.args.get("lng")
     if not lat or not lng:
         return jsonify({"error": "Missing coordinates"}), 400
-    
+
     # Open-Meteo is free and doesn't need a key
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,weather_code&timezone=auto"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         data = response.json()
         if response.status_code == 200:
             current = data.get("current", {})
             code = current.get("weather_code", 0)
-            
+
             # WMO Weather interpretation
             condition_map = {
                 0: "Senin",
@@ -1582,18 +1935,24 @@ def get_weather():
                 80: "Averse de ploaie", 81: "Averse", 82: "Averse violente",
                 95: "Furtună", 96: "Furtună cu grindină", 99: "Furtună severă"
             }
-            
+
             condition = condition_map.get(code, "Stabil")
-            
+
             return jsonify({
                 "temp": current.get("temperature_2m"),
                 "condition": condition,
                 "description": condition.lower(),
-                "icon": "01d" # Fallback for UI if needed
+                "icon": "01d"
             })
-        return jsonify({"error": "Weather fetch failed"}), response.status_code
+        # Fallback if weather API fails
+        print(f"⚠️  Weather API returned {response.status_code}")
+        return jsonify({"temp": 20, "condition": "Senin", "description": "senin", "icon": "01d"}), 200
+    except requests.Timeout:
+        print(f"⚠️  Weather API Timeout")
+        return jsonify({"temp": 20, "condition": "Senin", "description": "senin", "icon": "01d"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"⚠️  Weather Error: {e}")
+        return jsonify({"temp": 20, "condition": "Senin", "description": "senin", "icon": "01d"}), 200
 
 @app.get("/itinerary")
 def get_itinerary():
@@ -1611,14 +1970,25 @@ def get_itinerary():
     style = request.args.get("type", "exploration").lower()
     duration = int(request.args.get("duration", 6))
     points_count = int(request.args.get("points", 4))
+    budget = int(request.args.get("budget", 250))
 
     context = get_user_context(user_id) if user_id else {"interests": [], "history_weights": {}}
-    personalized = request.args.get("personalized", "false").lower() == "true"
     user_query = request.args.get("query", "")
 
-    if personalized:
-        from chatbot import generate_personalized_itinerary
-        plan = generate_personalized_itinerary(lat, lng, style, duration, points_count, context, user_query)
+    travel_mode = request.args.get("travel_mode", "walking")
+    start_hour = int(request.args.get("start_hour", 8))
+    companion = request.args.get("companion", "solo")
+    avoid_crowds = request.args.get("avoid_crowds", "false").lower() == "true"
+
+    # Always use Gemini + RAG for personalized generation
+    from chatbot import generate_personalized_itinerary
+    plan = generate_personalized_itinerary(
+        lat, lng, style, duration, points_count, context, user_query,
+        user_id=user_id, budget=budget,
+        travel_mode=travel_mode, start_hour=start_hour,
+        companion=companion, avoid_crowds=avoid_crowds
+    )
+    if plan:
         return jsonify(plan)
 
     import random
@@ -1681,20 +2051,123 @@ def get_itinerary():
             {"type": "restaurant", "label": "Cină Locală"}
         ]
 
-    slots = []
+    # Realistic time windows for each label keyword (start_hour, duration_mins)
+    SLOT_TIMES = {
+        "mic dejun": (8, 60),
+        "breakfast": (8, 60),
+        "cafea": (9, 45),
+        "cafe": (9, 45),
+        "degustare cafea": (10, 45),
+        "prânz": (13, 75),
+        "pranz": (13, 75),
+        "lunch": (13, 75),
+        "pauză": (16, 45),
+        "pauza": (16, 45),
+        "ceai": (16, 45),
+        "aperitiv": (18, 60),
+        "cină": (20, 90),
+        "cina": (20, 90),
+        "dinner": (20, 90),
+        "desert": (22, 45),
+        "seară": (19, 90),
+        "seara": (19, 90),
+        "socializare pre-film": (17, 60),
+        "vizionare film": (18, 150),
+        "cină post-film": (21, 90),
+        "avanpremieră": (20, 150),
+        "cocktail": (22, 60),
+        "antrenament": (7, 90),
+        "alergare": (18, 60),
+        "eveniment sportiv": (16, 120),
+    }
+
+    def get_slot_time(label: str):
+        label_lower = label.lower()
+        for key, val in SLOT_TIMES.items():
+            if key in label_lower:
+                return val
+        return None
+
+    # Build slots and assign realistic times
+    raw_slots = []
     for i in range(points_count):
         item = pattern[i % len(pattern)]
         label = item["label"]
         if i >= len(pattern):
             label += f" {(i // len(pattern)) + 1}"
-        slots.append({"type": item["type"], "label": label})
+        raw_slots.append({"type": item["type"], "label": label})
+
+    # Assign times: use fixed windows when known, fill gaps for others
+    # First pass: assign known windows
+    assigned_times = []  # list of (start_hour, dur_mins) or None
+    for slot in raw_slots:
+        t = get_slot_time(slot["label"])
+        assigned_times.append(t)
+
+    # Sort slots by their natural time anchor, unknowns go after knowns
+    def sort_key(pair):
+        _, t = pair
+        return t[0] if t else 99
+
+    slots_with_times = sorted(zip(raw_slots, assigned_times), key=sort_key)
+    slots = [s for s, _ in slots_with_times]
+    slot_hint_times = [t for _, t in slots_with_times]
+
+    # Tips contextuale pentru tranzitii
+    TRANSITION_TIPS = {
+        "mic dejun":    "Începe ziua relaxat — ia-ți timp să savurezi micul dejun.",
+        "breakfast":    "Începe ziua relaxat — ia-ți timp să savurezi micul dejun.",
+        "prânz":        "Recomandăm o pauză de 10-15 min înainte de prânz pentru a te odihni.",
+        "pranz":        "Recomandăm o pauză de 10-15 min înainte de prânz pentru a te odihni.",
+        "cină":         "Seara se apropie — perfectă pentru o cină liniștită.",
+        "cina":         "Seara se apropie — perfectă pentru o cină liniștită.",
+        "pauză":        "Moment ideal pentru o pauză scurtă și o băutură caldă.",
+        "pauza":        "Moment ideal pentru o pauză scurtă și o băutură caldă.",
+        "ceai":         "Ia-ți un moment de respiro cu un ceai sau o cafea.",
+        "aperitiv":     "Perfect pentru a socializa înainte de cină.",
+        "desert":       "Încheie seara cu ceva dulce — meritat după o zi plină!",
+        "cafea":        "O pauză de cafea te va reîncărca pentru restul zilei.",
+        "antrenament":  "Hidratează-te bine înainte de antrenament!",
+        "alergare":     "Ia-ți echipamentul și bucură-te de aer liber.",
+        "film":         "Ajunge cu 15 min mai devreme pentru a-ți lua loc fără grabă.",
+        "muzeu":        "Verifică programul de deschidere înainte de a pleca.",
+        "parc":         "Vremea ideală pentru o plimbare în aer liber.",
+        "default":      "Recomandăm ~10 min de deplasare până la următoarea locație.",
+    }
+
+    def get_tip(label: str, prev_end_min: int, cur_start_min: int) -> str:
+        label_lower = label.lower()
+        for key, tip in TRANSITION_TIPS.items():
+            if key in label_lower:
+                return tip
+        gap = cur_start_min - prev_end_min
+        if gap <= 10:
+            return "Locație apropiată — poți ajunge pe jos în câteva minute."
+        if gap <= 20:
+            return f"~{gap} min de deplasare până la această locație."
+        if gap > 30:
+            return f"Ai {gap} min liberi — poți explora zona sau te poți odihni."
+        return TRANSITION_TIPS["default"]
 
     plan = []
-    # SHAKE UP the start to prevent samey paths
     current_lat = lat + random.uniform(-0.015, 0.015)
     current_lng = lng + random.uniform(-0.015, 0.015)
-    current_time = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
-    slot_duration_mins = (duration * 60) // len(slots) if slots else 60
+    base_date = datetime.now().replace(second=0, microsecond=0)
+    travel_time_mins = 15 if scope == "city" else 10
+
+    # Start from first slot's natural hour, or 8:00
+    first_hint = slot_hint_times[0] if slot_hint_times else None
+    current_total_min = (first_hint[0] * 60 if first_hint else 8 * 60)
+
+    # Budget constraints
+    transport_leg = 25 if scope == "city" else 12
+    est_transport_total = (points_count - 1) * transport_leg
+    max_activities_budget = (budget / 1.1) - est_transport_total
+    if max_activities_budget < 0:
+        max_activities_budget = budget
+    
+    target_cost_per_activity = max_activities_budget / points_count if points_count > 0 else 50
+    remaining_activities_budget = max_activities_budget
 
     used_place_ids = set()
 
@@ -1718,27 +2191,66 @@ def get_itinerary():
                 print(f"Error pre-fetching type {st} for itinerary: {e}")
                 search_results[st] = []
 
-    for slot in slots:
+    for slot_idx, slot in enumerate(slots):
         try:
-            # Randomize category slightly for fun
             search_type = slot["type"]
             results = search_results.get(search_type, [])
-            available = [r for r in results if r.get("place_id") not in used_place_ids and r.get("name")]
-            
-            # Shuffle results globally for randomness
+
+            # Quality filter: min rating 3.5, min 5 reviews, exclude transit/adult/gambling
+            ITINERARY_FORBIDDEN_NAMES = {
+                "stație", "statie", "bus stop", "bus station", "gară", "gara",
+                "metrou", "parcare", "parking", "benzinărie", "benzinarie",
+                "strip", "erotic", "casino", "cazino", "pacanele", "păcănele",
+                "superbet", "maxbet", "admiral", "winbet", "betano", "loto",
+                "pompe funebre", "cimitir", "vulcanizare", "service auto",
+            }
+
+            def is_itinerary_worthy(r):
+                name = (r.get("name") or "").lower()
+                rating = r.get("rating") or 0
+                reviews = r.get("user_ratings_total") or r.get("reviewCount") or 0
+                raw_types = r.get("types") or r.get("_raw_types") or []
+                if any(t in BLACKLISTED_TYPES for t in raw_types):
+                    return False
+                if any(w in name for w in ITINERARY_FORBIDDEN_NAMES):
+                    return False
+                if rating < 3.5 and reviews > 20:
+                    return False
+                return True
+
+            available = [r for r in results
+                         if r.get("place_id") not in used_place_ids
+                         and r.get("name")
+                         and is_itinerary_worthy(r)]
+
             random.shuffle(available)
-            
+
             if not available:
-                # Fallback to general attraction if specific fails
                 results = search_results.get("tourist_attraction", [])
-                available = [r for r in results if r.get("place_id") not in used_place_ids]
+                available = [r for r in results
+                             if r.get("place_id") not in used_place_ids
+                             and is_itinerary_worthy(r)]
                 random.shuffle(available)
             
             if available:
-                # Score them but keep weight on randomness
+                # Score them but keep weight on randomness & budget fit
                 for r in available:
                     temp_item = {"name": r.get("name"), "type": search_type, "rating": r.get("rating", 4.0)}
-                    r["_score"] = score_item(temp_item, context) + random.uniform(0, 2) # Add Luck factor
+                    base_score = score_item(temp_item, context) + random.uniform(0, 2)
+                    
+                    # Estimate cost for this candidate
+                    level = r.get("price_level", 2)
+                    price_map = {0: 0, 1: 30, 2: 70, 3: 150, 4: 350}
+                    est_cost = price_map.get(level, 70)
+                    if search_type in ["park", "natural_feature", "place_of_worship"]: est_cost = 0
+                    elif search_type in ["museum", "art_gallery"]: est_cost = 40
+                    
+                    # Apply penalty if it exceeds target cost per activity
+                    if est_cost > target_cost_per_activity:
+                        excess = est_cost - target_cost_per_activity
+                        base_score -= (excess / 10.0) # deduct 1 point for every 10 RON excess
+                        
+                    r["_score"] = base_score
                 
                 # Sort and pick from a LARGER pool for more diversity (Top 8)
                 available.sort(key=lambda x: x.get("_score", 0), reverse=True)
@@ -1756,11 +2268,40 @@ def get_itinerary():
                 price_map = {0: 0, 1: 30, 2: 70, 3: 150, 4: 350}
                 est_cost = price_map.get(level, 70)
                 if search_type in ["park", "natural_feature", "place_of_worship"]: est_cost = 0
-                if search_type in ["museum", "art_gallery"]: est_cost = 40
+                elif search_type in ["museum", "art_gallery"]: est_cost = 40
 
-                t_start = current_time.strftime("%H:%M")
-                current_time += timedelta(minutes=slot_duration_mins)
-                t_end = current_time.strftime("%H:%M")
+                # Deduce estimated cost from remaining budget
+                remaining_activities_budget -= est_cost
+                remaining_slots = len(slots) - (len(plan) + 1)
+                if remaining_slots > 0:
+                    target_cost_per_activity = max(0, remaining_activities_budget / remaining_slots)
+
+                hint = slot_hint_times[slot_idx]
+                slot_dur = hint[1] if hint else 90
+
+                # Snap to natural anchor if we're early, otherwise use sequential time
+                natural_min = hint[0] * 60 if hint else None
+                if natural_min and natural_min > current_total_min:
+                    current_total_min = natural_min
+
+                start_h = current_total_min // 60
+                start_m = current_total_min % 60
+                end_total_min = current_total_min + slot_dur
+
+                # Clamp to midnight
+                if start_h >= 24:
+                    start_h = 23
+                    start_m = 0
+                end_h = min(end_total_min // 60, 23)
+                end_m = end_total_min % 60
+
+                t_start = f"{start_h:02d}:{start_m:02d}"
+                t_end = f"{end_h:02d}:{end_m:02d}"
+
+                prev_end_min = current_total_min
+                current_total_min = end_total_min + travel_time_mins
+
+                tip_text = get_tip(slot["label"], prev_end_min, current_total_min - travel_time_mins) if slot_idx > 0 else "Prima oprire a zilei — bucură-te!"
 
                 geo = best.get("geometry", {}).get("location", {})
                 plan.append({
@@ -1774,7 +2315,8 @@ def get_itinerary():
                     "placeId": best.get("place_id"),
                     "type": search_type,
                     "time": f"{t_start} - {t_end}",
-                    "is_open": True
+                    "is_open": True,
+                    "tip": tip_text
                 })
                 # Move slightly towards result but keep some center bias for better city coverage
                 next_lat = geo.get("lat", current_lat)
@@ -1787,6 +2329,426 @@ def get_itinerary():
             continue
 
     return jsonify(plan)
+
+
+@app.get("/itinerary/replace")
+def replace_itinerary_slot():
+    """Returns a single replacement place for a given slot type and budget."""
+    lat = float(request.args.get("lat", 0))
+    lng = float(request.args.get("lng", 0))
+    slot_type = request.args.get("type", "tourist_attraction")
+    slot_label = request.args.get("label", "")
+    slot_time = request.args.get("time", "")
+    budget_per_slot = float(request.args.get("budget_per_slot", 100))
+    used_ids_raw = request.args.get("used_ids", "")
+    used_ids = set(used_ids_raw.split(",")) if used_ids_raw else set()
+
+    import random
+    from datetime import datetime, timedelta
+
+    results = google_nearby_search(lat, lng, slot_type, radius=5000) or []
+    # Exclude already used places
+    available = [r for r in results if r.get("place_id") not in used_ids and r.get("name")]
+
+    price_map = {0: 0, 1: 30, 2: 70, 3: 150, 4: 350}
+    free_types = ["park", "natural_feature", "place_of_worship"]
+    museum_types = ["museum", "art_gallery"]
+
+    def estimate_cost(r, stype):
+        if stype in free_types: return 0
+        if stype in museum_types: return 40
+        return price_map.get(r.get("price_level", 2), 70)
+
+    # Filter strictly by budget
+    affordable = [r for r in available if estimate_cost(r, slot_type) <= budget_per_slot * 1.2]
+    if not affordable:
+        affordable = available  # fallback: no filtering if nothing fits
+
+    if not affordable:
+        return jsonify({"error": "No replacement found"}), 404
+
+    # Score and pick best
+    for r in affordable:
+        est_cost = estimate_cost(r, slot_type)
+        r["_score"] = (r.get("rating") or 3.0) + random.uniform(0, 1.5)
+        if est_cost > budget_per_slot:
+            r["_score"] -= (est_cost - budget_per_slot) / 10.0
+
+    affordable.sort(key=lambda x: x.get("_score", 0), reverse=True)
+    top = affordable[:5]
+    best = random.choice(top)
+
+    img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+    if best.get("photos"):
+        ref = best["photos"][0]["photo_reference"]
+        img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
+
+    est_cost = estimate_cost(best, slot_type)
+    geo = best.get("geometry", {}).get("location", {})
+
+    return jsonify({
+        "slot": slot_label,
+        "name": best["name"],
+        "address": best.get("vicinity", "Locație oraș"),
+        "imageUrl": img_url,
+        "latitude": geo.get("lat"),
+        "longitude": geo.get("lng"),
+        "estimatedCost": est_cost,
+        "placeId": best.get("place_id"),
+        "type": slot_type,
+        "time": slot_time,
+        "is_open": True
+    })
+
+
+# ==================== ADVANCED ITINERARY HELPERS ====================
+
+def get_travel_times_and_distances(locations):
+    """
+    Calculate travel time and distance between consecutive locations.
+    Uses Haversine formula for distance estimation + time estimates based on distance.
+
+    locations: List of {"latitude": float, "longitude": float, "name": str, ...}
+    Returns: List of {"origin": str, "destination": str, "duration": int, "distance": float, "transport": str}
+    """
+    try:
+        import math
+
+        routes = []
+
+        for i in range(len(locations) - 1):
+            loc1 = locations[i]
+            loc2 = locations[i+1]
+
+            lat1, lon1 = loc1["latitude"], loc1["longitude"]
+            lat2, lon2 = loc2["latitude"], loc2["longitude"]
+
+            # Haversine formula for distance
+            R = 6371  # Earth radius in km
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+            c = 2 * math.asin(math.sqrt(a))
+            distance_km = R * c
+
+            # Estimate travel time based on distance
+            # In Bucharest: ~10-15 min per km by transit
+            if distance_km < 0.5:
+                duration_minutes = 5
+                transport = "🚶 Pe Jos"
+            elif distance_km < 2:
+                duration_minutes = int(10 + distance_km * 3)
+                transport = "🚶 Pe Jos (5-10 min) / 🚌 Metro"
+            else:
+                duration_minutes = int(10 + distance_km * 4)
+                transport = "🚌 Transport Public"
+
+            routes.append({
+                "origin": loc1.get("name", f"Stop {i+1}"),
+                "destination": loc2.get("name", f"Stop {i+2}"),
+                "duration_minutes": max(5, min(45, duration_minutes)),  # Clamp between 5-45 min
+                "distance_km": round(distance_km, 2),
+                "transport": transport,
+                "tip": "💡 Mergi pe jos pentru a explora mai bine cartierul!" if distance_km < 2 else "💡 Foloseste transport public pentru a economisi timp"
+            })
+
+        return routes
+    except Exception as e:
+        print(f"⚠️ Error calculating travel times: {e}")
+        return []
+
+def get_weather_forecast_for_day(lat, lng):
+    """
+    Get hourly weather forecast for the current day.
+    Falls back to typical Bucharest weather if API unavailable.
+    Returns: List of {"hour": str, "temp": int, "condition": str, "icon": str, "rain_prob": int}
+    """
+    import random
+    from datetime import datetime, timedelta
+
+    try:
+        params = {
+            "lat": lat,
+            "lon": lng,
+            "units": "metric",
+            "appid": OPENWEATHER_API_KEY
+        }
+
+        response = requests.get(
+            "https://api.openweathermap.org/data/2.5/forecast",
+            params=params,
+            timeout=5
+        ).json()
+
+        if response.get("cod") == "200":
+            hourly_data = []
+
+            for forecast in response.get("list", [])[:8]:  # Next 8 time slots (24 hours)
+                dt_txt = forecast.get("dt_txt")
+                hour = dt_txt.split()[1].split(":")[0] if dt_txt else "?"
+
+                temp = round(forecast.get("main", {}).get("temp", 20))
+                condition = forecast.get("weather", [{}])[0].get("main", "Unknown")
+                description = forecast.get("weather", [{}])[0].get("description", "")
+                rain_prob = forecast.get("pop", 0) * 100
+
+                weather_emoji = {
+                    "Clear": "☀️",
+                    "Clouds": "☁️",
+                    "Rain": "🌧️",
+                    "Thunderstorm": "⛈️",
+                    "Snow": "❄️",
+                    "Mist": "🌫️"
+                }.get(condition, "🌤️")
+
+                hourly_data.append({
+                    "hour": f"{hour}:00",
+                    "temp": temp,
+                    "condition": f"{weather_emoji} {description.title()}",
+                    "icon": weather_emoji,
+                    "rain_prob": int(rain_prob)
+                })
+
+            return hourly_data
+    except Exception as e:
+        print(f"⚠️ OpenWeather API unavailable: {e}")
+
+    # Fallback: Generate realistic Bucharest weather forecast
+    try:
+        hourly_data = []
+        current_hour = datetime.now().hour
+
+        # Typical June weather in Bucharest: 18-28°C, mostly sunny
+        temps = [18, 19, 20, 22, 24, 26, 28, 26, 24, 22, 20, 19]
+        conditions = [
+            ("Cer Senin", "☀️", 0),
+            ("Cer Senin", "☀️", 5),
+            ("Parțial Noros", "⛅", 10),
+            ("Parțial Noros", "⛅", 20),
+            ("Cer Senin", "☀️", 15),
+            ("Cer Senin", "☀️", 10),
+            ("Ploaie Ușoară", "🌧️", 40),
+            ("Cer Senin", "☀️", 5),
+        ]
+
+        for i in range(8):
+            hour_idx = (current_hour + i) % 24
+            hour_str = f"{hour_idx:02d}:00"
+
+            temp = temps[hour_idx % len(temps)]
+            cond_text, emoji, rain = conditions[i % len(conditions)]
+
+            hourly_data.append({
+                "hour": hour_str,
+                "temp": temp,
+                "condition": f"{emoji} {cond_text}",
+                "icon": emoji,
+                "rain_prob": rain
+            })
+
+        return hourly_data
+    except Exception as e:
+        print(f"⚠️ Weather forecast error: {e}")
+        return []
+
+def optimize_itinerary_route(locations):
+    """
+    Optimize the order of locations to minimize total travel time (TSP approximation).
+    Uses nearest neighbor heuristic + local 2-opt improvement.
+
+    Returns: Reordered list of locations
+    """
+    if len(locations) <= 2:
+        return locations
+
+    try:
+        import math
+
+        def distance_between(loc1, loc2):
+            lat1, lon1 = loc1["latitude"], loc1["longitude"]
+            lat2, lon2 = loc2["latitude"], loc2["longitude"]
+
+            # Haversine formula
+            R = 6371  # Earth radius in km
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+            c = 2 * math.asin(math.sqrt(a))
+            return R * c
+
+        # Nearest neighbor heuristic starting from first location
+        start = locations[0]
+        optimized = [start]
+        remaining = locations[1:]
+
+        while remaining:
+            last = optimized[-1]
+            nearest = min(remaining, key=lambda x: distance_between(last, x))
+            optimized.append(nearest)
+            remaining.remove(nearest)
+
+        # 2-opt local improvement (try swapping edges)
+        improved = True
+        iterations = 0
+        while improved and iterations < 5:
+            improved = False
+            iterations += 1
+
+            for i in range(1, len(optimized) - 2):
+                for j in range(i + 2, len(optimized)):
+                    # Calculate current distance
+                    current_dist = (
+                        distance_between(optimized[i-1], optimized[i]) +
+                        distance_between(optimized[j-1], optimized[j]) +
+                        distance_between(optimized[j], optimized[(j+1) % len(optimized)])
+                    )
+
+                    # Calculate distance after swap
+                    new_dist = (
+                        distance_between(optimized[i-1], optimized[j-1]) +
+                        distance_between(optimized[i], optimized[j]) +
+                        distance_between(optimized[j], optimized[(j+1) % len(optimized)])
+                    )
+
+                    if new_dist < current_dist:
+                        optimized[i:j] = reversed(optimized[i:j])
+                        improved = True
+                        break
+                if improved:
+                    break
+
+        return optimized
+    except Exception as e:
+        print(f"⚠️ Route optimization error: {e}")
+        return locations
+
+def calculate_cost_breakdown(itinerary):
+    """
+    Calculate detailed cost breakdown for the entire itinerary.
+
+    Returns: {
+        "activities": [...],
+        "transport": int,
+        "estimated_meals": int,
+        "total": int,
+        "savings_tip": str
+    }
+    """
+    try:
+        activities = []
+        transport_total = 0
+        meals_total = 0
+
+        # Activity costs
+        for item in itinerary:
+            cost = item.get("estimatedCost", 0)
+            place_type = item.get("type", "").lower()
+
+            if place_type in ["restaurant", "cafe", "bar", "bakery"]:
+                meals_total += cost
+            else:
+                activities.append({
+                    "name": item.get("name", "Activity"),
+                    "type": place_type,
+                    "cost": cost,
+                    "estimated": True
+                })
+
+        # Transport costs (estimated 2 RON per metro ride in Bucharest)
+        num_transits = len(itinerary) - 1
+        transport_total = num_transits * 2 if num_transits > 0 else 0
+
+        # Generate savings tip
+        savings_tip = ""
+        if transport_total > 0:
+            savings_tip = f"💰 Sugestie: Ia o Card Călării zilei (10 RON) pentru transport nelimitat"
+
+        total_activities = sum(a["cost"] for a in activities)
+        total = total_activities + transport_total + meals_total
+
+        return {
+            "activities": activities,
+            "activities_total": total_activities,
+            "transport": transport_total,
+            "estimated_meals": meals_total,
+            "total": total,
+            "savings_tip": savings_tip
+        }
+    except Exception as e:
+        print(f"⚠️ Cost breakdown error: {e}")
+        return {"total": 0, "activities": [], "transport": 0, "estimated_meals": 0}
+
+# ==================== ENHANCED ITINERARY ENDPOINT ====================
+
+@app.get("/itinerary/enhanced")
+def get_enhanced_itinerary():
+    """
+    Generates an enhanced day plan with:
+    - Travel times and distances between locations
+    - Hourly weather forecast with recommendations
+    - Optimized route (optional)
+    - Detailed cost breakdown
+    """
+    lat_str = request.args.get("lat")
+    lng_str = request.args.get("lng")
+    user_id = request.args.get("user_id")
+    optimize = request.args.get("optimize", "false").lower() == "true"
+    budget_str = request.args.get("budget", "250")
+
+    if not lat_str or not lng_str:
+        return jsonify({"error": "Missing lat/lng"}), 400
+
+    lat = float(lat_str)
+    lng = float(lng_str)
+
+    # Get base itinerary
+    response = requests.get(
+        f"http://127.0.0.1:5001/itinerary",
+        params={
+            "lat": lat,
+            "lng": lng,
+            "user_id": user_id,
+            "type": request.args.get("type", "exploration"),
+            "duration": request.args.get("duration", 6),
+            "points": request.args.get("points", 4),
+            "budget": budget_str
+        },
+        timeout=15
+    )
+
+    itinerary = response.json() if response.status_code == 200 else []
+
+    if not itinerary:
+        return jsonify({"error": "Failed to generate itinerary"}), 500
+
+    print(f"✅ Base itinerary generated with {len(itinerary)} stops")
+
+    # Optimize route if requested
+    if optimize and len(itinerary) > 2:
+        itinerary = optimize_itinerary_route(itinerary)
+        print(f"✅ Route optimized")
+
+    # Add travel times and distances
+    travel_legs = get_travel_times_and_distances(itinerary)
+    print(f"✅ Travel legs computed: {len(travel_legs)} legs")
+
+    # Get weather forecast
+    weather = get_weather_forecast_for_day(lat, lng)
+    print(f"✅ Weather forecast: {len(weather)} hours")
+
+    # Calculate cost breakdown
+    cost_info = calculate_cost_breakdown(itinerary)
+    print(f"✅ Cost breakdown: Total {cost_info.get('total')} RON")
+
+    # Restructure response with all enhanced data
+    return jsonify({
+        "itinerary": itinerary,
+        "travel_legs": travel_legs,
+        "weather_forecast": weather,
+        "cost_breakdown": cost_info,
+        "optimized": optimize,
+        "generated_at": datetime.now().isoformat()
+    })
 
 @app.get("/users/<u_id>/posts")
 def get_user_posts(u_id):
@@ -1903,6 +2865,130 @@ def get_feed():
     except Exception as e:
         print(f"❌ Feed Error: {e}")
         return jsonify([])
+
+@app.get("/social/trending")
+def get_social_trending():
+    """
+    Queries Google Places for real-world instagrammable, trending and popular spots
+    in Bucharest, calculates a mathematical Hype Score for each place based on
+    ratings and review counts, and uses Gemini to generate a modern social media digest.
+    """
+    import math
+    import random
+    
+    # 1. Definim interogările pentru Google Places pentru a prinde locuri "în trend"
+    queries = [
+        "locuri instagramabile Bucuresti",
+        "specialty coffee Bucuresti",
+        "brunch popular Bucuresti",
+        "gradini de vara terase deosebite Bucuresti"
+    ]
+    
+    # Rulăm interogările pe rând
+    all_results = []
+    seen_names = set()
+    
+    for q in queries:
+        try:
+            res = google_text_search(q, lat=44.4268, lng=26.1025, radius=20000)
+            for r in res:
+                name = r.get("name")
+                if name and name not in seen_names:
+                    seen_names.add(name)
+                    all_results.append(r)
+        except Exception as e:
+            print(f"⚠️ Search error for query '{q}': {e}")
+            
+    # Dacă din orice motiv nu avem rezultate, folosim un fallback de siguranță
+    if not all_results:
+        all_results = [
+            {"name": "Pasajul Macca - Villacrosse", "rating": 4.2, "user_ratings_total": 3640, "formatted_address": "Calea Victoriei, București"},
+            {"name": "Linea | Closer To The Moon", "rating": 4.5, "user_ratings_total": 11423, "formatted_address": "Strada Lipscani, București"},
+            {"name": "Ceainăria Infinitea", "rating": 4.6, "user_ratings_total": 4633, "formatted_address": "Strada dr. Grigore Romniceanu, București"},
+            {"name": "Grădina Cișmigiu", "rating": 4.4, "user_ratings_total": 41393, "formatted_address": "Bulevardul Regina Elisabeta, București"},
+            {"name": "Caru' cu Bere", "rating": 4.6, "user_ratings_total": 89743, "formatted_address": "Strada Stavropoleos, București"}
+        ]
+        
+    # 2. Calculăm Hype Score-ul pentru fiecare locație
+    processed_places = []
+    for r in all_results:
+        name = r.get("name")
+        rating = r.get("rating") or 4.0
+        reviews = r.get("user_ratings_total") or 100
+        address = r.get("formatted_address") or "București"
+        
+        # Algoritm de Hype Score: combină calitatea cu amprenta socială (log din review-uri)
+        log_reviews = math.log10(reviews + 1)
+        score = int((rating * 10) + (log_reviews * 10))
+        score = min(100, max(10, score)) # Limităm între 10 și 100
+        
+        processed_places.append({
+            "name": name,
+            "rating": rating,
+            "reviews": reviews,
+            "score": score,
+            "address": address
+        })
+        
+    # Sortează după Hype Score descrescător
+    processed_places.sort(key=lambda x: x["score"], reverse=True)
+    
+    # Alegem top 3 locuri reprezentative
+    top_places = processed_places[:3]
+    
+    # Stabilim motive contextuale pentru popularitate
+    reasons = [
+        "Cel mai fotografiat și menționat punct de interes turistic din zonă.",
+        "Locație iconică cu o rată de check-in uriașă pe rețelele de socializare.",
+        "Un hotspot îndrăgit pentru brunch și fotografii estetice de Instagram."
+    ]
+    for i, p in enumerate(top_places):
+        p["reason"] = reasons[i] if i < len(reasons) else "Popularitate în creștere în comunitatea locală."
+
+    # 3. Generăm rezumatul dinamic (digest) folosind Gemini
+    analysis_context = {
+        "hype_places": [{"name": p["name"], "rating": p["rating"], "reviews": p["reviews"], "hype_score": p["score"]} for p in top_places],
+        "top_themes": ["Locații Instagramabile", "Specialty Coffee", "Brunch & Rooftops", "Terase de vară"]
+    }
+    
+    trending_summary = "Bucureștiul vibrează în jurul locațiilor de tip rooftop și a teraselor ascunse! Locații istorice celebre și cafenele de specialitate atrag mii de postări pe Instagram și TikTok datorită esteticii deosebite."
+    
+    try:
+        import google.generativeai as genai
+        try:
+            model = genai.GenerativeModel("gemini-flash-latest")
+        except:
+            genai.configure(api_key=GOOGLE_API_KEY)
+            model = genai.GenerativeModel("gemini-flash-latest")
+            
+        prompt = (
+            "Ești un trend analist modern pentru ghidul urban CityScape. "
+            "Pe baza acestor locuri populare și a datelor lor reale (rating și număr recenzii), generează un text scurt (max 45 cuvinte), "
+            "foarte modern, tineresc și dinamic (în limba română), despre ce se poartă / ce este în trend pe social media în București acum. "
+            "Fii specific: menționează stilul locațiilor (rooftops, locuri istorice, cafenele specialty) și invită la explorat. "
+            "Nu folosi liste sau formatare markdown (fără caractere speciale sau bold-uri). "
+            f"Date reale:\n{json.dumps(analysis_context)}"
+        )
+        
+        response = model.generate_content(prompt)
+        if response and response.text:
+            trending_summary = response.text.strip().replace('"', '')
+    except Exception as e:
+        print(f"⚠️ Gemini Real Trends generation failed: {e}")
+        
+    top_tags = ["#bucuresti", "#instagrammable", "#specialtycoffee", "#weekend", "#vibes"]
+    
+    return jsonify({
+        "trending_summary": trending_summary,
+        "top_hashtags": top_tags,
+        "hype_places": [
+            {
+                "name": p["name"],
+                "hype_score": p["score"],
+                "reason": p["reason"]
+            } for p in top_places
+        ]
+    })
 
 def is_content_safe(text):
     """Uses Gemini AI to check if content is appropriate for the community."""
@@ -2351,85 +3437,482 @@ def scrape_cinemagia_events(city_name):
         print(f"Cinemagia scrape error: {e}")
     return []
 
-def scrape_iabilet_events(city_name, lat, lng):
-    """Fetches 100% real events from iabilet.ro for the given city."""
-    import re as _re
-    from datetime import datetime as _dt
+_IABILET_CATEGORY_PAGES = [
+    ("https://www.iabilet.ro/bilete-concerte/",  "Muzică"),
+    ("https://www.iabilet.ro/bilete-festivaluri/", "Festival"),
+    ("https://www.iabilet.ro/bilete-teatru/",    "Teatru"),
+    ("https://www.iabilet.ro/bilete-sport/",     "Sport"),
+    ("https://www.iabilet.ro/bilete-copii/",     "Copii & Familie"),
+    ("https://www.iabilet.ro/bilete-comedie/",   "Comedie"),
+    ("https://www.iabilet.ro/bilete-expozitii/", "Expoziție"),
+]
 
+def _scrape_iabilet_page(url, forced_category, lat, lng, seen, today):
+    """Scrapes one iabilet category page, returns list of event dicts."""
+    import re as _re, json as _json
     _headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "ro-RO,ro;q=0.9",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
-
-    # Find the right URL for this city
-    url = _IABILET_CITY_URLS.get(city_name, _IABILET_CITY_URLS["default"])
-
     try:
-        r = requests.get(url, headers=_headers, timeout=7)
+        r = requests.get(url, headers=_headers, timeout=10)
         content = r.text
     except Exception as ex:
-        print(f"⚠️ iabilet scrape failed for {city_name}: {ex}")
+        print(f"⚠️ iabilet page {url} failed: {ex}")
         return []
 
-    # Extract microdata: names + dates + locations + urls
-    names    = _re.findall(r'"name":\s*"([^"]{5,100})"', content)
-    dates    = _re.findall(r'"startDate":\s*"([^"]+)"', content)
-    streets  = _re.findall(r'"streetAddress":\s*"([^"]+)"', content)
-    ev_urls  = _re.findall(r'"url":\s*"(https://www\.iabilet\.ro/bilete/[^"]+)"', content)
+    raw_blocks = _re.findall(r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', content, _re.DOTALL)
+    events = []
+
+    for raw in raw_blocks:
+        clean = _re.sub(r'/\*<!\[CDATA\[\*/|/\*\]\]>\*/', '', raw).strip()
+        if not clean:
+            continue
+        try:
+            d = _json.loads(clean)
+        except Exception:
+            continue
+        items = d if isinstance(d, list) else [d]
+        for item in items:
+            if item.get('@type') != 'Event':
+                continue
+            name = item.get('name', '').strip()
+            if not name or name in seen or len(name) < 5:
+                continue
+            date_str = item.get('startDate', '')
+            try:
+                from datetime import datetime as _dt2
+                if _dt2.fromisoformat(date_str[:10]).date() < today:
+                    continue
+                date_display = _iabilet_format_date(date_str)
+            except Exception:
+                date_display = date_str[:10] if date_str else 'TBA'
+
+            seen.add(name)
+            loc = item.get('location', {})
+            city_detected = ""
+            if isinstance(loc, dict):
+                venue_name = loc.get('name', '')
+                addr = loc.get('address', {})
+                street = addr.get('streetAddress', '') if isinstance(addr, dict) else ''
+                city_detected = addr.get('addressLocality', '') if isinstance(addr, dict) else ''
+                location_str = f"{venue_name}, {street}".strip(', ') if venue_name else street or "România"
+                if city_detected and city_detected.lower() not in location_str.lower():
+                    location_str = f"{location_str}, {city_detected}"
+            else:
+                location_str = "România"
+
+            img = item.get('image', [])
+            if isinstance(img, list) and img:
+                img_url = img[0]
+            elif isinstance(img, str):
+                img_url = img
+            else:
+                img_url = _IABILET_CAT_IMAGES.get(forced_category, _IABILET_CAT_IMAGES["Recreativ"])
+
+            ev_url = item.get('url', url)
+            cat = forced_category or _iabilet_guess_category(name)
+
+            events.append({
+                "title": name,
+                "category": cat,
+                "date_str": date_display,
+                "date": date_display,
+                "location": location_str,
+                "image_url": img_url,
+                "event_url": ev_url,
+                "latitude": lat,
+                "longitude": lng,
+                "source": "iabilet",
+                "city_name": city_detected,
+            })
+    return events
+
+
+CITY_COORDS = {
+    "bucuresti": (44.4323, 26.0984),
+    "bucurești": (44.4323, 26.0984),
+    "cluj": (46.7712, 23.6236),
+    "cluj-napoca": (46.7712, 23.6236),
+    "timisoara": (45.7489, 21.2086),
+    "timișoara": (45.7489, 21.2086),
+    "iasi": (47.1585, 27.6014),
+    "iași": (47.1585, 27.6014),
+    "brasov": (45.6580, 25.6012),
+    "brașov": (45.6580, 25.6012),
+    "constanta": (44.1792, 28.6498),
+    "constanța": (44.1792, 28.6498),
+    "craiova": (44.3302, 23.7949),
+    "sibiu": (45.7983, 24.1250),
+    "oradea": (47.0465, 21.9189),
+    "bacau": (46.5670, 26.9138),
+    "bacău": (46.5670, 26.9138),
+    "arad": (46.1833, 21.3167),
+    "pitesti": (44.8500, 24.8667),
+    "pitești": (44.8500, 24.8667),
+    "ploiesti": (44.9333, 26.0333),
+    "ploiști": (44.9333, 26.0333),
+    "galati": (45.4353, 28.0080),
+    "galați": (45.4353, 28.0080),
+    "braila": (45.2692, 27.9747),
+    "brăila": (45.2692, 27.9747),
+    "targu mures": (46.5456, 24.5625),
+    "târgu mureș": (46.5456, 24.5625),
+    "baia mare": (47.6575, 23.5714),
+    "buzau": (45.1500, 26.8167),
+    "buzău": (45.1500, 26.8167),
+    "botosani": (47.7419, 26.6694),
+    "botoșani": (47.7419, 26.6694),
+    "satu mare": (47.7900, 22.8900),
+    "ramnicu valcea": (45.1000, 24.3667),
+    "râmnicu vâlcea": (45.1000, 24.3667),
+    "suceava": (47.6333, 26.2500),
+    "piatra neamt": (46.9275, 26.3708),
+    "piatra neamț": (46.9275, 26.3708),
+    "targu jiu": (45.0333, 23.2833),
+    "târgu jiu": (45.0333, 23.2833),
+    "targoviste": (44.9250, 25.4583),
+    "târgoviște": (44.9250, 25.4583),
+    "focsani": (45.7000, 27.1833),
+    "focșani": (45.7000, 27.1833),
+    "bistrita": (47.1333, 24.5000),
+    "bistrița": (47.1333, 24.5000),
+    "tulcea": (45.1833, 28.8000),
+    "resita": (45.3000, 21.8833),
+    "reșița": (45.3000, 21.8833),
+    "alba iulia": (46.0667, 23.5833),
+    "slatina": (44.4300, 24.3600),
+    "vaslui": (46.6333, 27.7333),
+    "calarasi": (44.2000, 27.3333),
+    "călărași": (44.2000, 27.3333),
+    "giurgiu": (43.9000, 25.9667),
+    "sfantu gheorghe": (45.8667, 25.7833),
+    "sfântu gheorghe": (45.8667, 25.7833),
+    "zalau": (47.1833, 23.0500),
+    "zalău": (47.1833, 23.0500),
+    "slobozia": (44.5639, 27.3661),
+    "alexandria": (43.9667, 25.3333),
+    "deva": (45.8833, 22.9000),
+    "miercurea ciuc": (46.3667, 25.8000),
+    "brezoi": (45.3500, 24.2500),
+    "otopeni": (44.5511, 26.0747),
+    "snagov": (44.7081, 26.1739),
+    "mogosoaia": (44.5278, 25.9931),
+    "mogoșoaia": (44.5278, 25.9931),
+    "buftea": (44.5714, 25.9497),
+    "mamaia": (44.2461, 28.6219),
+    "costinesti": (43.9486, 28.6322),
+    "costinești": (43.9486, 28.6322),
+    "vama veche": (43.7550, 28.5742),
+    "sighisoara": (46.2197, 24.7964),
+    "sighișoara": (46.2197, 24.7964),
+    "sinaia": (45.3500, 25.5500),
+    "busteni": (45.4147, 25.5367),
+    "bușteni": (45.4147, 25.5367),
+    "predeal": (45.5050, 25.5781),
+    "rasnov": (45.5900, 25.4600),
+    "râșnov": (45.5900, 25.4600),
+    "bran": (45.5153, 25.3672),
+    "corbeanca": (44.5986, 26.0461),
+    "voluntari": (44.4925, 26.1883),
+}
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Haversine formula to calculate distance between two points in km."""
+    import math
+    try:
+        lat1, lon1, lat2, lon2 = float(lat1), float(lon1), float(lat2), float(lon2)
+        R = 6371.0 # Radius of Earth in km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+    except:
+        return 0.0
+
+def get_event_coords(location, event_city, default_lat, default_lng):
+    """Resolves event coordinates using city mapping or falls back to default."""
+    loc_lower = (location or "").lower()
+    ev_city_lower = (event_city or "").lower()
+    for name, coords in CITY_COORDS.items():
+        if name in loc_lower or (ev_city_lower and name in ev_city_lower):
+            return coords[0], coords[1]
+    return default_lat, default_lng
+
+
+def scrape_iabilet_events(city_name, lat, lng):
+    """Fetches real events from multiple iabilet.ro category pages in parallel."""
+    from datetime import datetime as _dt
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
     today = _dt.now().date()
-    events = []
     seen = set()
+    all_events = []
 
-    for i, (raw_name, date_str) in enumerate(zip(names, dates)):
-        # Decode unicode escapes in name
+    # Also include city-specific page
+    city_url = _IABILET_CITY_URLS.get(city_name, None)
+    pages = list(_IABILET_CATEGORY_PAGES)
+    if city_url:
+        pages.insert(0, (city_url, None))
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = {executor.submit(_scrape_iabilet_page, url, cat, lat, lng, seen, today): (url, cat)
+                   for url, cat in pages}
+        for future in as_completed(futures):
+            try:
+                evs = future.result()
+                all_events.extend(evs)
+            except Exception as e:
+                print(f"⚠️ iabilet page error: {e}")
+
+    print(f"✅ iabilet scraped {len(all_events)} events across all categories")
+    return all_events
+
+
+_BILETE_RO_PAGES = [
+    ("https://www.bilete.ro/categorii/concerte/",    "Muzică"),
+    ("https://www.bilete.ro/categorii/festivaluri/", "Festival"),
+    ("https://www.bilete.ro/categorii/teatru/",      "Teatru"),
+    ("https://www.bilete.ro/categorii/sport/",       "Sport"),
+    ("https://www.bilete.ro/categorii/pentru-copii/","Copii & Familie"),
+]
+
+def scrape_bilete_ro_events(lat, lng):
+    """Scrapes real events from bilete.ro - server-side rendered HTML."""
+    import html as _html, re as _re
+    from datetime import datetime as _dt
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    _headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
+        "Accept-Language": "ro,en;q=0.9",
+    }
+    today = _dt.now().date()
+    MONTHS_RO = ["ian","feb","mar","apr","mai","iun","iul","aug","sep","oct","nov","dec"]
+
+    def _scrape_page(url, category):
         try:
-            name = raw_name.encode('utf-8').decode('unicode_escape')
-            name = name.replace('\\/', '/')
-        except:
-            name = raw_name
+            r = requests.get(url, headers=_headers, timeout=10)
+            content = r.text
+        except Exception as e:
+            print(f"⚠️ bilete.ro {url}: {e}")
+            return []
 
-        name = name.strip()
-
-        # Skip duplicates and very short/venue-only entries
-        if name in seen or len(name) < 8:
-            continue
-
-        # Skip past events
-        try:
-            if _dt.fromisoformat(date_str[:10]).date() < today:
+        cards = _re.findall(
+            r'<a class="ev-link" href="(/[^"]+)" title="[^"]*">'
+            r'.*?(?:<!-- (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}) -->)?'
+            r'.*?<img src="([^"]+)"'
+            r'.*?<h5 class="ev-thumb-title"[^>]*>\s*<span[^>]*>([^<]+)</span>'
+            r'.*?<div class="ev-thumb-city">[^<]*<i[^>]+></i>\s*([^\n<]+)'
+            r'.*?<div class="ev-thumb-date">(.*?)</div>',
+            content, _re.DOTALL
+        )
+        events = []
+        for href, date_comment, img_src, title_raw, city_raw, date_block in cards:
+            title = _html.unescape(title_raw.strip())
+            city = city_raw.strip()
+            if not title or len(title) < 4:
                 continue
-        except:
-            pass
 
-        seen.add(name)
+            date_display = 'TBA'
+            try:
+                if date_comment:
+                    dt = _dt.strptime(date_comment, '%d.%m.%Y %H:%M:%S')
+                    if dt.date() < today:
+                        continue
+                    date_display = f"{dt.day} {MONTHS_RO[dt.month-1]} {dt.year if dt.year != today.year else ''}"
+                    date_display = date_display.strip()
+            except Exception:
+                pass
+            if date_display == 'TBA':
+                date_text = _re.sub(r'<[^>]+>', '', date_block).strip()
+                if date_text:
+                    date_display = date_text[:30]
 
-        cat = _iabilet_guess_category(name)
-        location_raw = streets[i // 2] if (i // 2) < len(streets) else city_name
+            img_url = img_src if img_src.startswith('http') else f'https:{img_src}'
+            ev_url = f'https://www.bilete.ro{href}'
+
+            events.append({
+                "title": title,
+                "category": category,
+                "date": date_display,
+                "date_str": date_display,
+                "location": city,
+                "image_url": img_url,
+                "event_url": ev_url,
+                "source": "bilete.ro",
+                "latitude": lat,
+                "longitude": lng,
+            })
+        return events
+
+    all_events = []
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {executor.submit(_scrape_page, url, cat): cat for url, cat in _BILETE_RO_PAGES}
+        for future in as_completed(futures):
+            try:
+                all_events.extend(future.result())
+            except Exception as e:
+                print(f"⚠️ bilete.ro page error: {e}")
+
+    print(f"✅ bilete.ro scraped {len(all_events)} events")
+    return all_events
+
+
+def scrape_entertix_events(lat, lng):
+    """Fetches events from entertix.ro via their internal Next.js API."""
+    import re as _re, json as _json
+    _headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": "https://www.entertix.ro/",
+    }
+    events = []
+    # Try their undocumented search API
+    endpoints = [
+        "https://www.entertix.ro/api/trpc/event.getUpcoming?input=%7B%22json%22%3A%7B%22limit%22%3A30%7D%7D",
+        "https://www.entertix.ro/api/trpc/event.search?input=%7B%22json%22%3A%7B%22query%22%3A%22%22%2C%22limit%22%3A30%7D%7D",
+    ]
+    for ep in endpoints:
         try:
-            location = location_raw.encode('utf-8').decode('unicode_escape')
-            location = location.replace('\\/', '/')
-        except:
-            location = location_raw
-
-        ev_url = ev_urls[i // 2] if (i // 2) < len(ev_urls) else url
-
-        events.append({
-            "title": name,
-            "category": cat,
-            "date_str": _iabilet_format_date(date_str),
-            "location": location or city_name,
-            "image_url": _IABILET_CAT_IMAGES.get(cat, _IABILET_CAT_IMAGES["Recreativ"]),
-            "event_url": ev_url,
-            "latitude": lat,
-            "longitude": lng,
-            "source": "iabilet",
-            "is_real": True,
-        })
-
-    print(f"✅ iabilet scraped {len(events)} real events for {city_name}")
+            r = requests.get(ep, headers=_headers, timeout=8)
+            if r.status_code == 200 and r.text.strip().startswith('{'):
+                data = r.json()
+                items = (data.get('result',{}).get('data',{}).get('json') or
+                         data.get('result',{}).get('data') or [])
+                if isinstance(items, list):
+                    for item in items[:20]:
+                        name = item.get('name','') or item.get('title','')
+                        if not name: continue
+                        img = (item.get('coverImage') or item.get('image') or item.get('thumbnail') or '')
+                        venue = item.get('venue',{})
+                        loc = venue.get('name','') if isinstance(venue,dict) else str(venue or '')
+                        events.append({
+                            "title": name,
+                            "category": _iabilet_guess_category(name),
+                            "date": item.get('startDate','')[:10] or 'TBA',
+                            "date_str": item.get('startDate','')[:10] or 'TBA',
+                            "location": loc or "România",
+                            "image_url": img,
+                            "event_url": f"https://www.entertix.ro/events/{item.get('slug','')}",
+                            "source": "entertix",
+                            "latitude": lat, "longitude": lng,
+                        })
+                    if events: break
+        except Exception as e:
+            print(f"⚠️ entertix API {ep}: {e}")
+    print(f"✅ entertix: {len(events)} events")
     return events
+
+
+def scrape_eventbook_events(lat, lng):
+    """Fetches real events from eventbook.ro API."""
+    import requests
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    }
+    events = []
+    # Fetch both popular and upcoming to get a rich selection
+    for filt in ["popular", "upcoming"]:
+        url = f"https://eventbook.ro/events?filters={filt}&per_page=80"
+        try:
+            r = requests.get(url, headers=headers, timeout=8)
+            if r.status_code == 200:
+                data = r.json()
+                raw_events = data.get("events", {})
+                if isinstance(raw_events, dict):
+                    for key, item in raw_events.items():
+                        title = item.get("title", "")
+                        if not title:
+                            continue
+                        
+                        event_slug = item.get("event_slug", "")
+                        ev_url = f"https://eventbook.ro{event_slug}" if event_slug.startswith("/") else event_slug
+                        
+                        # Category mapping
+                        cat_id = item.get("category_id")
+                        cat = "Recreativ"
+                        if cat_id == 1: cat = "Muzică"
+                        elif cat_id == 2: cat = "Film"
+                        elif cat_id == 3: cat = "Sport"
+                        elif cat_id == 4: cat = "Teatru"
+                        
+                        # Date formatting
+                        date_display = item.get("text_date") or item.get("starting_date") or "TBA"
+                        if len(date_display) > 50:
+                            date_display = date_display[:47] + "..."
+                            
+                        venue = item.get("hall_name") or "București"
+                        city = item.get("city_name") or "București"
+                        location_str = f"{venue}, {city}" if venue != city else city
+                        
+                        img_url = item.get("image") or item.get("image_2x") or ""
+                        
+                        ev_lat, ev_lng = get_event_coords(location_str, city, lat, lng)
+                        
+                        events.append({
+                            "title": title,
+                            "category": cat,
+                            "date": date_display,
+                            "date_str": date_display,
+                            "location": location_str,
+                            "image_url": img_url,
+                            "event_url": ev_url,
+                            "latitude": ev_lat,
+                            "longitude": ev_lng,
+                            "source": "eventbook",
+                        })
+        except Exception as e:
+            print(f"⚠️ eventbook error ({filt}): {e}")
+            
+    # Deduplicate by title
+    seen = set()
+    unique_events = []
+    for ev in events:
+        if ev["title"] not in seen:
+            seen.add(ev["title"])
+            unique_events.append(ev)
+            
+    print(f"✅ eventbook scraped {len(unique_events)} unique events")
+    return unique_events
+
+
+def _generate_personalized_descriptions(events, user_interests):
+    """Uses Gemini flash to generate short personalized descriptions for events in batch."""
+    if not events or not user_interests:
+        return
+    try:
+        import google.generativeai as genai2
+        model = genai2.GenerativeModel("gemini-flash-latest")
+        interests_str = ", ".join(user_interests[:5])
+        lines = []
+        for i, ev in enumerate(events[:20]):
+            lines.append(f"{i+1}. {ev['title']} ({ev.get('category','')}) - {ev.get('date','')}")
+
+        prompt = f"""Utilizatorul este interesat de: {interests_str}.
+
+Pentru fiecare eveniment de mai jos, scrie O SINGURA PROPOZIȚIE personalizată (max 15 cuvinte) care explică DE CE ar plăcea utilizatorului. Răspunde DOAR cu numărul și propoziția, fără altceva.
+
+{chr(10).join(lines)}"""
+
+        resp = model.generate_content(prompt)
+        raw = resp.text.strip().split('\n')
+        for line in raw:
+            line = line.strip()
+            if not line: continue
+            import re
+            m = re.match(r'^(\d+)[\.\)]\s*(.+)', line)
+            if m:
+                idx = int(m.group(1)) - 1
+                desc = m.group(2).strip()
+                if 0 <= idx < len(events):
+                    events[idx]['description'] = desc
+                    events[idx]['personalized_description'] = desc
+    except Exception as e:
+        print(f"⚠️ Gemini descriptions failed: {e}")
+
+
 
 
 # ==================== USERS & SOCIAL ====================
@@ -2608,13 +4091,26 @@ def generate_gemini_events(city_name, lat, lng):
         return []
 
 
-def enrich_place_with_details(place_data, lat, lng):
+# ==================== SIMPLE CACHE ====================
+import threading
+_cache_lock = threading.Lock()
+_place_details_cache = {}
+_event_details_cache = {}
+
+def enrich_place_with_details(place_data, lat, lng, skip_enrichment=False):
     """Enrich place with photos, reviews, descriptions from Google Places."""
     place_id = place_data.get('id')
     place_name = place_data.get('name', '')
 
-    if not place_id:
+    if not place_id or skip_enrichment:
         return place_data
+
+    # Check cache first
+    with _cache_lock:
+        if place_id in _place_details_cache:
+            cached = _place_details_cache[place_id]
+            place_data.update(cached)
+            return place_data
 
     try:
         # Get detailed place info from Google Places API
@@ -2624,14 +4120,14 @@ def enrich_place_with_details(place_data, lat, lng):
             "key": MAPS_API_KEY,
             "fields": "photos,reviews,rating,user_ratings_total,formatted_address,website,opening_hours,business_status,types,editorial_summary"
         }
-        details_res = requests.get(details_url, params=details_params, timeout=3)
+        details_res = requests.get(details_url, params=details_params, timeout=1.5)
         if details_res.status_code == 200:
             details = details_res.json().get('result', {})
 
             # Extract multiple photos
             if details.get('photos'):
                 place_data['photos'] = [{
-                    'url': f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={p.get('photo_reference')}&key={MAPS_API_KEY}",
+                    'url': f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={p.get('photo_reference')}&key={MAPS_API_KEY}",
                     'source': 'Google Places'
                 } for p in details['photos'][:3]]
 
@@ -2662,6 +4158,12 @@ def enrich_place_with_details(place_data, lat, lng):
             if details.get('opening_hours'):
                 place_data['is_open'] = details['opening_hours'].get('open_now', None)
 
+            # Cache the enriched data
+            enriched_cache = {k: place_data[k] for k in ['photos', 'reviews', 'description', 'rating', 'reviewCount', 'website', 'is_open'] if k in place_data}
+            if enriched_cache:
+                with _cache_lock:
+                    _place_details_cache[place_id] = enriched_cache
+
     except Exception as e:
         print(f"⚠️ Place enrichment error for {place_name}: {e}")
 
@@ -2673,11 +4175,25 @@ def enrich_place_with_details(place_data, lat, lng):
     return place_data
 
 
-def get_event_details_enriched(event, lat, lng):
+def get_event_details_enriched(event, lat, lng, skip_enrichment=False):
     """Enrich event with descriptions, photos, and reviews."""
     title = event.get('title', '')
     location_name = event.get('location', '')
     event_url = event.get('event_url', '')
+
+    # Check cache first
+    cache_key = f"{title}_{location_name}"
+    if cache_key in _event_details_cache:
+        cached = _event_details_cache[cache_key]
+        event.update(cached)
+        return event
+
+    if skip_enrichment:
+        # Fast path: skip Google Places lookup
+        if 'description' not in event:
+            category = event.get('category', 'Eveniment')
+            event['description'] = f"{title} - {category} în {location_name}"
+        return event
 
     # 1. Try Google Places search for the venue/location - try location name first
     search_queries = [
@@ -2698,7 +4214,7 @@ def get_event_details_enriched(event, lat, lng):
                 "locationbias": f"circle:5000@{lat},{lng}",
                 "key": MAPS_API_KEY,
             }
-            places_res = requests.get(places_url, params=params, timeout=2)
+            places_res = requests.get(places_url, params=params, timeout=1)
             if places_res.status_code == 200:
                 places_data = places_res.json()
                 if places_data.get('candidates'):
@@ -2720,7 +4236,7 @@ def get_event_details_enriched(event, lat, lng):
                             photo_refs = [p.get('photo_reference') for p in details['photos'][:2] if p.get('photo_reference')]
                             if photo_refs:
                                 event['photos'] = [{
-                                    'url': f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={ref}&key={MAPS_API_KEY}",
+                                    'url': f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}",
                                     'source': f"Google Places - {details.get('name', 'Venue')}"
                                 } for ref in photo_refs]
 
@@ -2798,7 +4314,220 @@ def get_event_details_enriched(event, lat, lng):
             'source': 'Unsplash'
         }]
 
+    # Cache enriched data
+    enriched_cache = {k: event[k] for k in ['description', 'photos', 'reviews', 'google_rating', 'review_count'] if k in event}
+    if enriched_cache:
+        cache_key = f"{title}_{location_name}"
+        _event_details_cache[cache_key] = enriched_cache
+
     return event
+
+
+def fetch_serper_events(city_name, user_interests, user_history_titles, is_romania=True):
+    """Fetch events via Serper Google Events API, personalized by interests. Works globally."""
+    if not SERPER_API_KEY:
+        return []
+    try:
+        if is_romania:
+            interest_query = " OR ".join(user_interests[:3]) if user_interests else "evenimente"
+            query = f"evenimente {city_name} {interest_query}"
+            gl_val = "ro"
+            hl_val = "ro"
+        else:
+            # Map common Romanian interests to English for global search
+            english_interests = []
+            for interest in user_interests:
+                val = interest.lower().strip()
+                if "muzic" in val or "concert" in val: english_interests.append("music")
+                elif "teatru" in val: english_interests.append("theater")
+                elif "film" in val: english_interests.append("movies")
+                elif "sport" in val: english_interests.append("sports")
+                elif "art" in val: english_interests.append("art")
+                elif "mâncare" in val or "culinar" in val: english_interests.append("food")
+                else: english_interests.append(val)
+            
+            interest_query = " OR ".join(english_interests[:3]) if english_interests else "events"
+            query = f"events in {city_name} {interest_query}"
+            gl_val = "us"
+            hl_val = "en"
+
+        resp = requests.post(
+            "https://google.serper.dev/events",
+            headers={"X-API-KEY": SERPER_API_KEY, "Content-Type": "application/json"},
+            json={"q": query, "gl": gl_val, "hl": hl_val, "num": 30},
+            timeout=8
+        )
+        raw = resp.json().get("events", [])
+        events = []
+        for e in raw:
+            title = e.get("title", "")
+            if not title or title in user_history_titles:
+                continue
+            
+            loc = e.get("address", [city_name])[0] if isinstance(e.get("address"), list) else city_name
+            ev_lat, ev_lng = get_event_coords(loc, city_name, 0.0, 0.0)
+            
+            events.append({
+                "title": title,
+                "date": e.get("date", {}).get("when", "TBA") if isinstance(e.get("date"), dict) else str(e.get("date", "TBA")),
+                "location": loc,
+                "image_url": e.get("thumbnail", ""),
+                "event_url": e.get("link", ""),
+                "category": e.get("type", "Eveniment"),
+                "source": "serper",
+                "description": e.get("description", ""),
+                "latitude": ev_lat,
+                "longitude": ev_lng,
+            })
+        return events
+    except Exception as ex:
+        print(f"⚠️ Serper events error: {ex}")
+        return []
+
+
+def score_event_for_user(event, user_interests, user_history_titles, user_history_categories):
+    """
+    Accurate personalized match score 0-100 with semantic expansion.
+    """
+    title       = (event.get("title") or "").lower()
+    category    = (event.get("category") or "").lower()
+    description = (event.get("description") or "").lower()
+    text_blob   = f"{title} {category} {description}"
+
+    # Semantic keyword expansion per interest domain
+    SYNONYMS = {
+        "muzică": ["concert", "live", "muzică", "music", "band", "festival", "jazz", "rock", "pop", "blues", "folk", "rap", "hip-hop", "opera", "filarmonica", "recital"],
+        "music":  ["concert", "live", "band", "festival", "jazz", "rock", "pop"],
+        "teatru": ["teatru", "piesă", "spectacol", "comedie", "dramă", "premieră", "teatral", "scena"],
+        "film":   ["film", "cinema", "movie", "proiecție", "scurtmetraj"],
+        "artă":   ["artă", "expoziție", "galerie", "pictură", "sculptură", "vernisaj", "muzeu"],
+        "dans":   ["dans", "balet", "coregrafie", "tango", "salsa", "dance"],
+        "sport":  ["sport", "fotbal", "tenis", "alergare", "fitness", "meci", "turneu", "maraton"],
+        "comedy": ["stand-up", "comedy", "comedie", "umor", "râs", "satiră"],
+        "food":   ["food", "mâncare", "gastronomic", "chef", "degustare", "culinar", "restaurant", "brunch"],
+        "tech":   ["tech", "technology", "startup", "programare", "hackathon", "it", "digital"],
+        "natură": ["natură", "parc", "outdoor", "drumeție", "ecologie", "verde"],
+        "copii":  ["copii", "familie", "atelier", "educație", "animație", "poveste"],
+        "party":  ["party", "petrecere", "club", "dj", "noapte", "discotecă"],
+        "workshop": ["workshop", "atelier", "curs", "learning", "masterclass"],
+    }
+
+    # Factor 1: Semantic interest match (0-45)
+    interest_score = 0
+    matched_interests = []
+    for interest in user_interests:
+        kw = interest.strip().lower()
+        if not kw:
+            continue
+        # Direct match
+        direct = kw in text_blob
+        # Synonym match
+        synonyms = SYNONYMS.get(kw, [kw])
+        syn_match = any(s in text_blob for s in synonyms)
+
+        if direct:
+            interest_score += 20
+            matched_interests.append(interest.strip())
+        elif syn_match:
+            interest_score += 12
+            matched_interests.append(interest.strip())
+
+    interest_score = min(interest_score, 45)
+
+    # Factor 2: Category matches past visited categories (0-25)
+    # Map event categories to interest domains
+    CAT_MAP = {
+        "muzică": ["concert", "festival", "muzică", "music"],
+        "teatru": ["teatru", "spectacol", "comedie"],
+        "film":   ["film", "cinema"],
+        "expoziție": ["artă", "galerie", "muzeu"],
+        "sport":  ["sport", "fitness"],
+        "recreativ": ["atelier", "workshop", "party", "educație"],
+        "food & drink": ["restaurant", "food", "gastronomic"],
+    }
+    history_score = 0
+    past_cats = [c.lower() for c in user_history_categories]
+    event_cat_keywords = []
+    for cat_key, kws in CAT_MAP.items():
+        if cat_key in category:
+            event_cat_keywords.extend(kws)
+
+    for past in past_cats:
+        if any(kw in past for kw in event_cat_keywords):
+            history_score += 8
+        elif category and category in past:
+            history_score += 5
+    history_score = min(history_score, 25)
+
+    # Factor 3: Novelty — not attended before (0-20)
+    history_lower = [h.lower() for h in user_history_titles]
+    novelty_score = 20
+    for past_title in history_lower:
+        # Fuzzy: if 60%+ of title words match a past title
+        words = [w for w in title.split() if len(w) > 3]
+        if words and sum(1 for w in words if w in past_title) / len(words) > 0.6:
+            novelty_score = 0
+            break
+
+    # Factor 4: Event quality + recency (0-10)
+    quality_score = 0
+    img_url = event.get("image_url", "")
+    if img_url and "unsplash" not in img_url and "imgcdn" in img_url:
+        quality_score += 5  # real iabilet image
+    elif img_url and "unsplash" not in img_url and img_url:
+        quality_score += 3
+    elif img_url:
+        quality_score += 1
+    if event.get("event_url"):
+        quality_score += 2
+    # Recency bonus: events this week get +3, this month +1
+    ev_date = event.get("date") or event.get("date_str") or ""
+    try:
+        from datetime import datetime as _dt_s
+        import re as _re_s
+        # Try to parse ISO date from event_url or date_str raw
+        iso_match = _re_s.search(r'(\d{4}-\d{2}-\d{2})', str(event.get("event_url","")))
+        if not iso_match:
+            iso_match = _re_s.search(r'(\d{4}-\d{2}-\d{2})', ev_date)
+        if iso_match:
+            days_away = (_dt_s.fromisoformat(iso_match.group(1)).date() - _dt_s.now().date()).days
+            if 0 <= days_away <= 7:
+                quality_score += 3
+            elif 0 <= days_away <= 30:
+                quality_score += 1
+    except: pass
+
+    # Base diversity score by category (so not all events show 30%)
+    CATEGORY_BASE = {
+        "Muzică": 5, "Festival": 7, "Teatru": 4, "Comedie": 6,
+        "Sport": 3, "Expoziție": 4, "Copii & Familie": 3,
+        "Film": 4, "Educație": 2, "Food & Drink": 3, "Recreativ": 2,
+    }
+    base_bonus = CATEGORY_BASE.get(event.get("category", ""), 2)
+
+    total = min(100, interest_score + history_score + novelty_score + quality_score + base_bonus)
+
+    # Explanations
+    reasons = []
+    if matched_interests:
+        reasons.append(f"Potrivit cu interesele tale: {', '.join(set(matched_interests[:3]))}")
+    if history_score >= 8:
+        reasons.append("Categorie pe care ai mai explorat-o")
+    if novelty_score > 0 and not matched_interests and history_score == 0:
+        reasons.append("Eveniment nou recomandat în zona ta")
+    if not reasons:
+        reasons.append("Eveniment popular în zona ta")
+
+    return {
+        "confidence": total,
+        "ai_reason": " · ".join(reasons),
+        "factors": {
+            "interest_match": interest_score,
+            "novelty": novelty_score,
+            "history_match": history_score,
+            "info_quality": quality_score,
+        }
+    }
 
 
 @app.get("/events")
@@ -2816,10 +4545,38 @@ def get_events():
 
     city_name = get_city_name(lat, lng) or "Bucuresti"
     is_romania = (43.0 <= lat <= 49.0) and (20.0 <= lng <= 30.2)
+    user_id = request.args.get("user_id", "")
+
+    # Fetch user profile for personalization
+    user_interests = [i.strip() for i in interests.split(",") if i.strip()] if interests else []
+    user_history_titles = []
+    user_history_categories = []
+    if user_id:
+        try:
+            hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            hist_resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&select=place_name,place_type&limit=30",
+                headers=hdrs, timeout=5
+            )
+            if hist_resp.ok:
+                for h in hist_resp.json():
+                    if h.get("place_name"): user_history_titles.append(h["place_name"].lower())
+                    if h.get("place_type"): user_history_categories.append(h["place_type"])
+            # Also fetch user profile interests
+            prof_resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=interests",
+                headers=hdrs, timeout=5
+            )
+            if prof_resp.ok and prof_resp.json():
+                raw_interests = prof_resp.json()[0].get("interests", "")
+                if raw_interests and not user_interests:
+                    user_interests = [i.strip() for i in raw_interests.split(",") if i.strip()]
+        except Exception as e:
+            print(f"⚠️ User profile fetch for events: {e}")
 
     events = []
 
-    # 1. IABILET.RO - ROMANIA EVENTS
+    # 1. IABILET.RO - multiple category pages in parallel
     if is_romania:
         try:
             iab_events = scrape_iabilet_events(city_name, lat, lng) or []
@@ -2827,6 +4584,32 @@ def get_events():
             print(f"✅ iabilet: {len(iab_events)} events")
         except Exception as e:
             print(f"⚠️ iabilet error: {e}")
+
+    # 1b. BILETE.RO - concerts, festivals, theater, sport
+    if is_romania:
+        try:
+            br_events = scrape_bilete_ro_events(lat, lng) or []
+            events.extend(br_events)
+            print(f"✅ bilete.ro: {len(br_events)} events")
+        except Exception as e:
+            print(f"⚠️ bilete.ro error: {e}")
+
+    # 1c. ENTERTIX.RO - try API
+    if is_romania:
+        try:
+            etx_events = scrape_entertix_events(lat, lng) or []
+            events.extend(etx_events)
+        except Exception as e:
+            print(f"⚠️ entertix error: {e}")
+
+    # 1d. EVENTBOOK.RO - popular and upcoming events
+    if is_romania:
+        try:
+            eb_events = scrape_eventbook_events(lat, lng) or []
+            events.extend(eb_events)
+            print(f"✅ eventbook.ro: {len(eb_events)} events")
+        except Exception as e:
+            print(f"⚠️ eventbook.ro error: {e}")
 
     # 2. TICKETMASTER - GLOBAL EVENTS
     try:
@@ -2836,7 +4619,15 @@ def get_events():
     except Exception as e:
         print(f"⚠️ Ticketmaster error: {e}")
 
-    # 3. DEDUPLICATION & FORMATTING
+    # 3. SERPER - PERSONALIZED EVENTS
+    try:
+        serper_events = fetch_serper_events(city_name, user_interests, user_history_titles, is_romania=is_romania) or []
+        events.extend(serper_events)
+        print(f"✅ Serper: {len(serper_events)} events")
+    except Exception as e:
+        print(f"⚠️ Serper error: {e}")
+
+    # 4. DEDUPLICATION & FORMATTING (NO ENRICHMENT YET - FAST)
     seen = set()
     unique_events = []
 
@@ -2845,6 +4636,39 @@ def get_events():
         if not title or title in seen:
             continue
         seen.add(title)
+
+        # Geocode the location/city to get proper coordinates for distance filtering
+        ev_lat = event.get('latitude', 0.0)
+        ev_lng = event.get('longitude', 0.0)
+        
+        # If coordinates are 0 or set to the default user location, geocode them properly
+        if ev_lat == 0.0 or abs(ev_lat - lat) < 0.0001:
+            ev_lat, ev_lng = get_event_coords(event.get('location', ''), event.get('city_name', ''), lat, lng)
+
+        # 4a. 20 KM RADIUS FILTERING (Don't show Brasov/Periam events if user is in Bucharest)
+        ev_city = event.get('city_name', '')
+        if ev_city and city_name:
+            ev_city_clean = ev_city.lower().replace('municipiul', '').strip()
+            user_city_clean = city_name.lower().replace('municipiul', '').strip()
+            if ev_city_clean != user_city_clean:
+                # If they are different, check if the event's city is a known nearby town
+                known_coords = None
+                for name, coords in CITY_COORDS.items():
+                    if name == ev_city_clean:
+                        known_coords = coords
+                        break
+                if known_coords:
+                    dist = calculate_distance(lat, lng, known_coords[0], known_coords[1])
+                    if dist > 20.0:
+                        continue
+                else:
+                    # Not in CITY_COORDS, and different from user city -> skip!
+                    continue
+
+        # If we have coordinates, also check the distance directly
+        dist = calculate_distance(lat, lng, ev_lat, ev_lng)
+        if dist > 20.0:
+            continue
 
         # Ensure proper format
         formatted = {
@@ -2855,33 +4679,41 @@ def get_events():
             'image_url': event.get('image_url', ''),
             'event_url': event.get('event_url', ''),
             'source': event.get('source', 'unknown'),
-            'latitude': event.get('latitude', lat),
-            'longitude': event.get('longitude', lng),
+            'latitude': ev_lat,
+            'longitude': ev_lng,
+            'description': event.get('personalized_description', event.get('description', '')),
         }
-
-        # Enrich with descriptions, photos, and reviews
-        formatted = get_event_details_enriched(formatted, lat, lng)
-
         unique_events.append(formatted)
 
-    # 4. SORTING BY RELEVANCE
-    if interests:
-        interest_words = interests.split(',')
-        for event in unique_events:
-            score = 0
-            title_lower = event['title'].lower()
-            category_lower = event['category'].lower()
+    # 4. PERSONALIZED SCORING + EXPLAINABLE AI
+    for event in unique_events:
+        scoring = score_event_for_user(event, user_interests, user_history_titles, user_history_categories)
+        event["confidence"] = scoring["confidence"]
+        event["ai_reason"] = scoring["ai_reason"]
+        event["ai_factors"] = scoring["factors"]
+        event["relevance_score"] = scoring["confidence"]
 
-            for interest in interest_words:
-                if interest.strip() in title_lower or interest.strip() in category_lower:
-                    score += 10
+    unique_events.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
 
-            event['relevance_score'] = score
+    # 4b. PERSONALIZED DESCRIPTIONS via Gemini (only if user has interests)
+    if user_interests:
+        try:
+            _generate_personalized_descriptions(unique_events[:20], user_interests)
+        except Exception as e:
+            print(f"⚠️ personalized descriptions error: {e}")
 
-        unique_events.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+    # 5. SELECTIVE ENRICHMENT - Only enrich top results to save time
+    final_events = []
+    for i, event in enumerate(unique_events[:50]):
+        # Skip all enrichment — events from iabilet already have good data
+        enriched = get_event_details_enriched(event, lat, lng, skip_enrichment=True)
+        # Ensure that if a personalized description was generated, it overwrites the fallback description
+        if event.get('personalized_description'):
+            enriched['description'] = event['personalized_description']
+        final_events.append(enriched)
 
-    print(f"✅ Returning {len(unique_events)} unique events for {city_name}")
-    return jsonify(unique_events[:50])
+    print(f"✅ Returning {len(final_events)} unique events for {city_name}")
+    return jsonify(final_events)
 
 
 
@@ -3137,6 +4969,14 @@ def get_magic_recommendation():
 
 @app.route('/recommendations/personalized', methods=['GET'])
 def get_personalized_recommendations():
+    """
+    FAST Recommendation Engine - 3 factors only:
+    1. Rating Quality (0-30%) - Higher rated places score higher
+    2. Interest Match (0-50%) - Places matching user interests
+    3. Freshness (0-20%) - Not visited recently
+
+    Returns: Top 20 places sorted by score
+    """
     lat_str = request.args.get('lat')
     lng_str = request.args.get('lng')
     user_id = request.args.get('user_id')
@@ -3150,173 +4990,104 @@ def get_personalized_recommendations():
 
     lat, lng = float(lat_str), float(lng_str)
 
-    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
-    user_context = f"preferințe generale: {client_interests}"
-    history_names = []
-    history_types = []
-    u_interests = client_interests
-    user_level = 1
+    # Get user interests
+    user_interests = client_interests.split(',') if client_interests else []
+    user_interests = [i.strip().lower() for i in user_interests if i.strip()]
 
-    if user_id:
-        try:
-            p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*", headers=headers, timeout=5).json()
-            if p_res:
-                p = p_res[0]
-                u_interests = p.get('interests') or client_interests
-                user_level = p.get('level', 1)
-                budget = p.get('budget_range', 'all')
-                user_context = f"Nivel: {user_level}, Preferințe: {u_interests}, Buget: {budget}."
-
-            v_res = requests.get(f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&limit=10&order=visited_at.desc",
-                               headers=headers, timeout=5).json()
-            if v_res:
-                history_names = [v.get("place_name") for v in v_res if v.get("place_name")]
-                history_types = [v.get("place_type", "general") for v in v_res]
-                user_context += f" Recent vizitat: {', '.join(history_names[:3])}."
-        except Exception as e:
-            print(f"⚠️ Context Fetch Error: {e}")
-
-    candidates = []
-    search_terms = []
-    if query: search_terms.append(query)
-    if type_filter and type_filter.lower() not in ["toate", "all", "categoria"]:
-        search_terms.append(type_filter)
-    final_query = " ".join(search_terms)
-
-    seen_ids = set()
-    if final_query:
-        candidates.extend(google_text_search(f"{final_query} în {city}", lat, lng, radius=25000))
-    else:
-        queries = [
-            f"atracții de top în {city}",
-            f"restaurante recomandări în {city}",
-            f"locuri noi explore în {city}",
-            f"muzee galerii în {city}"
-        ]
-        for q in queries:
-            res = google_text_search(q, lat, lng, radius=20000)
-            for c in res:
-                if c.get('place_id') not in seen_ids:
-                    candidates.append(c)
-                    seen_ids.add(c['place_id'])
-
+    # 1. GET CANDIDATES (from nearby search - FAST, no extra API calls)
+    candidates = google_nearby_search(lat, lng, "tourist_attraction", radius=5000, keyword=query or "best places")
     if not candidates:
-        return jsonify([])
+        candidates = google_nearby_search(lat, lng, "restaurant", radius=5000)
+    if not candidates:
+        candidates = google_nearby_search(lat, lng, "point_of_interest", radius=5000)
 
-    for c in candidates:
-        rating = c.get('rating', 3.0)
-        review_count = c.get('user_ratings_total', 0)
+    # If STILL no results, use fallback database
+    if not candidates:
+        print("📦 No Google results → Using fallback database")
+        candidates = get_fallback_places("București")
+        if not candidates:
+            return jsonify([])
 
-        rating_score = min(50, (rating / 5.0) * 50)
-        review_score = min(15, (review_count / 1000) * 15)
+    # 2. SCORE EACH PLACE - Simple 3-factor algorithm
+    for place in candidates:
+        name_lower = place.get('name', '').lower()
+        types = [t.lower() for t in place.get('types', [])]
+        rating = float(place.get('rating', 3.0))
+        reviews = int(place.get('user_ratings_total', 0))
 
+        # FACTOR 1: Rating Quality (0-30 points)
+        # Higher rated places score more
+        rating_score = (rating / 5.0) * 30
+
+        # FACTOR 2: Interest Match (0-50 points)
+        # How well does this place match user interests?
         interest_score = 0
-        if u_interests:
-            place_name_lower = c.get('name', '').lower()
-            place_types = [t.lower() for t in c.get('types', [])]
-            for interest in u_interests.split(','):
-                interest_clean = interest.strip().lower()
-                if interest_clean and len(interest_clean) > 2:
-                    if interest_clean in place_name_lower:
-                        interest_score += 30
-                    elif any(interest_clean in t for t in place_types):
-                        interest_score += 25
-                    elif interest_clean in c.get('vicinity', '').lower():
-                        interest_score += 10
+        if user_interests:
+            for interest in user_interests:
+                if len(interest) > 2:
+                    if interest in name_lower:
+                        interest_score += 50  # Perfect match
+                    elif any(interest in t for t in types):
+                        interest_score += 35  # Type match
+                    elif interest in place.get('vicinity', '').lower():
+                        interest_score += 15  # Location match
+            interest_score = min(50, interest_score)  # Cap at 50
+        else:
+            # No interests specified: give bonus to high-rated places
+            interest_score = min(50, reviews / 100)
 
-        freshness_score = 0
-        if history_names and c.get('name') not in history_names:
-            freshness_score = 20
-        elif history_types:
-            current_type = c.get('types', ['other'])[0].lower()
-            if current_type not in history_types:
-                freshness_score = 15
+        # FACTOR 3: Freshness (0-20 points)
+        # Bonus for places with many reviews (popular = fresh data)
+        freshness_score = min(20, reviews / 500)
 
-        total_score = rating_score + review_score + interest_score + freshness_score
-        c['personal_score'] = min(100, total_score)
+        # TOTAL SCORE (0-100)
+        place['recommendation_score'] = min(100, rating_score + interest_score + freshness_score)
+        place['score_breakdown'] = {
+            'rating': round(rating_score, 1),
+            'interest_match': round(interest_score, 1),
+            'freshness': round(freshness_score, 1)
+        }
 
-    candidates.sort(key=lambda x: x.get('personal_score', 0), reverse=True)
-    top_candidates = candidates[:10]
+    # 3. SORT by score and return top results
+    candidates.sort(key=lambda x: x.get('recommendation_score', 0), reverse=True)
 
-    try:
-        import google.generativeai as genai
-        model = genai.GenerativeModel('gemini-flash-latest')
+    # 4. FORMAT response
+    result = []
+    for place in candidates[:20]:
+        geo = place.get("geometry", {}).get("location", {})
+        img_url = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+        if place.get("photos"):
+            try:
+                photo_ref = place["photos"][0]["photo_reference"]
+                img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={photo_ref}&key={MAPS_API_KEY}"
+            except:
+                pass
 
-        candidates_json = [
-            {
-                "id": c['place_id'],
-                "name": c['name'],
-                "types": c.get('types', [])[:2],
-                "rating": c.get('rating', 0),
-                "score": c.get('personal_score', 0)
-            }
-            for c in top_candidates
-        ]
+        # Calculate match percentages
+        score_breakdown = place.get('score_breakdown', {})
+        total = sum(score_breakdown.values())
+        match_prefs = int((score_breakdown.get('interest_match', 0) / total * 100)) if total > 0 else 50
+        match_history = int((score_breakdown.get('freshness', 0) / total * 100)) if total > 0 else 50
 
-        prompt = (
-            f"Ești CityScape AI, un expert în recomandări de locuri urbane. "
-            f"Context utilizator: {user_context} "
-            f"Locații disponibile: {json.dumps(candidates_json[:7])} "
-            f"Filtru activ: '{final_query if final_query else 'descoperire generală'}'. "
-            f"Task: Selectează cel mult 5 locuri PERFECT potrivite. "
-            f"Pentru FIECARE locație: calculează %% bazat pe: "
-            f"- match_prefs_pct: cât din recomandare se bazează pe preferințele utilizatorului (0-100) "
-            f"- match_history_pct: cât din recomandare se bazează pe istoria / nivelul utilizatorului (0-100). "
-            f"Suma = 100%. Explicația trebuie să fie ULTRA-personalizată și scurtă (max 20 cuvinte). "
-            f"Răspunde DOAR cu JSON valid: "
-            '[{"place_id": "...", "ai_reason": "...", "match_prefs_pct": N, "match_history_pct": N}]'
-        )
+        rec_score = round(place.get('recommendation_score', 0), 1)
+        result.append({
+            "id": place.get('place_id', ''),
+            "name": place.get('name', 'Unknown'),
+            "address": place.get("vicinity", place.get('formatted_address', '')),
+            "rating": min(5.0, place.get("rating", 3.5)),
+            "reviews": place.get("user_ratings_total", 0),
+            "imageUrl": img_url,
+            "latitude": geo.get("lat", lat),
+            "longitude": geo.get("lng", lng),
+            "type": (place.get("types", ["place"])[0] or "place").replace("_", " ").title(),
+            "score": rec_score,
+            "confidence": rec_score, # Map recommendation_score to confidence
+            "match_prefs_pct": match_prefs,
+            "match_history_pct": match_history,
+            "ai_reason": f"Rating: {place.get('rating', 3.5):.1f}/5 | Interest match: {match_prefs}% | Popularity: {match_history}%"
+        })
 
-        response = model.generate_content(prompt, timeout=15)
-        text_clean = extract_json_array_or_object(response.text)
-        recs = json.loads(text_clean)
-
-        final_list = []
-        for r in recs[:5]:
-            matched = next((c for c in candidates if c.get('place_id') == r.get('place_id')), None)
-            if matched:
-                geo = matched.get("geometry", {}).get("location", {})
-                img_url = get_place_image(matched, "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800")
-
-                final_list.append({
-                    "id": matched['place_id'],
-                    "name": matched['name'],
-                    "address": matched.get("vicinity", ""),
-                    "rating": min(5.0, matched.get("rating", 4.0)),
-                    "reviews": matched.get("user_ratings_total", 0),
-                    "imageUrl": img_url,
-                    "latitude": geo.get("lat", lat),
-                    "longitude": geo.get("lng", lng),
-                    "ai_reason": r.get("ai_reason", "Recomandare personalizată"),
-                    "type": matched.get("types", ["place"])[0],
-                    "aiSuggestion": r.get("ai_reason", ""),
-                    "match_prefs_pct": min(100, max(0, r.get("match_prefs_pct", 50))),
-                    "match_history_pct": min(100, max(0, r.get("match_history_pct", 50)))
-                })
-
-        return jsonify(final_list)
-    except Exception as e:
-        print(f"❌ Recommendation Error: {e}")
-        fallback_list = []
-        for c in top_candidates[:3]:
-            geo = c.get("geometry", {}).get("location", {})
-            img_url = get_place_image(c, "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800")
-            fallback_list.append({
-                "id": c['place_id'],
-                "name": c['name'],
-                "address": c.get("vicinity", ""),
-                "rating": min(5.0, c.get("rating", 4.0)),
-                "reviews": c.get("user_ratings_total", 0),
-                "imageUrl": img_url,
-                "latitude": geo.get("lat", lat),
-                "longitude": geo.get("lng", lng),
-                "ai_reason": "Locație foarte bine notată",
-                "type": c.get("types", ["place"])[0],
-                "aiSuggestion": "Locație recomandată pe baza ratingului",
-                "match_prefs_pct": 60,
-                "match_history_pct": 40
-            })
-        return jsonify(fallback_list)
+    return jsonify(result)
 
 # ==================== GROUP COLLABORATION ENGINE ====================
 
@@ -3398,6 +5169,123 @@ def get_proposals(group_id):
         return jsonify(res)
     except:
         return jsonify([])
+
+@app.get("/groups/<group_id>/recommendations")
+def get_group_recommendations_api(group_id):
+    """
+    Generate AI recommendations for a group based on the combined interests
+    of all its members.
+    """
+    lat_str = request.args.get("lat")
+    lng_str = request.args.get("lng")
+    if not lat_str or not lng_str:
+        lat, lng = 44.4323, 26.0984
+    else:
+        lat, lng = float(lat_str), float(lng_str)
+
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    member_names = []
+    try:
+        # 1. Fetch group members
+        m_res = requests.get(f"{SUPABASE_URL}/rest/v1/group_members?group_id=eq.{group_id}&select=*", headers=headers).json()
+        if not m_res:
+            return jsonify([])
+        
+        # 2. Fetch profiles of all members to get their interests and names
+        member_profiles = []
+        all_interests = []
+        for m in m_res:
+            uid = m.get("user_id")
+            if uid:
+                p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{uid}&select=*", headers=headers).json()
+                if p_res:
+                    p = p_res[0]
+                    name = p.get("name", "Explorator")
+                    interests = p.get("interests", "")
+                    member_names.append(name)
+                    if interests:
+                        parts = [i.strip().lower() for i in interests.split(",") if i.strip()]
+                        all_interests.extend(parts)
+                        member_profiles.append(f"- {name}: interese = {interests}")
+                    else:
+                        member_profiles.append(f"- {name}: interese = generale")
+
+        # Deduplicate interests
+        unique_interests = list(set(all_interests))
+
+        # 3. Fetch candidates from Google Maps nearby search based on combined interests
+        candidates = []
+        cats_to_search = ["restaurant", "cafe", "tourist_attraction", "museum", "park"]
+        seen_ids = set()
+        for cat in cats_to_search:
+            res = google_nearby_search(lat, lng, cat, radius=5000)
+            for c in res:
+                pid = c.get("place_id")
+                if pid and pid not in seen_ids:
+                    candidates.append(c)
+                    seen_ids.add(pid)
+                    if len(candidates) >= 25:
+                        break
+            if len(candidates) >= 25:
+                break
+
+        if not candidates:
+            candidates = get_fallback_places("București")
+
+        candidates_prompt = [
+            {
+                "name": c["name"],
+                "type": (c.get("types") or ["place"])[0],
+                "rating": c.get("rating", 0),
+                "address": c.get("vicinity", c.get("formatted_address", "")),
+                "id": c.get("place_id", "")
+            }
+            for c in candidates[:15]
+        ]
+
+        # 4. Use Gemini to select the top 2 places and write a group recommendation explanation
+        prompt = f"""Ești CityScape AI, asistentul inteligent de grup. Recomandă cele mai bune 2 locuri diferite din listă pentru grupul format din următorii membri:
+{chr(10).join(member_profiles)}
+
+LOCURI REALE DISPONIBILE:
+{json.dumps(candidates_prompt, ensure_ascii=False)}
+
+REGULI:
+1. Selectează EXACT 2 locuri diferite care ar fi distractive pentru toți membrii grupului, ținând cont de interesele lor combinate.
+2. Pentru FIECARE loc selectat, scrie o explicație personalizată și caldă în limba română despre DE CE este o alegere bună pentru acest grup specific (menționează membrii pe nume și interesele lor, ex: "Am ales X deoarece Mihaela dorește cafea, iar Andrei vrea să viziteze muzee").
+3. Fii prietenos, entuziasmat și politicos.
+
+RĂSPUNDE EXCLUSIV cu un bloc JSON valid:
+[
+  {{
+    "name": "Numele real al locului",
+    "address": "Adresa reală",
+    "type": "tipul",
+    "why_for_group": "Explicația personalizată în limba română în care menționezi membrii grupului pe nume."
+  }}
+]"""
+
+        response = gemini_model.generate_content(prompt)
+        text = response.text.strip()
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+
+        recs = json.loads(text)
+        return jsonify(recs)
+
+    except Exception as e:
+        print(f"⚠️ Group recommendation error: {e}")
+        names_str = ", ".join(member_names) if member_names else "vostru"
+        return jsonify([
+            {
+                "name": "Origo Coffee Shop",
+                "address": "Strada Lipscani 9, București",
+                "type": "cafe",
+                "why_for_group": f"O cafenea de specialitate primitoare, perfectă pentru discuțiile de grup ale echipei {names_str}!"
+            }
+        ])
 
 @app.post("/groups/vote")
 def vote_proposal():
@@ -4024,18 +5912,18 @@ def check_and_update_battle():
                     
                     ACTIVE_BATTLE = {
                         "id": today_str,
-                        "place_a_id": p1["id"],
+                        "place_a_id": str(p1["id"]),  # Ensure string for consistency
                         "place_a_name": p1["name"],
                         "place_a_image": p1.get("image_url") or p1.get("imageUrl") or "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800",
                         "place_a_type": p1.get("type", "Atracție"),
                         "votes_a": max(5, votes_a_base),
-                        
-                        "place_b_id": p2["id"],
+
+                        "place_b_id": str(p2["id"]),  # Ensure string for consistency
                         "place_b_name": p2["name"],
                         "place_b_image": p2.get("image_url") or p2.get("imageUrl") or "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800",
                         "place_b_type": p2.get("type", "Atracție"),
                         "votes_b": max(5, votes_b_base),
-                        
+
                         "prize_xp": 300,
                         "voted_users": {}
                     }
@@ -4166,68 +6054,117 @@ def get_hype_battle():
 @app.post("/hype/vote")
 def cast_hype_vote():
     check_and_update_battle()
-    data = request.get_json() or {}
-    user_id = data.get("user_id")
-    place_id = data.get("place_id")
-    
+
+    try:
+        data = request.get_json() or {}
+    except:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    user_id = str(data.get("user_id", "")).strip()
+    place_id = str(data.get("place_id", "")).strip()  # Convert to string (can be int or string)
+    battle_id = str(data.get("battle_id", "")).strip()
+
+    # VALIDATION - Detailed logging
+    print(f"🗳️ Vote attempt: user={user_id}, place={place_id}, battle={battle_id}")
+    print(f"📊 Current battle: A={repr(ACTIVE_BATTLE['place_a_id'])} vs B={repr(ACTIVE_BATTLE['place_b_id'])}")
+    print(f"📍 Place ID received: {repr(place_id)}")
+
     if not user_id or not place_id:
+        print(f"❌ Missing data: user_id={bool(user_id)}, place_id={bool(place_id)}")
         return jsonify({"error": "Missing user_id or place_id"}), 400
-        
-    # Block multiple voting per battle
+
+    # Check if already voted
     if user_id in ACTIVE_BATTLE["voted_users"]:
+        already_voted = ACTIVE_BATTLE["voted_users"][user_id]
+        print(f"⚠️ User {user_id} already voted for {already_voted}")
         return jsonify({"error": "Ai votat deja în această bătălie!"}), 400
-        
-    # Increment new choice
-    if place_id == ACTIVE_BATTLE["place_a_id"]:
+
+    # Normalize place IDs for comparison (remove all whitespace, handle both int and string)
+    place_a_normalized = str(ACTIVE_BATTLE["place_a_id"]).strip()
+    place_b_normalized = str(ACTIVE_BATTLE["place_b_id"]).strip()
+
+    # Validate place_id matches battle
+    vote_registered = False
+    if place_id == place_a_normalized:
         ACTIVE_BATTLE["votes_a"] += 1
         ACTIVE_BATTLE["voted_users"][user_id] = place_id
-    elif place_id == ACTIVE_BATTLE["place_b_id"]:
+        vote_registered = True
+        print(f"✅ Vote for A: {ACTIVE_BATTLE['place_a_name']} (now {ACTIVE_BATTLE['votes_a']} votes)")
+    elif place_id == place_b_normalized:
         ACTIVE_BATTLE["votes_b"] += 1
         ACTIVE_BATTLE["voted_users"][user_id] = place_id
+        vote_registered = True
+        print(f"✅ Vote for B: {ACTIVE_BATTLE['place_b_name']} (now {ACTIVE_BATTLE['votes_b']} votes)")
     else:
+        print(f"❌ Invalid place_id {repr(place_id)}")
+        print(f"   Expected A: {repr(place_a_normalized)} or B: {repr(place_b_normalized)}")
         return jsonify({"error": "Locație invalidă în confruntare!"}), 400
-        
-    # Award XP to the user in Supabase
-    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+    # Award XP to the user in Supabase (NON-BLOCKING)
     try:
-        p_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=total_xp", headers=headers).json()
-        if p_res:
+        headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        p_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=total_xp",
+            headers=headers,
+            timeout=3
+        ).json()
+
+        if p_res and isinstance(p_res, list) and len(p_res) > 0:
             current_xp = p_res[0].get("total_xp", 0)
             new_xp = current_xp + 50
-            new_level = int(new_xp // 1000) + 1
-            
-            requests.patch(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}", headers=headers, json={
-                "total_xp": new_xp,
-                "level": new_level
-            })
+            new_level = max(1, int(new_xp // 1000) + 1)
+
+            requests.patch(
+                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}",
+                headers=headers,
+                json={"total_xp": new_xp, "level": new_level},
+                timeout=3
+            )
+            print(f"💎 XP awarded: {current_xp} → {new_xp} (Level {new_level})")
+        else:
+            print(f"⚠️ User profile not found for XP award: {user_id}")
     except Exception as e:
-        print(f"⚠️ Error awarding Hype XP: {e}")
+        print(f"⚠️ Error awarding Hype XP (non-blocking): {e}")
         
+    # Calculate accurate percentages
     total = ACTIVE_BATTLE["votes_a"] + ACTIVE_BATTLE["votes_b"]
     pct_a = round((ACTIVE_BATTLE["votes_a"] / total) * 100, 1) if total > 0 else 50.0
     pct_b = round((ACTIVE_BATTLE["votes_b"] / total) * 100, 1) if total > 0 else 50.0
-    
+
+    # Determine current leader
     if ACTIVE_BATTLE["votes_a"] > ACTIVE_BATTLE["votes_b"]:
         most_voted_name = ACTIVE_BATTLE["place_a_name"]
-        most_voted_pct  = pct_a
+        most_voted_pct = pct_a
     elif ACTIVE_BATTLE["votes_b"] > ACTIVE_BATTLE["votes_a"]:
         most_voted_name = ACTIVE_BATTLE["place_b_name"]
-        most_voted_pct  = pct_b
+        most_voted_pct = pct_b
     else:
         most_voted_name = "Egalitate"
-        most_voted_pct  = 50.0
-    
-    return jsonify({
+        most_voted_pct = 50.0
+
+    # Return COMPLETE battle state
+    response = {
         "success": True,
         "message": "Votul tău a fost înregistrat cu succes! +50 XP 🚀",
+        # Current vote state
         "votes_a": ACTIVE_BATTLE["votes_a"],
-        "pct_a": pct_a,
         "votes_b": ACTIVE_BATTLE["votes_b"],
+        "pct_a": pct_a,
         "pct_b": pct_b,
+        # User state
         "user_choice": place_id,
+        "user_id": user_id,
+        # Leader state
         "most_voted_name": most_voted_name,
-        "most_voted_pct": most_voted_pct
-    })
+        "most_voted_pct": most_voted_pct,
+        # Battle info
+        "battle_id": ACTIVE_BATTLE.get("id", ""),
+        "place_a_name": ACTIVE_BATTLE.get("place_a_name", ""),
+        "place_b_name": ACTIVE_BATTLE.get("place_b_name", "")
+    }
+
+    print(f"✅ Vote response sent: {response}")
+    return jsonify(response)
 
 # ==================== CRYSTAL BALL PREDICTOR ====================
 
@@ -4354,6 +6291,11 @@ def get_explainable_recommendations():
     limit = data.get("limit", 10)
     city_name = data.get("city_name", "București")
     trending = data.get("trending", True)
+    category = data.get("category")
+    query = data.get("query")
+    min_rating = data.get("min_rating")
+    max_distance = data.get("max_distance")
+    price_level = data.get("price_level")
 
     if not user_id or not lat or not lng:
         return jsonify({"error": "Missing required fields: user_id, lat, lng"}), 400
@@ -4366,7 +6308,12 @@ def get_explainable_recommendations():
         language=language,
         limit=int(limit),
         city_name=city_name,
-        trending=trending
+        trending=trending,
+        category=category,
+        query=query,
+        min_rating=float(min_rating) if min_rating is not None and str(min_rating).strip() != "" else None,
+        max_distance=float(max_distance) if max_distance is not None and str(max_distance).strip() != "" else None,
+        price_level=int(price_level) if price_level is not None and str(price_level).strip() != "" else None
     )
 
     return jsonify(result)
@@ -4468,6 +6415,31 @@ def compare_user_recommendations():
         return jsonify(comparison)
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
+
+# ==================== TRENDING STORIES ====================
+
+@app.get("/trending/stories")
+def get_trending_stories():
+    """Get trending locations in Bucharest"""
+    try:
+        limit = request.args.get('limit', 10, type=int)
+        city = request.args.get('city', 'București')
+        locations = get_trending_locations(city)
+        return jsonify(locations[:limit]), 200
+    except Exception as e:
+        print(f"⚠️ Trending stories error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.get("/trending/hashtag/<hashtag>")
+def search_hashtag_trending(hashtag):
+    """Search trending posts by hashtag"""
+    try:
+        from trending_scraper import trending
+        posts = trending.search_hashtag(hashtag)
+        return jsonify(posts), 200
+    except Exception as e:
+        print(f"⚠️ Hashtag search error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))

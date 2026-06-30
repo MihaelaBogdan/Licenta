@@ -39,4 +39,31 @@
     <color name="accent_gold">#FBBF24</color>
 
     <color name="bg_chat_bot">#1F2937</color>
+
+    <!-- Smart Recommendation Card Colors (Dark Mode) -->
+    <color name="smart_card_start">#162E3A</color>
+    <color name="smart_card_center">#0F1E26</color>
+    <color name="smart_card_end">#0A1319</color>
+    <color name="smart_card_stroke">#4D06B6D4</color>
+    <color name="smart_card_text_primary">#06B6D4</color>
+    <color name="smart_card_text_secondary">#22D3EE</color>
+    <color name="smart_card_text_body">#E2E8F0</color>
+
+    <!-- Daily Quest Card Colors (Dark Mode) -->
+    <color name="quest_card_start">#0E2A20</color>
+    <color name="quest_card_center">#091B15</color>
+    <color name="quest_card_end">#050F0C</color>
+    <color name="quest_card_stroke">#4D10B981</color>
+    <color name="quest_card_text_primary">#10B981</color>
+    <color name="quest_card_text_secondary">#34D399</color>
+    <color name="quest_card_text_body">#F1F5F9</color>
+    <color name="quest_reward_bg">#2610B981</color>
+    <color name="quest_reward_stroke">#4D10B981</color>
+    <color name="quest_reward_text">#10B981</color>
+
+    <!-- Live Battle Card Colors (Dark Mode) -->
+    <color name="battle_card_start">#1E102E</color>
+    <color name="battle_card_center">#120A1C</color>
+    <color name="battle_card_end">#0B0612</color>
+    <color name="battle_card_stroke">#808B5CF6</color>
 </resources>

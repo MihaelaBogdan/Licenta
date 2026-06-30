@@ -159,13 +159,13 @@ public class ItineraryFragment extends Fragment {
 
             @Override
             public void onStepDelete(int position) {
-                if (position >= 0 && position < itineraryItems.size()) {
-                    itineraryItems.remove(position);
-                    adapter.notifyItemRemoved(position);
-                    setupMap();
-                    calculateAndDisplayBudget();
-                    Toast.makeText(getContext(), "Locație eliminată", Toast.LENGTH_SHORT).show();
-                }
+                if (position < 0 || position >= itineraryItems.size()) return;
+                ItineraryItem removed = itineraryItems.get(position);
+                itineraryItems.remove(position);
+                adapter.notifyItemRemoved(position);
+                setupMap();
+                calculateAndDisplayBudget();
+                autoReplaceSlot(position, removed);
             }
 
             @Override
@@ -180,6 +180,50 @@ public class ItineraryFragment extends Fragment {
         binding.rvItinerarySteps.setAdapter(adapter);
     }
 
+    private void autoReplaceSlot(int position, ItineraryItem removed) {
+        if (getContext() == null) return;
+        Bundle args = getArguments();
+        double lat = args != null ? args.getDouble("lat") : 0;
+        double lng = args != null ? args.getDouble("lng") : 0;
+        int budget = args != null ? args.getInt("itinerary_budget", 250) : 250;
+        int totalSlots = Math.max(1, itineraryItems.size() + 1);
+        double budgetPerSlot = (double) budget / totalSlots;
+
+        // Build comma-separated list of already used place IDs
+        StringBuilder usedIds = new StringBuilder();
+        for (ItineraryItem item : itineraryItems) {
+            if (item.placeId != null && !item.placeId.isEmpty()) {
+                if (usedIds.length() > 0) usedIds.append(",");
+                usedIds.append(item.placeId);
+            }
+        }
+
+        String slotType = removed.type != null ? removed.type : "tourist_attraction";
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.replaceItinerarySlot(lat, lng, slotType, removed.slot, removed.time, budgetPerSlot, usedIds.toString())
+            .enqueue(new Callback<ItineraryItem>() {
+                @Override
+                public void onResponse(Call<ItineraryItem> call, Response<ItineraryItem> response) {
+                    if (!isAdded() || response.body() == null) {
+                        Toast.makeText(getContext(), "Locație eliminată din itinerar", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    ItineraryItem replacement = response.body();
+                    int insertAt = Math.min(position, itineraryItems.size());
+                    itineraryItems.add(insertAt, replacement);
+                    adapter.notifyItemInserted(insertAt);
+                    setupMap();
+                    calculateAndDisplayBudget();
+                    Toast.makeText(getContext(),
+                        "Am înlocuit cu: " + replacement.name, Toast.LENGTH_SHORT).show();
+                }
+                @Override
+                public void onFailure(Call<ItineraryItem> call, Throwable t) {
+                    Toast.makeText(getContext(), "Locație eliminată din itinerar", Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
+
     private void showSwapOptions(int position) {
         if (position < 0 || position >= itineraryItems.size()) return;
         ItineraryItem current = itineraryItems.get(position);
@@ -192,7 +236,7 @@ public class ItineraryFragment extends Fragment {
         double lat = args != null ? args.getDouble("lat") : 0;
         double lng = args != null ? args.getDouble("lng") : 0;
         
-        apiService.getItinerary(lat, lng, "nearby", 5000, current.type, 200, "", 2, 3, null).enqueue(new Callback<List<ItineraryItem>>() {
+        apiService.getItinerary(lat, lng, "nearby", 5000, current.type, 200, "", 2, 3, null, "walking", 8, "solo", false).enqueue(new Callback<List<ItineraryItem>>() {
             @Override
             public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
@@ -243,7 +287,7 @@ public class ItineraryFragment extends Fragment {
         double lng = args != null ? args.getDouble("lng") : 0;
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getItinerary(lat, lng, "nearby", 5000, "mixed", 200, "", 4, 5, null).enqueue(new Callback<List<ItineraryItem>>() {
+        apiService.getItinerary(lat, lng, "nearby", 5000, "mixed", 200, "", 4, 5, null, "walking", 8, "solo", false).enqueue(new Callback<List<ItineraryItem>>() {
             @Override
             public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -354,6 +398,64 @@ public class ItineraryFragment extends Fragment {
         } else {
             binding.tvTotalBudget.setText(String.format(java.util.Locale.getDefault(), "%.0f RON", totalRon));
         }
+
+        // Dynamically calculate and display the total itinerary duration
+        calculateAndDisplayDuration();
+    }
+
+    private void calculateAndDisplayDuration() {
+        if (binding == null || binding.tvTotalDuration == null) return;
+        if (itineraryItems == null || itineraryItems.isEmpty()) {
+            binding.tvTotalDuration.setText("0h");
+            return;
+        }
+
+        int minMinutes = Integer.MAX_VALUE;
+        int maxMinutes = Integer.MIN_VALUE;
+
+        for (ItineraryItem item : itineraryItems) {
+            String timeSlot = item.time != null ? item.time : "";
+            if (timeSlot.contains(" - ")) {
+                String[] parts = timeSlot.split(" - ");
+                if (parts.length >= 2) {
+                    int startMin = parseTimeToMinutes(parts[0].trim());
+                    int endMin = parseTimeToMinutes(parts[1].trim());
+                    if (startMin != -1 && endMin != -1) {
+                        if (startMin < minMinutes) minMinutes = startMin;
+                        if (endMin > maxMinutes) maxMinutes = endMin;
+                    }
+                }
+            }
+        }
+
+        if (minMinutes != Integer.MAX_VALUE && maxMinutes != Integer.MIN_VALUE && maxMinutes > minMinutes) {
+            int durationMins = maxMinutes - minMinutes;
+            int hours = durationMins / 60;
+            int mins = durationMins % 60;
+            if (mins == 0) {
+                binding.tvTotalDuration.setText(hours + "h");
+            } else {
+                binding.tvTotalDuration.setText(hours + "h " + mins + "m");
+            }
+        } else {
+            // Fallback: estimate based on number of items (approx 2h per item)
+            int estimatedHours = itineraryItems.size() * 2;
+            binding.tvTotalDuration.setText("aprox. " + estimatedHours + "h");
+        }
+    }
+
+    private int parseTimeToMinutes(String timeStr) {
+        try {
+            String[] parts = timeStr.split(":");
+            if (parts.length >= 2) {
+                int hours = Integer.parseInt(parts[0]);
+                int mins = Integer.parseInt(parts[1]);
+                return hours * 60 + mins;
+            }
+        } catch (Exception e) {
+            Log.e("ItineraryFragment", "Error parsing time: " + timeStr, e);
+        }
+        return -1;
     }
 
     private void fetchExtraVariants() {
@@ -369,13 +471,17 @@ public class ItineraryFragment extends Fragment {
         String interests = args.getString("itinerary_interests", "");
         int duration = args.getInt("itinerary_duration", 6);
         int points = args.getInt("itinerary_points", 4);
+        String travelMode = args.getString("itinerary_travel_mode", "walking");
+        int startHour = args.getInt("itinerary_start_hour", 8);
+        String companion = args.getString("itinerary_companion", "solo");
+        boolean avoidCrowds = args.getBoolean("itinerary_avoid_crowds", false);
 
         SessionManager sessionManager = new SessionManager(requireContext());
         String userId = sessionManager.getUserId();
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         // Fetch 2 more to have a total of 3
         for (int i = 0; i < 2; i++) {
-            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId).enqueue(new Callback<List<ItineraryItem>>() {
+            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId, travelMode, startHour, companion, avoidCrowds).enqueue(new Callback<List<ItineraryItem>>() {
                 @Override
                 public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                     if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -411,58 +517,156 @@ public class ItineraryFragment extends Fragment {
 
         double lat = args.getDouble("lat");
         double lng = args.getDouble("lng");
-        String scope = args.getString("scope", "nearby");
         String type = args.getString("itinerary_type", "exploration");
-        int radius = "city".equalsIgnoreCase(scope) ? 20000 : 3000;
-        int budget = args.getInt("itinerary_budget", 200);
-        String interests = args.getString("itinerary_interests", "");
         int duration = args.getInt("itinerary_duration", 6);
         int points = args.getInt("itinerary_points", 4);
+        int budget = args.getInt("itinerary_budget", 250);
 
         // Visual feedback
         binding.btnRegenerate.setEnabled(false);
         binding.btnRegenerate.animate().rotationBy(720).setDuration(1000).start();
-        Toast.makeText(getContext(), "Generăm planuri noi...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Generăm planuri noi cu detalii...", Toast.LENGTH_SHORT).show();
 
         int currentTabIndex = binding.itineraryTabs.getSelectedTabPosition();
-        
+
         SessionManager sessionManager = new SessionManager(requireContext());
         String userId = sessionManager.getUserId();
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
 
-        apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId).enqueue(new Callback<List<ItineraryItem>>() {
+        // Call enhanced itinerary endpoint with optimization and budget
+        apiService.getEnhancedItinerary(lat, lng, userId, type, duration, points, true, budget)
+            .enqueue(new Callback<com.google.gson.JsonObject>() {
             @Override
-            public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
+            public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
                 if (isAdded() && binding != null) {
                     binding.btnRegenerate.setEnabled(true);
                     if (response.isSuccessful() && response.body() != null) {
-                        synchronized (variants) {
-                            if (currentTabIndex < variants.size()) {
-                                variants.set(currentTabIndex, response.body());
-                            } else {
-                                variants.add(response.body());
+                        try {
+                            com.google.gson.JsonObject data = response.body();
+
+                            // Parse base itinerary
+                            java.util.List<ItineraryItem> items = new com.google.gson.Gson()
+                                .fromJson(data.getAsJsonArray("itinerary"),
+                                    new com.google.gson.reflect.TypeToken<java.util.List<ItineraryItem>>(){}.getType());
+
+                            // Parse travel legs (transport times and distances)
+                            java.util.List<com.google.gson.JsonObject> travelLegs = new java.util.ArrayList<>();
+                            if (data.has("travel_legs")) {
+                                for (com.google.gson.JsonElement elem : data.getAsJsonArray("travel_legs")) {
+                                    travelLegs.add(elem.getAsJsonObject());
+                                }
                             }
-                            
-                            // Update current view since it's the current tab
-                            itineraryItems = response.body();
-                            if (adapter != null) {
-                                adapter.updateItems(itineraryItems);
+
+                            // Parse weather forecast
+                            java.util.List<com.google.gson.JsonObject> weatherForecast = new java.util.ArrayList<>();
+                            if (data.has("weather_forecast")) {
+                                for (com.google.gson.JsonElement elem : data.getAsJsonArray("weather_forecast")) {
+                                    weatherForecast.add(elem.getAsJsonObject());
+                                }
                             }
-                            setupMap();
-                            calculateAndDisplayBudget();
+
+                            // Parse cost breakdown
+                            com.google.gson.JsonObject costInfo = null;
+                            if (data.has("cost_breakdown")) {
+                                costInfo = data.getAsJsonObject("cost_breakdown");
+                            }
+
+                            // Update UI
+                            synchronized (variants) {
+                                if (currentTabIndex < variants.size()) {
+                                    variants.set(currentTabIndex, items);
+                                } else {
+                                    variants.add(items);
+                                }
+
+                                itineraryItems = items;
+                                if (adapter != null) {
+                                    adapter.updateItems(itineraryItems);
+                                }
+                                setupMap();
+                                calculateAndDisplayBudget();
+
+                                // Display enhanced information
+                                displayTransportInfo(travelLegs);
+                                displayWeatherForecast(weatherForecast);
+                                displayCostBreakdown(costInfo);
+                            }
+                        } catch (Exception e) {
+                            Log.e("ItineraryFragment", "Error parsing enhanced response", e);
+                            Toast.makeText(getContext(), "Eroare la parsare date", Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        Toast.makeText(getContext(), "Regenerare eșuată", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {
+            public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
                 if (isAdded() && binding != null) {
                     binding.btnRegenerate.setEnabled(true);
-                    Toast.makeText(getContext(), "Regenerare eșuată", Toast.LENGTH_SHORT).show();
+                    Log.e("ItineraryFragment", "API Error", t);
+                    Toast.makeText(getContext(), "Eroare de rețea", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void displayTransportInfo(java.util.List<com.google.gson.JsonObject> travelLegs) {
+        // Show transport times and distances between stops
+        StringBuilder transportInfo = new StringBuilder("🚌 TRANSPORT:\n");
+        int totalTime = 0;
+        float totalDistance = 0;
+
+        for (com.google.gson.JsonObject leg : travelLegs) {
+            int duration = leg.get("duration_minutes").getAsInt();
+            float distance = leg.get("distance_km").getAsFloat();
+            String transport = leg.get("transport").getAsString();
+
+            transportInfo.append(String.format("%s %d min (%.1f km)\n", transport, duration, distance));
+            totalTime += duration;
+            totalDistance += distance;
+        }
+
+        transportInfo.append(String.format("\n⏱️ Total transport: %d min\n📍 Total distanță: %.1f km", totalTime, totalDistance));
+
+        // Display in a SnackBar or Toast for now
+        Toast.makeText(getContext(), String.format("Transport: %d min, %.1f km", totalTime, totalDistance),
+            Toast.LENGTH_LONG).show();
+    }
+
+    private void displayWeatherForecast(java.util.List<com.google.gson.JsonObject> weatherForecast) {
+        // Show weather for the day with activity recommendations
+        if (weatherForecast.isEmpty()) return;
+
+        StringBuilder weather = new StringBuilder("☀️ VREME:\n");
+        for (com.google.gson.JsonObject w : weatherForecast) {
+            String hour = w.get("hour").getAsString();
+            int temp = w.get("temp").getAsInt();
+            String condition = w.get("condition").getAsString();
+            int rainProb = w.get("rain_prob").getAsInt();
+
+            weather.append(String.format("%s: %d°C %s (ploaie: %d%%)\n", hour, temp, condition, rainProb));
+        }
+
+        Log.d("ItineraryFragment", weather.toString());
+    }
+
+    private void displayCostBreakdown(com.google.gson.JsonObject costInfo) {
+        // Show detailed cost breakdown
+        if (costInfo == null) return;
+
+        int total = costInfo.get("total").getAsInt();
+        int transport = costInfo.get("transport").getAsInt();
+        int meals = costInfo.get("estimated_meals").getAsInt();
+        String savingsTip = costInfo.has("savings_tip") ? costInfo.get("savings_tip").getAsString() : "";
+
+        String costMessage = String.format(
+            "💰 Buget total: %d RON\n🚌 Transport: %d RON\n🍽️ Mâncare: %d RON\n%s",
+            total, transport, meals, savingsTip
+        );
+
+        Log.d("ItineraryFragment", costMessage);
     }
 
     private void saveToCalendar() {

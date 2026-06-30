@@ -92,7 +92,7 @@
         <item name="cornerSize">16dp</item>
     </style>
 
-    <style name="TransparentBottomSheetDialogTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+    <style name="TransparentBottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
     </style>
 

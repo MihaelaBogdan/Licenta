@@ -45,6 +45,159 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Floating Filters Row -->
+    <HorizontalScrollView
+        android:id="@+id/map_filter_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:paddingHorizontal="16dp"
+        android:clipToPadding="false"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_nearby"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="📍 Aproape"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_favorites"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="❤️ Favorite"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_trending"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="🔥 Trend"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_restaurants"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="🍽️ Restaurante"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_cafes"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="☕ Cafenele"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_parks"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="🌳 Parcuri"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_museums"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="🏛️ Muzee"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_events"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="🎭 Evenimente"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_nightlife"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌙 Nocturn"
+                android:textColor="@color/app_text_primary"
+                android:checkable="true"
+                app:chipBackgroundColor="@color/app_card"
+                app:chipStrokeColor="@color/app_divider"
+                app:chipStrokeWidth="1dp"
+                app:checkedIconVisible="true"
+                app:checkedIconTint="@color/primary" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
     <!-- Bottom Place Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_selected_place"

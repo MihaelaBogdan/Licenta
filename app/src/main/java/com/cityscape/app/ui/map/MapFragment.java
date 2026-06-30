@@ -3,16 +3,21 @@ package com.cityscape.app.ui.map;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import com.bumptech.glide.Glide;
 import com.cityscape.app.R;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -20,10 +25,60 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
+    // Marker category constants
+    private static final String CAT_NEARBY     = "nearby";
+    private static final String CAT_FAVORITE   = "favorite";
+    private static final String CAT_TRENDING   = "trending";
+    private static final String CAT_RESTAURANT = "restaurant";
+    private static final String CAT_CAFE       = "cafe";
+    private static final String CAT_PARK       = "park";
+    private static final String CAT_MUSEUM     = "museum";
+    private static final String CAT_EVENT      = "event";
+    private static final String CAT_NIGHTLIFE  = "nightlife";
+
+    // Helper class to hold marker details for the bottom card
+    private static class MarkerData {
+        com.cityscape.app.model.Place place;
+        com.cityscape.app.model.Event event;
+        boolean isEvent;
+
+        MarkerData(com.cityscape.app.model.Place place) {
+            this.place = place;
+            this.isEvent = false;
+        }
+
+        MarkerData(com.cityscape.app.model.Event event) {
+            this.event = event;
+            this.isEvent = true;
+        }
+    }
+
+    private static class MapItem {
+        Marker marker;
+        java.util.Set<String> categories = new java.util.HashSet<>();
+        boolean isFavorite;
+
+        MapItem(Marker marker, java.util.Set<String> cats, boolean isFav) {
+            this.marker = marker;
+            this.categories = cats;
+            this.isFavorite = isFav;
+        }
+    }
+
     private GoogleMap mMap;
+    private final java.util.List<MapItem> mapItems = new java.util.ArrayList<>();
+    private android.location.Location mUserLocation;
+    private com.cityscape.app.data.SessionManager sessionManager;
+    private android.speech.tts.TextToSpeech textToSpeech;
+
+    // Filter chips
+    private com.google.android.material.chip.Chip chipNearby, chipFavorites, chipTrending;
+    private com.google.android.material.chip.Chip chipRestaurants, chipCafes, chipParks, chipMuseums, chipEvents, chipNightlife;
 
     @Nullable
     @Override
@@ -31,13 +86,63 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
+        if (getContext() != null)
+            sessionManager = new com.cityscape.app.data.SessionManager(getContext());
+
+        textToSpeech = new android.speech.tts.TextToSpeech(getContext(), status -> {
+            if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                if (textToSpeech != null) {
+                    textToSpeech.setLanguage(new java.util.Locale("ro", "RO"));
+                }
+            }
+        });
+
+        chipNearby      = view.findViewById(R.id.chip_filter_nearby);
+        chipFavorites   = view.findViewById(R.id.chip_filter_favorites);
+        chipTrending    = view.findViewById(R.id.chip_filter_trending);
+        chipRestaurants = view.findViewById(R.id.chip_filter_restaurants);
+        chipCafes       = view.findViewById(R.id.chip_filter_cafes);
+        chipParks       = view.findViewById(R.id.chip_filter_parks);
+        chipMuseums     = view.findViewById(R.id.chip_filter_museums);
+        chipEvents      = view.findViewById(R.id.chip_filter_events);
+        chipNightlife   = view.findViewById(R.id.chip_filter_nightlife);
+
+        com.google.android.material.chip.Chip[] allChips = {
+            chipNearby, chipFavorites, chipTrending, chipRestaurants,
+            chipCafes, chipParks, chipMuseums, chipEvents, chipNightlife
+        };
+        for (com.google.android.material.chip.Chip chip : allChips) {
+            if (chip != null) chip.setOnCheckedChangeListener((btn, checked) -> applyFilters());
         }
 
+        EditText searchInput = view.findViewById(R.id.map_search_input);
+        if (searchInput != null) {
+            searchInput.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    applyFilters();
+                }
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.map);
+        if (mapFragment != null) mapFragment.getMapAsync(this);
+
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroyView();
     }
 
     @Override
@@ -45,246 +150,789 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (!isAdded()) return;
         mMap = googleMap;
 
-        // Apply dynamic map style based on theme
         try {
-            android.content.Context context = getContext();
-            if (context != null) {
-                com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(context);
+            if (getContext() != null && sessionManager != null) {
                 int styleRes = sessionManager.isDarkMode() ? R.raw.map_style_dark : R.raw.map_style_light;
-                googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, styleRes));
+                googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), styleRes));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {}
+
+        mMap.setOnMarkerClickListener(marker -> {
+            marker.showInfoWindow();
+            showBottomCard(marker);
+            return true;
+        });
+
+        mMap.setOnMapClickListener(latLng -> hideBottomCard());
+
+        // Handle deep-link arguments (from chatbot)
+        Bundle args = getArguments();
+        if (args != null && args.containsKey("latitude") && args.containsKey("longitude")) {
+            double targetLat = args.getDouble("latitude");
+            double targetLng = args.getDouble("longitude");
+            String targetName = args.getString("place_name", "Locație");
+            LatLng targetPos = new LatLng(targetLat, targetLng);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(targetPos, 16f));
+            
+            com.cityscape.app.model.Place p = new com.cityscape.app.model.Place();
+            p.name = targetName;
+            p.latitude = targetLat;
+            p.longitude = targetLng;
+            MarkerData data = new MarkerData(p);
+
+            Marker marker = mMap.addMarker(new MarkerOptions().position(targetPos).title(targetName)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            if (marker != null) marker.setTag(data);
+
+            if (getContext() != null && ActivityCompat.checkSelfPermission(getContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mMap.setMyLocationEnabled(true);
+            }
+            loadAllData(targetLat, targetLng);
+            return;
         }
 
-        // Enable location if permission granted
         if (getContext() != null && ActivityCompat.checkSelfPermission(getContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            
-            com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient =
-                com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity());
-                
-            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    centerMapOnLocation(location);
-                } else {
-                    // Try to request a fresh location if last location is null
-                    com.google.android.gms.location.LocationRequest locationRequest = com.google.android.gms.location.LocationRequest.create()
-                            .setPriority(com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY)
-                            .setInterval(1000)
-                            .setFastestInterval(500)
-                            .setNumUpdates(1);
-                    
-                    fusedLocationClient.requestLocationUpdates(locationRequest, new com.google.android.gms.location.LocationCallback() {
-                        @Override
-                        public void onLocationResult(@NonNull com.google.android.gms.location.LocationResult locationResult) {
-                            if (locationResult.getLastLocation() != null) {
-                                centerMapOnLocation(locationResult.getLastLocation());
-                            } else {
-                                moveToDefaultLocation();
-                            }
+            com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity())
+                    .getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            mUserLocation = location;
+                            LatLng pos = new LatLng(location.getLatitude(), location.getLongitude());
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 14f));
+                            loadAllData(location.getLatitude(), location.getLongitude());
+                        } else {
+                            moveToDefaultLocation();
                         }
-                    }, android.os.Looper.getMainLooper());
-                }
-            });
+                    });
         } else {
             moveToDefaultLocation();
         }
     }
 
-    private void centerMapOnLocation(android.location.Location location) {
-        LatLng userLoc = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLoc, 14f));
-        loadPlacesFromBackend(); // Get static supabase
-        loadNearby(location.getLatitude(), location.getLongitude()); // Get Foursquare data
-        loadEvents(location.getLatitude(), location.getLongitude()); // Get Ticketmaster
-    }
-
-    private void moveToDefaultLocation() {
-        // Move to a neutral global view or a user-specified home city if location fails
-        LatLng defaultLoc = new LatLng(0, 0); // Null island as absolute fallback
-        
-        // We will improve this to check SharedPreferences for a "Preferred City"
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
-        String preferredCity = sessionManager.getPreferredCity();
-        
-        if (preferredCity != null && !preferredCity.isEmpty()) {
-            try {
-                android.location.Geocoder geocoder = new android.location.Geocoder(requireContext());
-                java.util.List<android.location.Address> addresses = geocoder.getFromLocationName(preferredCity, 1);
-                if (addresses != null && !addresses.isEmpty()) {
-                    defaultLoc = new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLoc, 11f));
-                    loadPlacesFromBackend();
-                    return;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLoc, 2f)); // Zoom out to world if no city set
-        loadPlacesFromBackend();
+    private void loadAllData(double lat, double lng) {
+        loadNearby(lat, lng);
+        loadPersonalized(lat, lng);
+        loadFavorites();
+        loadByCategory(lat, lng, "restaurant", CAT_RESTAURANT);
+        loadByCategory(lat, lng, "cafe", CAT_CAFE);
+        loadByCategory(lat, lng, "park", CAT_PARK);
+        loadByCategory(lat, lng, "museum", CAT_MUSEUM);
+        loadByCategory(lat, lng, "night_club", CAT_NIGHTLIFE);
+        loadEvents(lat, lng);
+        loadTrending(lat, lng);
     }
 
     private void loadNearby(double lat, double lng) {
         if (!isAdded() || getContext() == null) return;
-        
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(getContext());
-        com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
-        apiService.getNearby(lat, lng, "mixed", sessionManager.getUserId()).enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
+        String userId = sessionManager != null ? sessionManager.getUserId() : null;
+        api.getNearby(lat, lng, "mixed", userId)
+                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
-                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null && mMap != null) {
-                    for (com.cityscape.app.model.Place place : response.body()) {
-                        try {
-                            LatLng pos = new LatLng(place.latitude, place.longitude);
-                            MarkerOptions options = new MarkerOptions()
-                                    .position(pos)
-                                    .title(place.name != null ? place.name : "Locație")
-                                    .snippet(place.type != null ? place.type : "Explorare")
-                                    .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                            com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE));
-                            mMap.addMarker(options);
-                        } catch (Exception ignored) {}
-                    }
+                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
+                if (!isAdded() || resp.body() == null || mMap == null) return;
+                for (com.cityscape.app.model.Place place : resp.body()) {
+                    if (place.latitude == 0 && place.longitude == 0) continue;
+                    
+                    java.util.Set<String> cats = new java.util.HashSet<>();
+                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
+                    boolean isFav = sessionManager != null && sessionManager.isPlaceFavorite(place.id);
+                    if (isFav) cats.add(CAT_FAVORITE);
+                    cats.addAll(categoryFromType(place.type));
+
+                    MarkerData data = new MarkerData(place);
+                    addMarker(place.latitude, place.longitude,
+                            place.name, place.type,
+                            isFav ? BitmapDescriptorFactory.HUE_VIOLET : BitmapDescriptorFactory.HUE_AZURE,
+                            cats, isFav, data);
                 }
             }
+            @Override public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {}
+        });
+    }
+
+    private void loadPersonalized(double lat, double lng) {
+        if (!isAdded() || getContext() == null || sessionManager == null) return;
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                .create(com.cityscape.app.api.ApiService.class);
+        String userId = sessionManager.getUserId();
+        com.cityscape.app.model.User user = sessionManager.getCurrentUser();
+        String interests = user != null && user.interests != null ? user.interests : "";
+        String city = sessionManager.getPreferredCity();
+
+        api.getPersonalizedRecommendations(lat, lng, userId, "", "All", city, interests)
+                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
             @Override
-            public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call, Throwable t) {}
+            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
+                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
+                if (!isAdded() || resp.body() == null || mMap == null) return;
+                
+                // Cache fetched places in Room
+                final java.util.List<com.cityscape.app.model.Place> places = resp.body();
+                new Thread(() -> {
+                    try {
+                        com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().insertPlaces(places);
+                    } catch (Exception ignored) {}
+                }).start();
+
+                for (com.cityscape.app.model.Place place : places) {
+                    if (place.latitude == 0 && place.longitude == 0) continue;
+
+                    MapItem existing = getExistingItem(place.latitude, place.longitude);
+                    if (existing != null) {
+                        existing.categories.add(CAT_NEARBY);
+                        if (place.rating >= 4.5f) existing.categories.add(CAT_TRENDING);
+                        applyFilterToItem(existing);
+                        continue;
+                    }
+
+                    boolean isFav = sessionManager.isPlaceFavorite(place.id);
+                    java.util.Set<String> cats = new java.util.HashSet<>();
+                    cats.add(CAT_NEARBY);
+                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
+                    if (isFav) cats.add(CAT_FAVORITE);
+                    cats.addAll(categoryFromType(place.type));
+
+                    MarkerData data = new MarkerData(place);
+                    addMarker(place.latitude, place.longitude,
+                            "✨ " + place.name, place.type,
+                            BitmapDescriptorFactory.HUE_ORANGE, cats, isFav, data);
+                }
+            }
+            @Override 
+            public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {
+                if (!isAdded() || getContext() == null) return;
+                // Load from Room cache on network failure
+                new Thread(() -> {
+                    try {
+                        final java.util.List<com.cityscape.app.model.Place> cached = 
+                                com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().getAllPlaces();
+                        if (cached != null && !cached.isEmpty()) {
+                            requireActivity().runOnUiThread(() -> {
+                                if (mMap == null || !isAdded()) return;
+                                for (com.cityscape.app.model.Place place : cached) {
+                                    if (place.latitude == 0 && place.longitude == 0) continue;
+                                    MapItem existing = getExistingItem(place.latitude, place.longitude);
+                                    if (existing != null) continue;
+
+                                    boolean isFav = sessionManager.isPlaceFavorite(place.id);
+                                    java.util.Set<String> cats = new java.util.HashSet<>();
+                                    cats.add(CAT_NEARBY);
+                                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
+                                    if (isFav) cats.add(CAT_FAVORITE);
+                                    cats.addAll(categoryFromType(place.type));
+
+                                    MarkerData data = new MarkerData(place);
+                                    addMarker(place.latitude, place.longitude,
+                                            "✨ " + place.name, place.type,
+                                            BitmapDescriptorFactory.HUE_ORANGE, cats, isFav, data);
+                                }
+                                android.widget.Toast.makeText(getContext(), "Mod Offline: Încarc pinii salvați din memorie 📴", android.widget.Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    } catch (Exception ignored) {}
+                }).start();
+            }
+        });
+    }
+
+    private void loadFavorites() {
+        if (!isAdded() || getContext() == null || sessionManager == null) return;
+        String userId = sessionManager.getUserId();
+        if (userId == null) return;
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                .create(com.cityscape.app.api.ApiService.class);
+        api.getVisited(userId)
+                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
+            @Override
+            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
+                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
+                if (!isAdded() || resp.body() == null || mMap == null) return;
+                for (com.cityscape.app.model.Place place : resp.body()) {
+                    if (place.latitude == 0 && place.longitude == 0) continue;
+                    boolean isFav = sessionManager.isPlaceFavorite(place.id);
+                    if (!isFav) continue;
+
+                    MapItem existing = getExistingItem(place.latitude, place.longitude);
+                    if (existing != null) {
+                        existing.categories.add(CAT_FAVORITE);
+                        existing.isFavorite = true;
+                        if (existing.marker != null && existing.marker.getTag() == null) {
+                            existing.marker.setTag(new MarkerData(place));
+                        }
+                        applyFilterToItem(existing);
+                        continue;
+                    }
+
+                    java.util.Set<String> cats = new java.util.HashSet<>();
+                    cats.add(CAT_FAVORITE);
+                    cats.addAll(categoryFromType(place.type));
+
+                    MarkerData data = new MarkerData(place);
+                    addMarker(place.latitude, place.longitude,
+                            "❤️ " + place.name, place.type,
+                            BitmapDescriptorFactory.HUE_VIOLET, cats, true, data);
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {}
+        });
+    }
+
+    private void loadByCategory(double lat, double lng, String type, String catTag) {
+        if (!isAdded() || getContext() == null) return;
+        String userId = sessionManager != null ? sessionManager.getUserId() : null;
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                .create(com.cityscape.app.api.ApiService.class);
+        api.getPlacesSearch(lat, lng, type, type, 15000, userId, null)
+                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
+            @Override
+            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
+                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
+                if (!isAdded() || resp.body() == null || mMap == null) return;
+                for (com.cityscape.app.model.Place place : resp.body()) {
+                    if (place.latitude == 0 && place.longitude == 0) continue;
+
+                    MapItem existing = getExistingItem(place.latitude, place.longitude);
+                    if (existing != null) {
+                        existing.categories.add(catTag);
+                        if (place.rating >= 4.5f) existing.categories.add(CAT_TRENDING);
+                        if (existing.marker != null && existing.marker.getTag() == null) {
+                            existing.marker.setTag(new MarkerData(place));
+                        }
+                        applyFilterToItem(existing);
+                        continue;
+                    }
+
+                    boolean isFav = sessionManager != null && sessionManager.isPlaceFavorite(place.id);
+                    java.util.Set<String> cats = new java.util.HashSet<>();
+                    cats.add(catTag);
+                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
+                    if (isFav) cats.add(CAT_FAVORITE);
+                    
+                    float hue = hueForCat(catTag);
+                    MarkerData data = new MarkerData(place);
+                    addMarker(place.latitude, place.longitude, place.name, place.type, hue, cats, isFav, data);
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {}
         });
     }
 
     private void loadEvents(double lat, double lng) {
         if (!isAdded() || getContext() == null) return;
-
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(getContext());
-        com.cityscape.app.model.User user = sessionManager.getCurrentUser();
+        com.cityscape.app.model.User user = sessionManager != null ? sessionManager.getCurrentUser() : null;
         String interests = user != null && user.interests != null ? user.interests : "";
-
-        com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
-        apiService.getEvents(lat, lng, 50, interests).enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Event>>() {
+        String userId = sessionManager != null ? sessionManager.getUserId() : null;
+        api.getEvents(lat, lng, 50, interests, userId)
+                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Event>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Event>> call,
-                    retrofit2.Response<java.util.List<com.cityscape.app.model.Event>> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null && mMap != null) {
-                    for (com.cityscape.app.model.Event event : response.body()) {
-                        if (event.latitude != 0 && event.longitude != 0) {
-                            try {
-                                LatLng pos = new LatLng(event.latitude, event.longitude);
-                                MarkerOptions options = new MarkerOptions()
-                                        .position(pos)
-                                        .title(event.title != null ? event.title : "Eveniment")
-                                        .snippet("Bilet / Eveniment")
-                                        .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                                com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_MAGENTA));
+                    retrofit2.Response<java.util.List<com.cityscape.app.model.Event>> resp) {
+                if (!isAdded() || resp.body() == null || mMap == null) return;
+                for (com.cityscape.app.model.Event event : resp.body()) {
+                    if (event.latitude == 0 && event.longitude == 0) continue;
+                    
+                    java.util.Set<String> cats = new java.util.HashSet<>();
+                    cats.add(CAT_EVENT);
+                    
+                    MarkerData data = new MarkerData(event);
+                    addMarker(event.latitude, event.longitude,
+                            "🎭 " + (event.title != null ? event.title : "Eveniment"),
+                            "Eveniment", BitmapDescriptorFactory.HUE_MAGENTA, cats, false, data);
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Event>> c, Throwable t) {}
+        });
+    }
 
-                                mMap.addMarker(options);
-                            } catch (Exception ignored) {}
+    private void loadTrending(double lat, double lng) {
+        if (!isAdded() || getContext() == null) return;
+        String city = sessionManager != null ? sessionManager.getPreferredCity() : "București";
+        if (city == null || city.isEmpty()) city = "București";
+        
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                .create(com.cityscape.app.api.ApiService.class);
+        
+        api.getTrendingStories(city)
+                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
+            @Override
+            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
+                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
+                if (!isAdded() || resp.body() == null || mMap == null) return;
+                for (com.cityscape.app.model.Place place : resp.body()) {
+                    if (place.latitude == 0 && place.longitude == 0) continue;
+                    
+                    java.util.Set<String> cats = new java.util.HashSet<>();
+                    cats.add(CAT_TRENDING);
+                    cats.add(CAT_NEARBY); // Show in Nearby too
+                    cats.addAll(categoryFromType(place.type));
+                    
+                    boolean isFav = sessionManager != null && sessionManager.isPlaceFavorite(place.id);
+                    if (isFav) cats.add(CAT_FAVORITE);
+                    
+                    if (place.description == null || place.description.isEmpty()) {
+                        place.description = "Locație extrem de populară pe Instagram și TikTok în această săptămână.";
+                    } else if (!place.description.contains("Instagram")) {
+                        place.description = place.description + " (Popular pe Instagram & TikTok 🔥)";
+                    }
+                    
+                    MarkerData data = new MarkerData(place);
+                    addMarker(place.latitude, place.longitude,
+                            "🔥 " + place.name, "Trending pe Instagram & TikTok",
+                            BitmapDescriptorFactory.HUE_RED, cats, isFav, data);
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {}
+        });
+    }
+
+    private void addMarker(double lat, double lng, String title, String snippet,
+                           float hue, java.util.Set<String> cats, boolean isFav, MarkerData data) {
+        if (mMap == null || !isAdded()) return;
+        try {
+            requireActivity().runOnUiThread(() -> {
+                if (mMap == null || !isAdded()) return;
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(lat, lng))
+                        .title(title != null ? title : "Locație")
+                        .snippet(snippet != null ? snippet : "")
+                        .icon(BitmapDescriptorFactory.defaultMarker(hue)));
+                if (marker == null) return;
+                
+                marker.setTag(data);
+                MapItem item = new MapItem(marker, cats, isFav);
+                mapItems.add(item);
+                
+                // Apply current filter state to new marker
+                applyFilterToItem(item);
+            });
+        } catch (Exception ignored) {}
+    }
+
+    private MapItem getExistingItem(double lat, double lng) {
+        for (MapItem item : mapItems) {
+            if (item.marker == null) continue;
+            LatLng pos = item.marker.getPosition();
+            if (Math.abs(pos.latitude - lat) < 0.0001 && Math.abs(pos.longitude - lng) < 0.0001)
+                return item;
+        }
+        return null;
+    }
+
+    private void applyFilters() {
+        for (MapItem item : mapItems) {
+            applyFilterToItem(item);
+        }
+    }
+
+    private void applyFilterToItem(MapItem item) {
+        if (item.marker == null) return;
+
+        // 1. Search Query Filter
+        View fragmentView = getView();
+        if (fragmentView != null) {
+            EditText searchInput = fragmentView.findViewById(R.id.map_search_input);
+            if (searchInput != null) {
+                String query = searchInput.getText().toString().toLowerCase().trim();
+                if (!query.isEmpty()) {
+                    String title = item.marker.getTitle() != null ? item.marker.getTitle().toLowerCase() : "";
+                    String snippet = item.marker.getSnippet() != null ? item.marker.getSnippet().toLowerCase() : "";
+                    if (!title.contains(query) && !snippet.contains(query)) {
+                        item.marker.setVisible(false);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // 2. Chip Filters
+        boolean fNearby   = chipNearby      != null && chipNearby.isChecked();
+        boolean fFav      = chipFavorites   != null && chipFavorites.isChecked();
+        boolean fTrend    = chipTrending    != null && chipTrending.isChecked();
+        boolean fRest     = chipRestaurants != null && chipRestaurants.isChecked();
+        boolean fCafe     = chipCafes       != null && chipCafes.isChecked();
+        boolean fPark     = chipParks       != null && chipParks.isChecked();
+        boolean fMuseum   = chipMuseums     != null && chipMuseums.isChecked();
+        boolean fEvent    = chipEvents      != null && chipEvents.isChecked();
+        boolean fNight    = chipNightlife   != null && chipNightlife.isChecked();
+
+        boolean hasStatusFilter = fNearby || fFav || fTrend;
+        boolean hasCategoryFilter = fRest || fCafe || fPark || fMuseum || fEvent || fNight;
+
+        if (!hasStatusFilter && !hasCategoryFilter) {
+            item.marker.setVisible(true);
+            return;
+        }
+
+        boolean statusMatch = !hasStatusFilter;
+        if (fNearby && item.categories.contains(CAT_NEARBY)) statusMatch = true;
+        if (fFav && item.categories.contains(CAT_FAVORITE)) statusMatch = true;
+        if (fTrend && item.categories.contains(CAT_TRENDING)) statusMatch = true;
+
+        boolean categoryMatch = !hasCategoryFilter;
+        if (fRest && item.categories.contains(CAT_RESTAURANT)) categoryMatch = true;
+        if (fCafe && item.categories.contains(CAT_CAFE)) categoryMatch = true;
+        if (fPark && item.categories.contains(CAT_PARK)) categoryMatch = true;
+        if (fMuseum && item.categories.contains(CAT_MUSEUM)) categoryMatch = true;
+        if (fEvent && item.categories.contains(CAT_EVENT)) categoryMatch = true;
+        if (fNight && item.categories.contains(CAT_NIGHTLIFE)) categoryMatch = true;
+
+        item.marker.setVisible(statusMatch && categoryMatch);
+    }
+
+    private void showBottomCard(Marker marker) {
+        View view = getView();
+        if (view == null) return;
+
+        androidx.cardview.widget.CardView card = view.findViewById(R.id.card_selected_place);
+        if (card == null) return;
+
+        Object tag = marker.getTag();
+        if (!(tag instanceof MarkerData)) {
+            card.setVisibility(View.GONE);
+            return;
+        }
+
+        MarkerData data = (MarkerData) tag;
+
+        TextView nameText = view.findViewById(R.id.selected_place_name);
+        TextView addressText = view.findViewById(R.id.selected_place_address);
+        TextView ratingText = view.findViewById(R.id.selected_place_rating);
+        ImageView imageView = view.findViewById(R.id.selected_place_image);
+        Button btnDirections = view.findViewById(R.id.btn_directions);
+
+        String name = "";
+        String address = "";
+        float rating = 0;
+        String imageUrl = "";
+        double latitude = 0;
+        double longitude = 0;
+
+        if (data.isEvent && data.event != null) {
+            name = data.event.title;
+            address = data.event.location;
+            rating = (float) data.event.googleRating;
+            imageUrl = data.event.imageUrl;
+            latitude = data.event.latitude;
+            longitude = data.event.longitude;
+        } else if (data.place != null) {
+            name = data.place.name;
+            address = data.place.address;
+            rating = data.place.rating;
+            imageUrl = data.place.imageUrl;
+            latitude = data.place.latitude;
+            longitude = data.place.longitude;
+        }
+
+        if (nameText != null) nameText.setText(name);
+        if (addressText != null) addressText.setText(address != null && !address.isEmpty() ? address : "București");
+        
+        int confidence = 0;
+        if (!data.isEvent && data.place != null) {
+            confidence = (int) data.place.confidence;
+        } else if (data.isEvent && data.event != null) {
+            confidence = data.event.confidence > 0 ? data.event.confidence : data.event.relevance_score;
+        }
+
+        if (ratingText != null) {
+            String ratingStr = rating > 0 ? String.format(java.util.Locale.US, "%.1f", rating) : "N/A";
+            if (confidence > 0) {
+                ratingText.setText(ratingStr + " · 🎯 " + confidence + "%");
+            } else {
+                ratingText.setText(ratingStr);
+            }
+        }
+
+        if (imageView != null && isAdded()) {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.rounded_corners_8)
+                        .error(R.drawable.rounded_corners_8)
+                        .into(imageView);
+            } else {
+                imageView.setImageResource(R.drawable.ic_launcher_foreground);
+            }
+        }
+
+        final double finalLat = latitude;
+        final double finalLng = longitude;
+        if (btnDirections != null) {
+            btnDirections.setOnClickListener(v -> {
+                try {
+                    String uri = String.format(java.util.Locale.US, "google.navigation:q=%f,%f", finalLat, finalLng);
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                    intent.setPackage("com.google.android.apps.maps");
+                    startActivity(intent);
+                } catch (Exception e) {
+                    try {
+                        String uri = String.format(java.util.Locale.US, "https://www.google.com/maps/search/?api=1&query=%f,%f", finalLat, finalLng);
+                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                        startActivity(intent);
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+
+        // Click on card opens premium detail dialog
+        if (!data.isEvent && data.place != null) {
+            card.setOnClickListener(v -> showPlaceDetailDialog(data.place));
+        } else {
+            card.setOnClickListener(null);
+        }
+
+        card.setVisibility(View.VISIBLE);
+    }
+
+    private void showPlaceDetailDialog(com.cityscape.app.model.Place place) {
+        if (!isAdded()) return;
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
+        View v = getLayoutInflater().inflate(R.layout.dialog_place_detail, null);
+        builder.setView(v);
+        
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        ImageView image = v.findViewById(R.id.detail_place_image);
+        TextView txtType = v.findViewById(R.id.detail_place_type);
+        TextView txtRating = v.findViewById(R.id.detail_place_rating);
+        TextView txtWeather = v.findViewById(R.id.detail_place_weather);
+        TextView txtName = v.findViewById(R.id.detail_place_name);
+        TextView txtAddress = v.findViewById(R.id.detail_place_address);
+        TextView txtDescription = v.findViewById(R.id.detail_place_description);
+        TextView lblAiSummary = v.findViewById(R.id.lbl_ai_summary);
+        Button btnDirections = v.findViewById(R.id.btn_plan_place_detail); // We rename this to "Traseu"
+        Button btnClose = v.findViewById(R.id.btn_close_place_detail);
+        
+        ImageView btnSpeakAi = v.findViewById(R.id.btn_speak_ai);
+        android.widget.LinearLayout layoutVibeometer = v.findViewById(R.id.layout_vibeometer);
+        TextView vibeEmoji = v.findViewById(R.id.vibe_emoji);
+        TextView vibeTitle = v.findViewById(R.id.vibe_title);
+        TextView vibeDescription = v.findViewById(R.id.vibe_description);
+        
+        if (txtName != null) txtName.setText(place.name);
+        if (txtType != null) txtType.setText(place.type != null ? place.type.toUpperCase() : "ATRACȚIE");
+        
+        if (txtRating != null) {
+            StringBuilder stars = new StringBuilder();
+            int r = Math.round(place.rating);
+            for (int i = 0; i < 5; i++) {
+                stars.append(i < r ? "★" : "☆");
+            }
+            txtRating.setText(String.format(java.util.Locale.US, "%.1f %s", place.rating, stars.toString()));
+        }
+        
+        if (txtAddress != null) txtAddress.setText(place.address != null && !place.address.isEmpty() ? place.address : "București");
+        
+        // Load image
+        if (image != null) {
+            if (place.imageUrl != null && !place.imageUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(place.imageUrl)
+                        .placeholder(R.drawable.rounded_corners_8)
+                        .error(R.drawable.rounded_corners_8)
+                        .into(image);
+            } else {
+                image.setImageResource(R.drawable.ic_launcher_foreground);
+            }
+        }
+
+        // Weather
+        if (txtWeather != null && place.latitude != 0 && place.longitude != 0) {
+            com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                    .create(com.cityscape.app.api.ApiService.class);
+            api.getWeather(place.latitude, place.longitude).enqueue(new retrofit2.Callback<com.cityscape.app.api.WeatherResponse>() {
+                @Override
+                public void onResponse(retrofit2.Call<com.cityscape.app.api.WeatherResponse> call, retrofit2.Response<com.cityscape.app.api.WeatherResponse> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null) {
+                        com.cityscape.app.api.WeatherResponse w = response.body();
+                        String emoji = "🌤️";
+                        if (w.condition != null) {
+                            String cond = w.condition.toLowerCase();
+                            if (cond.contains("rain") || cond.contains("drizzle") || cond.contains("ploaie")) emoji = "🌧️";
+                            else if (cond.contains("snow") || cond.contains("ninsoare")) emoji = "❄️";
+                            else if (cond.contains("thunder") || cond.contains("furtună")) emoji = "⚡";
+                            else if (cond.contains("clear") || cond.contains("senin")) emoji = "☀️";
+                            else if (cond.contains("cloud") || cond.contains("nor")) emoji = "☁️";
+                        }
+                        txtWeather.setText(String.format(java.util.Locale.US, "%s %.1f°C", emoji, w.temp));
+                        txtWeather.setVisibility(View.VISIBLE);
+                    }
+                }
+                @Override
+                public void onFailure(retrofit2.Call<com.cityscape.app.api.WeatherResponse> call, Throwable t) {}
+            });
+        }
+
+        String desc = place.aiSuggestion;
+        if (desc == null || desc.isEmpty()) {
+            desc = place.ai_summary;
+        }
+        if (desc == null || desc.isEmpty()) {
+            desc = place.description;
+        }
+        if (desc == null || desc.isEmpty()) {
+            desc = "Această locație este recomandată pentru experiența sa unică și recenziile sale excelente.";
+            if (lblAiSummary != null) lblAiSummary.setText("ℹ️ DESPRE LOCAȚIE");
+        } else {
+            if (lblAiSummary != null) lblAiSummary.setText("💡 SFATUL EXPLORATORULUI");
+        }
+        
+        if (txtDescription != null) txtDescription.setText(desc);
+
+        // Text to Speech
+        final String speechText = desc;
+        if (btnSpeakAi != null) {
+            btnSpeakAi.setOnClickListener(v1 -> {
+                if (textToSpeech != null) {
+                    textToSpeech.speak(speechText, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
+                }
+            });
+        }
+
+        // AI Analysis Section
+        android.view.View aiAnalysisSection = v.findViewById(R.id.aiAnalysisSection);
+        TextView txtTotalConfidence = v.findViewById(R.id.txt_total_confidence);
+        TextView txtFactorInterests = v.findViewById(R.id.txt_factor_interests);
+        android.widget.ProgressBar progressFactorInterests = v.findViewById(R.id.progress_factor_interests);
+        TextView txtFactorFreshness = v.findViewById(R.id.txt_factor_freshness);
+        android.widget.ProgressBar progressFactorFreshness = v.findViewById(R.id.progress_factor_freshness);
+        TextView txtFactorPopularity = v.findViewById(R.id.txt_factor_popularity);
+        android.widget.ProgressBar progressFactorPopularity = v.findViewById(R.id.progress_factor_popularity);
+        TextView txtFactorLevel = v.findViewById(R.id.txt_factor_level);
+        android.widget.ProgressBar progressFactorLevel = v.findViewById(R.id.progress_factor_level);
+        TextView txtFactorDiversity = v.findViewById(R.id.txt_factor_diversity);
+        android.widget.ProgressBar progressFactorDiversity = v.findViewById(R.id.progress_factor_diversity);
+        TextView txtFactorWeather = v.findViewById(R.id.txt_factor_weather);
+        android.widget.ProgressBar progressFactorWeather = v.findViewById(R.id.progress_factor_weather);
+
+        if (place.confidence > 0) {
+            if (aiAnalysisSection != null) aiAnalysisSection.setVisibility(View.VISIBLE);
+            if (txtTotalConfidence != null) txtTotalConfidence.setText(String.format(java.util.Locale.US, "%.1f%% Potrivire", place.confidence));
+            if (txtFactorInterests != null) txtFactorInterests.setText(String.format(java.util.Locale.US, "%.1f%%", place.matchPrefsPct));
+            if (progressFactorInterests != null) progressFactorInterests.setProgress(Math.round(place.matchPrefsPct));
+            if (txtFactorFreshness != null) txtFactorFreshness.setText(String.format(java.util.Locale.US, "%.1f%%", place.freshnessPct));
+            if (progressFactorFreshness != null) progressFactorFreshness.setProgress(Math.round(place.freshnessPct));
+            if (txtFactorPopularity != null) txtFactorPopularity.setText(String.format(java.util.Locale.US, "%.1f%%", place.popularityPct));
+            if (progressFactorPopularity != null) progressFactorPopularity.setProgress(Math.round(place.popularityPct));
+            if (txtFactorLevel != null) txtFactorLevel.setText(String.format(java.util.Locale.US, "%.1f%%", place.userLevelPct));
+            if (progressFactorLevel != null) progressFactorLevel.setProgress(Math.round(place.userLevelPct));
+            if (txtFactorDiversity != null) txtFactorDiversity.setText(String.format(java.util.Locale.US, "%.1f%%", place.diversityPct));
+            if (progressFactorDiversity != null) progressFactorDiversity.setProgress(Math.round(place.diversityPct));
+            if (txtFactorWeather != null) txtFactorWeather.setText(String.format(java.util.Locale.US, "%.1f%%", place.weatherMatchPct));
+            if (progressFactorWeather != null) progressFactorWeather.setProgress(Math.round(place.weatherMatchPct));
+
+            // Populate criteria chips
+            com.google.android.material.chip.ChipGroup dialogCriteriaChips = v.findViewById(R.id.dialog_criteria_chips);
+            if (dialogCriteriaChips != null) {
+                dialogCriteriaChips.removeAllViews();
+                
+                // User Interests chips
+                com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests : "";
+                if (userInterests != null && !userInterests.isEmpty()) {
+                    String[] parts = userInterests.split(",");
+                    for (String part : parts) {
+                        String clean = part.trim();
+                        if (!clean.isEmpty()) {
+                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                            chip.setText("💡 " + clean);
+                            chip.setChipBackgroundColorResource(android.R.color.transparent);
+                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                            chip.setChipStrokeWidth(1.0f);
+                            dialogCriteriaChips.addView(chip);
                         }
                     }
                 }
             }
-            @Override
-            public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Event>> call, Throwable t) {}
-        });
+        }
+
+        // Set up Directions ("Traseu") button
+        if (btnDirections != null) {
+            btnDirections.setText("Traseu");
+            btnDirections.setOnClickListener(v1 -> {
+                dialog.dismiss();
+                try {
+                    String uri = String.format(java.util.Locale.US, "google.navigation:q=%f,%f", place.latitude, place.longitude);
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                    intent.setPackage("com.google.android.apps.maps");
+                    startActivity(intent);
+                } catch (Exception e) {
+                    try {
+                        String uri = String.format(java.util.Locale.US, "https://www.google.com/maps/search/?api=1&query=%f,%f", place.latitude, place.longitude);
+                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                        startActivity(intent);
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v1 -> dialog.dismiss());
+        }
+
+        dialog.show();
     }
 
-    private void loadPlacesFromBackend() {
+    private void hideBottomCard() {
+        View view = getView();
+        if (view == null) return;
+        androidx.cardview.widget.CardView card = view.findViewById(R.id.card_selected_place);
+        if (card != null) {
+            card.setVisibility(View.GONE);
+        }
+    }
+
+    // Infer category tags from Google Places type string
+    private java.util.Set<String> categoryFromType(String type) {
+        java.util.Set<String> cats = new java.util.HashSet<>();
+        if (type == null) return cats;
+        String t = type.toLowerCase();
+        if (t.contains("restaurant") || t.contains("food") || t.contains("meal"))        cats.add(CAT_RESTAURANT);
+        if (t.contains("cafe") || t.contains("coffee") || t.contains("bakery"))          cats.add(CAT_CAFE);
+        if (t.contains("park") || t.contains("garden") || t.contains("natural"))         cats.add(CAT_PARK);
+        if (t.contains("museum") || t.contains("art_gallery") || t.contains("gallery"))  cats.add(CAT_MUSEUM);
+        if (t.contains("night_club") || t.contains("bar") || t.contains("club"))         cats.add(CAT_NIGHTLIFE);
+        return cats;
+    }
+
+    private float hueForCat(String cat) {
+        switch (cat) {
+            case CAT_RESTAURANT: return BitmapDescriptorFactory.HUE_RED;
+            case CAT_CAFE:       return BitmapDescriptorFactory.HUE_YELLOW;
+            case CAT_PARK:       return BitmapDescriptorFactory.HUE_GREEN;
+            case CAT_MUSEUM:     return BitmapDescriptorFactory.HUE_CYAN;
+            case CAT_NIGHTLIFE:  return BitmapDescriptorFactory.HUE_BLUE;
+            default:             return BitmapDescriptorFactory.HUE_AZURE;
+        }
+    }
+
+    private void moveToDefaultLocation() {
         if (!isAdded() || getContext() == null) return;
-
-        com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(getContext());
-        com.cityscape.app.api.ApiService apiService = com.cityscape.app.api.ApiClient.getClient()
-                .create(com.cityscape.app.api.ApiService.class);
-        apiService.getPlaces().enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
-            @Override
-            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
-                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null && mMap != null) {
-                    
-                    com.cityscape.app.model.User user = sessionManager.getCurrentUser();
-                    String userInterests = (user != null && user.interests != null) ? user.interests : "";
-
-                    for (com.cityscape.app.model.Place place : response.body()) {
-                        try {
-                            boolean isFav = sessionManager.isPlaceFavorite(place.id);
-
-                            // --- LOGICĂ PENTRU RECOMANDĂRI ---
-                            if (userInterests.equals("TRENDING")) {
-                                // Dacă a dat "Skip" și vrea doar trending, arătăm doar locurile foarte populare / cu rating mare
-                                if (place.rating < 4.5f && !isFav) {
-                                    continue; 
-                                }
-                            } else if (!userInterests.isEmpty()) {
-                                // Dacă și-a ales interese, verificăm dacă categoria locului se regăsește în preferințele lui
-                                boolean matchesInterest = false;
-                                String placeTypeLower = (place.type != null) ? place.type.toLowerCase() : "";
-                                
-                                for (String interest : userInterests.split(",")) {
-                                    String interestLower = interest.trim().toLowerCase();
-                                    boolean mappedMatch = false;
-
-                                    if (placeTypeLower == null) placeTypeLower = "";
-                                    
-                                    if ((interestLower.contains("muz") || interestLower.contains("mus") || interestLower.contains("artă")) && 
-                                        (placeTypeLower.contains("museum") || placeTypeLower.contains("art") || placeTypeLower.contains("landmark"))) mappedMatch = true;
-                                    else if ((interestLower.contains("rest") || interestLower.contains("food")) && 
-                                        (placeTypeLower.contains("restaurant") || placeTypeLower.contains("food") || placeTypeLower.contains("dining"))) mappedMatch = true;
-                                    else if ((interestLower.contains("parc") || interestLower.contains("natur")) && 
-                                        (placeTypeLower.contains("park") || placeTypeLower.contains("nature") || placeTypeLower.contains("garden"))) mappedMatch = true;
-                                    else if ((interestLower.contains("caf") || interestLower.contains("cafe") || interestLower.contains("coffee")) && 
-                                        (placeTypeLower.contains("cafe") || placeTypeLower.contains("coffee"))) mappedMatch = true;
-                                    else if ((interestLower.contains("cultur") || interestLower.contains("istor") || interestLower.contains("locuri")) && 
-                                        (placeTypeLower.contains("landmark") || placeTypeLower.contains("historical") || placeTypeLower.contains("culture"))) mappedMatch = true;
-                                    else if ((interestLower.contains("shop")) && 
-                                        (placeTypeLower.contains("shop") || placeTypeLower.contains("store") || placeTypeLower.contains("mall"))) mappedMatch = true;
-                                    else if ((interestLower.contains("sport") || interestLower.contains("stadium")) && 
-                                        (placeTypeLower.contains("sport") || placeTypeLower.contains("stadium") || placeTypeLower.contains("arena"))) mappedMatch = true;
-                                    else if ((interestLower.contains("viața") || interestLower.contains("noapt")) && 
-                                        (placeTypeLower.contains("bar") || placeTypeLower.contains("club") || placeTypeLower.contains("night"))) mappedMatch = true;
-                                    else if ((interestLower.contains("evenim")) && 
-                                        (placeTypeLower.contains("event") || placeTypeLower.contains("concert") || placeTypeLower.contains("stadium"))) mappedMatch = true;
-                                    else if (placeTypeLower.contains(interestLower)) mappedMatch = true; // Fallback exact match
-
-                                    if (mappedMatch) {
-                                        matchesInterest = true;
-                                        break;
-                                    }
-                                }
-                                
-                                // Dacă nu îi place tipul acestui loc, nu e favorite și nici măcar nu e o locație ultra-premium, nu o arătăm
-                                if (!matchesInterest && !isFav && place.rating < 4.8f) {
-                                    continue;
-                                }
-                            }
-                            // -----------------------------------
-
-                            LatLng pos = new LatLng(place.latitude, place.longitude);
-                            MarkerOptions options = new MarkerOptions()
-                                    .position(pos)
-                                    .title(place.name != null ? place.name : "Locație")
-                                    .snippet(place.type != null ? place.type : "");
-
-                            if (isFav) {
-                                options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(
-                                        com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_VIOLET));
-                            }
-
-
-                            mMap.addMarker(options);
-                        } catch (Exception ignored) {}
-                    }
+        com.cityscape.app.data.SessionManager sm = new com.cityscape.app.data.SessionManager(getContext());
+        String preferredCity = sm.getPreferredCity();
+        if (preferredCity != null && !preferredCity.isEmpty()) {
+            try {
+                android.location.Geocoder geocoder = new android.location.Geocoder(requireContext());
+                java.util.List<android.location.Address> addresses = geocoder.getFromLocationName(preferredCity, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    LatLng pos = new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 11f));
+                    loadAllData(pos.latitude, pos.longitude);
+                    return;
                 }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call, Throwable t) {
-                t.printStackTrace();
-            }
-        });
+            } catch (Exception ignored) {}
+        }
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0, 0), 2f));
     }
 }
+

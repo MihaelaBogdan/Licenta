@@ -37,6 +37,13 @@
                 android:textColor="@color/app_text_primary"
                 android:textSize="14sp" />
 
+            <LinearLayout
+                android:id="@+id/buttons_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="6dp" />
+
             <!-- ITINERARY CARD ACTION inside Chat -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/chat_itinerary_card"
@@ -111,7 +118,7 @@
         android:background="@drawable/bg_message_user"
         android:maxWidth="280dp"
         android:padding="12dp"
-        android:textColor="@color/app_background"
+        android:textColor="@color/white"
         android:textSize="14sp"
         android:visibility="gone" />
 
