@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityScape - Urban Explorer App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .features {
+            text-align: left;
+            margin-bottom: 40px;
+            list-style: none;
+        }
+
+        .features li {
+            padding: 12px 0;
+            padding-left: 40px;
+            position: relative;
+            font-size: 14px;
+            color: #bbb;
+            line-height: 1.5;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00d4ff;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .version {
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .social {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .social a {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
+            color: #00d4ff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .social a:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .specs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+
+        .spec-item {
+            background: rgba(0, 212, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        .spec-label {
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .spec-value {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .logo {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏙️</div>
+        <h1>CityScape</h1>
+        <p class="tagline">Descoperă Orașul Tău - Exploreaza Locuri Noi Zilnic</p>
+
+        <div class="specs">
+            <div class="spec-item">
+                <div class="spec-label">Limbă</div>
+                <div class="spec-value">EN • RO</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-label">Compatibil</div>
+                <div class="spec-value">Android 8.0+</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-label">Dimensiune</div>
+                <div class="spec-value">~45 MB</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-label">Versiune</div>
+                <div class="spec-value">1.0.0</div>
+            </div>
+        </div>
+
+        <button class="download-btn" onclick="downloadAPK()">
+            📥 Descarcă APK
+        </button>
+
+        <ul class="features">
+            <li><strong>Explore</strong> - Descoperă locuri noi pe hartă în timp real</li>
+            <li><strong>Social</strong> - Conectează-te cu alți exploratori</li>
+            <li><strong>Quests</strong> - Completează misiuni zilnice și câștigă XP</li>
+            <li><strong>AR Mode</strong> - Explorare în realitate augmentată</li>
+            <li><strong>Leaderboard</strong> - Compet pe tabela de top</li>
+            <li><strong>Bilingual</strong> - Engleză și Română</li>
+        </ul>
+
+        <div class="info-box">
+            ℹ️ Aplicația necesită permisiuni de locație și cameră pentru a funcționa complet.
+            Versiunea inițială a CityScape - Exploreaza, Conecteaza, Domina!
+        </div>
+
+        <div class="version">
+            Version 1.0.0 • Bilinual (EN/RO)
+        </div>
+    </div>
+
+    <script>
+        function downloadAPK() {
+            // This will be replaced with actual APK URL once available
+            const apkUrl = '/download/cityscape.apk';
+
+            // Check if APK exists
+            fetch(apkUrl, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = apkUrl;
+                    } else {
+                        alert('APK va fi disponibil în curând. Te rog să revii mai târziu.');
+                    }
+                })
+                .catch(error => {
+                    alert('APK va fi disponibil în curând. Te rog să revii mai târziu.');
+                });
+        }
+
+        // Log page load
+        console.log('CityScape Download Page Loaded');
+    </script>
+</body>
+</html>
