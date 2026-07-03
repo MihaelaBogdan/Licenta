@@ -3,266 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CityScape - Urban Explorer App</title>
+    <title>CityScape — Ghidul tău urban inteligent</title>
+    <meta name="description" content="Descoperă orașul tău cu CityScape: recomandări personalizate, misiuni zilnice, hartă live și explorare AR. Descarcă aplicația pentru Android.">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #0D1117;
+            --bg-card: #161B22;
+            --border: #21262D;
+            --border-light: #30363D;
+            --green: #10B981;
+            --green-light: #34D399;
+            --text: #E6EDF3;
+            --text-muted: #8B949E;
+            --text-faint: #6E7681;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrap {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+        }
+
+        .nav {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            height: 64px;
         }
 
-        .container {
-            max-width: 500px;
-            width: 90%;
-            padding: 40px;
-            background: rgba(26, 26, 46, 0.8);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            text-align: center;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 17px;
+            letter-spacing: -0.02em;
         }
 
-        .logo {
-            font-size: 48px;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-        }
+        .brand svg { width: 32px; height: 32px; }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #00e676 0%, #00b85c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tagline {
-            font-size: 16px;
-            color: #aaa;
-            margin-bottom: 30px;
-            font-weight: 300;
-        }
-
-        .features {
-            text-align: left;
-            margin-bottom: 40px;
-            list-style: none;
-        }
-
-        .features li {
-            padding: 12px 0;
-            padding-left: 40px;
-            position: relative;
+        .nav-cta {
             font-size: 14px;
-            color: #bbb;
-            line-height: 1.5;
+            font-weight: 600;
+            color: var(--bg);
+            background: var(--green);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.15s ease;
         }
 
-        .features li:before {
-            content: "✓";
+        .nav-cta:hover { background: var(--green-light); }
+
+        /* Hero */
+        .hero {
+            padding: 88px 0 72px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
             position: absolute;
-            left: 0;
-            color: #00e676;
-            font-weight: bold;
-            font-size: 18px;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 720px;
+            height: 560px;
+            background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.09) 0%, transparent 65%);
+            pointer-events: none;
         }
 
-        .download-btn {
-            width: 100%;
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #00e676 0%, #00b85c 100%);
-            color: #1a1a2e;
+        .hero-logo {
+            width: 108px;
+            height: 108px;
+            margin-bottom: 28px;
+            border-radius: 26px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-light);
+        }
+
+        .hero h1 {
+            font-size: clamp(34px, 6vw, 52px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .accent { color: var(--green-light); }
+
+        .hero .sub {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto 36px;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--green);
+            color: #06251B;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 15px 32px;
             border: none;
             border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
-            margin-bottom: 15px;
+            text-decoration: none;
+            transition: background 0.15s ease, transform 0.15s ease;
         }
 
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.4);
+        .btn-download:hover { background: var(--green-light); transform: translateY(-1px); }
+        .btn-download:active { transform: translateY(0); }
+        .btn-download svg { width: 20px; height: 20px; }
+
+        .hero .meta {
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--text-faint);
         }
 
-        .download-btn:active {
-            transform: translateY(0);
+        /* Specs strip */
+        .specs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--bg-card);
+            overflow: hidden;
+            margin-bottom: 80px;
         }
 
-        .info-box {
-            background: rgba(0, 230, 118, 0.1);
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #aaa;
-            line-height: 1.6;
+        .spec {
+            padding: 20px 12px;
+            text-align: center;
+            border-right: 1px solid var(--border);
         }
 
-        .version {
-            font-size: 12px;
-            color: #666;
-            margin-top: 20px;
+        .spec:last-child { border-right: none; }
+
+        .spec .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-faint);
+            margin-bottom: 4px;
         }
 
-        .social {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
+        .spec .value {
+            font-size: 15px;
+            font-weight: 650;
+            color: var(--text);
         }
 
-        .social a {
-            width: 40px;
-            height: 40px;
+        /* Features */
+        .section-title {
+            font-size: 26px;
+            font-weight: 750;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .section-sub {
+            color: var(--text-muted);
+            margin-bottom: 36px;
+            font-size: 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 88px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: border-color 0.2s ease;
+        }
+
+        .card:hover { border-color: var(--border-light); }
+
+        .card .icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(16, 185, 129, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 230, 118, 0.1);
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            border-radius: 50%;
-            color: #00e676;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 18px;
+            margin-bottom: 14px;
         }
 
-        .social a:hover {
-            background: rgba(0, 230, 118, 0.2);
-            transform: translateY(-2px);
+        .card .icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--green-light);
         }
 
-        .specs {
+        .card h3 {
+            font-size: 15px;
+            font-weight: 650;
+            margin-bottom: 6px;
+        }
+
+        .card p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* Install steps */
+        .install {
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 88px;
+        }
+
+        .steps {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            margin-top: 28px;
+        }
+
+        .step { position: relative; }
+
+        .step .num {
             font-size: 13px;
+            font-weight: 700;
+            color: var(--green-light);
+            background: rgba(16, 185, 129, 0.1);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
         }
 
-        .spec-item {
-            background: rgba(0, 230, 118, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 3px solid #00e676;
+        .step h4 { font-size: 14.5px; font-weight: 650; margin-bottom: 4px; }
+        .step p { font-size: 13px; color: var(--text-muted); }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
         }
 
-        .spec-label {
-            color: #666;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-faint);
         }
 
-        .spec-value {
-            color: #00e676;
-            font-weight: 600;
-            margin-top: 5px;
-        }
+        .foot .brand { font-size: 14px; }
+        .foot .brand svg { width: 22px; height: 22px; }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 26px;
-            }
-
-            .logo {
-                font-size: 40px;
-            }
+        @media (max-width: 720px) {
+            .hero { padding: 56px 0 48px; }
+            .specs { grid-template-columns: repeat(2, 1fr); }
+            .spec:nth-child(2) { border-right: none; }
+            .spec:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+            .grid { grid-template-columns: 1fr; }
+            .steps { grid-template-columns: 1fr; }
+            .install { padding: 28px 22px; }
+            .foot { flex-direction: column; gap: 12px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">🏙️</div>
-        <h1>CityScape</h1>
-        <p class="tagline">Descoperă Orașul Tău - Exploreaza Locuri Noi Zilnic</p>
 
-        <div class="specs">
-            <div class="spec-item">
-                <div class="spec-label">Limbă</div>
-                <div class="spec-value">EN • RO</div>
+    <!-- App logo, refolosit prin <use> -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <g id="app-logo">
+                <path fill="#0D1117" d="M 128,32 L 384,32 C 437,32 480,75 480,128 L 480,384 C 480,437 437,480 384,480 L 128,480 C 75,480 32,437 32,384 L 32,128 C 32,75 75,32 128,32 Z" />
+                <path stroke="#1E293B" stroke-width="4" d="M 32,256 L 480,256 M 256,32 L 256,480" />
+                <path stroke="#182235" stroke-width="2" fill="none" d="M 256,50 A 160,160 0 1 1 256,370 A 160,160 0 1 1 256,50 Z" />
+                <path stroke="#182235" stroke-width="1.5" fill="none" d="M 256,-10 A 220,220 0 1 1 256,430 A 220,220 0 1 1 256,-10 Z" />
+                <path stroke="#10B981" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M 256,390 C 190,330 150,265 150,210 C 150,150 197,100 256,100 C 315,100 362,150 362,210 C 362,265 322,330 256,390 Z" />
+                <path stroke="#34D399" stroke-width="8" stroke-linecap="round" d="M 180,310 L 332,310" />
+                <path fill="#34D399" d="M 205,310 L 205,240 L 233,212 L 233,310 Z" />
+                <path fill="#34D399" d="M 279,310 L 279,220 L 307,192 L 307,310 Z" />
+                <path fill="#FFFFFF" d="M 242,310 L 242,185 L 270,157 L 270,310 Z" />
+                <path fill="#F59E0B" d="M 256,108 L 259.5,118.5 L 270,122 L 259.5,125.5 L 256,136 L 252.5,125.5 L 242,122 L 252.5,118.5 Z" />
+            </g>
+        </defs>
+    </svg>
+
+    <header>
+        <div class="wrap nav">
+            <div class="brand">
+                <svg viewBox="0 0 512 512"><use href="#app-logo"/></svg>
+                CityScape
             </div>
-            <div class="spec-item">
-                <div class="spec-label">Compatibil</div>
-                <div class="spec-value">Android 8.0+</div>
+            <a class="nav-cta" href="/download/cityscape.apk" download>Descarcă</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="wrap">
+                <svg class="hero-logo" viewBox="0 0 512 512"><use href="#app-logo"/></svg>
+                <h1>Orașul tău,<br><span class="accent">redescoperit.</span></h1>
+                <p class="sub">
+                    CityScape îți transformă orașul într-o experiență: recomandări
+                    personalizate, misiuni zilnice, hartă live și explorare AR —
+                    totul într-o singură aplicație.
+                </p>
+                <a class="btn-download" href="/download/cityscape.apk" download>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Descarcă pentru Android
+                </a>
+                <p class="meta">Versiunea 1.0.0 &middot; 13 MB &middot; Android 8.0 sau mai nou</p>
             </div>
-            <div class="spec-item">
-                <div class="spec-label">Dimensiune</div>
-                <div class="spec-value">13 MB</div>
+        </section>
+
+        <div class="wrap">
+            <div class="specs">
+                <div class="spec">
+                    <div class="label">Versiune</div>
+                    <div class="value">1.0.0</div>
+                </div>
+                <div class="spec">
+                    <div class="label">Dimensiune</div>
+                    <div class="value">13 MB</div>
+                </div>
+                <div class="spec">
+                    <div class="label">Sistem</div>
+                    <div class="value">Android 8.0+</div>
+                </div>
+                <div class="spec">
+                    <div class="label">Limbi</div>
+                    <div class="value">Română · Engleză</div>
+                </div>
             </div>
-            <div class="spec-item">
-                <div class="spec-label">Versiune</div>
-                <div class="spec-value">1.0.0</div>
+
+            <h2 class="section-title">Tot ce ai nevoie ca să explorezi</h2>
+            <p class="section-sub">Funcțiile principale ale aplicației, gândite pentru exploratori urbani.</p>
+
+            <div class="grid">
+                <div class="card">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <h3>Recomandări inteligente</h3>
+                    <p>Locuri și evenimente alese pentru tine, în funcție de interese, vreme și momentul zilei.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <h3>Misiuni zilnice</h3>
+                    <p>Provocări noi în fiecare zi. Vizitează, fotografiază, descoperă — și câștigă XP și insigne.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <h3>Social Hub</h3>
+                    <p>Prieteni, grupuri și ieșiri comune. Vezi cine explorează în jurul tău și planificați împreună.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <h3>Explorare AR</h3>
+                    <p>Îndreaptă camera spre oraș și vezi punctele de interes suprapuse peste realitate.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                    </div>
+                    <h3>Clasamente</h3>
+                    <p>Urcă în topul exploratorilor din orașul tău. Fiecare vizită contează.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <h3>Asistent AI</h3>
+                    <p>Un ghid conversațional care îți construiește itinerarii și răspunde la orice întrebare despre oraș.</p>
+                </div>
+            </div>
+
+            <div class="install" id="instalare">
+                <h2 class="section-title">Instalare în 3 pași</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="num">1</div>
+                        <h4>Descarcă APK-ul</h4>
+                        <p>Apasă butonul de descărcare de mai sus. Fișierul are 13 MB.</p>
+                    </div>
+                    <div class="step">
+                        <div class="num">2</div>
+                        <h4>Permite instalarea</h4>
+                        <p>Dacă ți se cere, acceptă „Instalare din surse necunoscute" pentru browserul tău.</p>
+                    </div>
+                    <div class="step">
+                        <div class="num">3</div>
+                        <h4>Deschide și explorează</h4>
+                        <p>Creează-ți contul, alege-ți interesele și pornește la drum.</p>
+                    </div>
+                </div>
             </div>
         </div>
+    </main>
 
-        <button class="download-btn" onclick="downloadAPK()">
-            📥 Descarcă APK
-        </button>
-
-        <ul class="features">
-            <li><strong>Explore</strong> - Descoperă locuri noi pe hartă în timp real</li>
-            <li><strong>Social</strong> - Conectează-te cu alți exploratori</li>
-            <li><strong>Quests</strong> - Completează misiuni zilnice și câștigă XP</li>
-            <li><strong>AR Mode</strong> - Explorare în realitate augmentată</li>
-            <li><strong>Leaderboard</strong> - Compet pe tabela de top</li>
-            <li><strong>Bilingual</strong> - Engleză și Română</li>
-        </ul>
-
-        <div class="info-box">
-            ℹ️ Aplicația necesită permisiuni de locație și cameră pentru a funcționa complet.
-            Versiunea inițială a CityScape - Exploreaza, Conecteaza, Domina!
+    <footer>
+        <div class="wrap foot">
+            <div class="brand">
+                <svg viewBox="0 0 512 512"><use href="#app-logo"/></svg>
+                CityScape
+            </div>
+            <div>© 2026 CityScape &middot; Proiect de licență &middot; Mihaela Bogdan</div>
         </div>
+    </footer>
 
-        <div class="version">
-            Version 1.0.0 • Bilinual (EN/RO)
-        </div>
-    </div>
-
-    <script>
-        function downloadAPK() {
-            // This will be replaced with actual APK URL once available
-            const apkUrl = '/download/cityscape.apk';
-
-            // Check if APK exists
-            fetch(apkUrl, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.href = apkUrl;
-                    } else {
-                        alert('APK va fi disponibil în curând. Te rog să revii mai târziu.');
-                    }
-                })
-                .catch(error => {
-                    alert('APK va fi disponibil în curând. Te rog să revii mai târziu.');
-                });
-        }
-
-        // Log page load
-        console.log('CityScape Download Page Loaded');
-    </script>
 </body>
 </html>
