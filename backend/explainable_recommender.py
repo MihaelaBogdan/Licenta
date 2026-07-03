@@ -196,9 +196,9 @@ class ExplainableRecommender:
 
             all_places = filtered_candidates
 
-            # 6. Calculate recommendation scores for each place
+            # 6. Calculate recommendation scores for each place (score all to find the absolute best options)
             recommendations = []
-            for place in all_places[:limit * 4]:  # Get more candidates, then filter
+            for place in all_places:  
                 score_breakdown = self._calculate_recommendation_score(
                     place, user_data, visit_history, interests, lat, lng, language
                 )
@@ -297,7 +297,54 @@ class ExplainableRecommender:
             elif "com" in cat_lower or "shop" in cat_lower:
                 ptype = "shopping_mall"
 
-        # Check cache first
+        # If no specific category is selected, fetch multiple types in parallel to maximize recommendation coverage
+        if not category:
+            types_to_fetch = ["tourist_attraction", "restaurant", "cafe", "park", "museum", "night_club"]
+            import concurrent.futures
+            
+            def fetch_single_type(t):
+                # Check cache first
+                ck = (lat, lng, radius, t)
+                with _recommender_cache_lock:
+                    if ck in _recommender_nearby_search_cache:
+                        val, exp = _recommender_nearby_search_cache[ck]
+                        if time.time() < exp:
+                            return val
+                try:
+                    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+                    params = {
+                        "location": f"{lat},{lng}",
+                        "radius": radius,
+                        "type": t,
+                        "key": MAPS_API_KEY
+                    }
+                    resp = requests.get(url, params=params, timeout=4)
+                    if resp.status_code == 200:
+                        results = resp.json().get("results", [])
+                        with _recommender_cache_lock:
+                            _recommender_nearby_search_cache[ck] = (results, time.time() + SEARCH_CACHE_TTL)
+                        return results
+                except Exception as e:
+                    print(f"⚠️ Nearby places fetch error for type {t}: {e}")
+                return []
+                
+            merged_results = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+                futures = [executor.submit(fetch_single_type, t) for t in types_to_fetch]
+                for future in concurrent.futures.as_completed(futures):
+                    merged_results.extend(future.result())
+            
+            # Remove duplicates by place_id
+            seen = set()
+            unique_results = []
+            for p in merged_results:
+                pid = p.get("place_id")
+                if pid and pid not in seen:
+                    seen.add(pid)
+                    unique_results.append(p)
+            return unique_results
+
+        # Check cache first for single category fetch
         cache_key = (lat, lng, radius, ptype)
         now = time.time()
         with _recommender_cache_lock:
@@ -367,18 +414,18 @@ class ExplainableRecommender:
             # ULTRA-SMART matching: analyze place name + type carefully
             match_score = 0.0
 
-            # Define detailed keyword mappings
+            # Define detailed keyword mappings in both English and Romanian to match local place names
             interest_keywords = {
-                "museums": ["museum", "gallery", "exhibit"],
-                "art": ["art", "gallery", "artistic", "painting", "sculpture"],
-                "history": ["history", "historic", "historical", "monument", "archeolog", "ancient"],
-                "food": ["restaurant", "cafe", "bistro", "pizzeria", "cuisine", "dining"],
-                "parks": ["park", "garden", "botanical", "natural", "reserve", "nature"],
-                "churches": ["church", "cathedral", "monastery", "chapel", "religious"],
-                "culture": ["cultural", "culture", "theater", "theatre", "performance"],
-                "adventure": ["hiking", "climbing", "trail", "outdoor", "adventure", "sport"],
-                "nightlife": ["bar", "club", "nightclub", "pub", "lounge", "disco"],
-                "shopping": ["mall", "market", "shop", "shopping", "store", "bazaar"],
+                "museums": ["museum", "gallery", "exhibit", "muzeu", "galerie", "expozi"],
+                "art": ["art", "gallery", "artistic", "painting", "sculpture", "galerie", "pictura", "sculptura", "arta"],
+                "history": ["history", "historic", "historical", "monument", "archeolog", "ancient", "istoric", "istorie", "vestigiu", "monument", "ruine"],
+                "food": ["restaurant", "cafe", "bistro", "pizzeria", "cuisine", "dining", "cafenea", "bistro", "ceainarie", "pizzerie", "mancare", "pub", "taverna"],
+                "parks": ["park", "garden", "botanical", "natural", "reserve", "nature", "parc", "gradina", "botanica", "rezervatie", "natura"],
+                "churches": ["church", "cathedral", "monastery", "chapel", "religious", "biserica", "cathedrala", "manastire", "capela", "schit", "templu"],
+                "culture": ["cultural", "culture", "theater", "theatre", "performance", "cultura", "teatru", "ateneu", "opera", "spectacol"],
+                "adventure": ["hiking", "climbing", "trail", "outdoor", "adventure", "sport", "traseu", "alpinism", "drumetie", "sport", "aventura"],
+                "nightlife": ["bar", "club", "nightclub", "pub", "lounge", "disco", "club", "bar", "pub", "discoteca"],
+                "shopping": ["mall", "market", "shop", "shopping", "store", "bazaar", "magazin", "piata", "bazar", "centru comercial"],
             }
 
             # Step 1: Parse place name for specific keywords

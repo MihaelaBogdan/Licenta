@@ -46,7 +46,7 @@
                     android:id="@+id/activity_place_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="La Plăcinte"
+                    android:text="@string/auto_la_placinte_5aa1da"
                     android:textColor="@color/app_text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -62,7 +62,7 @@
                         android:id="@+id/activity_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="19:30"
+                        android:text="@string/auto_1930_b980e9"
                         android:textColor="@color/primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -77,7 +77,7 @@
                         android:id="@+id/activity_place_type"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Restaurant"
+                        android:text="@string/auto_restaurant_e197a9"
                         android:textColor="@color/app_text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
@@ -130,7 +130,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="Grup activ (3 pers)"
+                        android:text="@string/auto_grup_activ_3_pers_72ce77"
                         android:textColor="@color/app_text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -147,7 +147,7 @@
                         android:id="@+id/text_budget_display"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="50 RON"
+                        android:text="@string/auto_50_ron_b1b3e9"
                         android:textColor="@color/accent_green"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -159,7 +159,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Nu uita să faci rezervare pentru masă."
+                android:text="@string/auto_nu_uita_sa_faci_rezervare_pent_9c56a8"
                 android:textColor="@color/app_text_hint"
                 android:textSize="12sp"
                 android:fontStyle="italic" />
@@ -175,7 +175,7 @@
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="Invită"
+                    android:text="@string/auto_invita_9e5151"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     app:backgroundTint="#2010B981"

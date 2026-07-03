@@ -100,19 +100,19 @@ public class LoginActivity extends BaseActivity {
                 } catch (ApiException e) {
                     String sha1 = getSigningCertificateSHA1();
                     Log.e(TAG, "Google sign-in failed, code: " + e.getStatusCode() + ". Actual SHA-1: " + sha1, e);
-                    
+
                     new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
-                        .setTitle("Eroare Conectare Google (12500)")
-                        .setMessage("Pentru a rezolva eroarea, adaugă această amprentă SHA-1 în Google Cloud Console la clientul tău de Android:\n\n" + (sha1 != null ? sha1 : "Nu s-a putut genera"))
-                        .setPositiveButton("Copiază SHA-1", (dialog, which) -> {
+                        .setTitle(getString(R.string.google_connection_error))
+                        .setMessage(getString(R.string.sha1_instruction) + (sha1 != null ? sha1 : getString(R.string.sha1_not_generated)))
+                        .setPositiveButton(getString(R.string.copy_sha1), (dialog, which) -> {
                             if (sha1 != null) {
                                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
                                 android.content.ClipData clip = android.content.ClipData.newPlainText("SHA-1", sha1);
                                 clipboard.setPrimaryClip(clip);
-                                Toast.makeText(this, "Copiat în clipboard!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
                             }
                         })
-                        .setNegativeButton("Închide", null)
+                        .setNegativeButton(getString(R.string.close), null)
                         .show();
                 } catch (Exception e) {
                     Log.e(TAG, "Unexpected error during Google sign-in", e);
@@ -213,7 +213,7 @@ public class LoginActivity extends BaseActivity {
                             googleSignInLauncher.launch(signInIntent);
                         });
                     } else {
-                        Toast.makeText(this, "Google Services not initialized", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.google_services_not_initialized), Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching Google sign-in", e);
@@ -234,8 +234,8 @@ public class LoginActivity extends BaseActivity {
                 guest.id = "guest_user";
                 sessionManager.createSession(guest);
                 sessionManager.setPreferredCity("London");
-                
-                Toast.makeText(this, "Mod Vizitator Activat", Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(this, getString(R.string.guest_mode_activated), Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, MainActivity.class));
                 finish();
             });
@@ -346,10 +346,11 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void showVerificationNeededDialog(String email) {
+        String message = getString(R.string.email_not_confirmed) + email + getString(R.string.email_not_confirmed_suffix);
         new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
-                .setTitle("Email Neconfirmat")
-                .setMessage("Adresa de email " + email + " nu a fost încă confirmată.\n\nTe rugăm să verifici Inbox-ul pentru link-ul de activare trimis de CityScape.")
-                .setPositiveButton("Am înțeles", (dialog, which) -> {
+                .setTitle(getString(R.string.unconfirmed_email))
+                .setMessage(message)
+                .setPositiveButton(getString(R.string.ok), (dialog, which) -> {
                     dialog.dismiss();
                     supabaseAuth.signOut();
                 })

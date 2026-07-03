@@ -30,7 +30,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CityScape"
+                    android:text="@string/auto_cityscape_af4fa6"
                     android:textColor="@color/primary"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -39,7 +39,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Social Hub"
+                    android:text="@string/auto_social_hub_870043"
                     android:textColor="@color/app_text_primary"
                     android:textSize="26sp"
                     android:textStyle="bold" />
@@ -95,12 +95,12 @@
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="În apropiere" />
+                android:text="@string/auto_in_apropiere_1376be" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Prieteni" />
+                android:text="@string/auto_prieteni_e7df83" />
         </com.google.android.material.tabs.TabLayout>
     </LinearLayout>
 
@@ -142,7 +142,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="✨"
+                    android:text="@string/auto_str_f31a88"
                     android:textSize="56sp" />
 
                 <TextView
@@ -150,7 +150,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Nicio postare în zonă"
+                    android:text="@string/auto_nicio_postare_in_zona_ec6fbc"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -160,7 +160,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Fii tu cel care dă startul!"
+                    android:text="@string/auto_fii_tu_cel_care_da_startul_76a777"
                     android:textColor="@color/app_text_hint"
                     android:textSize="14sp" />
 
@@ -172,7 +172,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
                 android:layout_marginBottom="24dp"
-                android:text="Postează"
+                android:text="@string/auto_posteaza_43e526"
                 app:icon="@android:drawable/ic_input_add"
                 app:backgroundTint="@color/primary"
                 android:textColor="#FFFFFF"

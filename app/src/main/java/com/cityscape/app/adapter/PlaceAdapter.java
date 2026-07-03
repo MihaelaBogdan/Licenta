@@ -17,7 +17,7 @@ import java.util.List;
 public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> {
 
     private final Context context;
-    private final List<Place> placeList;
+    private List<Place> placeList;
     private final OnPlaceClickListener listener;
     private final boolean isHorizontal;
     private boolean isManualMode = false;
@@ -34,6 +34,11 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         this.placeList = placeList;
         this.isHorizontal = isHorizontal;
         this.listener = listener;
+    }
+
+    public void updateData(List<Place> newPlaces) {
+        this.placeList = newPlaces;
+        notifyDataSetChanged();
     }
 
     public void setManualMode(boolean manualMode) {

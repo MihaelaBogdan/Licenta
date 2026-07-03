@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="Aventura Ta de Azi"
+                android:text="@string/auto_aventura_ta_de_azi_7da78f"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-black"
@@ -96,7 +96,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="Traseu Live"
+                            android:text="@string/auto_traseu_live_a04477"
                             android:textColor="@color/app_text_primary"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -128,7 +128,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="BUGET TOTAL"
+                                android:text="@string/auto_buget_total_ac61ee"
                                 android:textColor="@color/app_text_secondary"
                                 android:textSize="10sp"
                                 android:letterSpacing="0.1" />
@@ -137,7 +137,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="0 RON"
+                                android:text="@string/auto_0_ron_ca12b4"
                                 android:textColor="@color/gold_accent"
                                 android:textSize="22sp"
                                 android:fontFamily="sans-serif-black" />
@@ -157,7 +157,7 @@
                                 android:layout_width="48dp"
                                 android:layout_height="36dp"
                                 android:padding="0dp"
-                                android:text="RON"
+                                android:text="@string/auto_ron_d9fe5d"
                                 android:textSize="10sp" />
 
                             <com.google.android.material.button.MaterialButton
@@ -166,7 +166,7 @@
                                 android:layout_width="48dp"
                                 android:layout_height="36dp"
                                 android:padding="0dp"
-                                android:text="EUR"
+                                android:text="@string/auto_eur_a05556"
                                 android:textSize="10sp" />
                         </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -179,7 +179,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="DURATĂ ZI"
+                                android:text="@string/auto_durata_zi_a7e40c"
                                 android:textColor="@color/app_text_secondary"
                                 android:textSize="10sp"
                                 android:letterSpacing="0.1" />
@@ -188,7 +188,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="aprox. 8h"
+                                android:text="@string/auto_aprox_8h_fe9ac4"
                                 android:textColor="@color/primary"
                                 android:textSize="22sp"
                                 android:fontFamily="sans-serif-black" />
@@ -212,12 +212,12 @@
                     <com.google.android.material.tabs.TabItem
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Traseu" />
+                        android:text="@string/auto_traseu_460e9c" />
 
                     <com.google.android.material.tabs.TabItem
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Analiză AI" />
+                        android:text="@string/auto_analiza_ai_c3c627" />
                 </com.google.android.material.tabs.TabLayout>
 
                 <!-- Steps List -->
@@ -227,7 +227,7 @@
                     android:layout_marginHorizontal="20dp"
                     android:layout_marginTop="24dp"
                     android:layout_marginBottom="12dp"
-                    android:text="Cronologia Zilei"
+                    android:text="@string/auto_cronologia_zilei_43abf5"
                     android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:fontFamily="sans-serif-medium" />
@@ -246,7 +246,7 @@
                     android:layout_height="64dp"
                     android:layout_marginHorizontal="24dp"
                     android:layout_marginBottom="16dp"
-                    android:text="Sincronizează cu Calendarul"
+                    android:text="@string/auto_sincronizeaza_cu_calendarul_2fb2a9"
                     android:textAllCaps="false"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif-medium"
@@ -262,7 +262,7 @@
                     android:layout_height="56dp"
                     android:layout_marginHorizontal="24dp"
                     android:layout_marginBottom="100dp"
-                    android:text="Share cu prietenii"
+                    android:text="@string/auto_share_cu_prietenii_d51ea2"
                     android:textAllCaps="false"
                     app:cornerRadius="20dp"
                     app:strokeColor="@color/primary"
@@ -278,7 +278,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
-        android:text="Adaugă Locație"
+        android:text="@string/auto_adauga_locatie_a969c0"
         android:textColor="@color/white"
         app:icon="@drawable/ic_add"
         app:iconTint="@color/white"

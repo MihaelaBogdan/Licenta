@@ -33,7 +33,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="⏳ Se încheie în: --:--"
+                android:text="@string/auto_se_incheie_in_164026"
                 android:textColor="@color/warning"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -41,7 +41,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏆 Premiu: +300 XP"
+                android:text="@string/auto_premiu_300_xp_784381"
                 android:textColor="@color/gold_accent"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -158,7 +158,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:layout_marginStart="8dp"
-                        android:text="Votează"
+                        android:text="@string/auto_voteaza_c58b2e"
                         android:textSize="10sp"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
@@ -185,7 +185,7 @@
                         android:textColor="@color/app_text_secondary"
                         android:textSize="11sp"
                         android:textStyle="italic"
-                        android:text="Căutăm recenzii de pe Google Maps..." />
+                        android:text="@string/auto_cautam_recenzii_de_pe_google_m_4f0a3b" />
 
                     <TextView
                         android:id="@+id/hype_review_author_a"
@@ -205,7 +205,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="⚡ VS ⚡"
+            android:text="@string/auto_vs_c75804"
             android:textColor="@color/warning"
             android:textSize="14sp"
             android:fontFamily="sans-serif-black"
@@ -303,7 +303,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:layout_marginStart="8dp"
-                        android:text="Votează"
+                        android:text="@string/auto_voteaza_c58b2e"
                         android:textSize="10sp"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
@@ -330,7 +330,7 @@
                         android:textColor="@color/app_text_secondary"
                         android:textSize="11sp"
                         android:textStyle="italic"
-                        android:text="Căutăm recenzii de pe Google Maps..." />
+                        android:text="@string/auto_cautam_recenzii_de_pe_google_m_4f0a3b" />
 
                     <TextView
                         android:id="@+id/hype_review_author_b"
@@ -365,7 +365,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🏆 Top Exploratori (Leaderboard)"
+                    android:text="@string/auto_top_exploratori_leaderboard_192b14"
                     android:textColor="@color/app_text_primary"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif-black"
@@ -403,7 +403,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="👑"
+                    android:text="@string/auto_str_d11976"
                     android:textSize="28sp"
                     android:layout_marginEnd="12dp" />
 
@@ -416,7 +416,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Locația Favorită în Timp Real"
+                        android:text="@string/auto_locatia_favorita_in_timp_real_6d2a10"
                         android:textColor="@color/app_text_secondary"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -425,7 +425,7 @@
                         android:id="@+id/txt_battle_winner_value"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Se încarcă liderul..."
+                        android:text="@string/auto_se_incarca_liderul_049ae2"
                         android:textColor="@color/primary"
                         android:textSize="14sp"
                         android:fontFamily="sans-serif-black"
@@ -439,7 +439,7 @@
             android:id="@+id/hype_btn_close"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Închide"
+            android:text="@string/auto_inchide_9af4f3"
             android:textColor="@color/app_text_primary"
             android:backgroundTint="@color/app_surface"
             app:strokeColor="@color/app_border"

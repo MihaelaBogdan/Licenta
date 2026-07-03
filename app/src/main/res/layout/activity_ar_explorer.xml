@@ -45,7 +45,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="AR EXPLORER"
+                android:text="@string/auto_ar_explorer_f55662"
                 android:textColor="@color/accent_green"
                 android:textStyle="bold"
                 android:letterSpacing="0.2"
@@ -55,7 +55,7 @@
                 android:id="@+id/text_ar_hint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rotește telefonul pentru a descoperi"
+                android:text="@string/auto_roteste_telefonul_pentru_a_des_2b05c2"
                 android:textColor="@color/app_text_primary"
                 android:textSize="14sp" />
         </LinearLayout>

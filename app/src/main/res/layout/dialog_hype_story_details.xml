@@ -33,7 +33,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:textSize="22sp"
-                    android:text="☕" />
+                    android:text="@string/auto_str_0a8b4b" />
             </FrameLayout>
 
             <LinearLayout
@@ -53,7 +53,7 @@
                         android:id="@+id/dialog_story_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Nume Locație"
+                        android:text="@string/auto_nume_locatie_e75cf7"
                         android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -72,7 +72,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pulsul Social al Orașului"
+                    android:text="@string/auto_pulsul_social_al_orasului_7c9a5a"
                     android:textColor="@color/primary"
                     android:textSize="11sp"
                     android:letterSpacing="0.05" />
@@ -99,7 +99,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LIVE"
+                    android:text="@string/auto_live_f35d25"
                     android:textColor="#EF4444"
                     android:textSize="9sp"
                     android:textStyle="bold" />
@@ -124,7 +124,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SCOR HYPE SOCIAL"
+                    android:text="@string/auto_scor_hype_social_efb91a"
                     android:textColor="@color/gold_accent"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -135,7 +135,7 @@
                     android:id="@+id/dialog_story_score"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="95%"
+                    android:text="@string/auto_95_9b8185"
                     android:textColor="@color/gold_accent"
                     android:textSize="13sp"
                     android:textStyle="bold"
@@ -156,7 +156,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DE CE ESTE ÎN TREND:"
+                android:text="@string/auto_de_ce_este_in_trend_426b2f"
                 android:textColor="@color/white"
                 android:textSize="10sp"
                 android:textStyle="bold"
@@ -167,7 +167,7 @@
                 android:id="@+id/dialog_story_reason"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Această locație a cunoscut o creștere masivă în popularitate datorită review-urilor pozitive din ultimele 24 de ore."
+                android:text="@string/auto_aceasta_locatie_a_cunoscut_o_c_bcd5c3"
                 android:textColor="#E2E8F0"
                 android:textSize="13sp"
                 android:lineSpacingExtra="4sp"
@@ -187,7 +187,7 @@
                 android:id="@+id/dialog_story_stat_checkins"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📈 Activitate intensă detectată live"
+                android:text="@string/auto_activitate_intensa_detectata_l_c2ed44"
                 android:textColor="@color/secondary"
                 android:textSize="12sp"
                 android:layout_marginBottom="6dp" />
@@ -196,7 +196,7 @@
                 android:id="@+id/dialog_story_stat_mentions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔥 Foarte recomandat în rețelele sociale"
+                android:text="@string/auto_foarte_recomandat_in_retelele_ff4ef0"
                 android:textColor="@color/secondary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -212,7 +212,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:text="ÎNCHIDE"
+                android:text="@string/auto_inchide_a74d7a"
                 android:textColor="@color/white"
                 android:textSize="13sp" />
 
@@ -225,7 +225,7 @@
                 android:id="@+id/btn_dialog_story_navigate"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:text="NAVIGHEAZĂ"
+                android:text="@string/auto_navigheaza_e70437"
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 app:backgroundTint="@color/primary"

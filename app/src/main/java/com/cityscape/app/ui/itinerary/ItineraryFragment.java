@@ -205,7 +205,7 @@ public class ItineraryFragment extends Fragment {
                 @Override
                 public void onResponse(Call<ItineraryItem> call, Response<ItineraryItem> response) {
                     if (!isAdded() || response.body() == null) {
-                        Toast.makeText(getContext(), "Locație eliminată din itinerar", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.location_removed), Toast.LENGTH_SHORT).show();
                         return;
                     }
                     ItineraryItem replacement = response.body();
@@ -219,7 +219,7 @@ public class ItineraryFragment extends Fragment {
                 }
                 @Override
                 public void onFailure(Call<ItineraryItem> call, Throwable t) {
-                    Toast.makeText(getContext(), "Locație eliminată din itinerar", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.location_removed), Toast.LENGTH_SHORT).show();
                 }
             });
     }
@@ -228,7 +228,8 @@ public class ItineraryFragment extends Fragment {
         if (position < 0 || position >= itineraryItems.size()) return;
         ItineraryItem current = itineraryItems.get(position);
         
-        Toast.makeText(getContext(), "Căutăm alternative pentru " + current.slot + "...", Toast.LENGTH_SHORT).show();
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        Toast.makeText(getContext(), isEn ? "Looking for alternatives for " + current.slot + "..." : "Căutăm alternative pentru " + current.slot + "...", Toast.LENGTH_SHORT).show();
         
         // Use Api to get alternatives for this specific type
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -236,13 +237,13 @@ public class ItineraryFragment extends Fragment {
         double lat = args != null ? args.getDouble("lat") : 0;
         double lng = args != null ? args.getDouble("lng") : 0;
         
-        apiService.getItinerary(lat, lng, "nearby", 5000, current.type, 200, "", 2, 3, null, "walking", 8, "solo", false).enqueue(new Callback<List<ItineraryItem>>() {
+        apiService.getItinerary(lat, lng, "nearby", 5000, current.type, 200, "", 2, 3, null, "walking", 8, "solo", false, java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<List<ItineraryItem>>() {
             @Override
             public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     showReplacementDialog(position, response.body());
                 } else {
-                    Toast.makeText(getContext(), "Nu am găsit alternative potrivite acum.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), isEn ? "No suitable alternatives found now." : "Nu am găsit alternative potrivite acum.", Toast.LENGTH_SHORT).show();
                 }
             }
             @Override public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {}
@@ -250,18 +251,19 @@ public class ItineraryFragment extends Fragment {
     }
 
     private void showReplacementDialog(int position, List<ItineraryItem> alternatives) {
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         String[] names = new String[alternatives.size()];
         for (int i = 0; i < alternatives.size(); i++) names[i] = alternatives.get(i).name;
 
         new android.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-            .setTitle(position == -1 ? "Adaugă Locație" : "Schimbă Locația")
+            .setTitle(position == -1 ? (isEn ? "Add Location" : "Adaugă Locație") : (isEn ? "Change Location" : "Schimbă Locația"))
             .setItems(names, (dialog, which) -> {
                 ItineraryItem replacement = alternatives.get(which);
                 
                 if (position == -1) {
                     // ADD case
                     replacement.slot = "Extra";
-                    replacement.time = "Selectează ora";
+                    replacement.time = isEn ? "Select time" : "Selectează ora";
                     itineraryItems.add(replacement);
                     adapter.notifyItemInserted(itineraryItems.size() - 1);
                 } else {
@@ -280,14 +282,14 @@ public class ItineraryFragment extends Fragment {
 
 
     private void showAddLocationPicker() {
-        Toast.makeText(getContext(), "Personalizare: Adaugă o locație din apropiere", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), getString(R.string.personalization_add_location), Toast.LENGTH_SHORT).show();
         // Simple mock for now: let user pick from a search
         Bundle args = getArguments();
         double lat = args != null ? args.getDouble("lat") : 0;
         double lng = args != null ? args.getDouble("lng") : 0;
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getItinerary(lat, lng, "nearby", 5000, "mixed", 200, "", 4, 5, null, "walking", 8, "solo", false).enqueue(new Callback<List<ItineraryItem>>() {
+        apiService.getItinerary(lat, lng, "nearby", 5000, "mixed", 200, "", 4, 5, null, "walking", 8, "solo", false, java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<List<ItineraryItem>>() {
             @Override
             public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -481,7 +483,7 @@ public class ItineraryFragment extends Fragment {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         // Fetch 2 more to have a total of 3
         for (int i = 0; i < 2; i++) {
-            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId, travelMode, startHour, companion, avoidCrowds).enqueue(new Callback<List<ItineraryItem>>() {
+            apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId, travelMode, startHour, companion, avoidCrowds, java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<List<ItineraryItem>>() {
                 @Override
                 public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                     if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -525,7 +527,7 @@ public class ItineraryFragment extends Fragment {
         // Visual feedback
         binding.btnRegenerate.setEnabled(false);
         binding.btnRegenerate.animate().rotationBy(720).setDuration(1000).start();
-        Toast.makeText(getContext(), "Generăm planuri noi cu detalii...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), getString(R.string.generating_plans), Toast.LENGTH_SHORT).show();
 
         int currentTabIndex = binding.itineraryTabs.getSelectedTabPosition();
 
@@ -593,10 +595,10 @@ public class ItineraryFragment extends Fragment {
                             }
                         } catch (Exception e) {
                             Log.e("ItineraryFragment", "Error parsing enhanced response", e);
-                            Toast.makeText(getContext(), "Eroare la parsare date", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.parse_error), Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        Toast.makeText(getContext(), "Regenerare eșuată", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.regeneration_failed), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -671,7 +673,7 @@ public class ItineraryFragment extends Fragment {
 
     private void saveToCalendar() {
         if (itineraryItems == null || itineraryItems.isEmpty()) {
-            Toast.makeText(getContext(), "Generează un itinerariu mai întâi!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.generate_itinerary_first), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -690,7 +692,7 @@ public class ItineraryFragment extends Fragment {
         SessionManager sessionManager = new SessionManager(requireContext());
         String userId = sessionManager.getUserId();
         if (userId == null) {
-            Toast.makeText(getContext(), "Trebuie să fii autentificat!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.must_be_authenticated), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -729,9 +731,9 @@ public class ItineraryFragment extends Fragment {
                     final boolean isOffline = savedOfflineOnly;
                     getActivity().runOnUiThread(() -> {
                         if (isOffline) {
-                            Toast.makeText(getContext(), "Salvat offline cu succes! 🔌 Se va sincroniza cu serverul când revii online.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.saved_offline), Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(getContext(), "Itinerariul a fost salvat în calendar!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.itinerary_saved), Toast.LENGTH_LONG).show();
                         }
                         // Navigate to calendar to see results
                         try {
@@ -746,7 +748,7 @@ public class ItineraryFragment extends Fragment {
             } catch (Exception e) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Eroare la salvare: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.save_error) + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -759,7 +761,7 @@ public class ItineraryFragment extends Fragment {
      */
     private void exportToSystemCalendar() {
         if (itineraryItems == null || itineraryItems.isEmpty()) {
-            Toast.makeText(getContext(), "Generează un itinerariu mai întâi!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.generate_itinerary_first), Toast.LENGTH_SHORT).show();
             return;
         }
 

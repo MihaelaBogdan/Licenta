@@ -51,7 +51,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="none"
                     android:maxLines="2"
-                    android:text="Place Name"
+                    android:text="@string/auto_place_name_ec8e16"
                     android:textColor="@color/app_text_primary"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-condensed-medium"
@@ -65,7 +65,7 @@
                     android:layout_marginTop="2dp"
                     android:ellipsize="none"
                     android:maxLines="2"
-                    android:text="123 Street Name"
+                    android:text="@string/auto_123_street_name_6aa915"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="12sp" />
 
@@ -88,7 +88,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
-                        android:text="4.5 ★★★★☆ (1,200 recenzii)"
+                        android:text="@string/auto_45_1200_recenzii_928068"
                         android:textColor="@color/gold_accent"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -103,7 +103,7 @@
                     android:background="@drawable/bg_chip_category"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="Atracție"
+                    android:text="@string/auto_atractie_b2c71f"
                     android:textColor="@color/accent_green"
                     android:textSize="10sp"
                     android:textStyle="bold" />

@@ -78,6 +78,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private ApiService apiService;
         private SessionManager sessionManager;
         private PlaceAdapter aiPicksAdapter;
+        private PlaceAdapter recommendedAdapter;
+        private PlaceAdapter nearYouAdapter;
         private FusedLocationProviderClient fusedLocationClient;
         private Location currentLocation;
         private Location actualGpsLocation;
@@ -138,11 +140,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 binding.textWeather.setOnClickListener(v -> checkWeatherPlanB());
                 checkLocationPermission();
                 showPreviousSessionPromptIfAvailable();
+                setupSeeAllButtons();
 
                 // DEBUG: Show the current API URL on start to verify build updates
                 try {
                     String apiUrl = BuildConfig.FLASK_API_URL;
-                    Toast.makeText(getContext(), "Conectat la: " + apiUrl, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.connected_to) + apiUrl, Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     Log.e("HomeFragment", "Debug URL toast failed", e);
                 }
@@ -160,7 +163,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 binding.btnResetLocation.setOnClickListener(v -> {
                     isManualLocation = false;
                     sessionManager.setPreferredCity(null);
-                    Toast.makeText(getContext(), "Revenire la locația GPS...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.reverting_to_gps), Toast.LENGTH_SHORT).show();
                     checkLocationPermission();
                 });
             }
@@ -170,7 +173,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 binding.btnPlanDay.setOnClickListener(v -> {
                         Log.d("HomeFragment", "Itinerary button clicked");
                         if (currentLocation == null) {
-                                Toast.makeText(getContext(), "Locația nu este disponibilă încă. Încercăm să o găsim...",
+                                Toast.makeText(getContext(), getString(R.string.finding_location),
                                                 Toast.LENGTH_SHORT)
                                                 .show();
                                 getCurrentLocation();
@@ -324,14 +327,15 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 TextView textStatus = dialogView.findViewById(R.id.text_magic_status);
                 TextView textInstruction = dialogView.findViewById(R.id.text_magic_instruction);
                 TextView textReveal = dialogView.findViewById(R.id.text_magic_reveal_name);
-                ImageView imgBall = dialogView.findViewById(R.id.img_magic_reveal_ball);
-                ImageView imgMist = dialogView.findViewById(R.id.img_magic_reveal_mist);
+                com.cityscape.app.ui.widget.CrystalBallView crystalBallView = dialogView.findViewById(R.id.view_crystal_ball);
                 View glow1 = dialogView.findViewById(R.id.view_glow_1);
                 View glow2 = dialogView.findViewById(R.id.view_glow_2);
                 com.google.android.material.chip.ChipGroup chipGroup = dialogView.findViewById(R.id.chip_group_magic_cats);
                 com.google.android.material.button.MaterialButton btnGo = dialogView.findViewById(R.id.btn_magic_go);
                 com.google.android.material.button.MaterialButton btnClose = dialogView.findViewById(R.id.btn_magic_close);
                 View ballContainer = dialogView.findViewById(R.id.layout_magic_ball_container);
+                View shimmer = dialogView.findViewById(R.id.view_shimmer_glint);
+                View ballShadow = dialogView.findViewById(R.id.view_ball_shadow);
 
                 com.google.android.material.chip.Chip prediction1 = dialogView.findViewById(R.id.prediction_1);
                 com.google.android.material.chip.Chip prediction2 = dialogView.findViewById(R.id.prediction_2);
@@ -339,18 +343,17 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 // Setup initial state
                 ballContainer.setVisibility(View.GONE);
-                imgMist.setAlpha(0.3f);
                 textReveal.setAlpha(0f);
                 btnGo.setVisibility(View.GONE);
 
-                // Gentle pulse for the glows
-                android.animation.ObjectAnimator pulseGlow = android.animation.ObjectAnimator.ofFloat(glow1, "alpha", 0.3f, 0.6f);
-                pulseGlow.setDuration(1500);
-                pulseGlow.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-                pulseGlow.setRepeatMode(android.animation.ValueAnimator.REVERSE);
-                pulseGlow.start();
+                // Puls subtil al glow-ului în timp ce utilizatorul alege categoria
+                android.animation.ObjectAnimator idlePulse = android.animation.ObjectAnimator.ofFloat(glow1, "alpha", 0.2f, 0.5f);
+                idlePulse.setDuration(2000);
+                idlePulse.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                idlePulse.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                idlePulse.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+                idlePulse.start();
 
-                // Fetch predictions when dialog opens
                 fetchAndDisplayPredictions(prediction1, prediction2, prediction3);
 
                 chipGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -362,17 +365,17 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         else if (checkedId == R.id.chip_magic_relax) category = "park";
                         else if (checkedId == R.id.chip_magic_culture) category = "museum";
 
+                        idlePulse.cancel();
                         chipGroup.setVisibility(View.GONE);
+                        if (crystalBallView != null) crystalBallView.resetBall();
                         ballContainer.setVisibility(View.VISIBLE);
-                        
-                        textStatus.setText("SE CAUTĂ IDEI...");
-                        textInstruction.setText("Se analizează opțiunile...");
 
-                        // Fast rotating mist and bright glows
-                        startMagicAnimations(imgBall, imgMist, glow1, glow2);
-                        
-                        // Fetch recommendation immediately
-                        fetchMagicRecommendation(dialog, category, textStatus, textReveal, imgMist, btnGo);
+                        textStatus.setText(getString(R.string.globe_watching));
+                        textInstruction.setText(getString(R.string.energy_concentrating));
+
+                        startMagicAnimations(glow1, glow2, shimmer, ballShadow, ballContainer);
+
+                        fetchMagicRecommendation(dialog, category, textStatus, textReveal, crystalBallView, shimmer, btnGo);
                 });
 
                 if (btnClose != null) {
@@ -384,7 +387,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
         private void fetchAndDisplayPredictions(com.google.android.material.chip.Chip pred1, com.google.android.material.chip.Chip pred2, com.google.android.material.chip.Chip pred3) {
                 String userId = sessionManager.getUserId();
-                apiService.getCrystalBallTimeline(userId).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+                apiService.getCrystalBallTimeline(userId, java.util.Locale.getDefault().getLanguage()).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
                     @Override
                     public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
                         if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -417,93 +420,160 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
         }
 
-        private void startMagicAnimations(ImageView imgBall, ImageView imgMist, View glow1, View glow2) {
-                // Pulsate inner ball
-                android.animation.ObjectAnimator scaleX = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleX", 1.0f, 1.2f);
-                android.animation.ObjectAnimator scaleY = android.animation.ObjectAnimator.ofFloat(imgBall, "scaleY", 1.0f, 1.2f);
-                scaleX.setDuration(500); scaleY.setDuration(500);
-                scaleX.setRepeatCount(android.animation.ValueAnimator.INFINITE); scaleY.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-                scaleX.setRepeatMode(android.animation.ValueAnimator.REVERSE); scaleY.setRepeatMode(android.animation.ValueAnimator.REVERSE);
-                scaleX.start(); scaleY.start();
+        private void startMagicAnimations(View glow1, View glow2, View shimmer,
+                                           View ballShadow, View ballContainer) {
+                android.view.animation.AccelerateDecelerateInterpolator smooth =
+                        new android.view.animation.AccelerateDecelerateInterpolator();
 
-                // Fast mist rotation
-                imgMist.setAlpha(0.95f);
-                android.animation.ObjectAnimator rotateMist = android.animation.ObjectAnimator.ofFloat(imgMist, "rotation", 0f, 360f);
-                rotateMist.setDuration(2000); // 2 seconds per rotation (very fast)
-                rotateMist.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-                rotateMist.setInterpolator(new android.view.animation.LinearInterpolator());
-                rotateMist.start();
+                // Levitare: globul plutește sus-jos
+                android.animation.ObjectAnimator levitate = android.animation.ObjectAnimator.ofFloat(
+                        ballContainer, "translationY", 0f, -18f);
+                levitate.setDuration(2600);
+                levitate.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                levitate.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                levitate.setInterpolator(smooth);
+                levitate.start();
 
-                // Brighten the glows
-                glow1.animate().alpha(0.9f).setDuration(500).start();
-                glow2.animate().alpha(0.7f).setDuration(500).start();
+                // Umbra se micșorează sincronizat cu levitarea
+                if (ballShadow != null) {
+                    android.animation.ObjectAnimator shadowScale = android.animation.ObjectAnimator.ofFloat(
+                            ballShadow, "scaleX", 1.0f, 0.50f);
+                    shadowScale.setDuration(2600);
+                    shadowScale.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                    shadowScale.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                    shadowScale.setInterpolator(smooth);
+                    shadowScale.start();
+
+                    android.animation.ObjectAnimator shadowAlpha = android.animation.ObjectAnimator.ofFloat(
+                            ballShadow, "alpha", 0.5f, 0.14f);
+                    shadowAlpha.setDuration(2600);
+                    shadowAlpha.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                    shadowAlpha.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                    shadowAlpha.setInterpolator(smooth);
+                    shadowAlpha.start();
+                }
+
+                // Glow 1: puls dramatic cu scalare
+                android.animation.ObjectAnimator pulseGlow1 = android.animation.ObjectAnimator.ofFloat(
+                        glow1, "alpha", 0.3f, 0.88f);
+                pulseGlow1.setDuration(1900);
+                pulseGlow1.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                pulseGlow1.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                pulseGlow1.setInterpolator(smooth);
+                pulseGlow1.start();
+
+                for (String prop : new String[]{"scaleX", "scaleY"}) {
+                    android.animation.ObjectAnimator sg = android.animation.ObjectAnimator.ofFloat(glow1, prop, 1.0f, 1.14f);
+                    sg.setDuration(1900);
+                    sg.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                    sg.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                    sg.setInterpolator(smooth);
+                    sg.start();
+                }
+
+                // Glow 2: în antifază față de glow1
+                android.animation.ObjectAnimator pulseGlow2 = android.animation.ObjectAnimator.ofFloat(
+                        glow2, "alpha", 0.18f, 0.62f);
+                pulseGlow2.setDuration(2700);
+                pulseGlow2.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+                pulseGlow2.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+                pulseGlow2.setInterpolator(smooth);
+                pulseGlow2.setStartDelay(950);
+                pulseGlow2.start();
+
+                // Shimmer / glint: flash specultar periodic aleator
+                if (shimmer != null) {
+                    shimmer.setAlpha(0f);
+                    java.util.Random rng = new java.util.Random();
+                    Runnable[] holder = new Runnable[1];
+                    holder[0] = () -> {
+                        if (!shimmer.isAttachedToWindow()) return;
+                        shimmer.animate().alpha(0.88f).setDuration(160)
+                            .withEndAction(() ->
+                                shimmer.animate().alpha(0f).setDuration(520)
+                                    .withEndAction(() ->
+                                        shimmer.postDelayed(holder[0], 1800 + rng.nextInt(3500)))
+                                    .start())
+                            .start();
+                    };
+                    shimmer.postDelayed(holder[0], 1000);
+                }
         }
 
-        private void fetchMagicRecommendation(androidx.appcompat.app.AlertDialog dialog, String category, TextView textStatus, TextView textReveal, ImageView imgMist, com.google.android.material.button.MaterialButton btnGo) {
+        private void fetchMagicRecommendation(androidx.appcompat.app.AlertDialog dialog, String category,
+                TextView textStatus, TextView textReveal,
+                com.cityscape.app.ui.widget.CrystalBallView crystalBallView,
+                View shimmer, com.google.android.material.button.MaterialButton btnGo) {
                 String interests = "";
                 com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
                 if (currentUser != null && currentUser.interests != null) {
                     interests = currentUser.interests;
                 }
-                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId(), category, interests)
+                apiService.getMagicRecommendation(currentLocation.getLatitude(), currentLocation.getLongitude(), sessionManager.getUserId(), category, interests, java.util.Locale.getDefault().getLanguage())
                     .enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
                         @Override
                         public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
                             if (isAdded() && response.isSuccessful() && response.body() != null) {
                                 com.google.gson.JsonObject result = response.body();
                                 String name = result.get("name").getAsString();
-                                
-                                textReveal.postDelayed(() -> {
-                                    if (dialog.isShowing()) {
-                                        textStatus.setText("SUGESTIA TA:");
-                                        imgMist.animate().alpha(0.05f).setDuration(1000).start();
-                                        textReveal.setText(name);
-                                        textReveal.animate().alpha(1.0f).setDuration(800).start();
-                                        
-                                        btnGo.setVisibility(View.VISIBLE);
-                                        btnGo.setOnClickListener(v1 -> {
-                                            dialog.dismiss();
-                                            showMagicDetailDialog(result);
-                                        });
-                                    }
-                                }, 1800); // Keep the incantation going for 1.8s
+                                revealMagicResult(dialog, textStatus, textReveal, crystalBallView, shimmer, btnGo, name, result);
                             } else {
-                                fallbackToRandomPlace(dialog, textStatus, textReveal, imgMist, btnGo);
+                                fallbackToRandomPlace(dialog, textStatus, textReveal, crystalBallView, shimmer, btnGo);
                             }
                         }
 
                         @Override
                         public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
-                            fallbackToRandomPlace(dialog, textStatus, textReveal, imgMist, btnGo);
+                            fallbackToRandomPlace(dialog, textStatus, textReveal, crystalBallView, shimmer, btnGo);
                         }
                     });
         }
 
-        private void fallbackToRandomPlace(androidx.appcompat.app.AlertDialog dialog, TextView textStatus, TextView textReveal, ImageView imgMist, com.google.android.material.button.MaterialButton btnGo) {
-             if (!combinedPlacesList.isEmpty()) {
-                com.cityscape.app.model.Place result = combinedPlacesList.get(new java.util.Random().nextInt(combinedPlacesList.size()));
+        private void revealMagicResult(androidx.appcompat.app.AlertDialog dialog, TextView textStatus,
+                TextView textReveal, com.cityscape.app.ui.widget.CrystalBallView crystalBallView,
+                View shimmer, com.google.android.material.button.MaterialButton btnGo,
+                String name, com.google.gson.JsonObject result) {
+            textReveal.postDelayed(() -> {
+                if (!dialog.isShowing()) return;
+                textStatus.setText(getString(R.string.destiny_chosen));
+                // Nebula se estompează treptat (via CrystalBallView.startReveal)
+                if (crystalBallView != null) crystalBallView.startReveal();
+                // Flash specultar final (glint de reveal)
+                if (shimmer != null) {
+                    shimmer.animate().alpha(1.0f).setDuration(150)
+                        .withEndAction(() -> shimmer.animate().alpha(0.3f).setDuration(800).start())
+                        .start();
+                }
+                // Numele apare cu fade-in întârziat față de mist
                 textReveal.postDelayed(() -> {
-                    if (dialog.isShowing()) {
-                        textStatus.setText("SUGESTIA TA:");
-                        imgMist.animate().alpha(0.05f).setDuration(1000).start();
-                        textReveal.setText(result.name);
-                        textReveal.animate().alpha(1.0f).setDuration(800).start();
-                        
-                        btnGo.setVisibility(View.VISIBLE);
-                        btnGo.setOnClickListener(v1 -> {
-                            dialog.dismiss();
-                            // Convert Place to JsonObject for compatibility
-                            com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
-                            obj.addProperty("name", result.name);
-                            obj.addProperty("address", result.address);
-                            obj.addProperty("rating", result.rating);
-                            obj.addProperty("place_id", result.id);
-                            obj.addProperty("latitude", result.latitude);
-                            obj.addProperty("longitude", result.longitude);
-                            showMagicDetailDialog(obj);
-                        });
-                    }
-                }, 1800);
+                    textReveal.setText(name);
+                    textReveal.animate().alpha(1.0f).setDuration(450)
+                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .start();
+                    btnGo.setVisibility(View.VISIBLE);
+                    btnGo.setAlpha(0f);
+                    btnGo.animate().alpha(1f).setDuration(400).setStartDelay(200).start();
+                    btnGo.setOnClickListener(v1 -> {
+                        dialog.dismiss();
+                        showMagicDetailDialog(result);
+                    });
+                }, 250);
+            }, 600);
+        }
+
+        private void fallbackToRandomPlace(androidx.appcompat.app.AlertDialog dialog, TextView textStatus,
+                TextView textReveal, com.cityscape.app.ui.widget.CrystalBallView crystalBallView,
+                View shimmer, com.google.android.material.button.MaterialButton btnGo) {
+            if (!combinedPlacesList.isEmpty()) {
+                com.cityscape.app.model.Place result = combinedPlacesList.get(new java.util.Random().nextInt(combinedPlacesList.size()));
+                com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+                obj.addProperty("name", result.name);
+                obj.addProperty("address", result.address);
+                obj.addProperty("rating", result.rating);
+                obj.addProperty("place_id", result.id);
+                obj.addProperty("latitude", result.latitude);
+                obj.addProperty("longitude", result.longitude);
+                revealMagicResult(dialog, textStatus, textReveal, crystalBallView, shimmer, btnGo, result.name, obj);
             }
         }
 
@@ -511,7 +581,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
              if (getContext() == null) return;
              
              String name = result.get("name").getAsString();
-             String reason = result.has("reason") && !result.get("reason").isJsonNull() ? result.get("reason").getAsString() : "Destinul te ghidează spre o experiență locală unică!";
+             String defaultReason = "en".equals(java.util.Locale.getDefault().getLanguage()) ? "Destiny guides you to a unique local experience!" : "Destinul te ghidează spre o experiență locală unică!";
+             String reason = result.has("reason") && !result.get("reason").isJsonNull() ? result.get("reason").getAsString() : defaultReason;
              com.google.gson.JsonArray activitiesArr = result.has("activities") && !result.get("activities").isJsonNull() ? result.getAsJsonArray("activities") : null;
              
              StringBuilder actStr = new StringBuilder();
@@ -553,10 +624,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                          intent.setPackage("com.google.android.apps.maps");
                          startActivity(intent);
                      } else {
-                         Toast.makeText(getContext(), "Coordonate indisponibile pentru navigație", Toast.LENGTH_SHORT).show();
+                         Toast.makeText(getContext(), getString(R.string.coordinates_unavailable), Toast.LENGTH_SHORT).show();
                      }
                  } catch (Exception e) {
-                     Toast.makeText(getContext(), "Eroare navigație", Toast.LENGTH_SHORT).show();
+                     Toast.makeText(getContext(), getString(R.string.nav_error), Toast.LENGTH_SHORT).show();
                  }
              });
 
@@ -569,7 +640,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                      sendIntent.setType("text/plain");
                      startActivity(android.content.Intent.createChooser(sendIntent, "Invită prieteni prin..."));
                  } catch (Exception e) {
-                     Toast.makeText(getContext(), "Eroare la partajare", Toast.LENGTH_SHORT).show();
+                     Toast.makeText(getContext(), getString(R.string.share_error), Toast.LENGTH_SHORT).show();
                  }
              });
 
@@ -586,15 +657,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 requireContext(), R.style.DarkDialogTheme);
 
                 // Use custom view if possible, or just standard alert
-                builder.setTitle("🎲 Recomandarea Ta!")
-                                .setMessage("Ce zici de o vizită la " + place.name + "?\n\n"
-                                                + place.description)
-                                .setPositiveButton("Arată-mi", (d, w) -> {
+                builder.setTitle(getString(R.string.perfect_weather))
+                                .setMessage(getString(R.string.how_visit, place.name) + place.description)
+                                .setPositiveButton(getString(R.string.choose), (d, w) -> {
                                         // Open detail
-                                        Toast.makeText(getContext(), "Detalii pentru: " + place.name,
+                                        Toast.makeText(getContext(), getString(R.string.details_place) + place.name,
                                                         Toast.LENGTH_SHORT).show();
                                 })
-                                .setNegativeButton("Mai dă o dată", (d, w) -> binding.btnRevealFate.performClick())
+                                .setNegativeButton(getString(R.string.noted), (d, w) -> binding.btnRevealFate.performClick())
                                 .show();
         }
 
@@ -619,7 +689,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         @SuppressLint("MissingPermission")
         private void getCurrentLocation() {
                 if (binding != null) {
-                        binding.textLocation.setText("Detectăm locația...");
+                        binding.textLocation.setText(getString(R.string.detecting_location));
                 }
                 Log.d("HomeFragment", "Requesting current location with settings check...");
 
@@ -789,46 +859,49 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (isRainy) {
                     emoji = "🌧️";
                     if (likesMuseums || likesArt) {
-                        recText = "Afară plouă, dar e momentul perfect pentru pasiunea ta! 🌧️ Îți sugerăm o vizită culturală la Muzeul Național de Artă al României sau la Muzeul Național de Istorie.";
+                        recText = getString(R.string.weather_rainy_museum);
                     } else if (likesFood) {
-                        recText = "Plouă torențial! 🌧️ Refugiază-te într-o cafenea caldă de specialitate din centru sau savurează un prânz delicios la un restaurant primitor.";
+                        recText = getString(R.string.weather_rainy_food);
                     } else if (likesShopping) {
-                        recText = "Vremea e ploioasă! 🌧️ Sună ca o zi perfectă pentru shopping într-unul din marile mall-uri acoperite din oraș.";
+                        recText = getString(R.string.weather_rainy_shopping);
                     } else {
-                        recText = "Vremea e ploioasă în oraș acum! 🌧️ Recomandarea noastră este o activitate culturală de interior. Ce zici de o expoziție sau o cafenea liniștită?";
+                        recText = getString(R.string.weather_rainy_default);
                     }
                 } else if (temp < 12) {
                     emoji = "❄️";
+                    String tempStr = String.format(java.util.Locale.US, "%.1f°C", temp);
                     if (likesFood) {
-                        recText = "Este frig afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ O ciocolată caldă sau un ceai aromat la o ceainărie cochetă te vor încălzi imediat.";
+                        recText = getString(R.string.weather_cold_food, tempStr);
                     } else if (likesMuseums || likesArt) {
-                        recText = "Este răcoros afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Îți sugerăm să te adăpostești într-o galerie de artă caldă sau la muzeu.";
+                        recText = getString(R.string.weather_cold_museum, tempStr);
                     } else if (likesNightlife) {
-                        recText = "Seara e rece (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Distracția se mută în interior într-un pub primitor sau un club plin de energie.";
+                        recText = getString(R.string.weather_cold_nightlife, tempStr);
                     } else {
-                        recText = "Este destul de răcoros afară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ❄️ Îți recomandăm să explorezi spațiile indoor călduroase. O expoziție sau o băutură caldă ar fi ideale.";
+                        recText = getString(R.string.weather_cold_default, tempStr);
                     }
                 } else if (temp >= 12 && temp <= 22) {
                     emoji = "🌤️";
+                    String tempStr = String.format(java.util.Locale.US, "%.1f°C", temp);
                     if (likesParks) {
-                        recText = "Vreme perfectă pentru natură (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ Grădina Botanică sau Parcul Herăstrău te așteaptă pentru o plimbare revigorantă.";
+                        recText = getString(R.string.weather_cool_parks, tempStr);
                     } else if (likesMuseums || likesArt) {
-                        recText = "Vreme excelentă de plimbare urbană (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ Fă o vizită pe Calea Victoriei și intră la Muzeul Colecțiilor de Artă.";
+                        recText = getString(R.string.weather_cool_museum, tempStr);
                     } else if (likesFood) {
-                        recText = "Vreme plăcută în oraș (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ Savurează un brunch delicios la o terasă exterioară cochetă din centru.";
+                        recText = getString(R.string.weather_cool_food, tempStr);
                     } else {
-                        recText = "Vreme excelentă de plimbare urbană (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! 🌤️ O vizită la Grădina Botanică sau o plimbare pe Calea Victoriei ar fi o experiență perfectă.";
+                        recText = getString(R.string.weather_cool_default, tempStr);
                     }
                 } else {
                     emoji = "☀️";
+                    String tempStr = String.format(java.util.Locale.US, "%.1f°C", temp);
                     if (likesParks) {
-                        recText = "O zi caldă și însorită (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Parcul Cișmigiu sau Herăstrău sunt locurile ideale. Încearcă o plimbare cu barca!";
+                        recText = getString(R.string.weather_hot_parks, tempStr);
                     } else if (likesFood) {
-                        recText = "Zi foarte caldă în oraș (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Răcorește-te cu o limonadă rece pe o terasă la umbră din Centrul Vechi.";
+                        recText = getString(R.string.weather_hot_food, tempStr);
                     } else if (likesNightlife) {
-                        recText = "Seară perfectă de vară (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ O ieșire la o terasă deschisă sau pe un rooftop bar este alegerea ideală.";
+                        recText = getString(R.string.weather_hot_nightlife, tempStr);
                     } else {
-                        recText = "Este o zi călduroasă și însorită (" + String.format(java.util.Locale.US, "%.1f°C", temp) + ")! ☀️ Perfect pentru o terasă sau relaxare în parc. Îți recomandăm Parcul Herăstrău sau o plimbare pe lac!";
+                        recText = getString(R.string.weather_hot_default, tempStr);
                     }
                 }
                 
@@ -851,7 +924,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (cardSmart == null || txtEmoji == null || txtRec == null) return;
                 
                 txtEmoji.setText("🔌");
-                txtRec.setText("Modul Offline Activ. 🔌 Chiar și fără conexiune la internet, poți accesa traseele tale salvate offline din profil și poți efectua check-in-uri GPS la locațiile vizitate!");
+                txtRec.setText(getString(R.string.offline_mode_description));
                 cardSmart.setVisibility(View.VISIBLE);
         }
 
@@ -977,7 +1050,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
                                 .setTitle("Alege alt oraș")
-                                .setMessage("Introdu numele orașului pe care vrei să-l explorezi:")
+                                .setMessage(getString(R.string.enter_city_to_explore))
                                 .setView(input)
                                 .setPositiveButton("Explorează", (dialog, which) -> {
                                         String cityName = input.getText().toString().trim();
@@ -1017,7 +1090,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         sessionManager.setPreferredCity(displayName);
 
                                         binding.textLocation.setText(displayName);
-                                        Toast.makeText(getContext(), "Bun venit în " + displayName + "!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), getString(R.string.welcome_city, displayName), Toast.LENGTH_SHORT).show();
 
                                         allPlacesList.clear();
                                         nearbyPlacesList.clear();
@@ -1073,7 +1146,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 fetchWeather();
                 fetchEvents();
             } else {
-                Toast.makeText(getContext(), "Nu am găsit orașul: " + cityName, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.city_not_found) + cityName, Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -1086,7 +1159,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (city != null) {
                     searchForCity(city);
                 } else {
-                    Toast.makeText(getContext(), "GPS-ul nu a răspuns. Setează un oraș din Setări sau activează locația.",
+                    Toast.makeText(getContext(), getString(R.string.gps_not_responding),
                                     Toast.LENGTH_LONG).show();
                     fetchPlaces(false);
                 }
@@ -1364,7 +1437,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 String userId = sessionManager.getUserId();
                 if (isNearbyOnly) {
-                    apiService.getNearby(currentLocation.getLatitude(), currentLocation.getLongitude(), type, sessionManager.getUserId())
+                    apiService.getNearby(currentLocation.getLatitude(), currentLocation.getLongitude(), type, sessionManager.getUserId(), java.util.Locale.getDefault().getLanguage())
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -1381,7 +1454,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         });
                 } else {
                     String currentCity = sessionManager.getPreferredCity();
-                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), searchQuery, type, 50000, userId, currentCity)
+                    apiService.getPlacesSearch(currentLocation.getLatitude(), currentLocation.getLongitude(), searchQuery, type, 50000, userId, currentCity, java.util.Locale.getDefault().getLanguage())
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
@@ -1404,7 +1477,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             @Override
                             public void onFailure(Call<List<Place>> call, Throwable t) {
                                 Log.e("HomeFragment", "Trending fetch failed", t);
-                                if (isAdded()) Toast.makeText(getContext(), "Eroare rețea Trending: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                                if (isAdded()) Toast.makeText(getContext(), getString(R.string.trending_error) + t.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         });
                 }
@@ -1447,6 +1520,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 if (aiPicksList.isEmpty()) {
                                     aiPicksList.clear();
                                     aiPicksList.addAll(places);
+                                    if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
                                     updateFilters();
                                 }
                             }
@@ -1466,6 +1540,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                                 if (aiPicksList.isEmpty()) {
                                                     aiPicksList.clear();
                                                     aiPicksList.addAll(cached);
+                                                    if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
                                                     updateFilters();
                                                 }
                                             }
@@ -1511,7 +1586,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         requestBody.put("city_name", city != null ? city : "București");
                         requestBody.put("limit", 10);
                         requestBody.put("trending", true);
-                        requestBody.put("language", "ro");
+                        requestBody.put("language", java.util.Locale.getDefault().getLanguage());
 
                         if (categoryParam != null) {
                             requestBody.put("category", categoryParam);
@@ -1565,6 +1640,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         if (binding != null) {
                                             aiPicksList.clear();
                                             aiPicksList.addAll(places);
+                                            if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
                                             updateFilters();
                                             Log.d("HomeFragment", "Loaded " + places.size() + " explainable recommendations");
                                         }
@@ -1612,7 +1688,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                     binding.sectionTrending.setVisibility(View.VISIBLE);
                     binding.recyclerRecommended.setVisibility(View.VISIBLE);
-                    binding.trendingTitle.setText("Trending în " + (city != null && !city.isEmpty() ? city : "București"));
+                    binding.trendingTitle.setText("Trending");
                 } else {
                     binding.sectionTrending.setVisibility(View.GONE);
                     binding.recyclerRecommended.setVisibility(View.GONE);
@@ -1625,7 +1701,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     
                     if (isManualLocation) {
                         binding.btnResetLocation.setVisibility(View.VISIBLE);
-                        binding.nearYouTitle.setText("În apropiere de locația aleasă");
+                        binding.nearYouTitle.setText(getString(R.string.near_selected_location));
                     } else {
                         binding.btnResetLocation.setVisibility(View.GONE);
                         binding.nearYouTitle.setText(getString(R.string.near_you));
@@ -1767,6 +1843,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     binding.sectionTrending.setVisibility(View.GONE);
                 }
                 updateActiveFilterChips();
+                setupHypeBattle();
         }
 
         private void updateActiveFilterChips() {
@@ -1917,33 +1994,39 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
         private void updateNearYouAdapter(List<Place> list) {
                 if (binding == null) return;
-                PlaceAdapter adapter = new PlaceAdapter(getContext(), list, true,
-                                new PlaceAdapter.OnPlaceClickListener() {
-                                        @Override
-                                        public void onPlaceClick(Place place) {
-                                            sessionManager.recordPlaceVisit(place.name);
-                                            com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
-                                            com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
-                                            showPlaceDetailDialog(place);
-                                        }
+                
+                if (nearYouAdapter != null) {
+                    nearYouAdapter.setManualMode(isManualLocation);
+                    nearYouAdapter.updateData(list);
+                } else {
+                    nearYouAdapter = new PlaceAdapter(getContext(), list, true,
+                                    new PlaceAdapter.OnPlaceClickListener() {
+                                            @Override
+                                            public void onPlaceClick(Place place) {
+                                                sessionManager.recordPlaceVisit(place.name);
+                                                com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                                                com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                                                showPlaceDetailDialog(place);
+                                            }
 
-                                        @Override
-                                        public void onFavoriteClick(Place place) {
-                                                sessionManager.setPlaceFavorite(place.id, place.isFavorite);
-                                        }
+                                            @Override
+                                            public void onFavoriteClick(Place place) {
+                                                    sessionManager.setPlaceFavorite(place.id, place.isFavorite);
+                                            }
 
-                                        @Override
-                                        public void onVisitedClick(Place place) {
-                                                handleVisitedClick(place);
-                                        }
+                                            @Override
+                                            public void onVisitedClick(Place place) {
+                                                    handleVisitedClick(place);
+                                            }
 
-                                        @Override
-                                        public void onPlanClick(Place place) {
-                                                showPlanPlaceDialog(place);
-                                        }
-                                });
-                adapter.setManualMode(isManualLocation);
-                binding.recyclerNearYou.setAdapter(adapter);
+                                            @Override
+                                            public void onPlanClick(Place place) {
+                                                    showPlanPlaceDialog(place);
+                                            }
+                                    });
+                    nearYouAdapter.setManualMode(isManualLocation);
+                    binding.recyclerNearYou.setAdapter(nearYouAdapter);
+                }
         }
 
         private void handleVisitedClick(Place place) {
@@ -1962,7 +2045,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (isAdded() && response.isSuccessful()) {
-                        if (getContext() != null) Toast.makeText(getContext(), "Bravo! Vizită înregistrată. 🎉", Toast.LENGTH_SHORT).show();
+                        if (getContext() != null) Toast.makeText(getContext(), getString(R.string.visit_registered), Toast.LENGTH_SHORT).show();
                         fetchVisitedPlaces();
                         showFeedbackDialog(place);
                     }
@@ -1970,18 +2053,18 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Toast.makeText(getContext(), "Eroare la înregistrarea vizitei.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.visit_reg_error), Toast.LENGTH_SHORT).show();
                 }
             });
         }
 
         private void showFeedbackDialog(Place place) {
             new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle("Feedback pentru " + place.name)
-                .setMessage("Cum a fost vizita ta aici? Ajută-ți prietenii cu o recomandare!")
-                .setPositiveButton("Grozav! ⭐", (d, w) -> Toast.makeText(getContext(), "Mulțumim!", Toast.LENGTH_SHORT).show())
-                .setNeutralButton("E OK", (d, w) -> Toast.makeText(getContext(), "Mulțumim!", Toast.LENGTH_SHORT).show())
-                .setNegativeButton("Slab", (d, w) -> Toast.makeText(getContext(), "Ne pare rău!", Toast.LENGTH_SHORT).show())
+                .setTitle(getString(R.string.feedback_title, place.name))
+                .setMessage(getString(R.string.visit_feedback))
+                .setPositiveButton("Grozav! ⭐", (d, w) -> Toast.makeText(getContext(), getString(R.string.thank_you), Toast.LENGTH_SHORT).show())
+                .setNeutralButton("E OK", (d, w) -> Toast.makeText(getContext(), getString(R.string.thank_you), Toast.LENGTH_SHORT).show())
+                .setNegativeButton("Slab", (d, w) -> Toast.makeText(getContext(), getString(R.string.noted), Toast.LENGTH_SHORT).show())
                 .show();
         }
 
@@ -2073,33 +2156,38 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         limitedList = new java.util.ArrayList<>(list.subList(0, 10));
                 }
                 
-                PlaceAdapter adapter = new PlaceAdapter(getContext(), limitedList, false,
-                                new PlaceAdapter.OnPlaceClickListener() {
-                                        @Override
-                                        public void onPlaceClick(Place place) {
-                                                sessionManager.recordPlaceVisit(place.name);
-                                                com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
-                                                com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
-                                                showPlaceDetailDialog(place);
-                                        }
+                if (recommendedAdapter != null) {
+                    recommendedAdapter.setManualMode(isManualLocation);
+                    recommendedAdapter.updateData(limitedList);
+                } else {
+                    recommendedAdapter = new PlaceAdapter(getContext(), limitedList, false,
+                                    new PlaceAdapter.OnPlaceClickListener() {
+                                            @Override
+                                            public void onPlaceClick(Place place) {
+                                                    sessionManager.recordPlaceVisit(place.name);
+                                                    com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                                                    com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                                                    showPlaceDetailDialog(place);
+                                            }
 
-                                        @Override
-                                        public void onFavoriteClick(Place place) {
-                                                sessionManager.setPlaceFavorite(place.id, place.isFavorite);
-                                        }
+                                            @Override
+                                            public void onFavoriteClick(Place place) {
+                                                    sessionManager.setPlaceFavorite(place.id, place.isFavorite);
+                                            }
 
-                                        @Override
-                                        public void onVisitedClick(Place place) {
-                                                handleVisitedClick(place);
-                                        }
+                                            @Override
+                                            public void onVisitedClick(Place place) {
+                                                    handleVisitedClick(place);
+                                            }
 
-                                        @Override
-                                        public void onPlanClick(Place place) {
-                                                showPlanPlaceDialog(place);
-                                        }
-                                });
-                adapter.setManualMode(isManualLocation);
-                binding.recyclerRecommended.setAdapter(adapter);
+                                            @Override
+                                            public void onPlanClick(Place place) {
+                                                    showPlanPlaceDialog(place);
+                                            }
+                                    });
+                    recommendedAdapter.setManualMode(isManualLocation);
+                    binding.recyclerRecommended.setAdapter(recommendedAdapter);
+                }
         }
 
         private void showPlaceDetailDialog(Place place) {
@@ -2135,7 +2223,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 }
                 txtRating.setText(String.format(java.util.Locale.US, "%.1f %s", place.rating, stars.toString()));
             }
-            if (txtAddress != null) txtAddress.setText(place.address != null ? place.address : "Nespecificată");
+            if (txtAddress != null) txtAddress.setText(place.address != null ? place.address : getString(R.string.address_unspecified_text));
             
             // Dynamic Live Weather Fetch for this specific place location
             if (txtWeather != null && place.latitude != 0 && place.longitude != 0) {
@@ -2373,13 +2461,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     if (textToSpeech != null) {
                         if (textToSpeech.isSpeaking()) {
                             textToSpeech.stop();
-                            Toast.makeText(getContext(), "Ghidul audio a fost oprit.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.audio_guide_stopped), Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getContext(), "Se citește recomandarea AI... 🔊", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.reading_ai_rec), Toast.LENGTH_SHORT).show();
                             textToSpeech.speak(textToRead, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "ai_tour");
                         }
                     } else {
-                        Toast.makeText(getContext(), "Sintetizatorul de voce se inițializează...", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.voice_init), Toast.LENGTH_SHORT).show();
                         initTextToSpeech();
                     }
                 });
@@ -2503,7 +2591,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             final int[] startHour = {10}, startMinute = {0};
             final int[] endHour = {12}, endMinute = {0};
 
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMMM yyyy", new Locale("ro", "RO"));
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.getDefault());
             if (btnSelectDate != null) btnSelectDate.setText(sdf.format(new Date(selectedDateMillis[0])));
 
             if (btnSelectDate != null) {
@@ -2621,7 +2709,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 com.cityscape.app.util.BadgeManager.awardBadge(appContext, user.id, "planner", "Master Planner", "Ai început să îți organizezi aventura!", "Planifică cel puțin o activitate în jurnal", "ic_badge_generic");
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        if (getContext() != null) Toast.makeText(getContext(), "Adăugat la planul tău complex! 🎒🚀", Toast.LENGTH_LONG).show();
+                        if (getContext() != null) Toast.makeText(getContext(), getString(R.string.added_to_plan), Toast.LENGTH_LONG).show();
                     });
                 }
             }).start();
@@ -2633,7 +2721,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 String interests = user != null && user.interests != null ? user.interests : "";
 
                 String userId = sessionManager.getUserId();
-                apiService.getEvents(currentLocation.getLatitude(), currentLocation.getLongitude(), 50, interests, userId)
+                apiService.getEvents(currentLocation.getLatitude(), currentLocation.getLongitude(), 50, interests, userId, java.util.Locale.getDefault().getLanguage())
                                 .enqueue(new Callback<List<com.cityscape.app.model.Event>>() {
                                         @Override
                                         public void onResponse(Call<List<com.cityscape.app.model.Event>> call,
@@ -2657,7 +2745,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         public void onFailure(Call<List<com.cityscape.app.model.Event>> call, Throwable t) {
                                                 Log.e("HomeFragment", "Events fetch failed: " + t.getMessage(), t);
                                                 if (isAdded()) {
-                                                        android.widget.Toast.makeText(getContext(), "Nu s-au putut încărca evenimentele", android.widget.Toast.LENGTH_SHORT).show();
+                                                        android.widget.Toast.makeText(getContext(), getString(R.string.events_load_error), android.widget.Toast.LENGTH_SHORT).show();
                                                 }
                                         }
                                 });
@@ -2736,7 +2824,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             String userId = user != null ? user.id : "";
             String interests = user != null ? (user.interests != null ? user.interests : "") : "";
             
-            apiService.getDailyQuest(userId, currentLocation.getLatitude(), currentLocation.getLongitude(), interests, "ro")
+            apiService.getDailyQuest(userId, currentLocation.getLatitude(), currentLocation.getLongitude(), interests, java.util.Locale.getDefault().getLanguage())
                 .enqueue(new Callback<com.google.gson.JsonObject>() {
                     @Override
                     public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
@@ -2840,6 +2928,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     textToSpeech = null;
                 }
                 stopLocationUpdates();
+                recommendedAdapter = null;
+                nearYouAdapter = null;
+                aiPicksAdapter = null;
                 super.onDestroyView();
                 binding = null;
         }
@@ -2989,7 +3080,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     if (btnClaim != null) {
                         btnClaim.setOnClickListener(view -> {
                             dialog.dismiss();
-                            Toast.makeText(getContext(), "XP și insignă adăugate la profil! 🚀", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.xp_badge_profile), Toast.LENGTH_LONG).show();
                         });
                     }
                     
@@ -3001,11 +3092,11 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private void checkWeatherPlanB() {
             if (!isAdded()) return;
             if (currentLocation == null) {
-                Toast.makeText(getContext(), "Locația nu este disponibilă încă. Te rugăm să aștepți.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.location_awaiting), Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Toast.makeText(getContext(), "Se analizează prognoza meteo în timp real... ☁️", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.analyzing_weather), Toast.LENGTH_SHORT).show();
 
             apiService.getWeatherPlanB(currentLocation.getLatitude(), currentLocation.getLongitude()).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
                 @Override
@@ -3024,7 +3115,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         } else {
                             com.google.gson.JsonArray alts = res.getAsJsonArray("alternatives");
                             if (alts == null || alts.size() == 0) {
-                                Toast.makeText(getContext(), "Nu s-au găsit alternative din apropiere.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getString(R.string.no_nearby_alternatives), Toast.LENGTH_SHORT).show();
                                 return;
                             }
 
@@ -3077,13 +3168,98 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void loadHomeBattleWidget() {
+            View root = binding != null ? binding.getRoot() : null;
+            if (root == null) return;
+
+            android.widget.TextView nameAView  = root.findViewById(R.id.home_battle_name_a);
+            android.widget.TextView nameBView  = root.findViewById(R.id.home_battle_name_b);
+            android.widget.TextView pctAView   = root.findViewById(R.id.home_battle_pct_a);
+            android.widget.TextView pctBView   = root.findViewById(R.id.home_battle_pct_b);
+            android.widget.ProgressBar progA   = root.findViewById(R.id.home_battle_progress_a);
+            android.widget.ProgressBar progB   = root.findViewById(R.id.home_battle_progress_b);
+            android.widget.TextView leaderView = root.findViewById(R.id.txt_home_battle_leader);
+            com.google.android.material.button.MaterialButton voteABtn = root.findViewById(R.id.btn_home_vote_a);
+            com.google.android.material.button.MaterialButton voteBBtn = root.findViewById(R.id.btn_home_vote_b);
+            View cardView = root.findViewById(R.id.card_home_live_battle);
+
             if (isManualLocation) {
-                if (getView() != null) {
-                    View cardView = getView().findViewById(R.id.card_home_live_battle);
+                if (combinedPlacesList.size() >= 2) {
+                    String city = sessionManager.getPreferredCity();
+                    if (city == null || city.isEmpty()) city = "Oraș";
+                    
+                    int hash = Math.abs(city.hashCode());
+                    int indexA = hash % combinedPlacesList.size();
+                    int indexB = (indexA + 1) % combinedPlacesList.size();
+                    
+                    final Place pA = combinedPlacesList.get(indexA);
+                    final Place pB = combinedPlacesList.get(indexB);
+                    
+                    final String placeAId = pA.id;
+                    final String nameA = pA.name;
+                    final String placeBId = pB.id;
+                    final String nameB = pB.name;
+                    
+                    double ratingA = pA.rating > 0 ? pA.rating : 4.0;
+                    double ratingB = pB.rating > 0 ? pB.rating : 4.0;
+                    final double pctA = Math.round((ratingA / (ratingA + ratingB)) * 100);
+                    final double pctB = 100 - pctA;
+                    
+                    final String battleId = "local_" + city.replaceAll("\\s+", "_") + "_" + new java.text.SimpleDateFormat("yyyy_MM_dd", java.util.Locale.US).format(new java.util.Date());
+                    android.content.SharedPreferences prefs = requireContext().getSharedPreferences("local_battles", android.content.Context.MODE_PRIVATE);
+                    final String userChoice = prefs.getString("local_battle_choice_" + battleId, "");
+                    
+                    if (nameAView != null) nameAView.setText(nameA);
+                    if (nameBView != null) nameBView.setText(nameB);
+                    if (pctAView  != null) pctAView.setText(String.format(java.util.Locale.US, "%.0f%%", pctA));
+                    if (pctBView  != null) pctBView.setText(String.format(java.util.Locale.US, "%.0f%%", pctB));
+                    if (progA     != null) progA.setProgress((int) pctA);
+                    if (progB     != null) progB.setProgress((int) pctB);
+                    
+                    if (leaderView != null) {
+                        if (userChoice.isEmpty()) {
+                            leaderView.setText("⚔️ Alege favoritul tău în " + city + "!");
+                        } else {
+                            String choiceName = placeAId.equals(userChoice) ? nameA : nameB;
+                            leaderView.setText("👑 Ai votat: " + choiceName + "!");
+                        }
+                    }
+                    
+                    if (cardView != null) {
+                        cardView.setVisibility(View.VISIBLE);
+                        cardView.setOnClickListener(null);
+                    }
+                    
+                    if (voteABtn != null) {
+                        voteABtn.setText(placeAId.equals(userChoice) ? "⭐ Votat" : getString(R.string.vote));
+                        voteABtn.setEnabled(userChoice.isEmpty());
+                        voteABtn.setOnClickListener(v2 -> {
+                            prefs.edit().putString("local_battle_choice_" + battleId, placeAId).apply();
+                            playClashAnimation((ViewGroup) root, () -> {
+                                com.cityscape.app.util.BadgeManager.addExperience(requireContext(), sessionManager.getUserId(), 50);
+                                Toast.makeText(getContext(), getString(R.string.vote_registered), Toast.LENGTH_SHORT).show();
+                                loadHomeBattleWidget();
+                            });
+                        });
+                    }
+                    
+                    if (voteBBtn != null) {
+                        voteBBtn.setText(placeBId.equals(userChoice) ? "⭐ Votat" : getString(R.string.vote));
+                        voteBBtn.setEnabled(userChoice.isEmpty());
+                        voteBBtn.setOnClickListener(v2 -> {
+                            prefs.edit().putString("local_battle_choice_" + battleId, placeBId).apply();
+                            playClashAnimation((ViewGroup) root, () -> {
+                                com.cityscape.app.util.BadgeManager.addExperience(requireContext(), sessionManager.getUserId(), 50);
+                                Toast.makeText(getContext(), getString(R.string.vote_registered), Toast.LENGTH_SHORT).show();
+                                loadHomeBattleWidget();
+                            });
+                        });
+                    }
+                } else {
                     if (cardView != null) cardView.setVisibility(View.GONE);
                 }
                 return;
             }
+
             String userId = sessionManager.getUserId();
             if (userId == null || userId.isEmpty()) userId = "anon";
 
@@ -3109,19 +3285,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     final double mostVotedPct   = battle.has("most_voted_pct")  ? battle.get("most_voted_pct").getAsDouble()  : 50.0;
                     final String battleId       = battle.has("id") ? battle.get("id").getAsString() : "";
 
-                    View root = binding.getRoot();
-
-                    android.widget.TextView nameAView  = root.findViewById(R.id.home_battle_name_a);
-                    android.widget.TextView nameBView  = root.findViewById(R.id.home_battle_name_b);
-                    android.widget.TextView pctAView   = root.findViewById(R.id.home_battle_pct_a);
-                    android.widget.TextView pctBView   = root.findViewById(R.id.home_battle_pct_b);
-                    android.widget.ProgressBar progA   = root.findViewById(R.id.home_battle_progress_a);
-                    android.widget.ProgressBar progB   = root.findViewById(R.id.home_battle_progress_b);
-                    android.widget.TextView leaderView = root.findViewById(R.id.txt_home_battle_leader);
-                    com.google.android.material.button.MaterialButton voteABtn = root.findViewById(R.id.btn_home_vote_a);
-                    com.google.android.material.button.MaterialButton voteBBtn = root.findViewById(R.id.btn_home_vote_b);
-                    View cardView = root.findViewById(R.id.card_home_live_battle);
-
                     if (nameAView != null) nameAView.setText(nameA);
                     if (nameBView != null) nameBView.setText(nameB);
                     if (pctAView  != null) pctAView.setText(String.format(java.util.Locale.US, "%.0f%%", pctA));
@@ -3144,7 +3307,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
 
                     if (voteABtn != null) {
-                        voteABtn.setText(placeAId.equals(userChoice) ? "⭐ Votat" : "Votează");
+                        voteABtn.setText(placeAId.equals(userChoice) ? "⭐ Votat" : getString(R.string.vote));
                         voteABtn.setEnabled(true);
                         voteABtn.setOnClickListener(v2 -> {
                             v2.setEnabled(false); // previne dublu-click
@@ -3154,7 +3317,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
 
                     if (voteBBtn != null) {
-                        voteBBtn.setText(placeBId.equals(userChoice) ? "⭐ Votat" : "Votează");
+                        voteBBtn.setText(placeBId.equals(userChoice) ? "⭐ Votat" : getString(R.string.vote));
                         voteBBtn.setEnabled(true);
                         voteBBtn.setOnClickListener(v2 -> {
                             v2.setEnabled(false); // previne dublu-click
@@ -3224,8 +3387,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         loadHomeBattleWidget();
 
                     } else {
+                        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                         com.google.android.material.snackbar.Snackbar.make(
-                            binding.getRoot(), "Eroare la votare. Încearcă din nou.",
+                            binding.getRoot(), isEn ? "Voting error. Please try again." : "Eroare la votare. Încearcă din nou.",
                             com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
                         ).show();
                     }
@@ -3234,8 +3398,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 @Override
                 public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
                     if (isAdded() && binding != null) {
+                        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                         com.google.android.material.snackbar.Snackbar.make(
-                            binding.getRoot(), "Eroare de rețea. Votul nu a fost transmis.",
+                            binding.getRoot(), isEn ? "Network error. Vote was not submitted." : "Eroare de rețea. Votul nu a fost transmis.",
                             com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
                         ).show();
                     }
@@ -3417,24 +3582,24 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                         // High-interaction voting: buttons are ALWAYS active and click-able so the user can switch sides and test the boxing clash animation infinitely!
                         if (btnVoteA != null) {
-                            btnVoteA.setText(userChoice.equals(placeAId) ? "⭐️ Votat!" : "Alege");
+                            btnVoteA.setText(userChoice.equals(placeAId) ? "⭐️ Votat!" : getString(R.string.choose));
                             btnVoteA.setEnabled(true);
                             btnVoteA.setOnClickListener(v2 -> castVote(dialog, placeAId, id));
                         }
                         if (btnVoteB != null) {
-                            btnVoteB.setText(userChoice.equals(placeBId) ? "⭐️ Votat!" : "Alege");
+                            btnVoteB.setText(userChoice.equals(placeBId) ? "⭐️ Votat!" : getString(R.string.choose));
                             btnVoteB.setEnabled(true);
                             btnVoteB.setOnClickListener(v2 -> castVote(dialog, placeBId, id));
                         }
                     } else {
-                        Toast.makeText(getContext(), "Bătăliile live nu sunt disponibile offline.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.battles_offline), Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
-                    Toast.makeText(getContext(), "Conectare eșuată la serverul de bătălii.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.battle_server_error), Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 }
             });
@@ -3480,7 +3645,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
                         if (isAdded()) {
                             if (response.isSuccessful()) {
-                                Toast.makeText(getContext(), "Vot înregistrat! +50 XP Adăugați! 🎉", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getContext(), getString(R.string.vote_registered), Toast.LENGTH_LONG).show();
                                 new Thread(() -> {
                                     try {
                                         sessionManager.unlockBadge("hype_master");
@@ -3495,7 +3660,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     String err = response.errorBody() != null ? response.errorBody().string() : "Eroare la vot";
                                     Toast.makeText(getContext(), err, Toast.LENGTH_SHORT).show();
                                 } catch (Exception e) {
-                                    Toast.makeText(getContext(), "Vot refuzat.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string.vote_declined), Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
@@ -3503,9 +3668,56 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                     @Override
                     public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {
-                        Toast.makeText(getContext(), "Eroare rețea la transmiterea votului.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.vote_transmission_error), Toast.LENGTH_SHORT).show();
                     }
                 });
             });
+        }
+
+        private void setupSeeAllButtons() {
+            View root = binding.getRoot();
+            View btnSeeAllNearYou = root.findViewById(R.id.btn_see_all_near_you);
+            if (btnSeeAllNearYou != null) {
+                btnSeeAllNearYou.setOnClickListener(v -> {
+                    try {
+                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_map);
+                    } catch (Exception e) {
+                        Log.e("HomeFragment", "Navigation to map failed", e);
+                    }
+                });
+            }
+
+            View btnSeeAllVisited = root.findViewById(R.id.btn_see_all_visited);
+            if (btnSeeAllVisited != null) {
+                btnSeeAllVisited.setOnClickListener(v -> {
+                    try {
+                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_profile);
+                    } catch (Exception e) {
+                        Log.e("HomeFragment", "Navigation to profile failed", e);
+                    }
+                });
+            }
+
+            View btnSeeAllEvents = root.findViewById(R.id.btn_see_all_events);
+            if (btnSeeAllEvents != null) {
+                btnSeeAllEvents.setOnClickListener(v -> {
+                    try {
+                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_calendar);
+                    } catch (Exception e) {
+                        Log.e("HomeFragment", "Navigation to calendar failed", e);
+                    }
+                });
+            }
+
+            View btnSeeAllTrending = root.findViewById(R.id.btn_see_all_trending);
+            if (btnSeeAllTrending != null) {
+                btnSeeAllTrending.setOnClickListener(v -> {
+                    try {
+                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_feed);
+                    } catch (Exception e) {
+                        Log.e("HomeFragment", "Navigation to feed failed", e);
+                    }
+                });
+            }
         }
 }

@@ -194,10 +194,11 @@ public class ProfileFragment extends Fragment {
                                 "Apasă de 5 ori pe avatarul de profil", 
                                 "ic_badge_generic");
                         
+                        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                .setTitle("🎓 EASTER EGG DEBLOCAT!")
-                                .setMessage("Felicitări! Ai descoperit secretul ascuns în codul aplicației CityScape!\n\n🎒 Ai primit +1000 XP de excelență academică și insigna de elită 'Licență de Nota 10'! 🏆\n\nSucces maxim la prezentarea tezei!")
-                                .setPositiveButton("Senzațional!", null)
+                                .setTitle(isEn ? "🎓 EASTER EGG UNLOCKED!" : "🎓 EASTER EGG DEBLOCAT!")
+                                .setMessage(isEn ? "Congratulations! You discovered the secret hidden in the CityScape app code!\n\n🎒 You received +1000 XP of academic excellence and the elite badge 'Thesis with Honors'! 🏆\n\nBest of luck with your thesis presentation!" : "Felicitări! Ai descoperit secretul ascuns în codul aplicației CityScape!\n\n🎒 Ai primit +1000 XP de excelență academică și insigna de elită 'Licență de Nota 10'! 🏆\n\nSucces maxim la prezentarea tezei!")
+                                .setPositiveButton(isEn ? "Amazing!" : "Senzațional!", null)
                                 .show();
                     }
                 } else {
@@ -231,7 +232,12 @@ public class ProfileFragment extends Fragment {
             // Handle the new 'XP needed' text
             if (xpNeededText != null) {
                 int remaining = xpNeeded - user.currentXp;
-                xpNeededText.setText(String.format("Mai ai nevoie de %d XP pentru nivelul %d", remaining, user.level + 1));
+                boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+                if (isEn) {
+                    xpNeededText.setText(String.format("You need %d more XP for level %d", remaining, user.level + 1));
+                } else {
+                    xpNeededText.setText(String.format("Mai ai nevoie de %d XP pentru nivelul %d", remaining, user.level + 1));
+                }
             }
 
             statPlaces.setText(String.valueOf(user.placesVisited));
@@ -577,37 +583,46 @@ public class ProfileFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     com.google.gson.JsonObject r = response.body();
                     
+                    boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                     StringBuilder sb = new StringBuilder();
-                    sb.append("📊 RAPORT ACTIVITATE CITYSCAPE\n\n");
-                    sb.append("👤 Utilizator: ").append(r.get("user_name").getAsString()).append("\n");
-                    sb.append("🏅 Nivel: ").append(r.get("level").getAsInt()).append("\n");
-                    sb.append("⭐ Total XP: ").append(r.get("total_xp").getAsInt()).append("\n\n");
+                    sb.append(isEn ? "📊 CITYSCAPE ACTIVITY REPORT\n\n" : "📊 RAPORT ACTIVITATE CITYSCAPE\n\n");
+                    sb.append(isEn ? "👤 User: " : "👤 Utilizator: ").append(r.get("user_name").getAsString()).append("\n");
+                    sb.append(isEn ? "🏅 Level: " : "🏅 Nivel: ").append(r.get("level").getAsInt()).append("\n");
+                    sb.append(isEn ? "⭐ Total XP: " : "⭐ Total XP: ").append(r.get("total_xp").getAsInt()).append("\n\n");
                     
-                    sb.append("📍 Locații vizitate: ").append(r.get("places_visited_count").getAsInt()).append("\n");
-                    sb.append("❤️ Categoria preferată: ").append(r.get("favorite_category").getAsString()).append("\n");
-                    sb.append("📝 Postări create: ").append(r.get("posts_created").getAsInt()).append("\n");
-                    sb.append("💎 Insigne câștigate: ").append(r.get("badges_count").getAsInt()).append("\n\n");
+                    sb.append(isEn ? "📍 Places visited: " : "📍 Locații vizitate: ").append(r.get("places_visited_count").getAsInt()).append("\n");
+                    sb.append(isEn ? "❤️ Favorite category: " : "❤️ Categoria preferată: ").append(r.get("favorite_category").getAsString()).append("\n");
+                    sb.append(isEn ? "📝 Posts created: " : "📝 Postări create: ").append(r.get("posts_created").getAsInt()).append("\n");
+                    sb.append(isEn ? "💎 Badges earned: " : "💎 Insigne câștigate: ").append(r.get("badges_count").getAsInt()).append("\n\n");
                     
-                    sb.append("📅 Membru din: ").append(r.get("join_date").getAsString()).append("\n\n");
+                    sb.append(isEn ? "📅 Member since: " : "📅 Membru din: ").append(r.get("join_date").getAsString()).append("\n\n");
                     
                     if (r.has("recent_visits") && r.get("recent_visits").getAsJsonArray().size() > 0) {
-                        sb.append("Ultimile aventuri:\n");
+                        sb.append(isEn ? "Recent adventures:\n" : "Ultimile aventuri:\n");
                         for (com.google.gson.JsonElement e : r.get("recent_visits").getAsJsonArray()) {
                             sb.append(" • ").append(e.getAsString()).append("\n");
                         }
                     }
 
                     new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                            .setTitle("Raportul Tău CityScape")
+                            .setTitle(isEn ? "Your CityScape Report" : "Raportul Tău CityScape")
                             .setMessage(sb.toString())
-                            .setPositiveButton("Închide", null)
-                            .setNeutralButton("Partajează", (d, w) -> {
-                                String[] shareOptions = {
-                                    "Trimite prietenilor în chat-ul de grup 💬",
-                                    "Partajează extern (WhatsApp, Instagram, etc.) 📤"
-                                };
+                            .setPositiveButton(isEn ? "Close" : "Închide", null)
+                            .setNeutralButton(isEn ? "Share" : "Partajează", (d, w) -> {
+                                String[] shareOptions;
+                                if (isEn) {
+                                    shareOptions = new String[]{
+                                        "Send to friends in group chat 💬",
+                                        "Share externally (WhatsApp, Instagram, etc.) 📤"
+                                    };
+                                } else {
+                                    shareOptions = new String[]{
+                                        "Trimite prietenilor în chat-ul de grup 💬",
+                                        "Partajează extern (WhatsApp, Instagram, etc.) 📤"
+                                    };
+                                }
                                 new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                        .setTitle("Cum dorești să partajezi?")
+                                        .setTitle(isEn ? "How would you like to share?" : "Cum dorești să partajezi?")
                                         .setItems(shareOptions, (subDialog, optionIndex) -> {
                                             if (optionIndex == 0) {
                                                 // Load groups on background thread
@@ -619,7 +634,7 @@ public class ProfileFragment extends Fragment {
                                                         if (getActivity() == null) return;
                                                         getActivity().runOnUiThread(() -> {
                                                             if (friends == null || friends.isEmpty()) {
-                                                                Toast.makeText(getContext(), "Nu ai prieteni activi momentan.", Toast.LENGTH_SHORT).show();
+                                                                Toast.makeText(getContext(), getString(R.string.no_active_friends), Toast.LENGTH_SHORT).show();
                                                                 return;
                                                             }
                                                             String[] friendNames = new String[friends.size()];
@@ -627,11 +642,11 @@ public class ProfileFragment extends Fragment {
                                                                 friendNames[i] = friends.get(i).name;
                                                             }
                                                             new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                                                    .setTitle("Alege prietenul din aplicație")
+                                                                    .setTitle(getString(R.string.enter_place_name_dialog))
                                                                     .setItems(friendNames, (fDialog, fIndex) -> {
                                                                         com.cityscape.app.model.User chosenFriend = friends.get(fIndex);
                                                                         com.cityscape.app.util.BadgeManager.addExperience(appContext, sessionManager.getUserId(), 100);
-                                                                        Toast.makeText(getContext(), "Raport trimis cu succes către " + chosenFriend.name + "! 💬 +100 XP", Toast.LENGTH_LONG).show();
+                                                                        Toast.makeText(getContext(), getString(R.string.report_sent) + " " + chosenFriend.name + getString(R.string.ai_error), Toast.LENGTH_LONG).show();
                                                                     })
                                                                     .show();
                                                         });
@@ -644,7 +659,7 @@ public class ProfileFragment extends Fragment {
                                                                 groupNames[i] = groups.get(i).groupName;
                                                             }
                                                             new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                                                    .setTitle("Alege grupul în care partajezi")
+                                                                    .setTitle(getString(R.string.choose))
                                                                     .setItems(groupNames, (gDialog, gIndex) -> {
                                                                         com.cityscape.app.model.ActivityGroup chosenGroup = groups.get(gIndex);
                                                                         
@@ -654,14 +669,14 @@ public class ProfileFragment extends Fragment {
                                                                                 chosenGroup.id, 
                                                                                 sessionManager.getUserId(), 
                                                                                 sessionManager.getCurrentUser() != null ? sessionManager.getCurrentUser().name : "Eu",
-                                                                                "📊 RAPORTUL MEU ACTIVITATE:\n\n" + sb.toString()
+                                                                                "📊 " + (isEn ? "MY ACTIVITY REPORT:\n\n" : "RAPORTUL MEU ACTIVITATE:\n\n") + sb.toString()
                                                                             );
                                                                             db.groupMessageDao().insert(sharedMsg);
                                                                             com.cityscape.app.util.BadgeManager.addExperience(appContext, sessionManager.getUserId(), 150);
                                                                             
                                                                             if (getActivity() != null) {
                                                                                 getActivity().runOnUiThread(() -> {
-                                                                                    Toast.makeText(getContext(), "Raport partajat în chat-ul grupului '" + chosenGroup.groupName + "'! 🚀 +150 XP", Toast.LENGTH_LONG).show();
+                                                                                    Toast.makeText(getContext(), getString(R.string.story_sent_to_group) + " '" + chosenGroup.groupName + getString(R.string.ai_error), Toast.LENGTH_LONG).show();
                                                                                 });
                                                                             }
                                                                         }).start();
@@ -675,20 +690,20 @@ public class ProfileFragment extends Fragment {
                                                 Intent s = new Intent(Intent.ACTION_SEND); 
                                                 s.setType("text/plain");
                                                 s.putExtra(Intent.EXTRA_TEXT, sb.toString());
-                                                startActivity(Intent.createChooser(s, "Trimite Raport"));
+                                                startActivity(Intent.createChooser(s, isEn ? "Send Report" : "Trimite Raport"));
                                             }
                                         })
                                         .show();
                             })
                             .show();
                 } else {
-                    Toast.makeText(getContext(), "Nu s-a putut genera raportul. Reîncearcă mai târziu.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.report_generation_failed), Toast.LENGTH_SHORT).show();
                 }
             }
             @Override public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
                 if (isAdded()) {
                     dialog.dismiss();
-                    Toast.makeText(getContext(), "Eroare de conexiune la server.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.server_error), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -701,18 +716,19 @@ public class ProfileFragment extends Fragment {
             public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
                     com.google.gson.JsonObject s = response.body();
+                    boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                     StringBuilder sb = new StringBuilder();
                     sb.append("🛡️ ADMIN DASHBOARD STATS\n\n");
-                    sb.append("👥 Total Utilizatori: ").append(s.get("total_users").getAsInt()).append("\n");
-                    sb.append("📮 Total Postări: ").append(s.get("total_posts").getAsInt()).append("\n");
-                    sb.append("👣 Total Vizite: ").append(s.get("total_visits").getAsInt()).append("\n");
-                    sb.append("⚠️ Total Raportări: ").append(s.get("total_reports").getAsInt()).append("\n\n");
+                    sb.append(isEn ? "👥 Total Users: " : "👥 Total Utilizatori: ").append(s.get("total_users").getAsInt()).append("\n");
+                    sb.append(isEn ? "📮 Total Posts: " : "📮 Total Postări: ").append(s.get("total_posts").getAsInt()).append("\n");
+                    sb.append(isEn ? "👣 Total Visits: " : "👣 Total Vizite: ").append(s.get("total_visits").getAsInt()).append("\n");
+                    sb.append(isEn ? "⚠️ Total Reports: " : "⚠️ Total Raportări: ").append(s.get("total_reports").getAsInt()).append("\n\n");
                     
-                    sb.append("🔴 Raportări în așteptare: ").append(s.get("pending_reports_count").getAsInt()).append("\n");
-                    sb.append("✅ Status Sistem: ").append(s.get("system_health").getAsString()).append("\n");
+                    sb.append(isEn ? "🔴 Pending reports: " : "🔴 Raportări în așteptare: ").append(s.get("pending_reports_count").getAsInt()).append("\n");
+                    sb.append(isEn ? "✅ System Status: " : "✅ Status Sistem: ").append(s.get("system_health").getAsString()).append("\n");
 
                     new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                            .setTitle("Statistici Globale")
+                            .setTitle(isEn ? "Global Statistics" : "Statistici Globale")
                             .setMessage(sb.toString())
                             .setPositiveButton("OK", null)
                             .show();
@@ -724,9 +740,10 @@ public class ProfileFragment extends Fragment {
 
     private void showMysticalTravelStory() {
         if (!isAdded()) return;
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         AlertDialog progressDialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle("Cronicarul AI...")
-                .setMessage("Se compilează aventurile tale într-un manuscris mistic...")
+                .setTitle(isEn ? "AI Chronicler..." : "Cronicarul AI...")
+                .setMessage(isEn ? "Compiling your adventures into a mystical manuscript..." : "Se compilează aventurile tale într-un manuscris mistic...")
                 .show();
 
         new Thread(() -> {
@@ -765,16 +782,24 @@ public class ProfileFragment extends Fragment {
                         String story = res.get("story").getAsString();
 
                         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                .setTitle("📖 Jurnalul Mistic AI")
+                                .setTitle(isEn ? "📖 AI Mystical Diary" : "📖 Jurnalul Mistic AI")
                                 .setMessage(story)
-                                .setPositiveButton("Închide", null)
-                                .setNeutralButton("Partajează", (dialog, which) -> {
-                                    String[] shareOptions = {
-                                        "Trimite prietenilor în chat-ul de grup 💬",
-                                        "Copiază textul 📋"
-                                    };
+                                .setPositiveButton(isEn ? "Close" : "Închide", null)
+                                .setNeutralButton(isEn ? "Share" : "Partajează", (dialog, which) -> {
+                                    String[] shareOptions;
+                                    if (isEn) {
+                                        shareOptions = new String[]{
+                                            "Send to friends in group chat 💬",
+                                            "Copy text 📋"
+                                        };
+                                    } else {
+                                        shareOptions = new String[]{
+                                            "Trimite prietenilor în chat-ul de grup 💬",
+                                            "Copiază textul 📋"
+                                        };
+                                    }
                                     new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                            .setTitle("Alege modul de partajare")
+                                            .setTitle(getString(R.string.choose))
                                             .setItems(shareOptions, (subD, index) -> {
                                                 if (index == 0) {
                                                     new Thread(() -> {
@@ -782,7 +807,7 @@ public class ProfileFragment extends Fragment {
                                                         if (groups == null || groups.isEmpty()) {
                                                             if (getActivity() == null) return;
                                                             getActivity().runOnUiThread(() -> {
-                                                                Toast.makeText(getContext(), "Nu ai grupuri active în care să trimiți povestea.", Toast.LENGTH_SHORT).show();
+                                                                Toast.makeText(getContext(), getString(R.string.no_active_groups), Toast.LENGTH_SHORT).show();
                                                             });
                                                         } else {
                                                             if (getActivity() == null) return;
@@ -792,7 +817,7 @@ public class ProfileFragment extends Fragment {
                                                                     groupNames[i] = groups.get(i).groupName;
                                                                 }
                                                                 new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                                                                        .setTitle("Alege grupul în care trimiți povestea")
+                                                                        .setTitle(getString(R.string.choose))
                                                                         .setItems(groupNames, (gDialog, gIndex) -> {
                                                                             com.cityscape.app.model.ActivityGroup chosenGroup = groups.get(gIndex);
                                                                             new Thread(() -> {
@@ -807,7 +832,7 @@ public class ProfileFragment extends Fragment {
                                                                                 
                                                                                 if (getActivity() != null) {
                                                                                     getActivity().runOnUiThread(() -> {
-                                                                                        Toast.makeText(getContext(), "Povestea mistică a fost trimisă în chat-ul grupului! 🚀 +200 XP", Toast.LENGTH_LONG).show();
+                                                                                        Toast.makeText(getContext(), getString(R.string.story_sent_to_group), Toast.LENGTH_LONG).show();
                                                                                     });
                                                                                 }
                                                                             }).start();
@@ -820,14 +845,14 @@ public class ProfileFragment extends Fragment {
                                                     android.content.ClipboardManager clipboard = (android.content.ClipboardManager) requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
                                                     android.content.ClipData clip = android.content.ClipData.newPlainText("CityScape Mystical Story", story);
                                                     clipboard.setPrimaryClip(clip);
-                                                    Toast.makeText(getContext(), "Copiat în clipboard! 📋", Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(getContext(), getString(R.string.code_copied), Toast.LENGTH_SHORT).show();
                                                 }
                                             })
                                             .show();
                                 })
                                 .show();
                     } else {
-                        Toast.makeText(getContext(), "Cronicarul AI are un blocaj de creație momentan.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.ai_chronicle_blocked), Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -835,7 +860,7 @@ public class ProfileFragment extends Fragment {
                 public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
                     if (isAdded()) {
                         progressDialog.dismiss();
-                        Toast.makeText(getContext(), "Eroare de conexiune la cronicarul AI.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.ai_error), Toast.LENGTH_SHORT).show();
                     }
                 }
             });

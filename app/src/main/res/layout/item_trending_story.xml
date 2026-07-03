@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textSize="22sp"
-                android:text="☕" />
+                android:text="@string/auto_str_0a8b4b" />
         </FrameLayout>
 
         <!-- Dynamic Indicator / Flame Badge -->
@@ -53,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="🔥"
+                android:text="@string/auto_str_cbe676"
                 android:textSize="11sp" />
         </FrameLayout>
 
@@ -67,7 +67,7 @@
         android:gravity="center"
         android:maxLines="1"
         android:ellipsize="end"
-        android:text="Locație"
+        android:text="@string/auto_locatie_6ea70b"
         android:textColor="@color/app_text_primary"
         android:textSize="11sp"
         android:textStyle="bold"
@@ -79,7 +79,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="95%"
+        android:text="@string/auto_95_9b8185"
         android:textColor="@color/primary"
         android:textSize="9sp"
         android:textStyle="bold"

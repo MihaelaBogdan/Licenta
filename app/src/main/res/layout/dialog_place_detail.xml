@@ -46,7 +46,7 @@
             android:background="@drawable/bg_glass_card"
             android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
-            android:text="ATRACȚIE"
+            android:text="@string/auto_atractie_b6351e"
             android:textColor="@color/primary"
             android:textSize="11sp"
             android:fontFamily="sans-serif-black"
@@ -62,7 +62,7 @@
             android:id="@+id/detail_place_rating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="4.5"
+            android:text="@string/auto_45_c33ab4"
             android:textColor="@color/gold_accent"
             android:textSize="14sp"
             android:textStyle="bold"
@@ -76,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="☀️ 22°C"
+            android:text="@string/auto_22c_f418d7"
             android:textColor="@color/app_text_secondary"
             android:textSize="13sp"
             android:fontFamily="sans-serif-medium"
@@ -89,7 +89,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="Numele Locației"
+        android:text="@string/auto_numele_locatiei_31de30"
         android:textColor="@color/app_text_primary"
         android:textSize="22sp"
         android:fontFamily="sans-serif-black" />
@@ -100,7 +100,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="Adresă..."
+        android:text="@string/auto_adresa_9ba079"
         android:textColor="@color/app_text_secondary"
         android:textSize="13sp"
         android:drawableStart="@drawable/ic_location"
@@ -122,7 +122,7 @@
             android:id="@+id/vibe_emoji"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⚡"
+            android:text="@string/auto_str_e421f2"
             android:textSize="20sp" />
 
         <LinearLayout
@@ -136,7 +136,7 @@
                 android:id="@+id/vibe_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Popular &amp; Activ (Energy Vibe)"
+                android:text="@string/auto_popular_amp_activ_energy_vibe_de2715"
                 android:textColor="@color/app_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -145,7 +145,7 @@
                 android:id="@+id/vibe_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mulți vizitatori activi în acest moment"
+                android:text="@string/auto_multi_vizitatori_activi_in_ace_684ca3"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -164,7 +164,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="💡 SFATUL EXPLORATORULUI"
+            android:text="@string/auto_sfatul_exploratorului_420905"
             android:textColor="@color/primary"
             android:textSize="12sp"
             android:fontFamily="sans-serif-medium"
@@ -204,7 +204,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🎯 Analiză Personalizare AI"
+                android:text="@string/auto_analiza_personalizare_ai_c30cdc"
                 android:textColor="@color/app_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -213,7 +213,7 @@
                 android:id="@+id/txt_total_confidence"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="92% Potrivire"
+                android:text="@string/auto_92_potrivire_62d9b2"
                 android:textColor="@color/primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -233,14 +233,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Potrivire interese"
+                    android:text="@string/auto_potrivire_interese_f38521"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <TextView
                     android:id="@+id/txt_factor_interests"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="80%"
+                    android:text="@string/auto_80_ab7ac8"
                     android:textColor="@color/primary"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -270,14 +270,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Noutate (Freshness)"
+                    android:text="@string/auto_noutate_freshness_e77f24"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <TextView
                     android:id="@+id/txt_factor_freshness"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="100%"
+                    android:text="@string/auto_100_30bd7c"
                     android:textColor="@color/accent_purple"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -307,14 +307,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Popularitate &amp; Calitate"
+                    android:text="@string/auto_popularitate_amp_calitate_e6b5bf"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <TextView
                     android:id="@+id/txt_factor_popularity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="90%"
+                    android:text="@string/auto_90_f52f03"
                     android:textColor="@color/gold_accent"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -344,14 +344,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Potrivire nivel explorator"
+                    android:text="@string/auto_potrivire_nivel_explorator_09ff20"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <TextView
                     android:id="@+id/txt_factor_level"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="50%"
+                    android:text="@string/auto_50_2496af"
                     android:textColor="#3B82F6"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -381,14 +381,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Diversitate categorii"
+                    android:text="@string/auto_diversitate_categorii_4facff"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <TextView
                     android:id="@+id/txt_factor_diversity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="80%"
+                    android:text="@string/auto_80_ab7ac8"
                     android:textColor="#EC4899"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -417,14 +417,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Vreme &amp; Moment zi"
+                    android:text="@string/auto_vreme_amp_moment_zi_9e8abf"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <TextView
                     android:id="@+id/txt_factor_weather"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="80%"
+                    android:text="@string/auto_80_ab7ac8"
                     android:textColor="#10B981"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -446,7 +446,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="6dp"
-            android:text="🔍 Interese &amp; Filtre Active"
+            android:text="@string/auto_interese_amp_filtre_active_fb06b2"
             android:textColor="@color/app_text_primary"
             android:textSize="12sp"
             android:fontFamily="sans-serif-medium"
@@ -467,7 +467,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="Această locație este recomandată pentru experiența sa unică..."
+        android:text="@string/auto_aceasta_locatie_este_recomanda_bdfdf0"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:lineSpacingMultiplier="1.2" />
@@ -478,7 +478,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="⭐⭐ Recenzii de Top (Google Reviews)"
+        android:text="@string/auto_recenzii_de_top_google_reviews_97e765"
         android:textColor="@color/primary"
         android:textSize="12sp"
         android:fontFamily="sans-serif-medium"
@@ -522,7 +522,7 @@
             android:layout_height="52dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:text="Planifică"
+            android:text="@string/auto_planifica_3b64e0"
             android:textColor="@color/white"
             android:backgroundTint="@color/primary"
             app:cornerRadius="16dp" />
@@ -534,7 +534,7 @@
             android:layout_height="52dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Închide"
+            android:text="@string/auto_inchide_9af4f3"
             android:textColor="@color/app_text_secondary"
             android:backgroundTint="@color/app_surface"
             app:strokeColor="@color/app_divider"

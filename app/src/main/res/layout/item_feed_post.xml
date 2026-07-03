@@ -43,7 +43,7 @@
                     android:id="@+id/post_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Username"
+                    android:text="@string/auto_username_f6039d"
                     android:textColor="@color/app_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -56,7 +56,7 @@
                             android:id="@+id/post_place_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📍 Locație"
+                            android:text="@string/auto_locatie_eb3ade"
                             android:textColor="@color/app_text_secondary"
                             android:textSize="11sp" />
                         <TextView
@@ -69,7 +69,7 @@
                             android:id="@+id/post_time_ago"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2h"
+                            android:text="@string/auto_2h_2bdde0"
                             android:textColor="@color/app_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -156,7 +156,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="2dp"
-            android:text="12 aprecieri"
+            android:text="@string/auto_12_aprecieri_3a01f9"
             android:textColor="@color/app_text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -178,7 +178,7 @@
                     android:id="@+id/post_caption_user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="username"
+                    android:text="@string/auto_username_14c4b0"
                     android:textColor="@color/app_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold"
@@ -189,7 +189,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Aceasta este o recenzie despre un loc..."
+                    android:text="@string/auto_aceasta_este_o_recenzie_despre_ff48de"
                     android:textColor="@color/app_text_primary"
                     android:textSize="14sp"
                     android:lineSpacingExtra="2dp" />
@@ -204,7 +204,7 @@
             android:paddingHorizontal="16dp"
             android:paddingTop="2dp"
             android:paddingBottom="12dp"
-            android:text="Vezi toate comentariile"
+            android:text="@string/auto_vezi_toate_comentariile_cdd13a"
             android:textColor="@color/app_text_secondary"
             android:textSize="13sp"
             android:clickable="true"

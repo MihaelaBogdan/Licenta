@@ -12,10 +12,11 @@ import androidx.appcompat.widget.Toolbar;
 import com.bumptech.glide.Glide;
 import com.cityscape.app.R;
 import com.cityscape.app.model.Event;
+import com.cityscape.app.BaseActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.gson.Gson;
 
-public class EventDetailActivity extends AppCompatActivity {
+public class EventDetailActivity extends BaseActivity {
 
     private Event event;
 

@@ -12,7 +12,7 @@
         android:id="@+id/tv_analytics_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📊 Raportul Personal"
+        android:text="@string/auto_raportul_personal_f3b62e"
         android:textColor="@color/app_text_primary"
         android:textSize="24sp"
         android:fontFamily="sans-serif-black"
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Loading stats..."
+            android:text="@string/auto_loading_stats_a2a1fd"
             android:textColor="@color/app_text_primary"
             android:textSize="14sp"
             android:lineSpacingMultiplier="1.6" />
@@ -52,7 +52,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Loading insights..."
+            android:text="@string/auto_loading_insights_98000b"
             android:textColor="@color/gold_accent"
             android:textSize="13sp"
             android:lineSpacingMultiplier="1.6" />
@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Loading achievements..."
+            android:text="@string/auto_loading_achievements_fa1c4a"
             android:textColor="@color/primary"
             android:textSize="13sp"
             android:lineSpacingMultiplier="1.8" />
@@ -82,7 +82,7 @@
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="📥 Exporta Raportul"
+        android:text="@string/auto_exporta_raportul_22d633"
         android:textAllCaps="false"
         android:textSize="14sp"
         app:cornerRadius="12dp"

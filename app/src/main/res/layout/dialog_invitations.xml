@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ai invitații de la prieteni! Acceptă pentru a te alătura grupurilor lor."
+        android:text="@string/auto_ai_invitatii_de_la_prieteni_ac_5d9050"
         android:textColor="@color/app_text_secondary"
         android:textSize="14sp"
         android:lineSpacingMultiplier="1.3" />

@@ -13,6 +13,73 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 MAPS_API_KEY = os.getenv("MAPS_API_KEY")
 
 
+TYPE_TRANSLATIONS = {
+    "ro": {
+        "museum": "muzee",
+        "museums": "muzee",
+        "restaurant": "restaurante",
+        "restaurants": "restaurante",
+        "cafe": "cafenele",
+        "cafes": "cafenele",
+        "park": "parcuri",
+        "parks": "parcuri",
+        "church": "biserici",
+        "churches": "biserici",
+        "shopping": "cumpărături",
+        "theater": "teatre",
+        "theaters": "teatre",
+        "gallery": "galerii de artă",
+        "galleries": "galerii de artă",
+        "monument": "monumente",
+        "monuments": "monumente",
+        "market": "piețe",
+        "markets": "piețe",
+        "hotel": "hoteluri",
+        "hotels": "hoteluri",
+        "bar": "baruri",
+        "bars": "baruri",
+        "general": "atracții",
+        "general attraction": "atracții generale",
+        "tourist attraction": "atracții turistice",
+        "tourist_attraction": "atracții turistice"
+    },
+    "en": {
+        "museum": "museums",
+        "museums": "museums",
+        "restaurant": "restaurants",
+        "restaurants": "restaurants",
+        "cafe": "cafes",
+        "cafes": "cafes",
+        "park": "parks",
+        "parks": "parks",
+        "church": "churches",
+        "churches": "churches",
+        "shopping": "shopping",
+        "theater": "theaters",
+        "theaters": "theaters",
+        "gallery": "galleries",
+        "galleries": "galleries",
+        "monument": "monuments",
+        "monuments": "monuments",
+        "market": "markets",
+        "markets": "markets",
+        "hotel": "hotels",
+        "hotels": "hotels",
+        "bar": "bars",
+        "bars": "bars",
+        "general": "attractions",
+        "general attraction": "general attractions",
+        "tourist attraction": "tourist attractions",
+        "tourist_attraction": "tourist attractions"
+    }
+}
+
+def translate_type(t: str, language: str) -> str:
+    lang = "en" if language == "en" else "ro"
+    t_lower = t.lower().strip()
+    return TYPE_TRANSLATIONS[lang].get(t_lower, t)
+
+
 class CrystalBallPredictor:
     """Predicts user's next interests based on visit patterns."""
 
@@ -80,9 +147,9 @@ class CrystalBallPredictor:
 
                 predictions.append({
                     "category": "trending",
-                    "type": top_type,
+                    "type": translate_type(top_type, language),
                     "confidence": f"{min(100, 60 + percentage / 2):.1f}%",
-                    "reason": f"Your favorite: {count} visits to {top_type}",
+                    "reason": f"Favoritul tău: {count} vizite la {translate_type(top_type, language)}" if language == "ro" else f"Your favorite: {count} visits to {translate_type(top_type, language)}",
                     "icon": "🔥",
                     "probability": min(100, 60 + percentage / 2)
                 })
@@ -93,9 +160,9 @@ class CrystalBallPredictor:
             confidence = 50 + (10 - len(recent_types)) * 5
             predictions.append({
                 "category": "variety",
-                "type": missing_type,
+                "type": translate_type(missing_type, language),
                 "confidence": f"{min(100, confidence):.1f}%",
-                "reason": f"You haven't explored {missing_type} much lately",
+                "reason": f"Nu ai explorat prea mult {translate_type(missing_type, language)} în ultima vreme" if language == "ro" else f"You haven't explored {translate_type(missing_type, language)} much lately",
                 "icon": "✨",
                 "probability": min(100, confidence)
             })
@@ -106,9 +173,9 @@ class CrystalBallPredictor:
             if next_prediction:
                 predictions.append({
                     "category": "cycle",
-                    "type": next_prediction,
+                    "type": translate_type(next_prediction, language),
                     "confidence": "72.5%",
-                    "reason": "Pattern suggests you'll visit this next",
+                    "reason": "Tiparul sugerează că vei vizita asta în continuare" if language == "ro" else "Pattern suggests you'll visit this next",
                     "icon": "🎯",
                     "probability": 72.5
                 })
@@ -119,9 +186,9 @@ class CrystalBallPredictor:
             if user_interests:
                 predictions.append({
                     "category": "discovery",
-                    "type": f"{user_interests[0]} (new style)",
+                    "type": f"{translate_type(user_interests[0], language)} (nou)" if language == "ro" else f"{translate_type(user_interests[0], language)} (new style)",
                     "confidence": "55.0%",
-                    "reason": "Something new in your favorite category",
+                    "reason": "Ceva nou în categoria ta preferată" if language == "ro" else "Something new in your favorite category",
                     "icon": "🌟",
                     "probability": 55.0
                 })
@@ -174,37 +241,67 @@ class CrystalBallPredictor:
 
     def _get_generic_prediction(self, language: str) -> Dict[str, Any]:
         """Generic predictions for new users."""
-        predictions = [
-            {
-                "category": "trending",
-                "type": "museums",
-                "confidence": "65.0%",
-                "reason": "Popular starting point",
-                "icon": "🏛️",
-                "probability": 65.0
-            },
-            {
-                "category": "variety",
-                "type": "parks",
-                "confidence": "55.0%",
-                "reason": "Balance your exploration",
-                "icon": "🌳",
-                "probability": 55.0
-            },
-            {
-                "category": "discovery",
-                "type": "restaurants",
-                "confidence": "60.0%",
-                "reason": "Everyone loves good food",
-                "icon": "🍽️",
-                "probability": 60.0
-            }
-        ]
+        if language == "en":
+            predictions = [
+                {
+                    "category": "trending",
+                    "type": "museums",
+                    "confidence": "65.0%",
+                    "reason": "Popular starting point",
+                    "icon": "🏛️",
+                    "probability": 65.0
+                },
+                {
+                    "category": "variety",
+                    "type": "parks",
+                    "confidence": "55.0%",
+                    "reason": "Balance your exploration",
+                    "icon": "🌳",
+                    "probability": 55.0
+                },
+                {
+                    "category": "discovery",
+                    "type": "restaurants",
+                    "confidence": "60.0%",
+                    "reason": "Everyone loves good food",
+                    "icon": "🍽️",
+                    "probability": 60.0
+                }
+            ]
+            message = "Start exploring to unlock personalized predictions!"
+        else:
+            predictions = [
+                {
+                    "category": "trending",
+                    "type": "muzee",
+                    "confidence": "65.0%",
+                    "reason": "Punct de plecare popular",
+                    "icon": "🏛️",
+                    "probability": 65.0
+                },
+                {
+                    "category": "variety",
+                    "type": "parcuri",
+                    "confidence": "55.0%",
+                    "reason": "Echilibrează-ți explorarea",
+                    "icon": "🌳",
+                    "probability": 55.0
+                },
+                {
+                    "category": "discovery",
+                    "type": "restaurante",
+                    "confidence": "60.0%",
+                    "reason": "Toată lumea iubește mâncarea bună",
+                    "icon": "🍽️",
+                    "probability": 60.0
+                }
+            ]
+            message = "Începe să explorezi pentru a debloca predicții personalizate!"
 
         return {
             "status": "success",
             "predictions": predictions,
-            "message": "Start exploring to unlock personalized predictions!"
+            "message": message
         }
 
     def get_crystal_ball_visualization(self, user_id: str, language: str = "ro") -> Dict[str, Any]:

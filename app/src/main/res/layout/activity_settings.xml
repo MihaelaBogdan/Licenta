@@ -150,7 +150,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Preferințe și Recomandări"
+                    android:text="@string/auto_preferinte_si_recomandari_6f17a9"
                     android:textColor="@color/app_text_primary"
                     android:textSize="16sp" />
 

@@ -183,40 +183,65 @@ def generate_smart_daily_quest(user_id, lat, lng, interests, language="ro"):
     weather = fetch_current_weather(lat, lng) if lat and lng else {"status": "Senin", "is_bad": False, "temp": "20°C"}
 
     xp_reward = 250 + (user_profile["level"] * 50)
-    city_name = get_city_name(lat, lng) or "orașul tău"
-    time_of_day = "dimineață" if datetime.now().hour < 12 else ("după-amiază" if datetime.now().hour < 18 else "seară")
-
-    quest_templates = [
-        {"focus": "social", "title": "Misiunea Aventurii Solitare", "obj": "Găsește 3 oameni noi și fă 1 prietenă nouă", "badge": "Social Butterfly"},
-        {"focus": "discovery", "title": "Misiunea Descoperitorului", "obj": "Vizitează 2 locuri noi și ia 5 poze", "badge": "Explorer"},
-        {"focus": "foodie", "title": "Misiunea Gurmandului", "obj": "Încearcă 2 restaurante noi și postează cea mai bună poză", "badge": "Foodie Lover"},
-        {"focus": "culture", "title": "Misiunea Istoriei Vii", "obj": "Vizitează un muzeu și înveți 1 fapt istoric", "badge": "Culture Explorer"},
-        {"focus": "outdoor", "title": "Misiunea Aventurierului", "obj": "Merge la parc și fă 30 minute de mișcare", "badge": "Nature Lover"},
-        {"focus": "photographer", "title": "Misiunea Fotografului", "obj": "Fotografiază arhitectura și postează cu #CityScape", "badge": "Photographer"},
-    ]
+    
+    if language == "en":
+        city_name = get_city_name(lat, lng) or "your city"
+        time_of_day = "morning" if datetime.now().hour < 12 else ("afternoon" if datetime.now().hour < 18 else "evening")
+        quest_templates = [
+            {"focus": "social", "title": "Solitary Adventure Mission", "obj": "Find 3 new people and make 1 new friend", "badge": "Social Butterfly"},
+            {"focus": "discovery", "title": "Discoverer Mission", "obj": "Visit 2 new places and take 5 pictures", "badge": "Explorer"},
+            {"focus": "foodie", "title": "Foodie Mission", "obj": "Try 2 new restaurants and post the best picture", "badge": "Foodie Lover"},
+            {"focus": "culture", "title": "Live History Mission", "obj": "Visit a museum and learn 1 historical fact", "badge": "Culture Explorer"},
+            {"focus": "outdoor", "title": "Adventurer Mission", "obj": "Go to the park and do 30 minutes of exercise", "badge": "Nature Lover"},
+            {"focus": "photographer", "title": "Photographer Mission", "obj": "Photograph the architecture and post with #CityScape", "badge": "Photographer"},
+        ]
+    else:
+        city_name = get_city_name(lat, lng) or "orașul tău"
+        time_of_day = "dimineață" if datetime.now().hour < 12 else ("după-amiază" if datetime.now().hour < 18 else "seară")
+        quest_templates = [
+            {"focus": "social", "title": "Misiunea Aventurii Solitare", "obj": "Găsește 3 oameni noi și fă 1 prietenă nouă", "badge": "Social Butterfly"},
+            {"focus": "discovery", "title": "Misiunea Descoperitorului", "obj": "Vizitează 2 locuri noi și ia 5 poze", "badge": "Explorer"},
+            {"focus": "foodie", "title": "Misiunea Gurmandului", "obj": "Încearcă 2 restaurante noi și postează cea mai bună poză", "badge": "Foodie Lover"},
+            {"focus": "culture", "title": "Misiunea Istoriei Vii", "obj": "Vizitează un muzeu și înveți 1 fapt istoric", "badge": "Culture Explorer"},
+            {"focus": "outdoor", "title": "Misiunea Aventurierului", "obj": "Merge la parc și fă 30 minute de mișcare", "badge": "Nature Lover"},
+            {"focus": "photographer", "title": "Misiunea Fotografului", "obj": "Fotografiază arhitectura și postează cu #CityScape", "badge": "Photographer"},
+        ]
 
     interests_list = [i.strip().lower() for i in user_profile.get("interests", interests).split(",") if i.strip()]
+    interests_joined = " ".join(interests_list)
 
-    if "muzeu" in " ".join(interests_list) or "art" in " ".join(interests_list):
+    if "muzeu" in interests_joined or "museum" in interests_joined or "art" in interests_joined:
         template = next((t for t in quest_templates if t["focus"] == "culture"), random.choice(quest_templates))
-    elif "restaurant" in " ".join(interests_list) or "mâncare" in " ".join(interests_list):
+    elif "restaurant" in interests_joined or "food" in interests_joined or "mâncare" in interests_joined or "cafe" in interests_joined:
         template = next((t for t in quest_templates if t["focus"] == "foodie"), random.choice(quest_templates))
     else:
         template = random.choice(quest_templates)
 
-    weather_note = "Perfect pentru ieșit!" if not weather.get("is_bad") else "Activități indoor!"
+    if language == "en":
+        weather_note = "Perfect for going out!" if not weather.get("is_bad") else "Indoor activities!"
+        objective = template["obj"] + f" in {city_name}"
+        reward = f"{xp_reward} XP + {template['badge']} badge"
+        reason = f"Your level ({user_profile['level']}) deserves an adventure this {time_of_day}! {weather_note}"
+        difficulty = "Easy" if user_profile["level"] < 3 else ("Normal" if user_profile["level"] < 6 else "Hard")
+    else:
+        weather_note = "Perfect pentru ieșit!" if not weather.get("is_bad") else "Activități indoor!"
+        objective = template["obj"] + f" în {city_name}"
+        reward = f"{xp_reward} XP + insignă {template['badge']}"
+        reason = f"Nivelul tău ({user_profile['level']}) merită o aventură în {time_of_day}! {weather_note}"
+        difficulty = "Ușor" if user_profile["level"] < 3 else ("Normal" if user_profile["level"] < 6 else "Greu")
 
     return {
         "title": template["title"],
-        "objective": template["obj"] + f" în {city_name}",
-        "reward": f"{xp_reward} XP + insignă {template['badge']}",
-        "reason": f"Nivelul tău ({user_profile['level']}) merită o aventură în {time_of_day}! {weather_note}",
-        "difficulty": "Ușor" if user_profile["level"] < 3 else ("Normal" if user_profile["level"] < 6 else "Greu"),
+        "objective": objective,
+        "reward": reward,
+        "reason": reason,
+        "difficulty": difficulty,
         "category": template["focus"],
         "xp_reward": xp_reward,
         "user_level": user_profile["level"],
         "visits_count": user_profile["visits_count"]
     }
+
 
 @app.get("/quests/daily")
 def get_daily_quest_improved():
@@ -234,12 +259,22 @@ def get_daily_quest_improved():
         print(f"Daily quest error: {e}")
         
     # Fallback quest
-    return jsonify({
-        "title": "Explorator Urban",
-        "objective": "Vizitează o locație nouă astăzi",
-        "reward": "250 XP",
-        "reason": "O zi perfectă pentru a descoperi orașul!"
-    })
+    if language == "en":
+        return jsonify({
+            "title": "Urban Explorer",
+            "objective": "Visit a new location today",
+            "reward": "250 XP",
+            "reason": "Always a good day to explore!",
+            "difficulty": "Easy"
+        })
+    else:
+        return jsonify({
+            "title": "Explorator Urban",
+            "objective": "Vizitează o locație nouă astăzi",
+            "reward": "250 XP",
+            "reason": "O zi perfectă pentru a descoperi orașul!",
+            "difficulty": "Ușor"
+        })
 
 # ==================== REPORTING & ANALYTICS ====================
 
@@ -782,9 +817,11 @@ def google_nearby_search(lat, lng, place_type, radius=5000, keyword=None):
 @app.get("/places/<place_id>/details")
 def get_place_details(place_id):
     """Fetches high-detail info for a specific place, including reviews."""
+    language = request.args.get("language", "ro")
     now = time.time()
-    if place_id in PLACE_DETAILS_CACHE:
-        val, exp = PLACE_DETAILS_CACHE[place_id]
+    cache_key = f"{place_id}_{language}"
+    if cache_key in PLACE_DETAILS_CACHE:
+        val, exp = PLACE_DETAILS_CACHE[cache_key]
         if now < exp:
             return jsonify(val)
 
@@ -792,7 +829,7 @@ def get_place_details(place_id):
     params = {
         "place_id": place_id,
         "key": MAPS_API_KEY,
-        "language": "ro",
+        "language": language,
         "fields": "name,rating,formatted_address,photos,reviews,editorial_summary,opening_hours,geometry"
     }
     
@@ -817,19 +854,27 @@ def get_place_details(place_id):
             img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
 
         # AI Review Summary (via OpenRouter)
-        ai_summary = "O locație interesantă care merită explorată pentru experiența sa unică."
+        ai_summary = "An excellent location to discover." if language == "en" else "O locație interesantă care merită explorată pentru experiența sa unică."
         if reviews:
             try:
                 import requests
                 
                 reviews_text = "\n".join([f"- {r['text']}" for r in reviews[:5] if r['text']])
                 if reviews_text:
-                    prompt = (
-                        f"Ești un critic urban inteligent. Rezumă aceste recenzii pentru '{result.get('name')}' "
-                        "într-o singură frază ultra-scurtă, onestă și captivantă (max 25 cuvinte). "
-                        "Folosește un ton modern, de tip 'TL;DR'. Menționează un punct forte și un punct slab dacă există. "
-                        f"Recenzii:\n{reviews_text}"
-                    )
+                    if language == "en":
+                        prompt = (
+                            f"You are a smart urban critic. Summarize these reviews for '{result.get('name')}' "
+                            "in a single ultra-short, honest, and engaging sentence (max 25 words). "
+                            "Use a modern, 'TL;DR' style tone. Mention one strength and one weakness if any. "
+                            f"Reviews:\n{reviews_text}"
+                        )
+                    else:
+                        prompt = (
+                            f"Ești un critic urban inteligent. Rezumă aceste recenzii pentru '{result.get('name')}' "
+                            "într-o singură frază ultra-scurtă, onestă și captivantă (max 25 cuvinte). "
+                            "Folosește un ton modern, de tip 'TL;DR'. Menționează un punct forte și un punct slab dacă există. "
+                            f"Recenzii:\n{reviews_text}"
+                        )
                     
                     response = requests.post(
                         url="https://openrouter.ai/api/v1/chat/completions",
@@ -851,13 +896,13 @@ def get_place_details(place_id):
             "name": result.get("name"),
             "rating": result.get("rating"),
             "address": result.get("formatted_address"),
-            "description": result.get("editorial_summary", {}).get("overview", "O locație excelentă de descoperit."),
+            "description": result.get("editorial_summary", {}).get("overview", "An excellent location to discover." if language == "en" else "O locație excelentă de descoperit."),
             "imageUrl": img_url,
             "reviews": reviews,
             "ai_summary": ai_summary,
             "isOpen": result.get("opening_hours", {}).get("open_now")
         }
-        PLACE_DETAILS_CACHE[place_id] = (response_data, now + DETAILS_CACHE_TTL)
+        PLACE_DETAILS_CACHE[cache_key] = (response_data, now + DETAILS_CACHE_TTL)
         return jsonify(response_data)
     except Exception as e:
         print(f"⚠️ Details Error: {e}")
@@ -1463,10 +1508,11 @@ def get_nearby_realtime():
     # Slice to top 15 first!
     top_n = formatted[:15]
 
+    language = request.args.get("language", "ro")
     # Enrich in parallel
     import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        enriched_results = list(executor.map(lambda p: enrich_place_with_details(p, float(lat), float(lng)), top_n))
+        enriched_results = list(executor.map(lambda p: enrich_place_with_details(p, float(lat), float(lng), language=language), top_n))
 
     return jsonify(enriched_results)
 
@@ -1566,10 +1612,11 @@ def personalized_discovery():
     # Slice to top 40 first!
     top_n = formatted[:40]
 
+    language = request.args.get("language", "ro")
     # Enrich in parallel
     import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        enriched_results = list(executor.map(lambda p: enrich_place_with_details(p, float(lat), float(lng)), top_n))
+        enriched_results = list(executor.map(lambda p: enrich_place_with_details(p, float(lat), float(lng), language=language), top_n))
 
     return jsonify(enriched_results)
 
@@ -1979,6 +2026,7 @@ def get_itinerary():
     start_hour = int(request.args.get("start_hour", 8))
     companion = request.args.get("companion", "solo")
     avoid_crowds = request.args.get("avoid_crowds", "false").lower() == "true"
+    language = request.args.get("language", "ro")
 
     # Always use Gemini + RAG for personalized generation
     from chatbot import generate_personalized_itinerary
@@ -1986,7 +2034,8 @@ def get_itinerary():
         lat, lng, style, duration, points_count, context, user_query,
         user_id=user_id, budget=budget,
         travel_mode=travel_mode, start_hour=start_hour,
-        companion=companion, avoid_crowds=avoid_crowds
+        companion=companion, avoid_crowds=avoid_crowds,
+        language=language
     )
     if plan:
         return jsonify(plan)
@@ -4097,7 +4146,7 @@ _cache_lock = threading.Lock()
 _place_details_cache = {}
 _event_details_cache = {}
 
-def enrich_place_with_details(place_data, lat, lng, skip_enrichment=False):
+def enrich_place_with_details(place_data, lat, lng, skip_enrichment=False, language="ro"):
     """Enrich place with photos, reviews, descriptions from Google Places."""
     place_id = place_data.get('id')
     place_name = place_data.get('name', '')
@@ -4105,10 +4154,11 @@ def enrich_place_with_details(place_data, lat, lng, skip_enrichment=False):
     if not place_id or skip_enrichment:
         return place_data
 
+    cache_key = f"{place_id}_{language}"
     # Check cache first
     with _cache_lock:
-        if place_id in _place_details_cache:
-            cached = _place_details_cache[place_id]
+        if cache_key in _place_details_cache:
+            cached = _place_details_cache[cache_key]
             place_data.update(cached)
             return place_data
 
@@ -4118,6 +4168,7 @@ def enrich_place_with_details(place_data, lat, lng, skip_enrichment=False):
         details_params = {
             "place_id": place_id,
             "key": MAPS_API_KEY,
+            "language": language,
             "fields": "photos,reviews,rating,user_ratings_total,formatted_address,website,opening_hours,business_status,types,editorial_summary"
         }
         details_res = requests.get(details_url, params=details_params, timeout=1.5)
@@ -4162,15 +4213,29 @@ def enrich_place_with_details(place_data, lat, lng, skip_enrichment=False):
             enriched_cache = {k: place_data[k] for k in ['photos', 'reviews', 'description', 'rating', 'reviewCount', 'website', 'is_open'] if k in place_data}
             if enriched_cache:
                 with _cache_lock:
-                    _place_details_cache[place_id] = enriched_cache
+                    _place_details_cache[cache_key] = enriched_cache
 
     except Exception as e:
         print(f"⚠️ Place enrichment error for {place_name}: {e}")
 
     # Ensure description exists
-    if 'description' not in place_data:
+    if 'description' not in place_data or not place_data['description']:
         place_type = place_data.get('type', 'Locație')
-        place_data['description'] = f"{place_name} - {place_type} în {place_data.get('address', '')}"
+        if language == "en":
+            translated_type = place_type
+            if place_type.lower() == "muzeu" or place_type.lower() == "museum":
+                translated_type = "Museum"
+            elif place_type.lower() == "restaurant":
+                translated_type = "Restaurant"
+            elif place_type.lower() == "cafenea" or place_type.lower() == "cafe":
+                translated_type = "Cafe"
+            elif place_type.lower() == "parc" or place_type.lower() == "park":
+                translated_type = "Park"
+            elif place_type.lower() == "atracție" or place_type.lower() == "atractie" or place_type.lower() == "tourist_attraction":
+                translated_type = "Tourist attraction"
+            place_data['description'] = f"{place_name} - {translated_type} in {place_data.get('address', '')}"
+        else:
+            place_data['description'] = f"{place_name} - {place_type} în {place_data.get('address', '')}"
 
     return place_data
 
@@ -4530,6 +4595,88 @@ def score_event_for_user(event, user_interests, user_history_titles, user_histor
     }
 
 
+@app.route("/events/filters-info", methods=['GET'])
+def get_event_filters_info():
+    """Show what filters are applied to user for events"""
+    user_id = request.args.get("user_id", "")
+    lat_val = request.args.get("lat", "44.4268")
+    lng_val = request.args.get("lng", "26.1025")
+
+    try:
+        lat = float(lat_val)
+        lng = float(lng_val)
+    except:
+        lat, lng = 44.4268, 26.1025
+
+    filters_info = {
+        "location": {
+            "current": {"lat": lat, "lng": lng, "city": get_city_name(lat, lng) or "București"},
+            "preferred": None
+        },
+        "interests": [],
+        "history_categories": [],
+        "filters_applied": [],
+        "recommendation": ""
+    }
+
+    if user_id:
+        try:
+            hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+            # Get preferred location
+            prof_resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=preferred_location_lat,preferred_location_lng,interests",
+                headers=hdrs, timeout=5
+            )
+            if prof_resp.ok and prof_resp.json():
+                profile = prof_resp.json()[0]
+                pref_lat = profile.get("preferred_location_lat")
+                pref_lng = profile.get("preferred_location_lng")
+                if pref_lat is not None and pref_lng is not None:
+                    filters_info["location"]["preferred"] = {
+                        "lat": float(pref_lat),
+                        "lng": float(pref_lng),
+                        "city": get_city_name(float(pref_lat), float(pref_lng)) or "Unknown"
+                    }
+
+                raw_interests = profile.get("interests", "")
+                if raw_interests:
+                    filters_info["interests"] = [i.strip() for i in raw_interests.split(",") if i.strip()]
+
+            # Get history
+            hist_resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&select=place_type",
+                headers=hdrs, timeout=30
+            )
+            if hist_resp.ok:
+                categories = {}
+                for h in hist_resp.json():
+                    cat = h.get("place_type", "Unknown")
+                    categories[cat] = categories.get(cat, 0) + 1
+                filters_info["history_categories"] = [
+                    {"category": k, "count": v} for k, v in sorted(categories.items(), key=lambda x: x[1], reverse=True)
+                ]
+        except Exception as e:
+            print(f"⚠️ Filters info error: {e}")
+
+    # Build applied filters list
+    if filters_info["location"]["preferred"]:
+        filters_info["filters_applied"].append(f"📍 Locație preferată: {filters_info['location']['preferred']['city']}")
+    else:
+        filters_info["filters_applied"].append(f"📍 Locație curentă: {filters_info['location']['current']['city']}")
+
+    if filters_info["interests"]:
+        filters_info["filters_applied"].append(f"💭 Interese: {', '.join(filters_info['interests'])}")
+        filters_info["recommendation"] = f"Vor fi arătate doar evenimente relevante pentru: {', '.join(filters_info['interests'])}"
+    else:
+        filters_info["recommendation"] = "Nicio preferință setată - vor fi arătate toate evenimentele din zonă"
+
+    if filters_info["history_categories"]:
+        top_cats = [c["category"] for c in filters_info["history_categories"][:3]]
+        filters_info["filters_applied"].append(f"📚 Ai vizitat: {', '.join(top_cats)}")
+
+    return jsonify(filters_info)
+
 @app.get("/events")
 def get_events():
     """Returns REAL events: concerts, movies, theater from iabilet.ro, Ticketmaster, etc."""
@@ -4543,9 +4690,27 @@ def get_events():
     except:
         lat, lng = 44.4268, 26.1025
 
+    user_id = request.args.get("user_id", "")
+
+    # Check if user has a preferred location in settings
+    if user_id:
+        try:
+            hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            prof_resp = requests.get(
+                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=preferred_location_lat,preferred_location_lng",
+                headers=hdrs, timeout=5
+            )
+            if prof_resp.ok and prof_resp.json():
+                pref_lat = prof_resp.json()[0].get("preferred_location_lat")
+                pref_lng = prof_resp.json()[0].get("preferred_location_lng")
+                if pref_lat is not None and pref_lng is not None:
+                    lat, lng = float(pref_lat), float(pref_lng)
+                    print(f"✅ Using user's preferred location: {lat}, {lng}")
+        except Exception as e:
+            print(f"⚠️ Preferred location fetch: {e}")
+
     city_name = get_city_name(lat, lng) or "Bucuresti"
     is_romania = (43.0 <= lat <= 49.0) and (20.0 <= lng <= 30.2)
-    user_id = request.args.get("user_id", "")
 
     # Fetch user profile for personalization
     user_interests = [i.strip() for i in interests.split(",") if i.strip()] if interests else []
@@ -4627,6 +4792,21 @@ def get_events():
     except Exception as e:
         print(f"⚠️ Serper error: {e}")
 
+    # 3b. FETCH USER FILTERS
+    user_filters = []
+    if user_id:
+        try:
+            hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+            res = requests.get(
+                f"{SUPABASE_URL}/rest/v1/user_filters?user_id=eq.{user_id}",
+                headers=hdrs, timeout=5
+            )
+            if res.status_code == 200:
+                user_filters = res.json()
+                print(f"✅ Loaded {len(user_filters)} filters for user")
+        except Exception as e:
+            print(f"⚠️ Filter fetch error: {e}")
+
     # 4. DEDUPLICATION & FORMATTING (NO ENRICHMENT YET - FAST)
     seen = set()
     unique_events = []
@@ -4670,6 +4850,51 @@ def get_events():
         if dist > 20.0:
             continue
 
+        # 4c. APPLY USER FILTERS
+        event_category = (event.get('category', '') or '').lower()
+        event_title = (event.get('title', '') or '').lower()
+        skip_event = False
+
+        for user_filter in user_filters:
+            filter_type = user_filter.get('filter_type', '')
+            filter_value = user_filter.get('filter_value', '')
+
+            # Exclude specific categories
+            if filter_type == 'exclude_category':
+                if filter_value.lower() in event_category or filter_value.lower() in event_title:
+                    skip_event = True
+                    break
+
+            # Include only specific categories
+            elif filter_type == 'include_only':
+                try:
+                    allowed = [c.strip().lower() for c in eval(filter_value)] if '[' in filter_value else [filter_value.lower()]
+                    if not any(cat in event_category or cat in event_title for cat in allowed):
+                        skip_event = True
+                        break
+                except:
+                    pass
+
+            # Exclude keywords
+            elif filter_type == 'exclude_keywords':
+                keywords = eval(filter_value) if '[' in filter_value else [filter_value]
+                if any(kw.lower() in event_title for kw in keywords):
+                    skip_event = True
+                    break
+
+        if skip_event:
+            continue
+
+        raw_desc = event.get('personalized_description') or event.get('description', '')
+        if not raw_desc or len(raw_desc) < 20 or "eveniment real" in raw_desc.lower() or "real event" in raw_desc.lower():
+            category_name_desc = event.get('category', 'Spectacol')
+            location_name_desc = event.get('location', city_name)
+            lang_param = request.args.get("language", "ro")
+            if lang_param == "en":
+                raw_desc = f"Join us for {title}, an amazing {category_name_desc.lower()} event taking place at {location_name_desc}. Don't miss this opportunity to experience the local culture and connect with fellow explorers!"
+            else:
+                raw_desc = f"Participă la {title}, un eveniment deosebit de {category_name_desc.lower()} organizat la {location_name_desc}. O oportunitate excelentă pentru a experimenta cultura locală și a te conecta cu alți pasionați."
+
         # Ensure proper format
         formatted = {
             'title': title,
@@ -4681,7 +4906,7 @@ def get_events():
             'source': event.get('source', 'unknown'),
             'latitude': ev_lat,
             'longitude': ev_lng,
-            'description': event.get('personalized_description', event.get('description', '')),
+            'description': raw_desc,
         }
         unique_events.append(formatted)
 
@@ -4695,16 +4920,35 @@ def get_events():
 
     unique_events.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
 
+    # 4a. STRICT FILTERING - Remove events that don't match user interests
+    # If user has interests or history, filter by minimum confidence threshold
+    min_confidence = 0
+    if user_interests or user_history_categories:
+        min_confidence = 30  # Only show events with at least 30% relevance
+
+    filtered_events = [e for e in unique_events if e.get("relevance_score", 0) >= min_confidence]
+
+    # If filtering is too strict and we have no results, relax it slightly
+    if not filtered_events and user_interests:
+        min_confidence = 20
+        filtered_events = [e for e in unique_events if e.get("relevance_score", 0) >= min_confidence]
+
+    # If still no results, show top events regardless
+    if not filtered_events:
+        filtered_events = unique_events[:30]
+
+    print(f"✅ Filtered events: {len(filtered_events)} from {len(unique_events)} (min_confidence: {min_confidence})")
+
     # 4b. PERSONALIZED DESCRIPTIONS via Gemini (only if user has interests)
     if user_interests:
         try:
-            _generate_personalized_descriptions(unique_events[:20], user_interests)
+            _generate_personalized_descriptions(filtered_events[:20], user_interests)
         except Exception as e:
             print(f"⚠️ personalized descriptions error: {e}")
 
     # 5. SELECTIVE ENRICHMENT - Only enrich top results to save time
     final_events = []
-    for i, event in enumerate(unique_events[:50]):
+    for i, event in enumerate(filtered_events[:50]):
         # Skip all enrichment — events from iabilet already have good data
         enriched = get_event_details_enriched(event, lat, lng, skip_enrichment=True)
         # Ensure that if a personalized description was generated, it overwrites the fallback description
@@ -4712,10 +4956,112 @@ def get_events():
             enriched['description'] = event['personalized_description']
         final_events.append(enriched)
 
-    print(f"✅ Returning {len(final_events)} unique events for {city_name}")
+    print(f"✅ Returning {len(final_events)} relevant events for {city_name} (interests: {user_interests}, history_cats: {len(user_history_categories)})")
     return jsonify(final_events)
 
 
+# FILTER ENDPOINTS
+@app.route("/users/<user_id>/filters", methods=['GET'])
+def get_user_filters(user_id):
+    """Get all active filters for a user"""
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/user_filters?user_id=eq.{user_id}&select=*",
+            headers=hdrs, timeout=5
+        )
+
+        if res.status_code == 200:
+            filters = res.json()
+            return jsonify({
+                "status": "success",
+                "filters": filters,
+                "total_filters": len(filters)
+            })
+        return jsonify({"filters": []})
+    except Exception as e:
+        print(f"⚠️ Get filters error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/users/<user_id>/filters", methods=['POST'])
+def add_user_filter(user_id):
+    """Add a new filter for user (e.g., exclude concerts, only music events, etc.)"""
+    data = request.get_json()
+    filter_type = data.get("filter_type")  # e.g., "exclude_category", "include_only", "price_range"
+    filter_value = data.get("filter_value")  # e.g., "sport", ["muzică", "teatru"], {"min": 0, "max": 100}
+
+    if not filter_type or not filter_value:
+        return jsonify({"error": "Missing filter_type or filter_value"}), 400
+
+    try:
+        hdrs = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        }
+
+        filter_data = {
+            "user_id": user_id,
+            "filter_type": filter_type,
+            "filter_value": filter_value if isinstance(filter_value, str) else str(filter_value)
+        }
+
+        res = requests.post(
+            f"{SUPABASE_URL}/rest/v1/user_filters",
+            headers=hdrs,
+            json=filter_data
+        )
+
+        if res.status_code in [200, 201]:
+            return jsonify({
+                "status": "success",
+                "message": f"Filter '{filter_type}' added",
+                "filter": res.json()
+            }), 201
+        else:
+            print(f"❌ Add filter error: {res.text}")
+            return jsonify({"error": "Failed to add filter"}), res.status_code
+    except Exception as e:
+        print(f"❌ Add filter error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/users/<user_id>/filters/<filter_id>", methods=['DELETE'])
+def delete_user_filter(user_id, filter_id):
+    """Remove a filter"""
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        res = requests.delete(
+            f"{SUPABASE_URL}/rest/v1/user_filters?id=eq.{filter_id}&user_id=eq.{user_id}",
+            headers=hdrs
+        )
+
+        if res.status_code in [200, 204]:
+            return jsonify({"status": "success", "message": "Filter deleted"})
+        return jsonify({"error": "Filter not found"}), 404
+    except Exception as e:
+        print(f"❌ Delete filter error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/events/categories", methods=['GET'])
+def get_event_categories():
+    """Get all available event categories for filtering"""
+    categories = {
+        "Muzică": ["Concert", "Festival Muzică", "Live Band", "DJ", "Opera", "Simfonie"],
+        "Teatru": ["Piesa de Teatru", "Comedie", "Dramă", "Teatru Experimental"],
+        "Film": ["Cinema", "Scurtmetraj", "Film Documentar", "Premiere Film"],
+        "Expoziție": ["Artă", "Galerie", "Muzeu", "Fotografie", "Vernisaj"],
+        "Sport": ["Fotbal", "Tenis", "Ateltism", "Baschet", "Volei", "Maraton"],
+        "Food & Drink": ["Degustare Vinuri", "Curs Gătit", "Food Festival", "Brunch"],
+        "Educație": ["Workshop", "Seminar", "Curs", "Conferință", "Masterclass"],
+        "Copii & Familie": ["Spectacol Copii", "Atelier Copii", "Poveștitor"],
+        "Recreativ": ["Party", "Club", "Discotecă", "Petrecere Tematică"]
+    }
+
+    return jsonify({
+        "categories": categories,
+        "all_categories": list(categories.keys())
+    })
 
 @app.get("/users/search")
 def search_users():
@@ -4752,25 +5098,72 @@ def search_users():
         print(f"❌ User Search Error: {e}")
         return jsonify([])
 
+@app.post("/users/<user_id>/preferred-location")
+def set_preferred_location(user_id):
+    """Save user's preferred location for events/recommendations"""
+    data = request.get_json()
+    lat = data.get("latitude")
+    lng = data.get("longitude")
+
+    if lat is None or lng is None:
+        return jsonify({"error": "Missing latitude or longitude"}), 400
+
+    try:
+        lat = float(lat)
+        lng = float(lng)
+    except:
+        return jsonify({"error": "Invalid coordinates"}), 400
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+
+    update_data = {
+        "preferred_location_lat": lat,
+        "preferred_location_lng": lng
+    }
+
+    url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}"
+    try:
+        res = requests.patch(url, headers=headers, json=update_data)
+        if res.status_code in [200, 201]:
+            city_name = get_city_name(lat, lng) or "Unknown"
+            return jsonify({
+                "status": "success",
+                "message": f"Preferred location set to {city_name}",
+                "latitude": lat,
+                "longitude": lng,
+                "city": city_name
+            }), 200
+        else:
+            print(f"❌ Update Error: {res.text}")
+            return jsonify({"error": "Failed to update location"}), res.status_code
+    except Exception as e:
+        print(f"❌ Location Update Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.post("/users/follow")
 def toggle_follow():
     data = request.get_json()
     f_id = data.get("follower_id")
     t_id = data.get("following_id")
-    
+
     if not f_id or not t_id:
         return jsonify({"error": "Missing IDs"}), 400
-        
+
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/json"
     }
-    
+
     # Check if exists
     check_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{f_id}&following_id=eq.{t_id}&select=id"
     existing = requests.get(check_url, headers=headers).json()
-    
+
     if existing:
         # Unfollow
         del_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{f_id}&following_id=eq.{t_id}"
@@ -4860,6 +5253,7 @@ def get_magic_recommendation():
     user_id = request.args.get("user_id")
     requested_type = request.args.get("type", "general")
     client_interests = request.args.get("interests", "")
+    language = request.args.get("language", "ro")
 
     if not lat_str or not lng_str:
         return jsonify({"error": "Missing location"}), 400
@@ -4868,7 +5262,11 @@ def get_magic_recommendation():
     lng = float(lng_str)
     
     # 0. User context for personalization
-    user_context = f"preferințe generale: {client_interests}"
+    if language == "en":
+        user_context = f"general preferences: {client_interests}"
+    else:
+        user_context = f"preferințe generale: {client_interests}"
+        
     u_interests = client_interests
     if user_id:
         try:
@@ -4877,7 +5275,10 @@ def get_magic_recommendation():
             if p_res:
                 p = p_res[0]
                 u_interests = p.get('interests') or u_interests or client_interests
-                user_context = f"Nume: {p.get('full_name') or 'Explorator'}, Interese: {u_interests}, Buget: {p.get('budget_range') or 'Mediu'}"
+                if language == "en":
+                    user_context = f"Name: {p.get('full_name') or 'Explorer'}, Interests: {u_interests}, Budget: {p.get('budget_range') or 'Medium'}"
+                else:
+                    user_context = f"Nume: {p.get('full_name') or 'Explorator'}, Interese: {u_interests}, Buget: {p.get('budget_range') or 'Mediu'}"
         except: pass
     
     # Map friendly type to Google Places types
@@ -4928,16 +5329,28 @@ def get_magic_recommendation():
     
     candidates_data = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0)} for c in subset]
     
-    prompt = (
-        f"Ești expertul 'CityScape AI'. Din următoarele locații: {json.dumps(candidates_data)}, "
-        f"alege EXACT UNA care se potrivește cel mai bine cu categoria cerută '{requested_type}' "
-        f"și cu profilul utilizatorului: {user_context}. "
-        "Ține cont de interesele lui dar adaugă un gram de mister și destin. "
-        "Pentru această locație, generează 3 activități specifice și creative. "
-        "RĂSPUNS: Un obiect JSON (fără explicații) cu formatul: "
-        '{"place_id": "...", "name": "...", "reason": "De ce am ales asta pentru TINE bazat pe interesele tale (max 15 cuvinte)", '
-        '"activities": ["Activitate 1", "Activitate 2", "Activitate 3"]}'
-    )
+    if language == "en":
+        prompt = (
+            f"You are the expert 'CityScape AI'. From the following locations: {json.dumps(candidates_data)}, "
+            f"choose EXACTLY ONE that best fits the requested category '{requested_type}' "
+            f"and the user profile: {user_context}. "
+            "Take their interests into account, but add a touch of mystery and destiny. "
+            "For this location, generate 3 specific and creative activities in English. "
+            "RESPONSE: A JSON object (no explanations, no markdown code block) with this format: "
+            '{"place_id": "...", "name": "...", "reason": "Why I chose this for YOU based on your interests (max 15 words, in English)", '
+            '"activities": ["Activity 1", "Activity 2", "Activity 3"]}'
+        )
+    else:
+        prompt = (
+            f"Ești expertul 'CityScape AI'. Din următoarele locații: {json.dumps(candidates_data)}, "
+            f"alege EXACT UNA care se potrivește cel mai bine cu categoria cerută '{requested_type}' "
+            f"și cu profilul utilizatorului: {user_context}. "
+            "Ține cont de interesele lui dar adaugă un gram de mister și destin. "
+            "Pentru această locație, generează 3 activități specifice și creative în română. "
+            "RĂSPUNS: Un obiect JSON (fără explicații, fără cod markdown) cu formatul: "
+            '{"place_id": "...", "name": "...", "reason": "De ce am ales asta pentru TINE bazat pe interesele tale (max 15 cuvinte, în română)", '
+            '"activities": ["Activitate 1", "Activitate 2", "Activitate 3"]}'
+        )
 
     try:
         response = model.generate_content(prompt)
@@ -6440,6 +6853,443 @@ def search_hashtag_trending(hashtag):
     except Exception as e:
         print(f"⚠️ Hashtag search error: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/upload/image", methods=['POST'])
+def upload_image():
+    """Upload image to Supabase Storage and return public URL."""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+
+        import uuid, mimetypes
+        file_ext = mimetypes.guess_extension(file.content_type) or '.jpg'
+        filename = f"feed_{uuid.uuid4()}{file_ext}"
+
+        key_to_use = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or SUPABASE_KEY
+        headers = {
+            "apikey": key_to_use,
+            "Authorization": f"Bearer {key_to_use}"
+        }
+
+        file_content = file.read()
+        upload_url = f"{SUPABASE_URL}/storage/v1/object/feed/{filename}"
+
+        res = requests.post(
+            upload_url,
+            headers=headers,
+            data=file_content,
+            params={"upsert": "false"}
+        )
+
+        if res.status_code in [200, 201]:
+            public_url = f"{SUPABASE_URL}/storage/v1/object/public/feed/{filename}"
+            return jsonify({
+                "status": "success",
+                "image_url": public_url,
+                "filename": filename
+            }), 201
+        else:
+            print(f"❌ Upload Error: {res.text}")
+            return jsonify({"error": "Upload failed", "details": res.text}), res.status_code
+
+    except Exception as e:
+        print(f"❌ Upload Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/feed/recover-images", methods=['GET'])
+def recover_feed_images():
+    """Fix posts with invalid image URLs and show recovery status."""
+    try:
+        key_to_use = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or SUPABASE_KEY
+        headers = {
+            "apikey": key_to_use,
+            "Authorization": f"Bearer {key_to_use}"
+        }
+
+        url = f"{SUPABASE_URL}/rest/v1/feed_posts?select=*"
+        res = requests.get(url, headers=headers)
+
+        if res.status_code != 200:
+            return jsonify({"error": "Could not fetch posts"}), 400
+
+        posts = res.json()
+        broken_posts = [p for p in posts if p.get('image_url', '').startswith('content://')]
+
+        recovery_info = {
+            "total_posts": len(posts),
+            "broken_image_posts": len(broken_posts),
+            "broken_posts_list": [
+                {
+                    "id": p['id'],
+                    "user_name": p.get('user_name', 'Unknown'),
+                    "caption": p.get('caption', ''),
+                    "created_at": p.get('created_at'),
+                    "invalid_url": p.get('image_url')
+                }
+                for p in broken_posts
+            ],
+            "instructions": "Send image_url=null for posts to clear broken URLs, or use /upload/image to upload new images"
+        }
+
+        return jsonify(recovery_info), 200
+
+    except Exception as e:
+        print(f"❌ Recovery Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# EXPORT & CALENDAR ENDPOINTS
+@app.route("/user/<user_id>/calendar-items", methods=['GET'])
+def get_calendar_items(user_id):
+    """Get all items saved in user's calendar"""
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+        url = f"{SUPABASE_URL}/rest/v1/calendar_events?user_id=eq.{user_id}&select=*&order=event_date.asc"
+        res = requests.get(url, headers=hdrs, timeout=5)
+
+        if res.status_code == 200:
+            items = res.json()
+            return jsonify({
+                "status": "success",
+                "calendar_items": items,
+                "total": len(items),
+                "item_ids": [item.get("event_id") for item in items]
+            })
+        return jsonify({"calendar_items": []})
+    except Exception as e:
+        print(f"⚠️ Get calendar items error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/events/export", methods=['GET'])
+def export_events_filtered():
+    """Export events - ONLY those interacted with in app (calendar, attended, etc)"""
+    user_id = request.args.get("user_id", "")
+    only_app_items = request.args.get("only_app", "true").lower() == "true"
+
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+        # Get calendar events (added by user in app)
+        cal_url = f"{SUPABASE_URL}/rest/v1/calendar_events?user_id=eq.{user_id}&select=*&order=event_date.desc"
+        cal_res = requests.get(cal_url, headers=hdrs, timeout=5)
+        calendar_events = cal_res.json() if cal_res.status_code == 200 else []
+
+        # Get attended events (marked as visited in app)
+        att_url = f"{SUPABASE_URL}/rest/v1/event_attendance?user_id=eq.{user_id}&select=*&order=attended_date.desc"
+        att_res = requests.get(att_url, headers=hdrs, timeout=5)
+        attended_events = att_res.json() if att_res.status_code == 200 else []
+
+        # Merge unique events
+        all_app_events = []
+        seen_ids = set()
+
+        # Add calendar events
+        for event in calendar_events:
+            event_id = event.get("id") or event.get("event_id")
+            if event_id not in seen_ids:
+                event["source_in_app"] = "calendar"
+                event["interaction_date"] = event.get("event_date") or event.get("created_at")
+                all_app_events.append(event)
+                seen_ids.add(event_id)
+
+        # Add attended events
+        for event in attended_events:
+            event_id = event.get("event_id")
+            if event_id not in seen_ids:
+                event["source_in_app"] = "attended"
+                event["interaction_date"] = event.get("attended_date")
+                all_app_events.append(event)
+                seen_ids.add(event_id)
+
+        return jsonify({
+            "status": "success",
+            "only_app_items": only_app_items,
+            "total_in_calendar": len(calendar_events),
+            "total_attended": len(attended_events),
+            "total_exported": len(all_app_events),
+            "events": all_app_events,
+            "info": {
+                "source_types": ["calendar", "attended"],
+                "message": "Only events interacted with through the app"
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Export events error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/places/export", methods=['GET'])
+def export_places_filtered():
+    """Export places - ONLY those interacted with in app (visited, saved, rated)"""
+    user_id = request.args.get("user_id", "")
+    only_app_items = request.args.get("only_app", "true").lower() == "true"
+
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+        # Get visited places (user marked as visited in app)
+        vis_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&select=*&order=visited_date.desc"
+        vis_res = requests.get(vis_url, headers=hdrs, timeout=5)
+        visited_places = vis_res.json() if vis_res.status_code == 200 else []
+
+        # Get saved places (user saved to wishlist in app)
+        saved_url = f"{SUPABASE_URL}/rest/v1/saved_places?user_id=eq.{user_id}&select=*&order=saved_date.desc"
+        saved_res = requests.get(saved_url, headers=hdrs, timeout=5)
+        saved_places = saved_res.json() if saved_res.status_code == 200 else []
+
+        # Get rated places (user left review/rating in app)
+        rated_url = f"{SUPABASE_URL}/rest/v1/place_ratings?user_id=eq.{user_id}&select=*&order=created_at.desc"
+        rated_res = requests.get(rated_url, headers=hdrs, timeout=5)
+        rated_places = rated_res.json() if rated_res.status_code == 200 else []
+
+        # Merge unique places
+        all_app_places = []
+        seen_ids = set()
+
+        # Add visited places
+        for place in visited_places:
+            place_id = place.get("place_id") or place.get("id")
+            if place_id not in seen_ids:
+                place["interaction_type"] = "visited"
+                place["interaction_date"] = place.get("visited_date") or place.get("created_at")
+                all_app_places.append(place)
+                seen_ids.add(place_id)
+
+        # Add saved places
+        for place in saved_places:
+            place_id = place.get("place_id") or place.get("id")
+            if place_id not in seen_ids:
+                place["interaction_type"] = "saved"
+                place["interaction_date"] = place.get("saved_date") or place.get("created_at")
+                all_app_places.append(place)
+                seen_ids.add(place_id)
+
+        # Add rated places
+        for place in rated_places:
+            place_id = place.get("place_id") or place.get("id")
+            if place_id not in seen_ids:
+                place["interaction_type"] = "rated"
+                place["interaction_date"] = place.get("created_at")
+                place["user_rating"] = place.get("rating")
+                all_app_places.append(place)
+                seen_ids.add(place_id)
+
+        return jsonify({
+            "status": "success",
+            "only_app_items": only_app_items,
+            "total_visited": len(visited_places),
+            "total_saved": len(saved_places),
+            "total_rated": len(rated_places),
+            "total_exported": len(all_app_places),
+            "places": all_app_places,
+            "info": {
+                "interaction_types": ["visited", "saved", "rated"],
+                "message": "Only places interacted with through the app"
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Export places error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# CHAT MESSAGING ENDPOINTS
+@app.route("/chat/conversations/<user_id>", methods=['GET'])
+def get_conversations(user_id):
+    """Get all conversations for a user"""
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+        # Get conversations where user is participant
+        url = f"{SUPABASE_URL}/rest/v1/chat_conversations?or=(user_1_id.eq.{user_id},user_2_id.eq.{user_id})&order=updated_at.desc"
+        res = requests.get(url, headers=hdrs, timeout=5)
+
+        if res.status_code == 200:
+            conversations = res.json()
+            return jsonify({
+                "status": "success",
+                "conversations": conversations,
+                "total": len(conversations)
+            })
+        return jsonify({"conversations": []})
+    except Exception as e:
+        print(f"⚠️ Get conversations error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/chat/messages/<conversation_id>", methods=['GET'])
+def get_messages(conversation_id):
+    """Get all messages in a conversation"""
+    limit = request.args.get("limit", 50)
+
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+        url = f"{SUPABASE_URL}/rest/v1/chat_messages?conversation_id=eq.{conversation_id}&order=created_at.asc&limit={limit}"
+        res = requests.get(url, headers=hdrs, timeout=5)
+
+        if res.status_code == 200:
+            messages = res.json()
+            return jsonify({
+                "status": "success",
+                "messages": messages,
+                "total": len(messages)
+            })
+        return jsonify({"messages": []})
+    except Exception as e:
+        print(f"⚠️ Get messages error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/chat/send", methods=['POST'])
+def send_message():
+    """Send a message to a conversation"""
+    data = request.get_json()
+    sender_id = data.get("sender_id")
+    receiver_id = data.get("receiver_id")
+    message_text = data.get("message")
+    conversation_id = data.get("conversation_id")
+
+    if not sender_id or not message_text:
+        return jsonify({"error": "Missing sender_id or message"}), 400
+
+    try:
+        hdrs = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        }
+
+        # If no conversation exists, create one
+        if not conversation_id and receiver_id:
+            conv_url = f"{SUPABASE_URL}/rest/v1/chat_conversations"
+            conv_data = {
+                "user_1_id": sender_id,
+                "user_2_id": receiver_id
+            }
+            conv_res = requests.post(conv_url, headers=hdrs, json=conv_data)
+            if conv_res.status_code in [200, 201]:
+                conversation_id = conv_res.json()[0].get("id") if isinstance(conv_res.json(), list) else conv_res.json().get("id")
+            else:
+                # Try to find existing conversation
+                find_url = f"{SUPABASE_URL}/rest/v1/chat_conversations?or=(and(user_1_id.eq.{sender_id},user_2_id.eq.{receiver_id}),and(user_1_id.eq.{receiver_id},user_2_id.eq.{sender_id}))"
+                find_res = requests.get(find_url, headers=hdrs)
+                if find_res.status_code == 200 and find_res.json():
+                    conversation_id = find_res.json()[0].get("id")
+
+        if not conversation_id:
+            return jsonify({"error": "Could not create or find conversation"}), 400
+
+        # Add message
+        msg_url = f"{SUPABASE_URL}/rest/v1/chat_messages"
+        msg_data = {
+            "conversation_id": conversation_id,
+            "sender_id": sender_id,
+            "message_text": message_text
+        }
+
+        msg_res = requests.post(msg_url, headers=hdrs, json=msg_data)
+
+        if msg_res.status_code in [200, 201]:
+            message = msg_res.json()
+            if isinstance(message, list):
+                message = message[0]
+
+            return jsonify({
+                "status": "success",
+                "message": message,
+                "conversation_id": conversation_id
+            }), 201
+        else:
+            print(f"❌ Message error: {msg_res.text}")
+            return jsonify({"error": "Failed to send message"}), msg_res.status_code
+    except Exception as e:
+        print(f"❌ Send message error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/chat/start/<user_1_id>/<user_2_id>", methods=['POST'])
+def start_conversation(user_1_id, user_2_id):
+    """Start or get existing conversation between two users"""
+    try:
+        hdrs = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        # Check if conversation exists
+        find_url = f"{SUPABASE_URL}/rest/v1/chat_conversations?or=(and(user_1_id.eq.{user_1_id},user_2_id.eq.{user_2_id}),and(user_1_id.eq.{user_2_id},user_2_id.eq.{user_1_id}))"
+        find_res = requests.get(find_url, headers=hdrs)
+
+        if find_res.status_code == 200 and find_res.json():
+            conversation = find_res.json()[0]
+            return jsonify({
+                "status": "success",
+                "message": "Conversation exists",
+                "conversation": conversation
+            })
+
+        # Create new conversation
+        conv_url = f"{SUPABASE_URL}/rest/v1/chat_conversations"
+        conv_data = {
+            "user_1_id": user_1_id,
+            "user_2_id": user_2_id
+        }
+
+        conv_res = requests.post(conv_url, headers=hdrs, json=conv_data)
+
+        if conv_res.status_code in [200, 201]:
+            conversation = conv_res.json()
+            if isinstance(conversation, list):
+                conversation = conversation[0]
+
+            return jsonify({
+                "status": "success",
+                "message": "Conversation created",
+                "conversation": conversation
+            }), 201
+        else:
+            return jsonify({"error": "Failed to create conversation"}), conv_res.status_code
+    except Exception as e:
+        print(f"❌ Start conversation error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/chat/mark-read/<message_id>", methods=['PATCH'])
+def mark_message_read(message_id):
+    """Mark a message as read"""
+    try:
+        hdrs = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        url = f"{SUPABASE_URL}/rest/v1/chat_messages?id=eq.{message_id}"
+        res = requests.patch(url, headers=hdrs, json={"is_read": True})
+
+        if res.status_code in [200, 204]:
+            return jsonify({"status": "success", "message": "Message marked as read"})
+        return jsonify({"error": "Failed to mark message"}), res.status_code
+    except Exception as e:
+        print(f"❌ Mark read error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))

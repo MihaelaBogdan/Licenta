@@ -27,7 +27,7 @@
                 android:layout_height="36dp"
                 android:background="@drawable/circle_primary"
                 android:gravity="center"
-                android:text="👤"
+                android:text="@string/auto_str_628379"
                 android:textSize="16sp" />
 
             <LinearLayout
@@ -41,7 +41,7 @@
                     android:id="@+id/invitation_from"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="User te-a invitat"
+                    android:text="@string/auto_user_tea_invitat_e4353a"
                     android:textColor="@color/app_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -54,7 +54,7 @@
                     android:drawableStart="@drawable/ic_location"
                     android:drawablePadding="4dp"
                     android:drawableTint="@color/primary"
-                    android:text="Activitate"
+                    android:text="@string/auto_activitate_5b5124"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -81,7 +81,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="20 Mar la 10:00"
+                android:text="@string/auto_20_mar_la_1000_06c3ac"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -110,7 +110,7 @@
                 android:layout_height="36dp"
                 android:backgroundTint="@color/primary"
                 android:minWidth="100dp"
-                android:text="Acceptă"
+                android:text="@string/auto_accepta_2108ef"
                 android:textColor="@color/app_background"
                 android:textSize="13sp"
                 android:textStyle="bold"

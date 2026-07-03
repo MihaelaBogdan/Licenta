@@ -18,7 +18,7 @@ public class CalendarDateAdapter extends RecyclerView.Adapter<CalendarDateAdapte
 
     private final List<CalendarDate> dates;
     private final OnDateClickListener listener;
-    private final SimpleDateFormat dayNameFmt = new SimpleDateFormat("EEE", new Locale("ro"));
+    private final SimpleDateFormat dayNameFmt = new SimpleDateFormat("EEE", Locale.getDefault());
     private final SimpleDateFormat dayNumFmt = new SimpleDateFormat("d", Locale.getDefault());
 
     public interface OnDateClickListener {

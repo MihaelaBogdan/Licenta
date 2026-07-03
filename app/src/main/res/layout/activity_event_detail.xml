@@ -120,7 +120,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Despre Eveniment"
+                android:text="@string/auto_despre_eveniment_1ec4b0"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -133,7 +133,7 @@
                 android:lineSpacingExtra="4dp"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="16sp"
-                android:text="Acesta este un eveniment real preluat din rețeaua noastră. Participă pentru a experimenta atmosfera unică și a cunoaște oameni noi pasionați de aceleași interese." />
+                android:text="@string/auto_acesta_este_un_eveniment_real_aea6e7" />
 
             <!-- Explainable AI Section -->
             <LinearLayout
@@ -157,7 +157,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="🎯 De ce ți-l recomandăm"
+                        android:text="@string/auto_de_ce_til_recomandam_fcd808"
                         android:textColor="@color/app_text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -184,7 +184,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Potrivire interese"
+                    android:text="@string/auto_potrivire_interese_f38521"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <ProgressBar
@@ -202,7 +202,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Eveniment nou pentru tine"
+                    android:text="@string/auto_eveniment_nou_pentru_tine_6cc691"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <ProgressBar
@@ -220,7 +220,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Bazat pe istoricul tău"
+                    android:text="@string/auto_bazat_pe_istoricul_tau_18a2ba"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp" />
                 <ProgressBar
@@ -240,7 +240,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
                 android:layout_marginTop="40dp"
-                android:text="CUMPĂRĂ BILETE"
+                android:text="@string/auto_cumpara_bilete_a6b2df"
                 android:textAllCaps="true"
                 android:textColor="@color/app_background"
                 android:textSize="16sp"
@@ -254,7 +254,7 @@
                 android:layout_height="64dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="32dp"
-                android:text="PARTAJEAZĂ"
+                android:text="@string/auto_partajeaza_ed8908"
                 android:textColor="@color/white"
                 app:cornerRadius="16dp"
                 app:strokeColor="#40FFFFFF" />

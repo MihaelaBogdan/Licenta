@@ -38,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Welcome back! Please enter your details."
+        android:text="@string/auto_welcome_back_please_enter_your_82fb30"
         android:textColor="@color/app_text_secondary"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"

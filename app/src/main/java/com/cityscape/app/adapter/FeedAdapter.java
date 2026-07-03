@@ -51,19 +51,33 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         String name = post.userName != null ? post.userName : "Explorer";
         holder.userName.setText(name);
         holder.captionUser.setText(name.toLowerCase());
-        holder.placeName.setText(post.placeName != null ? post.placeName : "Locație necunoscută");
+        String defaultPlaceName = "en".equals(java.util.Locale.getDefault().getLanguage()) ? "Unknown location" : "Locație necunoscută";
+        holder.placeName.setText(post.placeName != null ? post.placeName : defaultPlaceName);
         holder.caption.setText(post.caption != null ? post.caption : "");
         
         // Likes formatting
-        String likesText = String.format("%,d aprecieri", post.likesCount);
+        String likesText;
+        if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
+            likesText = post.likesCount == 1 ? "1 like" : String.format("%,d likes", post.likesCount);
+        } else {
+            likesText = String.format("%,d aprecieri", post.likesCount);
+        }
         holder.likesCount.setText(likesText);
 
         // Comments formatting (Pro addition)
         if (holder.commentsCount != null) {
             if (post.commentsCount > 0) {
-                holder.commentsCount.setText(String.format("Vezi toate cele %d comentarii", post.commentsCount));
+                if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
+                    holder.commentsCount.setText(String.format("See all %d comments", post.commentsCount));
+                } else {
+                    holder.commentsCount.setText(String.format("Vezi toate cele %d comentarii", post.commentsCount));
+                }
             } else {
-                holder.commentsCount.setText("Adaugă primul comentariu...");
+                if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
+                    holder.commentsCount.setText("Add the first comment...");
+                } else {
+                    holder.commentsCount.setText("Adaugă primul comentariu...");
+                }
             }
             holder.commentsCount.setOnClickListener(v -> {
                 if (listener != null) listener.onCommentClicked(post);
@@ -132,9 +146,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
 
         holder.btnOptions.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(v.getContext(), v);
-            popup.getMenu().add("Raportează");
+            String reportText = "en".equals(java.util.Locale.getDefault().getLanguage()) ? "Report" : "Raportează";
+            popup.getMenu().add(reportText);
             popup.setOnMenuItemClickListener(item -> {
-                if (item.getTitle().equals("Raportează") && listener != null) {
+                if (item.getTitle().equals(reportText) && listener != null) {
                     listener.onReportClicked(post);
                     return true;
                 }
@@ -150,22 +165,23 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
     }
 
     private String getTimeAgo(String isoDate) {
-        if (isoDate == null) return "ACUM";
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        if (isoDate == null) return isEn ? "NOW" : "ACUM";
         try {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault());
             java.util.Date date = sdf.parse(isoDate.split("\\.")[0]);
             long diff = System.currentTimeMillis() - date.getTime();
             long mins = diff / 60000;
-            if (mins < 1) return "chiar acum";
-            if (mins < 2) return "acum 1 minut";
-            if (mins < 60) return "acum " + mins + " minute";
+            if (mins < 1) return isEn ? "just now" : "chiar acum";
+            if (mins < 2) return isEn ? "1 minute ago" : "acum 1 minut";
+            if (mins < 60) return isEn ? mins + " minutes ago" : "acum " + mins + " minute";
             long hours = mins / 60;
-            if (hours < 24) return "acum " + hours + " ore";
+            if (hours < 24) return isEn ? (hours == 1 ? "1 hour ago" : hours + " hours ago") : ("acum " + hours + " ore");
             long days = hours / 24;
-            if (days < 7) return days + " zile";
-            return days / 7 + " săptămâni";
+            if (days < 7) return isEn ? (days == 1 ? "1 day ago" : days + " days ago") : (days + " zile");
+            return isEn ? (days / 7 == 1 ? "1 week ago" : days / 7 + " weeks ago") : (days / 7 + " săptămâni");
         } catch (Exception e) {
-            return "ACUM";
+            return isEn ? "NOW" : "ACUM";
         }
     }
 

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Overlay de sticlă pentru globul de cristal.
+    Transparent la centru (lasă ceața de dedesubt să se vadă),
+    cu rim-glow verde (efect Fresnel) și specular alb strălucitor.
+    Aplicat CA ULTIMUL STRAT deasupra ceții/particulelor în cardul circular.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="190dp"
+    android:height="190dp"
+    android:viewportWidth="190"
+    android:viewportHeight="190">
+
+    <!-- 1. Rim lighting / efect Fresnel: centru transparent → verde la margini -->
+    <path android:pathData="M0,0 L190,0 L190,190 L0,190 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="95"
+                android:centerY="95"
+                android:gradientRadius="100"
+                android:startColor="#0010B981"
+                android:endColor="#8810B981" />
+        </aapt:attr>
+    </path>
+
+    <!-- 2. Umbra de adâncime (fundul sferei mai întunecat - simuleaza absorbția luminii) -->
+    <path android:pathData="M0,0 L190,0 L190,190 L0,190 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="82"
+                android:centerY="72"
+                android:gradientRadius="125"
+                android:startColor="#00000000"
+                android:endColor="#55000000" />
+        </aapt:attr>
+    </path>
+
+    <!-- 3. Specular principal: pată luminoasă mare, difuză (stânga-sus) -->
+    <path android:pathData="M14,4 a44,37 0 1,0 88,0 a44,37 0 1,0 -88,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="58"
+                android:centerY="4"
+                android:gradientRadius="46"
+                android:startColor="#D0FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- 4. Specular mediu: mai concentrat -->
+    <path android:pathData="M30,0 a26,20 0 1,0 52,0 a26,20 0 1,0 -52,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="56"
+                android:centerY="0"
+                android:gradientRadius="28"
+                android:startColor="#FFFFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- 5. Miezul specultar: punctul alb pur (reflecția directă a sursei de lumină) -->
+    <path android:pathData="M42,0 a13,9 0 1,0 26,0 a13,9 0 1,0 -26,0"
+        android:fillColor="#FFFFFFFF" />
+
+    <!-- 6. Catchlight secundar (dreapta-jos: reflexia suprafeței de sub glob) -->
+    <path android:pathData="M146,158 a18,12 0 1,0 36,0 a18,12 0 1,0 -36,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="164"
+                android:centerY="158"
+                android:gradientRadius="19"
+                android:startColor="#33FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- 7. Reflexie verde slabă (stânga-jos: lumina ambientală verde reflectată) -->
+    <path android:pathData="M4,148 a18,14 0 1,0 36,0 a18,14 0 1,0 -36,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="22"
+                android:centerY="148"
+                android:gradientRadius="19"
+                android:startColor="#2210B981"
+                android:endColor="#0010B981" />
+        </aapt:attr>
+    </path>
+
+</vector>

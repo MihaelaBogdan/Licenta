@@ -64,11 +64,28 @@ public class LocalApiInterceptor implements Interceptor {
 
                 jsonResponse = getEvents(lat, lng, radius, interests != null ? interests : "");
             } else if (path.contains("/predict")) {
+                boolean isEn = false;
+                if (request.body() != null) {
+                    try {
+                        okio.Buffer buffer = new okio.Buffer();
+                        request.body().writeTo(buffer);
+                        String bodyStr = buffer.readUtf8();
+                        if (bodyStr.contains("\"language\":\"en\"")) {
+                            isEn = true;
+                        }
+                    } catch (Exception ignored) {}
+                }
+                
                 JSONObject rep = new JSONObject();
-                rep.put("answer", "Salut! Cum nu vrem servere în fundal, modul complet de planificare direct de pe telefonul tău este activ. Cu ce destinație sau plan începem?");
+                if (isEn) {
+                    rep.put("answer", "Hello! As we don't want backend servers running, the full planning mode direct from your phone is active. What destination or plan shall we start with?");
+                    rep.put("suggestions", new JSONArray().put("Surprise me!").put("What's nearby?"));
+                } else {
+                    rep.put("answer", "Salut! Cum nu vrem servere în fundal, modul complet de planificare direct de pe telefonul tău este activ. Cu ce destinație sau plan începem?");
+                    rep.put("suggestions", new JSONArray().put("Surprinde-mă!").put("Ce e în apropiere?"));
+                }
                 rep.put("intent", "itinerary");
                 rep.put("confidence", 1.0);
-                rep.put("suggestions", new JSONArray().put("Surprinde-mă!").put("Ce e în apropiere?"));
                 jsonResponse = rep.toString();
             }
         } catch (Exception e) {

@@ -118,7 +118,7 @@
                 android:id="@+id/chipRestaurant"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🍽️ Find restaurant"
+                android:text="@string/auto_find_restaurant_c841da"
                 app:chipBackgroundColor="@color/card_background"
                 app:chipStrokeColor="@color/app_text_hint"
                 app:chipStrokeWidth="1dp" />
@@ -128,7 +128,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="☕ Cozy cafe"
+                android:text="@string/auto_cozy_cafe_ab4645"
                 app:chipBackgroundColor="@color/card_background"
                 app:chipStrokeColor="@color/app_text_hint"
                 app:chipStrokeWidth="1dp" />
@@ -138,7 +138,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="🎲 Surprise me"
+                android:text="@string/auto_surprise_me_47639b"
                 app:chipBackgroundColor="@color/card_background"
                 app:chipStrokeColor="@color/app_text_hint"
                 app:chipStrokeWidth="1dp" />

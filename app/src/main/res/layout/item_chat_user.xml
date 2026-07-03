@@ -13,7 +13,7 @@
         android:layout_marginStart="48dp"
         android:background="@drawable/bg_chat_bubble_user"
         android:padding="12dp"
-        android:text="User message"
+        android:text="@string/auto_user_message_a2ca3b"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp" />
 

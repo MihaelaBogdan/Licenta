@@ -55,7 +55,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="Today"
+            android:text="@string/auto_today_1dd1c5"
             android:textColor="@color/accent_green"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -107,7 +107,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Tap + to add an activity"
+                    android:text="@string/auto_tap_to_add_an_activity_a5df88"
                     android:textColor="@color/app_text_hint"
                     android:textSize="14sp" />
             </LinearLayout>

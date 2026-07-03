@@ -50,49 +50,49 @@
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🍽️ Restaurants"
+                android:text="@string/auto_restaurants_7d5c2e"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="☕ Cafes"
+                android:text="@string/auto_cafes_4328e7"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🍸 Bars"
+                android:text="@string/auto_bars_1815e5"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🎭 Culture"
+                android:text="@string/auto_culture_a4781e"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌳 Nature"
+                android:text="@string/auto_nature_b30331"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🛍️ Shopping"
+                android:text="@string/auto_shopping_d4532a"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🎉 Nightlife"
+                android:text="@string/auto_nightlife_eb3522"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💼 Work-friendly"
+                android:text="@string/auto_workfriendly_32ae73"
                 style="@style/Widget.CityScape.Chip.Choice" />
         </com.google.android.material.chip.ChipGroup>
 
@@ -116,43 +116,43 @@
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cozy"
+                android:text="@string/auto_cozy_97a03e"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Modern"
+                android:text="@string/auto_modern_ad1c9c"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Romantic"
+                android:text="@string/auto_romantic_658410"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Quiet"
+                android:text="@string/auto_quiet_098753"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Family-friendly"
+                android:text="@string/auto_familyfriendly_6991a9"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trendy"
+                android:text="@string/auto_trendy_ed5d19"
                 style="@style/Widget.CityScape.Chip.Choice" />
 
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Outdoor"
+                android:text="@string/auto_outdoor_8ef3d2"
                 style="@style/Widget.CityScape.Chip.Choice" />
         </com.google.android.material.chip.ChipGroup>
 
@@ -178,7 +178,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="💰 Budget"
+                android:text="@string/auto_budget_7f8eed"
                 android:textColor="@color/app_text_primary"
                 android:buttonTint="@color/accent_green" />
 
@@ -188,7 +188,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:checked="true"
-                android:text="💰💰 Moderate"
+                android:text="@string/auto_moderate_87f65e"
                 android:textColor="@color/app_text_primary"
                 android:buttonTint="@color/accent_green" />
 
@@ -197,7 +197,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="💰💰💰 Premium"
+                android:text="@string/auto_premium_e8ecb8"
                 android:textColor="@color/app_text_primary"
                 android:buttonTint="@color/accent_green" />
         </RadioGroup>

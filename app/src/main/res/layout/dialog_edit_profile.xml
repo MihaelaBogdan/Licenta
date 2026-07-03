@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Schimbă poza"
+            android:text="@string/auto_schimba_poza_637616"
             android:textColor="@color/primary"
             android:textSize="12sp"
             android:layout_marginTop="4dp" />
@@ -37,7 +37,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Editează Profilul"
+        android:text="@string/auto_editeaza_profilul_f54554"
         android:textAlignment="center"
         android:textColor="@color/app_text_primary"
         android:textSize="20sp"
@@ -47,7 +47,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Personalizează-ți profilul și preferințele."
+        android:text="@string/auto_personalizeazati_profilul_si_p_a75996"
         android:textAlignment="center"
         android:textColor="@color/app_text_secondary"
         android:textSize="14sp"
@@ -58,7 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:hint="Numele tău complet"
+        android:hint="@string/auto_numele_tau_complet_1ca39c"
         app:boxStrokeColor="@color/primary"
         app:hintTextColor="@color/primary">
 
@@ -74,7 +74,7 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Interese (ex. Cafenele, Muzee)"
+        android:hint="@string/auto_interese_ex_cafenele_muzee_71942a"
         app:boxStrokeColor="@color/primary"
         app:hintTextColor="@color/primary">
 
@@ -99,7 +99,7 @@
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="Anulează"
+            android:text="@string/auto_anuleaza_717143"
             android:textColor="@color/app_text_secondary" />
 
         <com.google.android.material.button.MaterialButton
@@ -107,7 +107,7 @@
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="Salvează"
+            android:text="@string/auto_salveaza_82409d"
             android:textColor="@color/white"
             app:backgroundTint="@color/primary"
             app:cornerRadius="8dp" />

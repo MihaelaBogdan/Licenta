@@ -169,11 +169,11 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                         TextView emptySub = emptyState.findViewById(R.id.feed_empty_subtitle);
                         
                         if (currentTab.equals("friends")) {
-                            if (emptyTitle != null) emptyTitle.setText("Nicio postare de la prieteni");
-                            if (emptySub != null) emptySub.setText("Urmărește exploratori pentru a le vedea aventurile!");
+                            if (emptyTitle != null) emptyTitle.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "No posts from friends" : "Nicio postare de la prieteni");
+                            if (emptySub != null) emptySub.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Follow other explorers to see their adventures!" : "Urmărește exploratori pentru a le vedea aventurile!");
                         } else {
-                            if (emptyTitle != null) emptyTitle.setText("Nicio postare în comunitate");
-                            if (emptySub != null) emptySub.setText("Fii tu cel care dă startul!");
+                            if (emptyTitle != null) emptyTitle.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "No community posts" : "Nicio postare în comunitate");
+                            if (emptySub != null) emptySub.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Be the first to share one!" : "Fii tu cel care dă startul!");
                         }
                     }
                 }
@@ -200,7 +200,11 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
 
         TextView txtPostingAs = v.findViewById(R.id.txt_posting_as);
         if (txtPostingAs != null) {
-            txtPostingAs.setText("Postezi ca " + sessionManager.getUserName());
+            if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
+                txtPostingAs.setText("Posting as " + sessionManager.getUserName());
+            } else {
+                txtPostingAs.setText("Postezi ca " + sessionManager.getUserName());
+            }
         }
 
         AutoCompleteTextView etPlace = v.findViewById(R.id.et_place_name);
@@ -237,11 +241,11 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             Intent intent = new Intent(Intent.ACTION_PICK); intent.setType("image/*"); imagePickerLauncher.launch(intent);
         });
 
-        builder.setPositiveButton("Publică", (dialog, which) -> {
+        builder.setPositiveButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Publish" : "Publică", (dialog, which) -> {
             if (etPlace == null) return;
             String name = etPlace.getText().toString().trim();
             if (name.isEmpty()) {
-                Toast.makeText(getContext(), "Introdu numele locului!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.enter_place_name_dialog), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -264,7 +268,7 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> res) {
                         if (isAdded()) {
                             if (res.isSuccessful()) {
-                                Toast.makeText(getContext(), "✅ Postat!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getString(R.string.shared_successfully), Toast.LENGTH_SHORT).show();
                                 
                                 // Award badge for posting
                                 com.cityscape.app.util.BadgeManager.awardPostBadge(getContext(), sessionManager.getUserId());
@@ -278,8 +282,10 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                                         String reason = obj.get("reason").getAsString();
                                         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
                                             .setTitle("🤖 AI Moderation")
-                                            .setMessage("Conținutul a fost respins de AI: " + reason)
-                                            .setPositiveButton("Am înțeles", null)
+                                            .setMessage("en".equals(java.util.Locale.getDefault().getLanguage()) ? 
+                                                "Content was rejected by AI: " + reason : 
+                                                "Conținutul a fost respins de AI: " + reason)
+                                            .setPositiveButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "I understand" : "Am înțeles", null)
                                             .show();
                                     } else {
                                         Toast.makeText(getContext(), "Eroare: " + res.code(), Toast.LENGTH_SHORT).show();
@@ -293,12 +299,12 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                         }
                     }
                     @Override public void onFailure(Call<JsonObject> call, Throwable t) {
-                        if (isAdded()) Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+                        if (isAdded()) Toast.makeText(getContext(), getString(R.string.network_error), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
-        builder.setNegativeButton("Anulează", null);
+        builder.setNegativeButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Cancel" : "Anulează", null);
         builder.show();
     }
 
@@ -308,9 +314,14 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
     }
 
     private void showReportDialog(String postId, String commentId) {
-        String[] reasons = {"Limbaj nepotrivit", "Spam / Conținut irelevant", "Hărțuire", "Dezinformare", "Altceva"};
+        String[] reasons;
+        if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
+            reasons = new String[]{"Inappropriate language", "Spam / Irrelevant content", "Harassment", "Misinformation", "Other"};
+        } else {
+            reasons = new String[]{"Limbaj nepotrivit", "Spam / Conținut irelevant", "Hărțuire", "Dezinformare", "Altceva"};
+        }
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
-        builder.setTitle("Raportează conținutul");
+        builder.setTitle("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Report content" : "Raportează conținutul");
         builder.setItems(reasons, (dialog, which) -> {
             String reason = reasons[which];
             Map<String, Object> body = new HashMap<>();
@@ -324,11 +335,11 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                     @Override
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> res) {
                         if (isAdded() && res.isSuccessful()) {
-                            Toast.makeText(getContext(), "Raport trimis cu succes! Mulțumim.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.report_sent), Toast.LENGTH_SHORT).show();
                         }
                     }
                     @Override public void onFailure(Call<JsonObject> call, Throwable t) {
-                        if (isAdded()) Toast.makeText(getContext(), "Eroare rețea", Toast.LENGTH_SHORT).show();
+                        if (isAdded()) Toast.makeText(getContext(), getString(R.string.network_error), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -380,7 +391,9 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
     @Override public void onCommentClicked(FeedPost post) { showCommentsDialog(post); }
     @Override public void onShareClicked(FeedPost post) {
         Intent s = new Intent(Intent.ACTION_SEND); s.setType("text/plain");
-        s.putExtra(Intent.EXTRA_TEXT, "🌍 " + post.userName + " recomandă " + post.placeName);
+        String shareText = "en".equals(java.util.Locale.getDefault().getLanguage()) ? 
+            " recommends " : " recomandă ";
+        s.putExtra(Intent.EXTRA_TEXT, "🌍 " + post.userName + shareText + post.placeName);
         startActivity(Intent.createChooser(s, "Share"));
     }
 
@@ -502,9 +515,10 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             h.t.setText(c.commentText);
             h.opt.setOnClickListener(v -> {
                 android.widget.PopupMenu popup = new android.widget.PopupMenu(v.getContext(), v);
-                popup.getMenu().add("Raportează");
+                String reportText = "en".equals(java.util.Locale.getDefault().getLanguage()) ? "Report" : "Raportează";
+                popup.getMenu().add(reportText);
                 popup.setOnMenuItemClickListener(item -> {
-                    if (item.getTitle().equals("Raportează") && reportListener != null) {
+                    if (item.getTitle().equals(reportText) && reportListener != null) {
                         reportListener.onReport(c.id);
                         return true;
                     }

@@ -22,7 +22,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class UserSearchActivity extends AppCompatActivity implements UserAdapter.OnUserActionListener {
+public class UserSearchActivity extends BaseActivity implements UserAdapter.OnUserActionListener {
 
     private EditText etSearch;
     private RecyclerView rvUsers;
@@ -79,7 +79,7 @@ public class UserSearchActivity extends AppCompatActivity implements UserAdapter
             @Override
             public void onFailure(Call<List<User>> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(UserSearchActivity.this, "Eroare la căutare", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UserSearchActivity.this, getString(R.string.search_error), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -96,14 +96,14 @@ public class UserSearchActivity extends AppCompatActivity implements UserAdapter
                 if (res.isSuccessful()) {
                     user.isFollowing = !user.isFollowing;
                     adapter.notifyItemChanged(position);
-                    String msg = user.isFollowing ? "Acum îl urmărești pe " + user.name : "Nu îl mai urmărești pe " + user.name;
+                    String msg = user.isFollowing ? getString(R.string.following_status) + user.name : getString(R.string.unfollowing_status) + user.name;
                     Toast.makeText(UserSearchActivity.this, msg, Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(UserSearchActivity.this, "Eroare rețea", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UserSearchActivity.this, getString(R.string.network_error), Toast.LENGTH_SHORT).show();
             }
         });
     }

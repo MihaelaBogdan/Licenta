@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="🏆"
+            android:text="@string/auto_str_a3b155"
             android:textSize="40sp" />
     </FrameLayout>
 
@@ -36,7 +36,7 @@
         android:id="@+id/txt_quest_discovery_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="QUEST COMPLETAT!"
+        android:text="@string/auto_quest_completat_2eef8c"
         android:textColor="@color/primary"
         android:textSize="20sp"
         android:fontFamily="sans-serif-black"
@@ -48,7 +48,7 @@
         android:id="@+id/txt_quest_discovery_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Felicitări! Ai ajuns la destinație și ai deblocat recompensa!"
+        android:text="@string/auto_felicitari_ai_ajuns_la_destina_91b024"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:lineSpacingMultiplier="1.2"
@@ -60,7 +60,7 @@
         android:id="@+id/btn_claim_quest"
         android:layout_width="match_parent"
         android:layout_height="54dp"
-        android:text="Revendică +200 XP"
+        android:text="@string/auto_revendica_200_xp_e0d2b9"
         android:textColor="@android:color/white"
         app:backgroundTint="@color/primary"
         app:cornerRadius="16dp"

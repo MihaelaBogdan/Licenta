@@ -148,7 +148,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                                     + Uri.encode(p.name) + "&query_place_id=" + p.lat + "," + p.lng);
                                 v.getContext().startActivity(new Intent(Intent.ACTION_VIEW, webUri));
                             } catch (Exception ex) {
-                                Toast.makeText(v.getContext(), "Nu s-a putut deschide Maps", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(v.getContext(), v.getContext().getString(R.string.maps_not_available), Toast.LENGTH_SHORT).show();
                             }
                         });
 
@@ -198,7 +198,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                                     (android.app.Activity) v.getContext(), R.id.nav_host_fragment);
                             navController.navigate(R.id.navigation_itinerary, args);
                         } catch (Exception e) {
-                            Toast.makeText(v.getContext(), "Traseul se încarcă...", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(v.getContext(), v.getContext().getString(R.string.route_loading), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

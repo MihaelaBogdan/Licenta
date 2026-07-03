@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Halo interior: verde intens în centru -->
     <item>
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
-                android:gradientRadius="150dp"
+                android:gradientRadius="120dp"
                 android:centerX="0.5"
                 android:centerY="0.5"
-                android:startColor="#66BE4932"
-                android:endColor="#1110B981" />
+                android:startColor="#9910B981"
+                android:centerColor="#4410B981"
+                android:endColor="#0010B981" />
+        </shape>
+    </item>
+    <!-- Haloul exterior: albastru-verde subtil -->
+    <item android:top="15dp" android:left="15dp" android:right="15dp" android:bottom="15dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="105dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#3334D399"
+                android:endColor="#0034D399" />
         </shape>
     </item>
 </layer-list>

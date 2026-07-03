@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Planifică aventura ta"
+            android:text="@string/auto_planifica_aventura_ta_decb83"
             android:textColor="@color/app_text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Unde vrei să explorăm astăzi?"
+            android:text="@string/auto_unde_vrei_sa_exploram_astazi_816892"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -44,7 +44,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Aproape"
+                android:text="@string/auto_aproape_bdbfcf"
                 android:textAllCaps="false"
                 android:textColor="@color/app_text_primary"
                 app:strokeColor="@color/primary" />
@@ -55,7 +55,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Tot orașul"
+                android:text="@string/auto_tot_orasul_8c20bb"
                 android:textAllCaps="false"
                 android:textColor="@color/app_text_primary"
                 app:strokeColor="@color/primary" />
@@ -65,7 +65,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Ce stil preferi?"
+            android:text="@string/auto_ce_stil_preferi_469b83"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -82,7 +82,7 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Explorare"
+                android:text="@string/auto_explorare_ee76dc"
                 android:checked="true" />
 
             <com.google.android.material.chip.Chip
@@ -90,49 +90,49 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Relaxare" />
+                android:text="@string/auto_relaxare_260ccf" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_cultural"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cultural" />
+                android:text="@string/auto_cultural_061cb8" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_gastronomic"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gastronomic" />
+                android:text="@string/auto_gastronomic_1b3897" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_nightlife"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nocturn" />
+                android:text="@string/auto_nocturn_a28388" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_cinema"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cinema" />
+                android:text="@string/auto_cinema_2d365e" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_sport"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tenis / Sport" />
+                android:text="@string/auto_tenis_sport_30ff84" />
         </com.google.android.material.chip.ChipGroup>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Mod de transport"
+            android:text="@string/auto_mod_de_transport_cb9a70"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -149,7 +149,7 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🚶 Pe jos"
+                android:text="@string/auto_pe_jos_66e99c"
                 android:checked="true" />
 
             <com.google.android.material.chip.Chip
@@ -157,21 +157,21 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🚌 Transport public" />
+                android:text="@string/auto_transport_public_73491f" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_transport_driving"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🚗 Mașină" />
+                android:text="@string/auto_masina_e82628" />
         </com.google.android.material.chip.ChipGroup>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Cu cine mergi?"
+            android:text="@string/auto_cu_cine_mergi_fd3c27"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -188,7 +188,7 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🧍 Singur"
+                android:text="@string/auto_singur_ebff74"
                 android:checked="true" />
 
             <com.google.android.material.chip.Chip
@@ -196,21 +196,21 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💑 Cuplu" />
+                android:text="@string/auto_cuplu_d9464e" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_companion_friends"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="👫 Prieteni" />
+                android:text="@string/auto_prieteni_883a87" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_companion_family"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="👨‍👩‍👧 Familie" />
+                android:text="@string/auto_familie_783013" />
         </com.google.android.material.chip.ChipGroup>
 
         <!-- Start hour + avoid crowds row -->
@@ -225,7 +225,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Ora de start"
+                android:text="@string/auto_ora_de_start_342d65"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
@@ -233,7 +233,7 @@
                 android:id="@+id/tv_start_hour_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="08:00"
+                android:text="@string/auto_0800_5188aa"
                 android:textColor="@color/primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -256,7 +256,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Evită locurile aglomerate"
+            android:text="@string/auto_evita_locurile_aglomerate_1dd08c"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -264,7 +264,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Ce vrei să facem neapărat?"
+            android:text="@string/auto_ce_vrei_sa_facem_neaparat_19ca6f"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -280,35 +280,35 @@
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🎬 Cinema" />
+                android:text="@string/auto_cinema_1cf9d8" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_include_tennis"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🎾 Tenis" />
+                android:text="@string/auto_tenis_7f1a2c" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_include_museum"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏛️ Muzee" />
+                android:text="@string/auto_muzee_3157ba" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_include_park"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌳 Parcuri" />
+                android:text="@string/auto_parcuri_a4caf2" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_include_food"
                 style="@style/Widget.MaterialComponents.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🍔 Restaurante" />
+                android:text="@string/auto_restaurante_85a859" />
         </com.google.android.material.chip.ChipGroup>
 
         <!-- Duration Slider -->
@@ -323,7 +323,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Durată (ore)"
+                android:text="@string/auto_durata_ore_3a2cf7"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
@@ -331,7 +331,7 @@
                 android:id="@+id/tv_duration_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="6h"
+                android:text="@string/auto_6h_41e8c1"
                 android:textColor="@color/primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -361,7 +361,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Număr puncte"
+                android:text="@string/auto_numar_puncte_d57999"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
@@ -369,7 +369,7 @@
                 android:id="@+id/tv_density_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4 locații"
+                android:text="@string/auto_4_locatii_393b75"
                 android:textColor="@color/primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -399,7 +399,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Buget Maxim"
+                android:text="@string/auto_buget_maxim_befed1"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
@@ -407,7 +407,7 @@
                 android:id="@+id/tv_budget_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="250 RON"
+                android:text="@string/auto_250_ron_0e264b"
                 android:textColor="@color/primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -431,7 +431,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="24dp"
-            android:text="✨ Planifică"
+            android:text="@string/auto_planifica_28bec3"
             android:textAllCaps="false"
             android:textColor="@color/app_background"
             android:textSize="16sp"

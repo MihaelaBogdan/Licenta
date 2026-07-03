@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:text="Postezi ca Explorer"
+        android:text="@string/auto_postezi_ca_explorer_b90fd1"
         android:textColor="@color/primary"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -40,13 +40,13 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📷"
+                android:text="@string/auto_str_23d4d7"
                 android:textSize="36sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Adaugă o poză"
+                android:text="@string/auto_adauga_o_poza_78b940"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="14sp"
                 android:layout_marginTop="8dp" />
@@ -78,7 +78,7 @@
             android:id="@+id/et_place_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Unde ești? (Scrie orice loc)"
+            android:hint="@string/auto_unde_esti_scrie_orice_loc_27bdf3"
             android:textColor="@color/app_text_primary"
             android:inputType="text"
             android:completionThreshold="1"
@@ -100,7 +100,7 @@
             android:id="@+id/et_caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ce ți-a plăcut aici? ✨"
+            android:hint="@string/auto_ce_tia_placut_aici_25b74d"
             android:textColor="@color/app_text_primary"
             android:inputType="textMultiLine"
             android:minLines="3"
@@ -119,7 +119,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cum a fost experiența?"
+            android:text="@string/auto_cum_a_fost_experienta_6a33e6"
             android:textColor="@color/app_text_secondary"
             android:textSize="13sp"
             android:layout_marginBottom="8dp" />

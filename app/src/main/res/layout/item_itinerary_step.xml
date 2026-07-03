@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="10dp"
-            android:text="🚶 15 min"
+            android:text="@string/auto_15_min_a951e8"
             android:textColor="@color/app_text_secondary"
             android:textSize="11sp" />
 
@@ -81,7 +81,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
-                    android:text="09:00 - 10:00"
+                    android:text="@string/auto_0900_1000_23fc3a"
                     android:textColor="@color/primary"
                     android:textSize="13sp"
                     android:fontFamily="sans-serif-black" />
@@ -92,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:text="•"
+                    android:text="@string/auto_str_53fe08"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="13sp" />
 
@@ -101,7 +101,7 @@
                     android:id="@+id/text_slot_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MIC DEJUN"
+                    android:text="@string/auto_mic_dejun_561a83"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="10sp"
                     android:textAllCaps="true"
@@ -151,7 +151,7 @@
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:layout_marginBottom="10dp"
-            android:text="Navighează cu Google Maps →"
+            android:text="@string/auto_navigheaza_cu_google_maps_aa15f2"
             android:textSize="11sp"
             android:textColor="@color/white"
             android:backgroundTint="@color/primary"
@@ -168,7 +168,7 @@
             android:paddingVertical="6dp"
             android:background="@drawable/bg_glass_card"
             android:drawablePadding="6dp"
-            android:text="Prima oprire a zilei!"
+            android:text="@string/auto_prima_oprire_a_zilei_3627d4"
             android:textColor="@color/primary"
             android:textSize="11sp"
             android:textStyle="italic"
@@ -205,7 +205,7 @@
                     android:id="@+id/text_step_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Nume Locație"
+                    android:text="@string/auto_nume_locatie_e75cf7"
                     android:textColor="@color/app_text_primary"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium"
@@ -218,7 +218,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Adresă locație"
+                    android:text="@string/auto_adresa_locatie_1a0f61"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="11sp"
                     android:maxLines="2"
@@ -240,7 +240,7 @@
                         android:background="@drawable/bg_glass_card"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
-                        android:text="~50 RON"
+                        android:text="@string/auto_50_ron_a06dae"
                         android:textColor="@color/gold_accent"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -251,7 +251,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="1.2 km"
+                        android:text="@string/auto_12_km_4ef004"
                         android:textColor="@color/primary"
                         android:textSize="10sp" />
 
@@ -265,7 +265,7 @@
                         android:backgroundTint="@color/error"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="2dp"
-                        android:text="ÎNCHIS ACUM"
+                        android:text="@string/auto_inchis_acum_add396"
                         android:textColor="@color/white"
                         android:textSize="9sp"
                         android:textStyle="bold"

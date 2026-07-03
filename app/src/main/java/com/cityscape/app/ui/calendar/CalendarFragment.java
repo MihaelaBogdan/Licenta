@@ -70,7 +70,7 @@ public class CalendarFragment extends Fragment {
                 if (isGranted) {
                     syncGoogleCalendar();
                 } else {
-                    Toast.makeText(getContext(), "Permisiune refuzată pentru Calendar", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.calendar_permission_denied), Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -287,21 +287,21 @@ public class CalendarFragment extends Fragment {
         
         List<PlannedActivity> dayActivities = db.activityDao().getActivitiesForDate(userId, selectedDate);
         if (dayActivities.isEmpty()) {
-            Toast.makeText(getContext(), "Nu ai activități planificate pentru această zi.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.no_activities_planned), Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Show a dialog to confirm exporting all or first one
         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-            .setTitle("Export în Calendar")
-            .setMessage("Vrei să exporți toate cele " + dayActivities.size() + " activități în calendarul telefonului?")
-            .setPositiveButton("Exportă Tot", (d, w) -> {
+            .setTitle(getString(R.string.export_activities))
+            .setMessage(getString(R.string.export_confirmation, dayActivities.size()))
+            .setPositiveButton(getString(R.string.export_all_btn), (d, w) -> {
                 for (PlannedActivity activity : dayActivities) {
                     exportActivityToPhone(activity);
                 }
-                Toast.makeText(getContext(), "Am deschis exportul pentru activitățile tale!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), getString(R.string.export_opened), Toast.LENGTH_LONG).show();
             })
-            .setNegativeButton("Anulează", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show();
     }
 
@@ -346,7 +346,7 @@ public class CalendarFragment extends Fragment {
             startActivity(intent);
         } catch (Exception e) {
             Log.e("CalendarFragment", "Export failed", e);
-            Toast.makeText(getContext(), "Eroare la export: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.export_error) + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -361,7 +361,7 @@ public class CalendarFragment extends Fragment {
     }
 
     private void syncGoogleCalendar() {
-        Toast.makeText(getContext(), "Citesc evenimentele din calendarul tău...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), getString(R.string.reading_calendar), Toast.LENGTH_SHORT).show();
         
         android.content.Context context = getContext();
         if (context == null) return;
@@ -443,10 +443,10 @@ public class CalendarFragment extends Fragment {
                         if (!isAdded()) return;
                         loadActivitiesForDate(selectedDate);
                         if (finalCount > 0) {
-                            Toast.makeText(getContext(), "🎉 Magie! Am importat " + finalCount + " activități noi!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.imported_activities, finalCount), Toast.LENGTH_LONG).show();
                             sessionManager.awardAchievement("Sincronizare Calendar", 50);
                         } else {
-                            Toast.makeText(getContext(), "Nu am găsit activități noi în calendar pentru următoarele 30 de zile.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.no_new_activities), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -455,7 +455,7 @@ public class CalendarFragment extends Fragment {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         if (isAdded() && getContext() != null)
-                             Toast.makeText(getContext(), "Eroare la sincronizare. Verifică permisiunile.", Toast.LENGTH_SHORT).show();
+                             Toast.makeText(getContext(), getString(R.string.sync_error), Toast.LENGTH_SHORT).show();
                     });
                 }
             } finally {
@@ -477,8 +477,9 @@ public class CalendarFragment extends Fragment {
     private void loadActivitiesForDate(long date) {
         String formattedDate = dateFormat.format(new Date(date));
 
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         if (normalizeDate(System.currentTimeMillis()) == date) {
-            textSelectedDate.setText("Activitățile de azi");
+            textSelectedDate.setText(isEn ? "Today's Activities" : "Activitățile de azi");
         } else {
             textSelectedDate.setText(formattedDate);
         }
@@ -486,7 +487,12 @@ public class CalendarFragment extends Fragment {
         if (textMonthYear != null) {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(date);
-            String[] luni = {"Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"};
+            String[] luni;
+            if (isEn) {
+                luni = new String[]{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+            } else {
+                luni = new String[]{"Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"};
+            }
             String lunaAn = luni[c.get(Calendar.MONTH)] + " " + c.get(Calendar.YEAR);
             textMonthYear.setText(lunaAn);
         }
@@ -506,12 +512,13 @@ public class CalendarFragment extends Fragment {
                     if (textActivitySummary != null) {
                         int count = activities.size();
                         String summaryText;
+                        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
                         if (count == 0) {
-                            summaryText = "Nu ai nicio activitate planificată";
+                            summaryText = isEnVal ? "No planned activities" : "Nu ai nicio activitate planificată";
                         } else if (count == 1) {
-                            summaryText = "Ai o activitate planificată";
+                            summaryText = isEnVal ? "You have 1 planned activity" : "Ai o activitate planificată";
                         } else {
-                            summaryText = "Ai " + count + " activități planificate";
+                            summaryText = isEnVal ? "You have " + count + " planned activities" : "Ai " + count + " activități planificate";
                         }
                         textActivitySummary.setText(summaryText);
                     }
@@ -573,13 +580,13 @@ public class CalendarFragment extends Fragment {
                             } else {
                                 // Offer choice: full group or 1-on-1 availability check
                                 new AlertDialog.Builder(context, R.style.DarkDialogTheme)
-                                    .setTitle("Cum vrei să inviți?")
-                                    .setMessage("Creează un grup sau invită un singur prieten după ce verifici disponibilitatea.")
-                                    .setPositiveButton("🗓️ Verifică disponibilitate", (d, w) ->
+                                    .setTitle(getString(R.string.how_to_invite))
+                                    .setMessage(getString(R.string.group_create_invite))
+                                    .setPositiveButton(getString(R.string.check_availability), (d, w) ->
                                             showAvailabilityPickerDialog(activity))
-                                    .setNegativeButton("👥 Creează grup", (d, w) ->
+                                    .setNegativeButton(getString(R.string.create_group_btn), (d, w) ->
                                             showCreateGroupDialog(activity))
-                                    .setNeutralButton("Anulează", null)
+                                    .setNeutralButton(getString(R.string.cancel), null)
                                     .show();
                             }
                         }
@@ -603,11 +610,12 @@ public class CalendarFragment extends Fragment {
 
 
     private void showFeedbackDialog(String placeName) {
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-            .setTitle("Feedback pentru " + placeName)
-            .setMessage("Cum a fost activitatea? Feedback-ul tău ne ajută să-ți oferim planuri mai bune!")
-            .setPositiveButton("Minunat! ⭐", (d, w) -> Toast.makeText(getContext(), "Mulțumim!", Toast.LENGTH_SHORT).show())
-            .setNegativeButton("Nu prea", (d, w) -> Toast.makeText(getContext(), "Vom ține cont!", Toast.LENGTH_SHORT).show())
+            .setTitle(isEn ? "Feedback for " + placeName : "Feedback pentru " + placeName)
+            .setMessage(isEn ? "How was the activity? Your feedback helps us create better plans!" : "Cum a fost activitatea? Feedback-ul tău ne ajută să-ți oferim planuri mai bune!")
+            .setPositiveButton(isEn ? "Amazing! ⭐" : "Minunat! ⭐", (d, w) -> Toast.makeText(getContext(), getString(R.string.thank_you), Toast.LENGTH_SHORT).show())
+            .setNegativeButton(isEn ? "Not great" : "Nu prea", (d, w) -> Toast.makeText(getContext(), getString(R.string.noted), Toast.LENGTH_SHORT).show())
             .show();
     }
 
@@ -630,7 +638,8 @@ public class CalendarFragment extends Fragment {
                     } else {
                         recyclerGroups.setVisibility(View.VISIBLE);
                         emptyGroupsState.setVisibility(View.GONE);
-                        textGroupCount.setText(groups.size() + (groups.size() == 1 ? " grup" : " grupuri"));
+                        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
+                        textGroupCount.setText(groups.size() + (isEnVal ? (groups.size() == 1 ? " group" : " groups") : (groups.size() == 1 ? " grup" : " grupuri")));
 
                         groupCardAdapter = new GroupCardAdapter(context, groups,
                                 new GroupCardAdapter.OnGroupActionListener() {
@@ -683,17 +692,17 @@ public class CalendarFragment extends Fragment {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         String dateStr = sdf.format(new Date(activity.scheduledDate));
 
-        String shareText = "🌟 Hai la " + activity.placeName + "!\n" +
-                "📅 Data: " + dateStr + ", ora " + activity.scheduledTime + "\n\n" +
-                "📍 Vezi detaliile și alătură-te: https://cityscape.app/join\n";
+        String shareText = getString(R.string.share_activity_intro, activity.placeName) +
+                getString(R.string.share_activity_date, dateStr, activity.scheduledTime) +
+                getString(R.string.share_activity_join);
 
         ActivityGroup group = db.groupDao().getGroupForActivity(activity.id);
         if (group != null) {
-            shareText += "🔑 Cod grup: " + group.groupCode + "\n";
-            shareText += "👉 Descarcă CityScape, mergi la Calendar și introdu codul!";
+            shareText += getString(R.string.share_activity_code, group.groupCode);
+            shareText += getString(R.string.share_activity_download);
         }
 
-        showShareChooser(shareText, "Hai la " + activity.placeName);
+        showShareChooser(shareText, getString(R.string.share_activity_title, activity.placeName));
     }
 
     private void shareOnWhatsApp(ActivityGroup group) {
@@ -806,7 +815,7 @@ public class CalendarFragment extends Fragment {
         dialogView.findViewById(R.id.btn_create_group_action).setOnClickListener(v -> {
             String groupName = inputGroupName.getText().toString().trim();
             if (groupName.isEmpty()) {
-                Toast.makeText(getContext(), "Introdu un nume de grup", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.enter_group_name_dialog), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -860,7 +869,7 @@ public class CalendarFragment extends Fragment {
                 }
             }
 
-            Toast.makeText(getContext(), "Grup creat! Cod: " + group.groupCode, Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getString(R.string.group_created) + group.groupCode, Toast.LENGTH_LONG).show();
             dialog.dismiss();
             loadActivitiesForDate(selectedDate);
             loadUserGroups();
@@ -948,7 +957,7 @@ public class CalendarFragment extends Fragment {
                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
                 android.content.ClipData clip = android.content.ClipData.newPlainText("CityScape Group Code", group.groupCode);
                 clipboard.setPrimaryClip(clip);
-                Toast.makeText(getContext(), "Cod copiat în clipboard! 📋", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.code_copied_clip), Toast.LENGTH_SHORT).show();
             });
         }
 
@@ -993,7 +1002,7 @@ public class CalendarFragment extends Fragment {
                 chipAskAi.setEnabled(false);
                 
                 // Show loading message
-                String loadingMsgText = "CityScape AI: 🧠 Analizez profilurile membrilor și interesele combinate pentru a găsi cele mai bune recomandări... Vă rog așteptați.";
+                String loadingMsgText = getString(R.string.ai_analyzing_members);
                 com.cityscape.app.model.GroupMessage loadingMsg = new com.cityscape.app.model.GroupMessage(
                         group.id, "cityscape_ai_loading", "CityScape AI", loadingMsgText);
                 chatMessages.add(loadingMsg);
@@ -1029,7 +1038,7 @@ public class CalendarFragment extends Fragment {
                         
                         if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                             StringBuilder sb = new StringBuilder();
-                            sb.append("🧠 *Recomandări AI speciale pentru grupul vostru:*\n\n");
+                            sb.append(getString(R.string.ai_group_recommendations_header));
                             for (java.util.Map<String, String> rec : response.body()) {
                                 sb.append("📍 *").append(rec.get("name")).append("* (").append(rec.get("type")).append(")\n");
                                 sb.append("🏠 ").append(rec.get("address")).append("\n");
@@ -1044,7 +1053,7 @@ public class CalendarFragment extends Fragment {
                             chatAdapter.notifyItemInserted(chatMessages.size() - 1);
                             rvChat.scrollToPosition(chatMessages.size() - 1);
                         } else {
-                            Toast.makeText(getContext(), "Eroare la generarea recomandărilor AI", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.ai_rec_error), Toast.LENGTH_SHORT).show();
                         }
                     }
                     
@@ -1060,7 +1069,7 @@ public class CalendarFragment extends Fragment {
                                 break;
                             }
                         }
-                        Toast.makeText(getContext(), "Eroare de rețea la recomandările AI", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.ai_recommendations_error), Toast.LENGTH_SHORT).show();
                     }
                 });
             });
@@ -1114,12 +1123,12 @@ public class CalendarFragment extends Fragment {
                     String senderId = replier.userId;
 
                     String[] replies = {
-                        "Sună excelent planul ăsta! 🎯",
-                        "Eu ajung exact la fix! Ne vedem acolo.",
-                        "Super tare! Să nu uităm să facem poze! 📸",
-                        "Să ne strângem în fața intrării principale.",
-                        "Eu vin sigur! Sună extraordinar! 🌟",
-                        "De acord! Vreți să ne oprim și la o cafea înainte? ☕"
+                        getString(R.string.sim_reply_1),
+                        getString(R.string.sim_reply_2),
+                        getString(R.string.sim_reply_3),
+                        getString(R.string.sim_reply_4),
+                        getString(R.string.sim_reply_5),
+                        getString(R.string.sim_reply_6)
                     };
                     String replyText = replies[(int) (Math.random() * replies.length)];
 
@@ -1155,9 +1164,10 @@ public class CalendarFragment extends Fragment {
             btnFinalize.setVisibility(View.VISIBLE);
         }
 
+        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
         AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
                 .setView(dialogView)
-                .setPositiveButton("Gata", null)
+                .setPositiveButton(isEnVal ? "Done" : "Gata", null)
                 .show();
 
         btnAdd.setOnClickListener(v -> {
@@ -1180,7 +1190,7 @@ public class CalendarFragment extends Fragment {
             List<com.cityscape.app.model.GroupSuggestion> suggestions = db.suggestionDao()
                     .getSuggestionsForGroup(group.id);
             if (suggestions.isEmpty()) {
-                Toast.makeText(getContext(), "Nu există propuneri!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.no_alternatives), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1195,7 +1205,7 @@ public class CalendarFragment extends Fragment {
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
                         .updateActivityInCloud(activity);
 
-                Toast.makeText(getContext(), "Vot finalizat! Mergem la: " + winner.placeName, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), getString(R.string.vote_complete) + winner.placeName, Toast.LENGTH_LONG).show();
                 dialog.dismiss();
                 loadActivitiesForDate(selectedDate);
             }
@@ -1234,7 +1244,7 @@ public class CalendarFragment extends Fragment {
                             db.suggestionDao().update(suggestion);
                             loadSuggestions(group, recycler, emptyText);
                         } else {
-                            Toast.makeText(getContext(), "Ai votat deja!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.voted_already), Toast.LENGTH_SHORT).show();
                         }
                     });
             recycler.setAdapter(adapter);
@@ -1247,7 +1257,7 @@ public class CalendarFragment extends Fragment {
         // Check if already a member
         GroupMember existingMember = db.groupDao().getMember(group.id, targetUser.id);
         if (existingMember != null) {
-            Toast.makeText(getContext(), targetUser.name + " este deja în grup!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.already_in_group_msg, targetUser.name), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -1279,7 +1289,7 @@ public class CalendarFragment extends Fragment {
         List<Invitation> pending = db.invitationDao().getPendingInvitations(sessionManager.getUserId());
 
         if (pending.isEmpty()) {
-            Toast.makeText(getContext(), "Nu ai invitații în așteptare.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.no_pending_invitations), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -1287,10 +1297,11 @@ public class CalendarFragment extends Fragment {
         RecyclerView recyclerInvitations = dialogView.findViewById(R.id.recycler_invitations);
         recyclerInvitations.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
         AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle("Invitații (" + pending.size() + ")")
+                .setTitle((isEnVal ? "Invitations (" : "Invitații (") + pending.size() + ")")
                 .setView(dialogView)
-                .setNegativeButton("Închide", null)
+                .setNegativeButton(isEnVal ? "Close" : "Închide", null)
                 .create();
 
         InvitationAdapter invAdapter = new InvitationAdapter(requireContext(), pending,
@@ -1310,7 +1321,7 @@ public class CalendarFragment extends Fragment {
                         com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
                                 .pushMemberToCloud(member);
 
-                        Toast.makeText(getContext(), "Te-ai alăturat grupului " + invitation.groupName + "!",
+                        Toast.makeText(getContext(), getString(R.string.joined_group_msg, invitation.groupName),
                                 Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
 
@@ -1325,7 +1336,7 @@ public class CalendarFragment extends Fragment {
                         db.invitationDao().update(invitation);
                         com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
                                 .updateInvitationInCloud(invitation);
-                        Toast.makeText(getContext(), "Invitația a fost refuzată", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.invitation_declined), Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         checkPendingInvitations();
                     }
@@ -1355,7 +1366,7 @@ public class CalendarFragment extends Fragment {
 
             ActivityGroup group = db.groupDao().getGroupByCode(code);
             if (group == null) {
-                Toast.makeText(getContext(), "Grup negăsit. Verifică codul!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.group_not_found), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1363,7 +1374,7 @@ public class CalendarFragment extends Fragment {
             User currentUser = sessionManager.getCurrentUser();
             GroupMember existingMember = db.groupDao().getMember(group.id, currentUser.id);
             if (existingMember != null) {
-                Toast.makeText(getContext(), "Ești deja în acest grup!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.already_in_group_msg2), Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
                 return;
             }
@@ -1371,7 +1382,7 @@ public class CalendarFragment extends Fragment {
             // Check member limit
             int currentMembers = db.groupDao().getAcceptedMemberCount(group.id);
             if (currentMembers >= group.maxMembers) {
-                Toast.makeText(getContext(), "Grupul este plin!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.group_full_error), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1381,7 +1392,7 @@ public class CalendarFragment extends Fragment {
             db.groupDao().insertMember(member);
             com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(member);
 
-            Toast.makeText(getContext(), "Te-ai alăturat grupului " + group.groupName + "!",
+            Toast.makeText(getContext(), getString(R.string.joined_group_msg, group.groupName),
                     Toast.LENGTH_SHORT).show();
             sessionManager.awardAchievement("S-a alăturat grupului: " + group.groupName, 25);
             dialog.dismiss();
@@ -1448,7 +1459,7 @@ public class CalendarFragment extends Fragment {
         });
 
         AlertDialog dialog = builder.setView(dialogView)
-                .setPositiveButton("Salvează", (d, w) -> {
+                .setPositiveButton(getString(R.string.save_btn), (d, w) -> {
                     User currentUser = sessionManager.getCurrentUser();
                     if (currentUser == null)
                         return;
@@ -1472,9 +1483,9 @@ public class CalendarFragment extends Fragment {
                     db.scheduleDao().insert(schedule);
                     com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext())
                             .pushScheduleToCloud(schedule);
-                    Toast.makeText(getContext(), "Programul tău a fost salvat!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.schedule_saved), Toast.LENGTH_SHORT).show();
                 })
-                .setNegativeButton("Închide", null)
+                .setNegativeButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Close" : "Închide", null)
                 .create();
 
         dialog.show();
@@ -1574,7 +1585,7 @@ public class CalendarFragment extends Fragment {
             }
             if (placeId != null) {
                 final String finalPlaceId = placeId;
-                apiService.getPlaceDetails(placeId).enqueue(new retrofit2.Callback<com.cityscape.app.model.Place>() {
+                apiService.getPlaceDetails(placeId, java.util.Locale.getDefault().getLanguage()).enqueue(new retrofit2.Callback<com.cityscape.app.model.Place>() {
                     @Override
                     public void onResponse(retrofit2.Call<com.cityscape.app.model.Place> call, retrofit2.Response<com.cityscape.app.model.Place> response) {
                         if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -1661,16 +1672,14 @@ public class CalendarFragment extends Fragment {
             timePicker.show();
         });
 
-        builder.setView(dialogView)
-                .setPositiveButton("Adaugă", null); // Set to null first to override listener and prevent dismissal
-
-        AlertDialog dialog = builder.create();
+        AlertDialog dialog = builder.setView(dialogView).create();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
         dialog.show();
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        dialogView.findViewById(R.id.btn_cancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_save).setOnClickListener(v -> {
             String name = inputName.getText().toString().trim();
             String type = inputType.getText().toString().trim();
             String notes = inputNotes.getText().toString().trim();
@@ -1806,21 +1815,19 @@ public class CalendarFragment extends Fragment {
             if (isChecked) updateConversion(inputBudget.getText().toString(), checkedId, textConversion, EUR_RATE);
         });
 
-        AlertDialog dialog = builder.setView(dialogView)
-                .setPositiveButton("Salvează", null)
-                .setNegativeButton("Anulează", null)
-                .create();
+        AlertDialog dialog = builder.setView(dialogView).create();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
         dialog.show();
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        dialogView.findViewById(R.id.btn_cancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_save).setOnClickListener(v -> {
             String name  = inputName.getText().toString().trim();
             String type  = inputType.getText().toString().trim();
             String notes = inputNotes.getText().toString().trim();
 
-            if (name.isEmpty()) { inputName.setError("Introdu numele locului"); return; }
+            if (name.isEmpty()) { inputName.setError(getString(R.string.err_enter_place_name)); return; }
 
             existingActivity.placeName    = name;
             existingActivity.placeType    = type.isEmpty() ? existingActivity.placeType : type;
@@ -1912,19 +1919,19 @@ public class CalendarFragment extends Fragment {
                 picked.set(y, mo, d);
                 rangeStart[0] = normalizeDate(picked.getTimeInMillis());
                 rangeEnd[0]   = normalizeDate(picked.getTimeInMillis() + 6L * 86400_000L);
-                dateRangeInfo.setText("Interval: " + sdf7.format(new Date(rangeStart[0]))
-                        + " – " + sdf7.format(new Date(rangeEnd[0])));
+                dateRangeInfo.setText(getString(R.string.date_range_interval, 
+                        sdf7.format(new Date(rangeStart[0])), sdf7.format(new Date(rangeEnd[0]))));
             }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
         });
 
         // Invite user field (email or username) — 1-on-1 or group
         TextView inviteLabel = new TextView(ctx);
-        inviteLabel.setText("\nInvită utilizator (email / username):");
+        inviteLabel.setText(getString(R.string.invite_user_label));
         inviteLabel.setTextColor(android.graphics.Color.WHITE);
         root.addView(inviteLabel);
 
         EditText inputInvite = new EditText(ctx);
-        inputInvite.setHint("ex: ana@email.com sau @ana_pop");
+        inputInvite.setHint(getString(R.string.invite_user_hint));
         inputInvite.setHintTextColor(0xFF888888);
         inputInvite.setTextColor(android.graphics.Color.WHITE);
         root.addView(inputInvite);
@@ -1940,16 +1947,16 @@ public class CalendarFragment extends Fragment {
         scroll.addView(root);
 
         AlertDialog dialog = new AlertDialog.Builder(ctx, R.style.DarkDialogTheme)
-                .setTitle("Disponibilitate & Invitație")
+                .setTitle(getString(R.string.invite_dialog_title))
                 .setView(scroll)
-                .setPositiveButton("Analizează & Invită", null)
-                .setNegativeButton("Închide", null)
+                .setPositiveButton(getString(R.string.btn_analyze_invite), null)
+                .setNegativeButton(getString(R.string.close), null)
                 .create();
         dialog.show();
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String query = inputInvite.getText().toString().trim();
-            resultText.setText("⏳ Se analizează calendarele...");
+            resultText.setText(getString(R.string.status_analyzing_calendars));
 
             new Thread(() -> {
                 // 1. Collect current user's busy hours across range
@@ -1981,17 +1988,15 @@ public class CalendarFragment extends Fragment {
 
                         StringBuilder sb = new StringBuilder();
                         if (finalInvited != null) {
-                            sb.append("✅ Utilizator găsit: ").append(finalInvited.name).append("\n\n");
+                            sb.append(getString(R.string.status_user_found, finalInvited.name));
                         } else if (!query.isEmpty()) {
-                            sb.append("⚠️ Utilizatorul '").append(query).append("' nu a fost găsit local.\n");
-                            sb.append("Invitația va fi trimisă prin cod de grup.\n\n");
+                            sb.append(getString(R.string.status_user_not_found, query));
                         }
 
                         if (finalBest != null) {
-                            sb.append("🟢 Slot liber propus: ").append(finalBest);
+                            sb.append(getString(R.string.status_free_slot_proposed, finalBest));
                         } else {
-                            sb.append("🔴 Nu există un slot comun liber în intervalul ales.\n");
-                            sb.append("Încearcă un interval mai larg.");
+                            sb.append(getString(R.string.status_no_common_slot));
                         }
 
                         resultText.setText(sb.toString());
@@ -1999,14 +2004,13 @@ public class CalendarFragment extends Fragment {
                         // If best slot found + user exists → offer to send invite
                         if (finalBest != null && finalInvited != null) {
                             new AlertDialog.Builder(ctx, R.style.DarkDialogTheme)
-                                    .setTitle("Trimite invitație?")
-                                    .setMessage("Cel mai bun slot comun: " + finalBest
-                                            + "\n\nVrei să trimiți o invitație lui " + finalInvited.name + "?")
-                                    .setPositiveButton("Trimite invitație", (dd, ww) -> {
+                                    .setTitle(getString(R.string.dialog_send_invite_title))
+                                    .setMessage(getString(R.string.dialog_send_invite_msg, finalBest, finalInvited.name))
+                                    .setPositiveButton(getString(R.string.btn_send_invite), (dd, ww) -> {
                                         // Create a group (or invite 1-on-1 via group with 2 members)
                                         ActivityGroup grp = new ActivityGroup(
                                                 activityToSchedule.id, currentUser.id,
-                                                "Activitate cu " + finalInvited.name);
+                                                getString(R.string.activity_with_user, finalInvited.name));
                                         db.groupDao().insertGroup(grp);
                                         com.cityscape.app.data.SupabaseSyncManager
                                                 .getInstance(ctx).pushGroupToCloud(grp);
@@ -2019,11 +2023,11 @@ public class CalendarFragment extends Fragment {
 
                                         sendInvitation(grp, activityToSchedule, finalInvited);
                                         Toast.makeText(ctx,
-                                                "Invitație trimisă lui " + finalInvited.name + "!",
+                                                getString(R.string.toast_invite_sent, finalInvited.name),
                                                 Toast.LENGTH_LONG).show();
                                         loadUserGroups();
                                     })
-                                    .setNegativeButton("Nu acum", null)
+                                    .setNegativeButton(getString(R.string.btn_not_now), null)
                                     .show();
                         }
                     });

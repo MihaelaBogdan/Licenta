@@ -320,8 +320,8 @@ optimizer = torch.optim.AdamW([
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
 # Warmup + Cosine Annealing scheduler
-NUM_EPOCHS = 50
-WARMUP_EPOCHS = 3
+NUM_EPOCHS = 5
+WARMUP_EPOCHS = 1
 
 
 class WarmupCosineScheduler:

@@ -38,7 +38,7 @@
                 android:background="@drawable/bg_glass_card"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
-                android:text="12 MAI"
+                android:text="@string/auto_12_mai_256c87"
                 android:textColor="@color/white"
                 android:textSize="10sp"
                 android:textStyle="bold"
@@ -52,7 +52,7 @@
                 android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:text="Event Title"
+                android:text="@string/auto_event_title_9502ef"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -62,7 +62,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Location Details"
+                android:text="@string/auto_location_details_ba250a"
                 android:textColor="#CCFFFFFF"
                 android:textSize="13sp" />
 
@@ -86,7 +86,7 @@
                 android:background="@drawable/bg_button_premium"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
-                android:text="🎯 92%"
+                android:text="@string/auto_92_a36111"
                 android:textColor="@color/white"
                 android:textSize="10sp"
                 android:textStyle="bold"

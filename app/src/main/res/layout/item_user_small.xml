@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Name"
+        android:text="@string/auto_name_49ee30"
         android:textColor="@color/app_text_primary"
         android:textSize="11sp"
         android:maxLines="1"

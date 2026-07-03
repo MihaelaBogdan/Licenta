@@ -88,23 +88,23 @@ public class WelcomeActivity extends BaseActivity {
                 } catch (ApiException e) {
                     String sha1 = getSigningCertificateSHA1();
                     Log.e(TAG, "Google sign-in failed, code: " + e.getStatusCode() + ". Actual SHA-1: " + sha1, e);
-                    
+
                     new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
-                        .setTitle("Eroare Conectare Google (10/12500)")
-                        .setMessage("Pentru a rezolva eroarea, adaugă această amprentă SHA-1 în Google Cloud Console la clientul tău de Android:\n\n" + (sha1 != null ? sha1 : "Nu s-a putut genera"))
-                        .setPositiveButton("Copiază SHA-1", (dialog, which) -> {
+                        .setTitle(getString(R.string.google_connection_error))
+                        .setMessage(getString(R.string.sha1_instruction) + (sha1 != null ? sha1 : getString(R.string.sha1_not_generated)))
+                        .setPositiveButton(getString(R.string.copy_sha1), (dialog, which) -> {
                             if (sha1 != null) {
                                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
                                 android.content.ClipData clip = android.content.ClipData.newPlainText("SHA-1", sha1);
                                 clipboard.setPrimaryClip(clip);
-                                Toast.makeText(this, "Copiat în clipboard!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
                             }
                         })
-                        .setNegativeButton("Închide", null)
+                        .setNegativeButton(getString(R.string.close), null)
                         .show();
                 } catch (Exception e) {
                     Log.e(TAG, "Unexpected error during Google sign-in", e);
-                    Toast.makeText(this, "Eroare neașteptată: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.unexpected_error) + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
 

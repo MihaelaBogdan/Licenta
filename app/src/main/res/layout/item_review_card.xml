@@ -28,7 +28,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Nume Autor"
+                android:text="@string/auto_nume_autor_68140c"
                 android:textColor="@color/app_text_primary"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-black"
@@ -39,7 +39,7 @@
                 android:id="@+id/review_rating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⭐⭐⭐⭐⭐"
+                android:text="@string/auto_str_c9f288"
                 android:textSize="9sp" />
         </LinearLayout>
 
@@ -47,7 +47,7 @@
             android:id="@+id/review_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="acum o săptămână"
+            android:text="@string/auto_acum_o_saptamana_39a3ad"
             android:textColor="@color/app_text_hint"
             android:textSize="9sp"
             android:layout_marginBottom="6dp" />
@@ -56,7 +56,7 @@
             android:id="@+id/review_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Locație excepțională, servire ireproșabilă și atmosferă intimă."
+            android:text="@string/auto_locatie_exceptionala_servire_i_43d26e"
             android:textColor="@color/app_text_secondary"
             android:textSize="11sp"
             android:fontFamily="sans-serif"

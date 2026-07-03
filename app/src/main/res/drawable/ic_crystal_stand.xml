@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Suportul / piedestatul globului de cristal.
+    Metal întunecat ornamental cu cup, stem, nod decorativ și bază.
+    Fundal transparent (fără carouri).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="88dp"
+    android:viewportWidth="200"
+    android:viewportHeight="88">
+
+    <!-- ===== CUP / CRADLE (leagăn care ține globul) ===== -->
+
+    <!-- Cup body: formă de bol care îmbrățișează baza sferei -->
+    <path android:pathData="M60,0 Q56,24 100,26 Q144,24 140,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="60"
+                android:startY="0"
+                android:endX="60"
+                android:endY="26"
+                android:startColor="#2E2010"
+                android:endColor="#0E0804" />
+        </aapt:attr>
+    </path>
+
+    <!-- Cup: gradient lateral (efect 3D cilindric) -->
+    <path android:pathData="M60,0 Q56,24 100,26 Q144,24 140,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="60"
+                android:startY="0"
+                android:endX="140"
+                android:endY="0"
+                android:startColor="#22FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:centerColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+
+    <!-- Cup interior shadow (adâncime) -->
+    <path android:pathData="M72,12 Q100,18 128,12 Q128,22 100,24 Q72,22 72,12 Z"
+        android:fillColor="#33000000" />
+
+    <!-- Cup rim highlight (marginea superioară strălucitoare) -->
+    <path android:pathData="M60,2 Q100,-4 140,2"
+        android:fillColor="#00000000"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="1.8" />
+
+    <!-- ===== GULER DECORATIV ===== -->
+
+    <!-- Gulere inel decorativ exterior -->
+    <path android:pathData="M55,22 a45,9 0 1,0 90,0 a45,9 0 1,0 -90,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="55"
+                android:startY="13"
+                android:endX="55"
+                android:endY="31"
+                android:startColor="#38261A"
+                android:endColor="#120806" />
+        </aapt:attr>
+    </path>
+
+    <!-- Guler strălucire superioară -->
+    <path android:pathData="M55,20 a45,7 0 1,0 90,0"
+        android:fillColor="#00000000"
+        android:strokeColor="#2AFFFFFF"
+        android:strokeWidth="1.2" />
+
+    <!-- Guler linie decorativă -->
+    <path android:pathData="M62,27 Q100,31 138,27"
+        android:fillColor="#00000000"
+        android:strokeColor="#18FFFFFF"
+        android:strokeWidth="0.8" />
+
+    <!-- ===== TIJA SUPERIOARĂ ===== -->
+    <path android:pathData="M88,29 L85,47 L115,47 L112,29 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="85"
+                android:startY="29"
+                android:endX="115"
+                android:endY="29"
+                android:startColor="#281C0C"
+                android:endColor="#0C0804"
+                android:centerColor="#1A1208" />
+        </aapt:attr>
+    </path>
+    <!-- Tija highlight stânga -->
+    <path android:pathData="M88,29 L85,47 L89,47 L92,29 Z"
+        android:fillColor="#1AFFFFFF" />
+    <!-- Tija shadow dreapta -->
+    <path android:pathData="M112,29 L115,47 L111,47 L108,29 Z"
+        android:fillColor="#1A000000" />
+
+    <!-- ===== NOD DECORATIV (mijlocul tijei) ===== -->
+    <path android:pathData="M70,45 a30,9 0 1,0 60,0 a30,9 0 1,0 -60,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="70"
+                android:startY="36"
+                android:endX="70"
+                android:endY="54"
+                android:startColor="#38261A"
+                android:endColor="#120806" />
+        </aapt:attr>
+    </path>
+    <!-- Nod: gradient lateral 3D -->
+    <path android:pathData="M70,45 a30,9 0 1,0 60,0 a30,9 0 1,0 -60,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="70"
+                android:startY="45"
+                android:endX="130"
+                android:endY="45"
+                android:startColor="#22FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:centerColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+    <!-- Nod highlight superior -->
+    <path android:pathData="M70,43 a30,7 0 1,0 60,0"
+        android:fillColor="#00000000"
+        android:strokeColor="#25FFFFFF"
+        android:strokeWidth="1" />
+
+    <!-- ===== TIJA INFERIOARĂ ===== -->
+    <path android:pathData="M86,54 L82,65 L118,65 L114,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="82"
+                android:startY="54"
+                android:endX="118"
+                android:endY="54"
+                android:startColor="#281C0C"
+                android:endColor="#0C0804"
+                android:centerColor="#1A1208" />
+        </aapt:attr>
+    </path>
+    <!-- Tija inferioară highlight -->
+    <path android:pathData="M86,54 L82,65 L86,65 L90,54 Z"
+        android:fillColor="#18FFFFFF" />
+
+    <!-- ===== BAZA PLATFORMĂ ===== -->
+    <!-- Baza corp principal -->
+    <path android:pathData="M22,65 Q20,65 20,70 L20,76 Q20,82 28,82 L172,82 Q180,82 180,76 L180,70 Q180,65 178,65 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="20"
+                android:startY="65"
+                android:endX="20"
+                android:endY="82"
+                android:startColor="#342214"
+                android:endColor="#120806" />
+        </aapt:attr>
+    </path>
+    <!-- Baza gradient lateral (cilindric) -->
+    <path android:pathData="M22,65 Q20,65 20,70 L20,76 Q20,82 28,82 L172,82 Q180,82 180,76 L180,70 Q180,65 178,65 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="20"
+                android:startY="65"
+                android:endX="180"
+                android:endY="65"
+                android:startColor="#20FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:centerColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+    <!-- Baza margine superioară (linie strălucitoare) -->
+    <path android:pathData="M22,65 Q20,65 20,68 L20,69 Q20,67 22,67 L178,67 Q180,67 180,69 L180,68 Q180,65 178,65 Z"
+        android:fillColor="#28FFFFFF" />
+    <!-- Baza fundal inferior (umbra) -->
+    <path android:pathData="M20,79 L20,82 Q20,82 28,82 L172,82 Q180,82 180,82 L180,79 Z"
+        android:fillColor="#22000000" />
+    <!-- Linie decorativă pe baza -->
+    <path android:pathData="M34,74 L166,74"
+        android:fillColor="#00000000"
+        android:strokeColor="#14FFFFFF"
+        android:strokeWidth="0.8" />
+
+    <!-- ===== UMBRA SUB BAZA ===== -->
+    <path android:pathData="M32,82 a68,6 0 1,0 136,0 a68,6 0 1,0 -136,0"
+        android:fillColor="#55000000" />
+
+</vector>

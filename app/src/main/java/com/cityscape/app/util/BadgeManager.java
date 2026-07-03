@@ -2,6 +2,7 @@ package com.cityscape.app.util;
 
 import android.content.Context;
 import android.widget.Toast;
+import com.cityscape.app.R;
 import com.cityscape.app.data.AppDatabase;
 import com.cityscape.app.data.SupabaseSyncManager;
 import com.cityscape.app.model.UserBadge;
@@ -88,7 +89,7 @@ public class BadgeManager {
     private static void showBadgeToast(Context context, String name) {
         if (context instanceof android.app.Activity) {
             ((android.app.Activity) context).runOnUiThread(() -> {
-                Toast.makeText(context, "🏆 Badge deblocat: " + name, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, context.getString(R.string.badge_unlocked) + name, Toast.LENGTH_LONG).show();
             });
         }
     }
@@ -96,7 +97,8 @@ public class BadgeManager {
     private static void showLevelUpToast(Context context, int newLevel) {
         if (context instanceof android.app.Activity) {
             ((android.app.Activity) context).runOnUiThread(() -> {
-                Toast.makeText(context, "✨ FELICITĂRI! Ai ajuns la Nivelul " + newLevel + "!", Toast.LENGTH_LONG).show();
+                String message = context.getString(R.string.level_up, newLevel);
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
             });
         }
     }

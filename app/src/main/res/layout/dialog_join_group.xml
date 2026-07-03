@@ -26,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Intră într-un grup"
+            android:text="@string/auto_intra_intrun_grup_0c3788"
             android:textColor="@color/app_text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="Introdu codul primit de la prietenul tău pentru a te alătura grupului"
+            android:text="@string/auto_introdu_codul_primit_de_la_pri_3f03ae"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
     </LinearLayout>
@@ -47,7 +47,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
-        android:hint="Cod grup">
+        android:hint="@string/auto_cod_grup_b2f9d1">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_group_code"
@@ -70,7 +70,7 @@
         android:layout_height="56dp"
         android:layout_marginTop="20dp"
         app:backgroundTint="@color/primary"
-        android:text="Alătură-te grupului"
+        android:text="@string/auto_alaturate_grupului_46cb74"
         android:textColor="@color/app_background"
         android:textSize="16sp"
         android:textStyle="bold"

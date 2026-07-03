@@ -18,10 +18,13 @@ public interface ApiService {
                 @retrofit2.http.Query("lat") double lat,
                 @retrofit2.http.Query("lng") double lng,
                 @retrofit2.http.Query("type") String type,
-                @retrofit2.http.Query("user_id") String userId);
+                @retrofit2.http.Query("user_id") String userId,
+                @retrofit2.http.Query("language") String language);
 
         @GET("places/{placeId}/details")
-        Call<Place> getPlaceDetails(@retrofit2.http.Path("placeId") String placeId);
+        Call<Place> getPlaceDetails(
+                @retrofit2.http.Path("placeId") String placeId,
+                @retrofit2.http.Query("language") String language);
 
 
         @GET("places/search")
@@ -32,7 +35,8 @@ public interface ApiService {
                         @retrofit2.http.Query("type") String type,
                         @retrofit2.http.Query("radius") Integer radius,
                         @retrofit2.http.Query("user_id") String userId,
-                        @retrofit2.http.Query("city") String city);
+                        @retrofit2.http.Query("city") String city,
+                        @retrofit2.http.Query("language") String language);
 
         @GET("places/autocomplete")
         Call<List<java.util.Map<String, String>>> getAutocomplete(
@@ -69,7 +73,8 @@ public interface ApiService {
                         @retrofit2.http.Query("travel_mode") String travelMode,
                         @retrofit2.http.Query("start_hour") Integer startHour,
                         @retrofit2.http.Query("companion") String companion,
-                        @retrofit2.http.Query("avoid_crowds") Boolean avoidCrowds);
+                        @retrofit2.http.Query("avoid_crowds") Boolean avoidCrowds,
+                        @retrofit2.http.Query("language") String language);
 
         @GET("itinerary/replace")
         Call<ItineraryItem> replaceItinerarySlot(
@@ -102,7 +107,8 @@ public interface ApiService {
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("radius") int radius,
                         @retrofit2.http.Query("interests") String interests,
-                        @retrofit2.http.Query("user_id") String userId);
+                        @retrofit2.http.Query("user_id") String userId,
+                        @retrofit2.http.Query("language") String language);
 
 
         @POST("visit")
@@ -183,7 +189,8 @@ public interface ApiService {
                         @retrofit2.http.Query("lng") double lng,
                         @retrofit2.http.Query("user_id") String userId,
                         @retrofit2.http.Query("type") String type,
-                        @retrofit2.http.Query("interests") String interests);
+                        @retrofit2.http.Query("interests") String interests,
+                        @retrofit2.http.Query("language") String language);
 
         @GET("recommendations/personalized")
         Call<List<Place>> getPersonalizedRecommendations(
@@ -227,5 +234,6 @@ public interface ApiService {
 
         @GET("crystal-ball/timeline/{user_id}")
         Call<com.google.gson.JsonObject> getCrystalBallTimeline(
-                        @retrofit2.http.Path("user_id") String userId);
+                        @retrofit2.http.Path("user_id") String userId,
+                        @retrofit2.http.Query("language") String language);
 }

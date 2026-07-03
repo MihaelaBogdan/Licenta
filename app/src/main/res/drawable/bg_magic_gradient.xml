@@ -1,17 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <gradient
-        android:type="radial"
-        android:gradientRadius="180dp"
-        android:centerX="0.5"
-        android:centerY="0.5"
-        android:startColor="#A7F3D0"
-        android:endColor="#059669"
-        android:angle="0" />
+    <!-- 1. Baza întunecată: adâncime de sticlă, centru ușor mai cald -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="95dp"
+                android:centerX="0.55"
+                android:centerY="0.6"
+                android:startColor="#102018"
+                android:endColor="#000000" />
+        </shape>
+    </item>
 
-    <stroke
-        android:width="2dp"
-        android:color="#10B981" />
-</shape>
+    <!-- 2. Nucleu nebula - energia magică verde smarald -->
+    <item android:top="32dp" android:left="32dp" android:right="32dp" android:bottom="38dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="58dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#7710B981"
+                android:endColor="#0010B981" />
+        </shape>
+    </item>
+
+    <!-- 3. Rim lighting: centru transparent → verde la margini (efect Fresnel) -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="92dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#0010B981"
+                android:endColor="#6610B981" />
+        </shape>
+    </item>
+
+    <!-- 4. Highlight specultar principal: pată luminoasă stânga-sus -->
+    <item android:top="9dp" android:left="13dp" android:right="86dp" android:bottom="86dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="42dp"
+                android:centerX="0.42"
+                android:centerY="0.42"
+                android:startColor="#BBFFFFFF"
+                android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
+
+    <!-- 5. Miezul specultar: punctul alb pur (reflecția sursei de lumină) -->
+    <item android:top="14dp" android:left="19dp" android:right="112dp" android:bottom="112dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="18dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#FFFFFFFF"
+                android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
+
+</layer-list>

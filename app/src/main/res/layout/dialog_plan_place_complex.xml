@@ -20,7 +20,7 @@
         android:id="@+id/txt_plan_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Planifică aventura"
+        android:text="@string/auto_planifica_aventura_ad298d"
         android:textColor="@color/app_text_primary"
         android:textSize="20sp"
         android:fontFamily="sans-serif-black"
@@ -30,7 +30,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📅 Alege data:"
+        android:text="@string/auto_alege_data_2218ce"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
@@ -41,7 +41,7 @@
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="Selectează Data"
+        android:text="@string/auto_selecteaza_data_4017b1"
         android:textColor="@color/primary"
         app:strokeColor="@color/primary"
         app:cornerRadius="12dp"
@@ -53,7 +53,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🕒 Interval orar:"
+        android:text="@string/auto_interval_orar_af78c2"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
@@ -71,7 +71,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="De la: 10:00"
+            android:text="@string/auto_de_la_1000_1030b9"
             android:textColor="@color/app_text_primary"
             app:strokeColor="@color/app_divider"
             app:cornerRadius="12dp"
@@ -85,7 +85,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="Până la: 12:00"
+            android:text="@string/auto_pana_la_1200_252902"
             android:textColor="@color/app_text_primary"
             app:strokeColor="@color/app_divider"
             app:cornerRadius="12dp"
@@ -98,7 +98,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🔥 Nivel de Prioritate:"
+        android:text="@string/auto_nivel_de_prioritate_cf4d7d"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
@@ -117,28 +117,28 @@
             style="@style/Widget.CityScape.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🔥 Must See" />
+            android:text="@string/auto_must_see_770d84" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_priority_med"
             style="@style/Widget.CityScape.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🍃 Flexible" />
+            android:text="@string/auto_flexible_b4dfb6" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_priority_low"
             style="@style/Widget.CityScape.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="💤 Optional" />
+            android:text="@string/auto_optional_e0a738" />
     </com.google.android.material.chip.ChipGroup>
 
     <!-- Step 4: Budget Allocation -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="💰 Buget estimat (RON):"
+        android:text="@string/auto_buget_estimat_ron_62e7f6"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
@@ -150,7 +150,7 @@
         android:layout_height="48dp"
         android:background="@drawable/bg_input_field"
         android:inputType="number"
-        android:hint="Ex: 100 RON"
+        android:hint="@string/auto_ex_100_ron_775aaf"
         android:textColorHint="@color/app_text_hint"
         android:textColor="@color/app_text_primary"
         android:paddingHorizontal="16dp"
@@ -161,7 +161,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🚶 Mijloc de transport preferat:"
+        android:text="@string/auto_mijloc_de_transport_preferat_a9df83"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
@@ -180,28 +180,28 @@
             style="@style/Widget.CityScape.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🚶 Pe jos" />
+            android:text="@string/auto_pe_jos_66e99c" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_transit_bus"
             style="@style/Widget.CityScape.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🚌 Transport în comun" />
+            android:text="@string/auto_transport_in_comun_3ba03d" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_transit_car"
             style="@style/Widget.CityScape.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🚗 Auto/Uber" />
+            android:text="@string/auto_autouber_30a060" />
     </com.google.android.material.chip.ChipGroup>
 
     <!-- Step 6: Custom Notes -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📝 Notițe &amp; Amintiri:"
+        android:text="@string/auto_notite_amp_amintiri_ce9c93"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
@@ -213,7 +213,7 @@
         android:layout_height="80dp"
         android:background="@drawable/bg_input_field"
         android:inputType="textMultiLine"
-        android:hint="Ex: Cumpără bilet din timp, fă poze la apus..."
+        android:hint="@string/auto_ex_cumpara_bilet_din_timp_fa_p_96bf42"
         android:textColorHint="@color/app_text_hint"
         android:textColor="@color/app_text_primary"
         android:padding="12dp"
@@ -233,7 +233,7 @@
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
-            android:text="Renunță"
+            android:text="@string/auto_renunta_a6725a"
             android:textColor="@color/app_text_secondary"
             app:strokeColor="@color/app_divider"
             app:cornerRadius="14dp"
@@ -246,7 +246,7 @@
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1.5"
-            android:text="Salvează Planul 🎒"
+            android:text="@string/auto_salveaza_planul_d07522"
             android:textColor="@android:color/white"
             app:backgroundTint="@color/primary"
             app:cornerRadius="14dp"

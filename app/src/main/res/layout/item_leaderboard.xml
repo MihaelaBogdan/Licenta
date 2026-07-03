@@ -53,7 +53,7 @@
                 android:id="@+id/text_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Username"
+                android:text="@string/auto_username_f6039d"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -62,7 +62,7 @@
                 android:id="@+id/text_stats"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="53 locuri vizitate"
+                android:text="@string/auto_53_locuri_vizitate_e13f60"
                 android:textColor="@color/app_text_hint"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -71,7 +71,7 @@
             android:id="@+id/text_xp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1,240 XP"
+            android:text="@string/auto_1240_xp_614398"
             android:textColor="@color/accent_green"
             android:textSize="14sp"
             android:textStyle="bold" />

@@ -26,14 +26,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="👥"
+                android:text="@string/auto_str_687df4"
                 android:textSize="24sp"
                 android:layout_marginEnd="10dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Creează o Aventură în Grup"
+                android:text="@string/auto_creeaza_o_aventura_in_grup_c3380d"
                 android:textColor="@color/primary"
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-black" />
@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Planifică această activitate împreună cu prietenii tăi și adunați XP împreună!"
+            android:text="@string/auto_planifica_aceasta_activitate_i_479166"
             android:textColor="@color/app_text_secondary"
             android:textSize="13sp" />
 
@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="Numele grupului"
+            android:hint="@string/auto_numele_grupului_532924"
             app:startIconDrawable="@drawable/ic_group"
             app:startIconTint="@color/primary"
             app:boxStrokeWidth="1.5dp"
@@ -75,7 +75,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="💡 Prieteni recomandați:"
+            android:text="@string/auto_prieteni_recomandati_177a91"
             android:textColor="@color/primary"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium" />
@@ -95,7 +95,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="✨ Prieteni pe care îi urmărești:"
+            android:text="@string/auto_prieteni_pe_care_ii_urmaresti_19b7d0"
             android:textColor="@color/primary"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium"
@@ -117,7 +117,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Caută prieteni după email sau @utilizator"
+            android:hint="@string/auto_cauta_prieteni_dupa_email_sau_86135a"
             app:startIconDrawable="@drawable/ic_search"
             app:startIconTint="@color/app_text_hint"
             app:boxStrokeWidth="1dp">
@@ -138,7 +138,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="24dp"
-            android:text="Creează Grupul 🚀"
+            android:text="@string/auto_creeaza_grupul_58dab6"
             android:textAllCaps="false"
             android:textSize="15sp"
             android:textColor="@color/white"
@@ -170,7 +170,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:text="Trimite invitație prin WhatsApp 💬"
+                android:text="@string/auto_trimite_invitatie_prin_whatsap_052813"
                 android:textColor="#25D366"
                 android:textSize="14sp"
                 android:fontFamily="sans-serif-medium" />

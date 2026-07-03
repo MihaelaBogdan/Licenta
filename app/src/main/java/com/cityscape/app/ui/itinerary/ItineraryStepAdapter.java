@@ -73,9 +73,10 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             if (position > 0 && item.travelMinutes > 0) {
                 holder.travelSeparator.setVisibility(View.VISIBLE);
                 if (holder.textTravelTime != null) {
+                    boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                     String label = (item.travelLabel != null && !item.travelLabel.isEmpty())
-                        ? item.travelLabel + " până aici"
-                        : "🚶 ~" + item.travelMinutes + " min până aici";
+                        ? item.travelLabel + (isEn ? " to here" : " până aici")
+                        : "🚶 ~" + item.travelMinutes + (isEn ? " min to here" : " min până aici");
                     holder.textTravelTime.setText(label);
                 }
             } else {
@@ -100,7 +101,8 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
 
         // Mock distance for demo (improved calculation)
         double dist = (position == 0) ? 0.5 : 1.2 + (position * 0.5);
-        holder.textDistance.setText(String.format(java.util.Locale.getDefault(), "%.1f km distanță", dist));
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        holder.textDistance.setText(String.format(java.util.Locale.getDefault(), isEn ? "%.1f km distance" : "%.1f km distanță", dist));
 
         Glide.with(holder.itemView.getContext())
                 .load(item.imageUrl)
@@ -115,7 +117,9 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
         if (holder.btnNavigate != null) {
             if (item.mapsUrl != null && !item.mapsUrl.isEmpty()) {
                 holder.btnNavigate.setVisibility(View.VISIBLE);
-                String label = position == 0 ? "Vezi pe hartă →" : "Navighează din punctul anterior →";
+                String label = position == 0 
+                    ? (isEn ? "View on map →" : "Vezi pe hartă →") 
+                    : (isEn ? "Navigate from previous point →" : "Navighează din punctul anterior →");
                 holder.btnNavigate.setText(label);
                 holder.btnNavigate.setOnClickListener(v -> {
                     android.net.Uri uri = android.net.Uri.parse(item.mapsUrl);

@@ -67,7 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="📍 Aproape"
+                android:text="@string/auto_aproape_65f198"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -82,7 +82,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="❤️ Favorite"
+                android:text="@string/auto_favorite_c339b4"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -97,7 +97,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="🔥 Trend"
+                android:text="@string/auto_trend_6c5440"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -112,7 +112,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="🍽️ Restaurante"
+                android:text="@string/auto_restaurante_d6c466"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -127,7 +127,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="☕ Cafenele"
+                android:text="@string/auto_cafenele_51dc24"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -142,7 +142,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="🌳 Parcuri"
+                android:text="@string/auto_parcuri_a4caf2"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -157,7 +157,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="🏛️ Muzee"
+                android:text="@string/auto_muzee_3157ba"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -172,7 +172,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="🎭 Evenimente"
+                android:text="@string/auto_evenimente_62526f"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -186,7 +186,7 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌙 Nocturn"
+                android:text="@string/auto_nocturn_a8692c"
                 android:textColor="@color/app_text_primary"
                 android:checkable="true"
                 app:chipBackgroundColor="@color/app_card"
@@ -234,7 +234,7 @@
                     android:id="@+id/selected_place_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Origo Coffee Shop"
+                    android:text="@string/auto_origo_coffee_shop_10a76f"
                     android:textColor="@color/app_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -244,7 +244,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Str. Lipscani 9"
+                    android:text="@string/auto_str_lipscani_9_c59cdc"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="12sp" />
 
@@ -270,7 +270,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="4dp"
-                            android:text="4.8"
+                            android:text="@string/auto_48_4fb437"
                             android:textColor="@color/app_text_primary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -288,5 +288,23 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Buton revenire la locația curentă -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btn_my_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="120dp"
+        android:text="@string/auto_locatia_mea_909438"
+        android:textColor="@color/primary"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"
+        app:icon="@drawable/ic_location"
+        app:iconTint="@color/primary"
+        app:backgroundTint="@color/app_card"
+        app:elevation="8dp"
+        android:contentDescription="Revenire la locația curentă" />
 
 </FrameLayout>

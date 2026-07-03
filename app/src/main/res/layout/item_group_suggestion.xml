@@ -25,7 +25,7 @@
                 android:id="@+id/text_place_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nume Locație"
+                android:text="@string/auto_nume_locatie_e75cf7"
                 android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Propus de: Andrei"
+                android:text="@string/auto_propus_de_andrei_a78716"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>

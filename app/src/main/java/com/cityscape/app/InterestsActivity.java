@@ -73,9 +73,9 @@ public class InterestsActivity extends BaseActivity {
         
         boolean fromSettings = getIntent().getBooleanExtra("from_settings", false);
         if (fromSettings) {
-            btnContinue.setText("Salvează Preferințele");
+            btnContinue.setText(getString(R.string.save_preferences));
             android.widget.TextView btnSkip = findViewById(R.id.btn_skip);
-            if (btnSkip != null) btnSkip.setText("Resetează la Simplu/Global");
+            if (btnSkip != null) btnSkip.setText(getString(R.string.reset_to_simple));
         }
 
         btnContinue.setOnClickListener(v -> {
@@ -88,7 +88,7 @@ public class InterestsActivity extends BaseActivity {
             }
 
             if (selectedInterests.isEmpty()) {
-                Toast.makeText(this, "Te rugăm să alegi cel puțin un interes, sau apasă pe Sari Peste!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.at_least_one_interest), Toast.LENGTH_SHORT).show();
                 return;
             }
 

@@ -39,7 +39,7 @@
                 android:background="@drawable/bg_glass_card"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
-                android:text="12 MAI"
+                android:text="@string/auto_12_mai_256c87"
                 android:textColor="@color/primary"
                 android:textSize="9sp"
                 android:textStyle="bold"
@@ -52,7 +52,7 @@
                 android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:text="Event Title"
+                android:text="@string/auto_event_title_9502ef"
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 android:textStyle="bold"
@@ -65,7 +65,7 @@
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="Location"
+                android:text="@string/auto_location_ce5bf5"
                 android:textColor="#B3FFFFFF"
                 android:textSize="10sp" />
 

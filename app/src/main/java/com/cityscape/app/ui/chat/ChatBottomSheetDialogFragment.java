@@ -106,21 +106,33 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         // Initial welcome message - personalized with user's name
         com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
         String userName = sessionManager.getUserName();
-        if (userName == null || userName.isEmpty()) userName = "Prieten";
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        if (userName == null || userName.isEmpty()) userName = isEn ? "Friend" : "Prieten";
         
-        String finalWelcome = "Salut, " + userName + "! Cu ce te pot ajuta azi?";
+        String finalWelcome = isEn ? 
+            "Hello, " + userName + "! How can I help you today?" :
+            "Salut, " + userName + "! Cu ce te pot ajuta azi?";
 
         messages.add(new ChatMessage(finalWelcome, false));
         adapter.notifyDataSetChanged();
 
         // Show welcome suggestions
         List<String> welcomeSuggestions = new ArrayList<>();
-        welcomeSuggestions.add("🍽️ Restaurant bun");
-        welcomeSuggestions.add("☕ Cafenea cozy");
-        welcomeSuggestions.add("🎭 Ce vizităm?");
-        welcomeSuggestions.add("🎬 Cinema");
-        welcomeSuggestions.add("🎾 Tenis / Sport");
-        welcomeSuggestions.add("🌙 Viață de noapte");
+        if (isEn) {
+            welcomeSuggestions.add("🍽️ Fine Dining");
+            welcomeSuggestions.add("☕ Cozy Cafe");
+            welcomeSuggestions.add("🎭 What to visit?");
+            welcomeSuggestions.add("🎬 Cinema");
+            welcomeSuggestions.add("🎾 Tennis / Sports");
+            welcomeSuggestions.add("🌙 Nightlife");
+        } else {
+            welcomeSuggestions.add("🍽️ Restaurant bun");
+            welcomeSuggestions.add("☕ Cafenea cozy");
+            welcomeSuggestions.add("🎭 Ce vizităm?");
+            welcomeSuggestions.add("🎬 Cinema");
+            welcomeSuggestions.add("🎾 Tenis / Sport");
+            welcomeSuggestions.add("🌙 Viață de noapte");
+        }
         showSuggestions(welcomeSuggestions);
 
         // Setup Persistent Themes
@@ -140,15 +152,29 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         com.google.android.material.chip.ChipGroup themesGroup = view.findViewById(R.id.chat_themes_group);
         if (themesGroup == null) return;
 
-        String[] themes = {
-            "🍕 Unde mâncăm azi?",
-            "📍 Ce e în apropiere?",
-            "🗺️ Planifică-mi ziua",
-            "💎 Locuri ascunse",
-            "📸 Cele mai bune poze",
-            "💸 Opțiuni ieftine",
-            "🎸 Evenimente live"
-        };
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        String[] themes;
+        if (isEn) {
+            themes = new String[]{
+                "🍕 Where should we eat today?",
+                "📍 What's nearby?",
+                "🗺️ Plan my day",
+                "💎 Hidden gems",
+                "📸 Best photo spots",
+                "💸 Budget-friendly options",
+                "🎸 Live events"
+            };
+        } else {
+            themes = new String[]{
+                "🍕 Unde mâncăm azi?",
+                "📍 Ce e în apropiere?",
+                "🗺️ Planifică-mi ziua",
+                "💎 Locuri ascunse",
+                "📸 Cele mai bune poze",
+                "💸 Opțiuni ieftine",
+                "🎸 Evenimente live"
+            };
+        }
 
         for (String theme : themes) {
             com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) LayoutInflater.from(requireContext())
@@ -199,6 +225,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
             }
             
             ChatRequest request = new ChatRequest(text, userId, lat, lng, cityName, interests, userXp, userLevel, placesVisited);
+            request.language = com.cityscape.app.data.LocaleHelper.getLanguage(requireContext());
             com.cityscape.app.util.BadgeManager.addExperience(requireContext(), userId, 10);
             Call<ChatResponse> call = apiService.chat(request);
 

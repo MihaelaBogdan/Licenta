@@ -18,7 +18,7 @@
         android:id="@+id/dialog_filter_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Filtre avansate"
+        android:text="@string/auto_filtre_avansate_e98135"
         android:textColor="@color/app_text_primary"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Rating minim"
+        android:text="@string/auto_rating_minim_c4a5db"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium" />
@@ -45,7 +45,7 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Oricare"
+            android:text="@string/auto_oricare_92c42d"
             android:checked="true" />
 
         <com.google.android.material.chip.Chip
@@ -53,14 +53,14 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="4.0+ ⭐" />
+            android:text="@string/auto_40_6a45d2" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_rating_45"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="4.5+ ⭐" />
+            android:text="@string/auto_45_348cc2" />
     </com.google.android.material.chip.ChipGroup>
 
     <!-- Distance Selection -->
@@ -68,7 +68,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Distanță maximă"
+        android:text="@string/auto_distanta_maxima_7e4168"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium" />
@@ -85,7 +85,7 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Oricare"
+            android:text="@string/auto_oricare_92c42d"
             android:checked="true" />
 
         <com.google.android.material.chip.Chip
@@ -93,28 +93,28 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2 km" />
+            android:text="@string/auto_2_km_589e3e" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_distance_5"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="5 km" />
+            android:text="@string/auto_5_km_8d7ba8" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_distance_10"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="10 km" />
+            android:text="@string/auto_10_km_269dd1" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_distance_20"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="20 km" />
+            android:text="@string/auto_20_km_1a07fb" />
     </com.google.android.material.chip.ChipGroup>
 
     <!-- Budget Selection -->
@@ -122,7 +122,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Nivel preț / Buget"
+        android:text="@string/auto_nivel_pret_buget_8b2fb8"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium" />
@@ -139,7 +139,7 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Oricare"
+            android:text="@string/auto_oricare_92c42d"
             android:checked="true" />
 
         <com.google.android.material.chip.Chip
@@ -147,21 +147,21 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ieftin ($)" />
+            android:text="@string/auto_ieftin_55ffd1" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_budget_2"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mediu ($$)" />
+            android:text="@string/auto_mediu_6d0ca1" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_budget_3"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lux ($$$)" />
+            android:text="@string/auto_lux_560407" />
     </com.google.android.material.chip.ChipGroup>
 
 
@@ -171,7 +171,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Gen muzical / Atmosferă"
+        android:text="@string/auto_gen_muzical_atmosfera_435158"
         android:textColor="@color/app_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium" />
@@ -188,32 +188,32 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Oricare"
+            android:text="@string/auto_oricare_92c42d"
             android:checked="true" />
 
         <com.google.android.material.chip.Chip
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Electronic / Techno" />
+            android:text="@string/auto_electronic_techno_1d52e6" />
 
         <com.google.android.material.chip.Chip
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pop / Mainstream" />
+            android:text="@string/auto_pop_mainstream_3cee47" />
 
         <com.google.android.material.chip.Chip
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Rock / Jazz" />
+            android:text="@string/auto_rock_jazz_1abf70" />
 
         <com.google.android.material.chip.Chip
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Acustic / Chill" />
+            android:text="@string/auto_acustic_chill_d860ef" />
     </com.google.android.material.chip.ChipGroup>
 
     <com.google.android.material.button.MaterialButton
@@ -221,7 +221,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
-        android:text="Aplică filtre"
+        android:text="@string/auto_aplica_filtre_c4fe53"
         android:textAllCaps="false"
         android:textStyle="bold"
         app:cornerRadius="16dp" />

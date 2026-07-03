@@ -36,7 +36,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ARExplorerActivity extends AppCompatActivity implements SensorEventListener {
+public class ARExplorerActivity extends BaseActivity implements SensorEventListener {
 
     private TextureView textureView;
     private CameraDevice cameraDevice;
@@ -143,7 +143,7 @@ public class ARExplorerActivity extends AppCompatActivity implements SensorEvent
     private void loadNearbyPlaces(double lat, double lng) {
         com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(this);
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getNearby(lat, lng, "all", sessionManager.getUserId()).enqueue(new Callback<List<Place>>() {
+        apiService.getNearby(lat, lng, "all", sessionManager.getUserId(), java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<List<Place>>() {
             @Override
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().size() > 0) {
@@ -220,7 +220,7 @@ public class ARExplorerActivity extends AppCompatActivity implements SensorEvent
         if (requestCode == 100 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupCamera();
         } else {
-            Toast.makeText(this, "Camera is required for AR", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.camera_required_ar), Toast.LENGTH_SHORT).show();
             finish();
         }
     }

@@ -133,6 +133,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .findFragmentById(R.id.map);
         if (mapFragment != null) mapFragment.getMapAsync(this);
 
+        com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton btnMyLocation =
+                view.findViewById(R.id.btn_my_location);
+        if (btnMyLocation != null) {
+            btnMyLocation.setOnClickListener(v -> {
+                // Animație de confirmare pe buton
+                btnMyLocation.setEnabled(false);
+                btnMyLocation.setText(getString(R.string.btn_searching));
+                centerMapOnUserLocation();
+                // Reactivează butonul după 3s
+                btnMyLocation.postDelayed(() -> {
+                    if (isAdded()) {
+                        btnMyLocation.setEnabled(true);
+                        btnMyLocation.setText(getString(R.string.btn_my_location));
+                    }
+                }, 3000);
+            });
+        }
+
         return view;
     }
 
@@ -195,21 +213,81 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (getContext() != null && ActivityCompat.checkSelfPermission(getContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity())
-                    .getLastLocation()
-                    .addOnSuccessListener(location -> {
-                        if (location != null) {
-                            mUserLocation = location;
-                            LatLng pos = new LatLng(location.getLatitude(), location.getLongitude());
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 14f));
-                            loadAllData(location.getLatitude(), location.getLongitude());
-                        } else {
-                            moveToDefaultLocation();
-                        }
-                    });
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            fetchCurrentLocationAndCenter(true);
         } else {
             moveToDefaultLocation();
         }
+    }
+
+    private void centerMapOnUserLocation() {
+        if (mMap == null) return;
+        if (getContext() != null && ActivityCompat.checkSelfPermission(getContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            fetchCurrentLocationAndCenter(false);
+        } else {
+            ActivityCompat.requestPermissions(requireActivity(),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1001);
+        }
+    }
+
+    /**
+     * Cere locația GPS reală (nu din cache) și centrează harta pe ea.
+     * @param loadData dacă e true, încarcă și pinii după centrare (la init).
+     */
+    private void fetchCurrentLocationAndCenter(boolean loadData) {
+        if (!isAdded() || getContext() == null) return;
+
+        com.google.android.gms.location.FusedLocationProviderClient client =
+                com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(requireActivity());
+
+        // getCurrentLocation() cere o locație proaspătă, nu din cache
+        com.google.android.gms.tasks.CancellationTokenSource cts =
+                new com.google.android.gms.tasks.CancellationTokenSource();
+
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) return;
+
+        client.getCurrentLocation(
+                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                cts.getToken()
+        ).addOnSuccessListener(location -> {
+            if (!isAdded()) return;
+            if (location != null) {
+                mUserLocation = location;
+                LatLng pos = new LatLng(location.getLatitude(), location.getLongitude());
+                if (loadData) {
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 14f));
+                    loadAllData(location.getLatitude(), location.getLongitude());
+                } else {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f));
+                }
+            } else {
+                // GPS-ul n-a răspuns rapid → fallback la ultima locație din cache
+                client.getLastLocation().addOnSuccessListener(last -> {
+                    if (!isAdded()) return;
+                    if (last != null) {
+                        mUserLocation = last;
+                        LatLng pos = new LatLng(last.getLatitude(), last.getLongitude());
+                        if (loadData) {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 14f));
+                            loadAllData(last.getLatitude(), last.getLongitude());
+                        } else {
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f));
+                        }
+                    } else {
+                        if (loadData) moveToDefaultLocation();
+                        else android.widget.Toast.makeText(getContext(),
+                                "GPS-ul nu are semnal. Activează locația și încearcă din nou.",
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }).addOnFailureListener(e -> {
+            if (!isAdded()) return;
+            if (loadData) moveToDefaultLocation();
+        });
     }
 
     private void loadAllData(double lat, double lng) {
@@ -230,115 +308,154 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
         String userId = sessionManager != null ? sessionManager.getUserId() : null;
-        api.getNearby(lat, lng, "mixed", userId)
-                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
-            @Override
-            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
-                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
-                if (!isAdded() || resp.body() == null || mMap == null) return;
-                for (com.cityscape.app.model.Place place : resp.body()) {
-                    if (place.latitude == 0 && place.longitude == 0) continue;
-                    
-                    java.util.Set<String> cats = new java.util.HashSet<>();
-                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
-                    boolean isFav = sessionManager != null && sessionManager.isPlaceFavorite(place.id);
-                    if (isFav) cats.add(CAT_FAVORITE);
-                    cats.addAll(categoryFromType(place.type));
+        com.cityscape.app.model.User user = sessionManager != null ? sessionManager.getCurrentUser() : null;
+        String interestsStr = user != null && user.interests != null ? user.interests : "";
+        String city = sessionManager != null ? sessionManager.getPreferredCity() : "București";
 
-                    MarkerData data = new MarkerData(place);
-                    addMarker(place.latitude, place.longitude,
-                            place.name, place.type,
-                            isFav ? BitmapDescriptorFactory.HUE_VIOLET : BitmapDescriptorFactory.HUE_AZURE,
-                            cats, isFav, data);
+        new Thread(() -> {
+            final boolean[] success = { false };
+            try {
+                // Build interests list
+                java.util.List<String> interestsList = new java.util.ArrayList<>();
+                if (interestsStr != null && !interestsStr.isEmpty()) {
+                    String[] parts = interestsStr.split(",");
+                    for (String part : parts) {
+                        interestsList.add(part.trim());
+                    }
                 }
+                if (interestsList.isEmpty()) {
+                    interestsList.add("general");
+                }
+
+                // Build request JSON
+                org.json.JSONObject requestBody = new org.json.JSONObject();
+                requestBody.put("user_id", userId);
+                requestBody.put("lat", lat);
+                requestBody.put("lng", lng);
+                requestBody.put("interests", new org.json.JSONArray(interestsList));
+                requestBody.put("city_name", city != null ? city : "București");
+                requestBody.put("limit", 10);
+                requestBody.put("trending", true);
+                requestBody.put("language", "ro");
+
+                String baseUrl = com.cityscape.app.api.ApiClient.getBaseUrl();
+                String apiUrl = baseUrl.replace("/api/", "") + "recommendations/explainable";
+
+                okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                    .build();
+
+                okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
+                okhttp3.RequestBody body = okhttp3.RequestBody.create(requestBody.toString(), JSON);
+
+                okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url(apiUrl)
+                    .post(body)
+                    .build();
+
+                okhttp3.Response response = client.newCall(request).execute();
+                String responseBody = response.body().string();
+
+                if (response.isSuccessful()) {
+                    org.json.JSONObject jsonResponse = new org.json.JSONObject(responseBody);
+                    org.json.JSONArray recommendations = jsonResponse.optJSONArray("recommendations");
+
+                    if (recommendations != null && recommendations.length() > 0) {
+                        java.util.List<com.cityscape.app.model.Place> places = com.cityscape.app.utils.RecommendationMapper
+                            .mapRecommendationsToPlaces(recommendations);
+                        if (places != null && !places.isEmpty()) {
+                            success[0] = true;
+                            // Cache in Room
+                            try {
+                                com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().insertPlaces(places);
+                            } catch (Exception ignored) {}
+
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    if (isAdded()) {
+                                        addPlacesToMap(places);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            @Override public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {}
-        });
+
+            // Fallback to personalized recommendations if explainable check didn't succeed
+            if (!success[0]) {
+                api.getPersonalizedRecommendations(lat, lng, userId, "", "All", city, interestsStr)
+                    .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
+                        @Override
+                        public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
+                                retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
+                            if (!isAdded() || resp.body() == null || mMap == null) return;
+                            
+                            // Cache in Room
+                            final java.util.List<com.cityscape.app.model.Place> places = resp.body();
+                            new Thread(() -> {
+                                try {
+                                    com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().insertPlaces(places);
+                                } catch (Exception ignored) {}
+                            }).start();
+
+                            addPlacesToMap(places);
+                        }
+                        @Override 
+                        public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {
+                            // Load from Room cache on network failure
+                            if (!isAdded() || getContext() == null) return;
+                            new Thread(() -> {
+                                try {
+                                    final java.util.List<com.cityscape.app.model.Place> cached = 
+                                            com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().getAllPlaces();
+                                    if (cached != null && !cached.isEmpty()) {
+                                        requireActivity().runOnUiThread(() -> {
+                                            if (mMap == null || !isAdded()) return;
+                                            addPlacesToMap(cached);
+                                            android.widget.Toast.makeText(getContext(), getString(R.string.offline_mode), android.widget.Toast.LENGTH_SHORT).show();
+                                        });
+                                    }
+                                } catch (Exception ignored) {}
+                            }).start();
+                        }
+                    });
+            }
+        }).start();
     }
 
     private void loadPersonalized(double lat, double lng) {
-        if (!isAdded() || getContext() == null || sessionManager == null) return;
-        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
-                .create(com.cityscape.app.api.ApiService.class);
-        String userId = sessionManager.getUserId();
-        com.cityscape.app.model.User user = sessionManager.getCurrentUser();
-        String interests = user != null && user.interests != null ? user.interests : "";
-        String city = sessionManager.getPreferredCity();
+        // Unified with loadNearby to prevent duplicate network calls and overlapping pins
+    }
 
-        api.getPersonalizedRecommendations(lat, lng, userId, "", "All", city, interests)
-                .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
-            @Override
-            public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
-                    retrofit2.Response<java.util.List<com.cityscape.app.model.Place>> resp) {
-                if (!isAdded() || resp.body() == null || mMap == null) return;
-                
-                // Cache fetched places in Room
-                final java.util.List<com.cityscape.app.model.Place> places = resp.body();
-                new Thread(() -> {
-                    try {
-                        com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().insertPlaces(places);
-                    } catch (Exception ignored) {}
-                }).start();
+    private void addPlacesToMap(java.util.List<com.cityscape.app.model.Place> places) {
+        if (mMap == null || !isAdded()) return;
+        for (com.cityscape.app.model.Place place : places) {
+            if (place.latitude == 0 && place.longitude == 0) continue;
 
-                for (com.cityscape.app.model.Place place : places) {
-                    if (place.latitude == 0 && place.longitude == 0) continue;
-
-                    MapItem existing = getExistingItem(place.latitude, place.longitude);
-                    if (existing != null) {
-                        existing.categories.add(CAT_NEARBY);
-                        if (place.rating >= 4.5f) existing.categories.add(CAT_TRENDING);
-                        applyFilterToItem(existing);
-                        continue;
-                    }
-
-                    boolean isFav = sessionManager.isPlaceFavorite(place.id);
-                    java.util.Set<String> cats = new java.util.HashSet<>();
-                    cats.add(CAT_NEARBY);
-                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
-                    if (isFav) cats.add(CAT_FAVORITE);
-                    cats.addAll(categoryFromType(place.type));
-
-                    MarkerData data = new MarkerData(place);
-                    addMarker(place.latitude, place.longitude,
-                            "✨ " + place.name, place.type,
-                            BitmapDescriptorFactory.HUE_ORANGE, cats, isFav, data);
-                }
+            MapItem existing = getExistingItem(place.latitude, place.longitude);
+            if (existing != null) {
+                existing.categories.add(CAT_NEARBY);
+                if (place.rating >= 4.5f) existing.categories.add(CAT_TRENDING);
+                applyFilterToItem(existing);
+                continue;
             }
-            @Override 
-            public void onFailure(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> c, Throwable t) {
-                if (!isAdded() || getContext() == null) return;
-                // Load from Room cache on network failure
-                new Thread(() -> {
-                    try {
-                        final java.util.List<com.cityscape.app.model.Place> cached = 
-                                com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().getAllPlaces();
-                        if (cached != null && !cached.isEmpty()) {
-                            requireActivity().runOnUiThread(() -> {
-                                if (mMap == null || !isAdded()) return;
-                                for (com.cityscape.app.model.Place place : cached) {
-                                    if (place.latitude == 0 && place.longitude == 0) continue;
-                                    MapItem existing = getExistingItem(place.latitude, place.longitude);
-                                    if (existing != null) continue;
 
-                                    boolean isFav = sessionManager.isPlaceFavorite(place.id);
-                                    java.util.Set<String> cats = new java.util.HashSet<>();
-                                    cats.add(CAT_NEARBY);
-                                    if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
-                                    if (isFav) cats.add(CAT_FAVORITE);
-                                    cats.addAll(categoryFromType(place.type));
+            boolean isFav = sessionManager != null && sessionManager.isPlaceFavorite(place.id);
+            java.util.Set<String> cats = new java.util.HashSet<>();
+            cats.add(CAT_NEARBY);
+            if (place.rating >= 4.5f) cats.add(CAT_TRENDING);
+            if (isFav) cats.add(CAT_FAVORITE);
+            cats.addAll(categoryFromType(place.type));
 
-                                    MarkerData data = new MarkerData(place);
-                                    addMarker(place.latitude, place.longitude,
-                                            "✨ " + place.name, place.type,
-                                            BitmapDescriptorFactory.HUE_ORANGE, cats, isFav, data);
-                                }
-                                android.widget.Toast.makeText(getContext(), "Mod Offline: Încarc pinii salvați din memorie 📴", android.widget.Toast.LENGTH_SHORT).show();
-                            });
-                        }
-                    } catch (Exception ignored) {}
-                }).start();
-            }
-        });
+            MarkerData data = new MarkerData(place);
+            addMarker(place.latitude, place.longitude,
+                    "✨ " + place.name, place.type,
+                    BitmapDescriptorFactory.HUE_ORANGE, cats, isFav, data);
+        }
     }
 
     private void loadFavorites() {
@@ -388,7 +505,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         String userId = sessionManager != null ? sessionManager.getUserId() : null;
         com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
-        api.getPlacesSearch(lat, lng, type, type, 15000, userId, null)
+        api.getPlacesSearch(lat, lng, type, type, 15000, userId, null, java.util.Locale.getDefault().getLanguage())
                 .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Place>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Place>> call,
@@ -430,7 +547,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
                 .create(com.cityscape.app.api.ApiService.class);
         String userId = sessionManager != null ? sessionManager.getUserId() : null;
-        api.getEvents(lat, lng, 50, interests, userId)
+        api.getEvents(lat, lng, 50, interests, userId, java.util.Locale.getDefault().getLanguage())
                 .enqueue(new retrofit2.Callback<java.util.List<com.cityscape.app.model.Event>>() {
             @Override
             public void onResponse(retrofit2.Call<java.util.List<com.cityscape.app.model.Event>> call,
@@ -781,10 +898,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             desc = place.description;
         }
         if (desc == null || desc.isEmpty()) {
-            desc = "Această locație este recomandată pentru experiența sa unică și recenziile sale excelente.";
-            if (lblAiSummary != null) lblAiSummary.setText("ℹ️ DESPRE LOCAȚIE");
+            desc = getString(R.string.map_default_description);
+            if (lblAiSummary != null) lblAiSummary.setText(getString(R.string.map_about_location));
         } else {
-            if (lblAiSummary != null) lblAiSummary.setText("💡 SFATUL EXPLORATORULUI");
+            if (lblAiSummary != null) lblAiSummary.setText(getString(R.string.map_explorer_tip));
         }
         
         if (txtDescription != null) txtDescription.setText(desc);

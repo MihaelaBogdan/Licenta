@@ -40,7 +40,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Planificator Magic"
+                        android:text="@string/auto_planificator_magic_b3f795"
                         android:textColor="@color/white"
                         android:textSize="28sp"
                         android:fontFamily="sans-serif-black" />
@@ -48,7 +48,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Generează ziua perfectă în câteva secunde"
+                        android:text="@string/auto_genereaza_ziua_perfecta_in_cat_3010e8"
                         android:textColor="#CCFFFFFF"
                         android:textSize="14sp"
                         android:layout_marginTop="4dp" />
@@ -85,7 +85,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CE AI VREA SĂ FACI AZI?"
+                        android:text="@string/auto_ce_ai_vrea_sa_faci_azi_63801c"
                         android:textColor="@color/app_text_secondary"
                         android:textSize="10sp"
                         android:letterSpacing="0.1"
@@ -104,7 +104,7 @@
                             style="@style/Widget.MaterialComponents.Chip.Choice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🍽️ Gastronomie"
+                            android:text="@string/auto_gastronomie_b83578"
                             app:chipBackgroundColor="@color/app_surface"
                             app:chipStrokeColor="@color/primary" />
 
@@ -113,7 +113,7 @@
                             style="@style/Widget.MaterialComponents.Chip.Choice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🎭 Cultură"
+                            android:text="@string/auto_cultura_1afda5"
                             app:chipBackgroundColor="@color/app_surface"
                             app:chipStrokeColor="@color/primary" />
 
@@ -122,7 +122,7 @@
                             style="@style/Widget.MaterialComponents.Chip.Choice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🌿 Relaxare"
+                            android:text="@string/auto_relaxare_943969"
                             app:chipBackgroundColor="@color/app_surface"
                             app:chipStrokeColor="@color/primary" />
 
@@ -131,7 +131,7 @@
                             style="@style/Widget.MaterialComponents.Chip.Choice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🏃 Aventură"
+                            android:text="@string/auto_aventura_967ad4"
                             app:chipBackgroundColor="@color/app_surface"
                             app:chipStrokeColor="@color/primary" />
 
@@ -142,7 +142,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="64dp"
                         android:layout_marginTop="24dp"
-                        android:text="GENEREAZĂ AVENTURA"
+                        android:text="@string/auto_genereaza_aventura_660c0e"
                         android:textAllCaps="false"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-black"
@@ -160,7 +160,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:layout_marginStart="8dp"
-                android:text="Itinerariile Tale"
+                android:text="@string/auto_itinerariile_tale_11becc"
                 android:textColor="@color/app_text_primary"
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-black" />
@@ -193,7 +193,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:text="Încă nu ai aventuri salvate"
+                    android:text="@string/auto_inca_nu_ai_aventuri_salvate_d3ef53"
                     android:textColor="@color/app_text_primary"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif-medium" />
@@ -203,7 +203,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:gravity="center"
-                    android:text="Începe prin a alege o temă mai sus și lasă AI-ul să te surprindă!"
+                    android:text="@string/auto_incepe_prin_a_alege_o_tema_mai_f5e95b"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -239,7 +239,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Se generează magia..."
+                android:text="@string/auto_se_genereaza_magia_06c8a4"
                 android:textColor="@color/white"
                 android:textSize="14sp" />
         </LinearLayout>

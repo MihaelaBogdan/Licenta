@@ -48,7 +48,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
-                    android:text="4.8"
+                    android:text="@string/auto_48_4fb437"
                     android:textColor="@color/white"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -109,7 +109,7 @@
                     android:background="@drawable/bg_glass_card"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
-                    android:text="RESTAURANT"
+                    android:text="@string/auto_restaurant_b0dfbb"
                     android:textColor="@color/white"
                     android:textSize="8sp"
                     android:fontFamily="sans-serif-black"
@@ -123,7 +123,7 @@
                     android:layout_marginTop="6dp"
                     android:ellipsize="end"
                     android:maxLines="2"
-                    android:text="Place Name"
+                    android:text="@string/auto_place_name_ec8e16"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif-condensed-medium"
@@ -158,7 +158,7 @@
                             android:id="@+id/confidence_score"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="87%"
+                            android:text="@string/auto_87_3fceea"
                             android:textColor="@color/gold_accent"
                             android:textSize="10sp"
                             android:textStyle="bold" />
@@ -176,7 +176,7 @@
                             android:layout_weight="1"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="Preferințe similare"
+                            android:text="@string/auto_preferinte_similare_f72626"
                             android:textColor="#A7F3D0"
                             android:textSize="10sp"
                             android:fontFamily="sans-serif-light" />
@@ -204,7 +204,7 @@
                             android:id="@+id/interest_match_score"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="30%"
+                            android:text="@string/auto_30_6d5608"
                             android:textColor="@color/accent_green"
                             android:textSize="10sp"
                             android:textStyle="bold" />
@@ -232,7 +232,7 @@
                         android:layout_weight="1"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:text="Bucharest, RO"
+                        android:text="@string/auto_bucharest_ro_c9e838"
                         android:textColor="#D1FAE5"
                         android:textSize="10sp"
                         android:fontFamily="sans-serif-medium" />

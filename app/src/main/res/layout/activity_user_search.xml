@@ -32,7 +32,7 @@
             android:layout_toEndOf="@id/btn_back"
             android:layout_marginStart="12dp"
             android:background="@drawable/bg_rounded_input"
-            android:hint="Caută exploratori..."
+            android:hint="@string/auto_cauta_exploratori_20ae95"
             android:paddingHorizontal="16dp"
             android:textColor="@color/app_text_primary"
             android:textColorHint="@color/app_text_hint"
@@ -64,14 +64,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔍"
+                android:text="@string/auto_str_3573cf"
                 android:textSize="64sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Niciun utilizator găsit"
+                android:text="@string/auto_niciun_utilizator_gasit_4e6dd8"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="18sp"
                 android:textStyle="bold" />

@@ -9,7 +9,7 @@ import com.cityscape.app.data.AppDatabase;
 import com.cityscape.app.model.User;
 import java.util.List;
 
-public class LeaderboardActivity extends AppCompatActivity {
+public class LeaderboardActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

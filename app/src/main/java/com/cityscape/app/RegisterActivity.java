@@ -90,7 +90,7 @@ public class RegisterActivity extends BaseActivity {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Eroare la încărcarea imaginii", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.error_loading_image), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -140,17 +140,17 @@ public class RegisterActivity extends BaseActivity {
             String password = passwordEditText.getText().toString().trim();
 
             if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-                Toast.makeText(this, "Completează toate câmpurile", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.fill_all_fields), Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (name.length() < 2) {
-                Toast.makeText(this, "Numele trebuie să aibă cel puțin 2 caractere", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.name_min_length), Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!isValidEmail(email)) {
-                Toast.makeText(this, "Adresa de email este invalidă", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.invalid_email_address), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -161,7 +161,7 @@ public class RegisterActivity extends BaseActivity {
             }
 
             if (!chkTerms.isChecked()) {
-                Toast.makeText(this, "Trebuie să accepți Termenii și Condițiile", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.must_accept_terms), Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -172,7 +172,7 @@ public class RegisterActivity extends BaseActivity {
                 if (existingLocalUser != null) {
                     runOnUiThread(() -> {
                         if (progressOverlay != null) progressOverlay.setVisibility(View.GONE);
-                        Toast.makeText(this, "Această adresă de email este deja înregistrată", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.email_already_registered_long), Toast.LENGTH_SHORT).show();
                     });
                     return;
                 }
@@ -230,7 +230,7 @@ public class RegisterActivity extends BaseActivity {
                             googleSignInLauncher.launch(signInIntent);
                         });
                     } else {
-                        Toast.makeText(this, "Google Services not initialized", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.google_services_not_initialized), Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching Google sign-in", e);
@@ -323,26 +323,27 @@ public class RegisterActivity extends BaseActivity {
 
     private void showVerificationNeededDialog(String email) {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme);
-        builder.setTitle("Confirmă Adresa de Email");
-        builder.setMessage("Un link de confirmare a fost trimis la:\n" + email + "\n\nTe rugăm să verifici inbox-ul (și folderul Spam) pentru a-ți activa contul CityScape.\n\nLink-ul expiră în 24 de ore.");
+        builder.setTitle(getString(R.string.confirm_email));
+        String confirmMessage = getString(R.string.confirmation_link_message) + email + getString(R.string.confirmation_link_instruction);
+        builder.setMessage(confirmMessage);
 
-        builder.setPositiveButton("Am confirmat email-ul", (dialog, which) -> {
+        builder.setPositiveButton(getString(R.string.email_confirmed), (dialog, which) -> {
             dialog.dismiss();
             supabaseAuth.signOut();
             finish();
         });
 
-        builder.setNegativeButton("Retrimite Email", (dialog, which) -> {
-            Toast.makeText(this, "Retrimitem email-ul de verificare...", Toast.LENGTH_SHORT).show();
+        builder.setNegativeButton(getString(R.string.resend_email_btn), (dialog, which) -> {
+            Toast.makeText(this, getString(R.string.resending_verification_email), Toast.LENGTH_SHORT).show();
             supabaseAuth.resendVerificationEmail(email, new SupabaseAuthManager.VerificationCallback() {
                 @Override
                 public void onSent() {
-                    Toast.makeText(RegisterActivity.this, "Email retrimis! Verifică inbox-ul.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterActivity.this, getString(R.string.email_resent), Toast.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onError(String errorMessage) {
-                    Toast.makeText(RegisterActivity.this, "Eroare la retrimisie: " + errorMessage, Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterActivity.this, getString(R.string.resend_error) + errorMessage, Toast.LENGTH_LONG).show();
                 }
             });
         });
@@ -367,35 +368,28 @@ public class RegisterActivity extends BaseActivity {
 
     private String getPasswordStrengthMessage(String password) {
         if (password == null || password.isEmpty()) {
-            return "Parola este obligatorie";
+            return getString(R.string.err_password_required);
         }
         if (password.length() < 8) {
-            return "Parola trebuie să aibă cel puțin 8 caractere";
+            return getString(R.string.err_password_too_short);
         }
         if (!password.matches(".*[A-Z].*")) {
-            return "Parola trebuie să conțină cel puțin o literă mare";
+            return getString(R.string.err_password_uppercase);
         }
         if (!password.matches(".*[a-z].*")) {
-            return "Parola trebuie să conțină cel puțin o literă mică";
+            return getString(R.string.err_password_lowercase);
         }
         if (!password.matches(".*\\d.*")) {
-            return "Parola trebuie să conțină cel puțin o cifră";
+            return getString(R.string.err_password_digit);
         }
         return "";
     }
 
     private void showTermsDialog() {
-        String termsText = "Termeni și Condiții - CityScape\n\n" +
-                "1. Prin utilizarea aplicației, ești de acord să respecți regulile comunității.\n" +
-                "2. Datele tale (nume, preferințe) sunt folosite exclusiv pentru personalizarea recomandărilor prin AI.\n" +
-                "3. Nu stocăm parole în clar, iar autentificarea este securizată via Supabase.\n" +
-                "4. Ne rezervăm dreptul de a suspenda conturile care fac spam în modulul 'Hype Battle'.\n\n" +
-                "Ultima actualizare: Astăzi.";
-
         new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
                 .setTitle(getString(R.string.terms_of_service))
-                .setMessage(termsText)
-                .setPositiveButton("Am Înțeles", (dialog, which) -> {
+                .setMessage(getString(R.string.terms_of_service_text))
+                .setPositiveButton(getString(R.string.dialog_understand), (dialog, which) -> {
                     if (chkTerms != null) chkTerms.setChecked(true);
                 })
                 .show();

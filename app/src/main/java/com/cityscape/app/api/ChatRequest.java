@@ -14,7 +14,7 @@ public class ChatRequest {
 
     public ChatRequest(String message) {
         this.message = message;
-        this.language = "ro";
+        this.language = java.util.Locale.getDefault().getLanguage();
     }
 
     public ChatRequest(String message, String user_id, Double lat, Double lng, String city_name) {
@@ -23,7 +23,7 @@ public class ChatRequest {
         this.lat = lat;
         this.lng = lng;
         this.city_name = city_name;
-        this.language = "ro";
+        this.language = java.util.Locale.getDefault().getLanguage();
     }
 
     public ChatRequest(String message, String user_id, Double lat, Double lng, String city_name,
@@ -37,6 +37,6 @@ public class ChatRequest {
         this.user_xp = user_xp;
         this.user_level = user_level;
         this.places_visited = places_visited;
-        this.language = "ro";
+        this.language = java.util.Locale.getDefault().getLanguage();
     }
 }

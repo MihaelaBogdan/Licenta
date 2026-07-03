@@ -42,7 +42,7 @@ public class SettingsActivity extends BaseActivity {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Eroare la încărcarea imaginii", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.error_loading_image), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -135,7 +135,7 @@ public class SettingsActivity extends BaseActivity {
 
         int checkedItem = "ro".equals(currentLang) ? 0 : 1;
 
-        new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogTheme)
                 .setTitle(getString(R.string.select_language))
                 .setSingleChoiceItems(languages, checkedItem, (dialog, which) -> {
                     String selectedCode = languageCodes[which];
@@ -163,7 +163,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     private void showLogoutDialog() {
-        new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogTheme)
                 .setTitle(getString(R.string.logout))
                 .setMessage(getString(R.string.logout_confirm))
                 .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
@@ -191,10 +191,10 @@ public class SettingsActivity extends BaseActivity {
 
         // Change title and button text for Settings context
         android.widget.TextView dialogTitle = dialogView.findViewById(R.id.dialog_title);
-        if (dialogTitle != null) dialogTitle.setText("Selectează Orașul");
+        if (dialogTitle != null) dialogTitle.setText(getString(R.string.select_city_dialog));
         android.widget.TextView dialogSubtitle = dialogView.findViewById(R.id.dialog_subtitle);
-        if (dialogSubtitle != null) dialogSubtitle.setText("Introdu orașul preferat sau alege unul popular:");
-        if (btnExplore != null) btnExplore.setText("Salvează");
+        if (dialogSubtitle != null) dialogSubtitle.setText(getString(R.string.dialog_select_city_subtitle));
+        if (btnExplore != null) btnExplore.setText(getString(R.string.save_btn));
 
         String currentCity = sessionManager.getPreferredCity();
         if (currentCity != null && input != null) input.setText(currentCity);
@@ -219,7 +219,7 @@ public class SettingsActivity extends BaseActivity {
                 chip.setChipStrokeWidth(1.0f);
                 chip.setOnClickListener(v -> {
                     sessionManager.setPreferredCity(city);
-                    Toast.makeText(this, "Oraș salvat: " + city, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.city_saved) + city, Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     
                     // Go back to feed
@@ -237,7 +237,7 @@ public class SettingsActivity extends BaseActivity {
                 String city = input.getText().toString().trim();
                 if (!city.isEmpty()) {
                     sessionManager.setPreferredCity(city);
-                    Toast.makeText(this, "Oraș salvat: " + city, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.city_saved) + city, Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     
                     // Go back to feed
@@ -246,7 +246,7 @@ public class SettingsActivity extends BaseActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(this, "Introdu numele unui oraș", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.enter_city_name), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -304,7 +304,7 @@ public class SettingsActivity extends BaseActivity {
                 new Thread(() -> {
                     com.cityscape.app.data.AppDatabase.getInstance(this).userDao().update(currentUser);
                     runOnUiThread(() -> {
-                        Toast.makeText(this, "Profil actualizat cu succes!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         recreate(); // Auto-refresh the activity
                     });
@@ -316,31 +316,18 @@ public class SettingsActivity extends BaseActivity {
     }
     
     private void showPrivacyPolicyDialog() {
-        String privacyText = "Politica de Confidențialitate - CityScape AI\n\n" +
-                "1. Colectarea Datelor: Colectăm istoricul locațiilor vizitate și interesele tale pentru a oferi o experiență personalizată.\n" +
-                "2. Transparență AI: Fiecare recomandare generată de AI îți explică procentual de ce a fost aleasă pe baza datelor tale.\n" +
-                "3. Nu vindem datele: Profilul tău este procesat exclusiv pentru funcționalitățile CityScape.\n\n" +
-                "Securitate garantată.";
-
         new MaterialAlertDialogBuilder(this, R.style.DarkDialogTheme)
                 .setTitle(getString(R.string.privacy_policy))
-                .setMessage(privacyText)
-                .setPositiveButton("Am Înțeles", null)
+                .setMessage(getString(R.string.privacy_policy_text))
+                .setPositiveButton(getString(R.string.dialog_understand), null)
                 .show();
     }
 
     private void showTermsDialog() {
-        String termsText = "Termeni și Condiții - CityScape\n\n" +
-                "1. Prin utilizarea aplicației, ești de acord să respecți regulile comunității.\n" +
-                "2. Datele tale (nume, preferințe) sunt folosite exclusiv pentru personalizarea recomandărilor prin AI.\n" +
-                "3. Nu stocăm parole în clar, iar autentificarea este securizată via Supabase.\n" +
-                "4. Ne rezervăm dreptul de a suspenda conturile care fac spam în modulul 'Hype Battle'.\n\n" +
-                "Ultima actualizare: Astăzi.";
-
-        new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogTheme)
                 .setTitle(getString(R.string.terms_of_service))
-                .setMessage(termsText)
-                .setPositiveButton("Am Înțeles", null)
+                .setMessage(getString(R.string.terms_of_service_text))
+                .setPositiveButton(getString(R.string.dialog_understand), null)
                 .show();
     }
 }

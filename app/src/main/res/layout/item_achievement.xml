@@ -34,7 +34,7 @@
                 android:id="@+id/achievement_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Achievement Title"
+                android:text="@string/auto_achievement_title_193387"
                 android:textColor="@color/app_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="2 days ago"
+                android:text="@string/auto_2_days_ago_96ff6a"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -53,7 +53,7 @@
             android:id="@+id/achievement_xp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+50 XP"
+            android:text="@string/auto_50_xp_da7555"
             android:textColor="@color/primary"
             android:textSize="14sp"
             android:textStyle="bold" />

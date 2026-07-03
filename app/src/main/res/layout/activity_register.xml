@@ -66,7 +66,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Apasă pentru poză"
+                    android:text="@string/auto_apasa_pentru_poza_7db699"
                     android:textColor="@color/primary"
                     android:textSize="12sp"
                     android:layout_marginTop="4dp" />
@@ -76,7 +76,7 @@
                 android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Creează Cont"
+                android:text="@string/auto_creeaza_cont_175878"
                 android:textColor="@color/app_text_primary"
                 android:textSize="36sp"
                 android:textStyle="bold"
@@ -88,7 +88,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="40dp"
-                android:text="Începe aventura ta globală"
+                android:text="@string/auto_incepe_aventura_ta_globala_b23eea"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-light" />
@@ -110,7 +110,7 @@
                     app:hintTextColor="@color/app_text_hint"
                     app:boxStrokeColor="@color/primary"
                     app:boxStrokeWidth="1.5dp"
-                    android:hint="Nume complet"
+                    android:hint="@string/auto_nume_complet_6e90f2"
                     app:startIconDrawable="@drawable/ic_person"
                     app:startIconTint="@color/primary"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -131,7 +131,7 @@
                     app:hintTextColor="@color/app_text_hint"
                     app:boxStrokeColor="@color/primary"
                     app:boxStrokeWidth="1.5dp"
-                    android:hint="Email"
+                    android:hint="@string/auto_email_ce8ae9"
                     app:startIconDrawable="@drawable/ic_email"
                     app:startIconTint="@color/primary"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -152,7 +152,7 @@
                     app:hintTextColor="@color/app_text_hint"
                     app:boxStrokeColor="@color/primary"
                     app:boxStrokeWidth="1.5dp"
-                    android:hint="Parolă"
+                    android:hint="@string/auto_parola_790e64"
                     app:startIconDrawable="@drawable/ic_lock"
                     app:startIconTint="@color/primary"
                     app:passwordToggleEnabled="true"
@@ -188,7 +188,7 @@
                         android:id="@+id/txtTermsLink"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Termenii și Condițiile"
+                        android:text="@string/auto_termenii_si_conditiile_927f4b"
                         android:textColor="@color/primary"
                         android:textSize="14sp"
                         android:textStyle="bold"
@@ -199,7 +199,7 @@
                     android:id="@+id/btnRegister"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
-                    android:text="Înregistrare"
+                    android:text="@string/auto_inregistrare_a7ba80"
                     android:textAllCaps="false"
                     android:textSize="18sp"
                     android:textStyle="bold"
@@ -212,7 +212,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginVertical="16dp"
-                    android:text="— SAU —"
+                    android:text="@string/auto_sau_f9602a"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="12sp"
                     android:letterSpacing="0.2" />
@@ -221,7 +221,7 @@
                     android:id="@+id/btn_google_sign_in"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
-                    android:text="Înregistrare cu Google"
+                    android:text="@string/auto_inregistrare_cu_google_cce724"
                     android:textAllCaps="false"
                     android:textColor="@color/app_text_primary"
                     android:textSize="16sp"
@@ -243,7 +243,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="Ai deja cont? Conectează-te"
+                android:text="@string/auto_ai_deja_cont_conecteazate_9ac5f2"
                 android:textColor="@color/app_text_primary"
                 android:textStyle="bold"
                 android:textSize="15sp" />
@@ -285,7 +285,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Se creează contul..."
+                    android:text="@string/auto_se_creeaza_contul_bb2e97"
                     android:textColor="@color/app_text_primary"
                     android:textStyle="bold" />
             </LinearLayout>

@@ -42,7 +42,7 @@
                 android:id="@+id/cityName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="București"
+                android:text="@string/auto_bucuresti_88b7b6"
                 android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif-medium" />
@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Romania"
+                android:text="@string/auto_romania_0c7d5a"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="13sp" />
         </LinearLayout>
@@ -62,7 +62,7 @@
             android:id="@+id/placeCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="50 places"
+            android:text="@string/auto_50_places_84db98"
             android:textColor="@color/accent_green"
             android:textSize="12sp" />
     </LinearLayout>

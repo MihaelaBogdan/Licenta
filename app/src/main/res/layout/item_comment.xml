@@ -10,7 +10,7 @@
         android:id="@+id/comment_user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="User"
+        android:text="@string/auto_user_8f9bfe"
         android:textColor="@color/primary"
         android:textSize="13sp"
         android:textStyle="bold"
@@ -21,7 +21,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Comentariu..."
+        android:text="@string/auto_comentariu_b01a22"
         android:textColor="@color/app_text_primary"
         android:textSize="13sp" />
 

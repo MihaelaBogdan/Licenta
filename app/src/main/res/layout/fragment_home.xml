@@ -45,7 +45,7 @@
                             android:id="@+id/text_greeting"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Salut!"
+                            android:text="@string/auto_salut_01561d"
                             android:textColor="@color/app_text_primary"
                             android:textSize="20sp"
                             android:fontFamily="sans-serif-condensed-medium"
@@ -55,7 +55,7 @@
                             android:id="@+id/text_weather"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="--"
+                            android:text="@string/auto_str_cfab1b"
                             android:textColor="@color/primary"
                             android:textSize="12sp"
                             android:textStyle="bold"
@@ -115,7 +115,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📴"
+                        android:text="@string/auto_str_d1b276"
                         android:textSize="28sp"
                         android:layout_marginEnd="16dp" />
 
@@ -128,7 +128,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Mod Offline Activ"
+                            android:text="@string/auto_mod_offline_activ_1059d2"
                             android:textColor="@color/primary"
                             android:textSize="14sp"
                             android:fontFamily="sans-serif-black" />
@@ -137,7 +137,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Chiar dacă ești în avion, la metrou sau fără semnal, CityScape continuă să funcționeze și îți arată ultimele recomandări explorate!"
+                            android:text="@string/auto_chiar_daca_esti_in_avion_la_me_f41e5b"
                             android:textColor="@color/app_text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -176,7 +176,7 @@
                             android:id="@+id/txt_smart_emoji"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="💡"
+                            android:text="@string/auto_str_7d39a1"
                             android:textSize="24sp"
                             android:layout_marginEnd="12dp" />
 
@@ -188,7 +188,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="RECOMANDARE INTELIGENTĂ"
+                                android:text="@string/auto_recomandare_inteligenta_89267e"
                                 android:textColor="@color/smart_card_text_primary"
                                 android:textSize="10sp"
                                 android:textStyle="bold"
@@ -198,7 +198,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Sugestia Personalizată"
+                                android:text="@string/auto_sugestia_personalizata_f8d6fd"
                                 android:textColor="@color/app_text_primary"
                                 android:textSize="15sp"
                                 android:textStyle="bold"
@@ -210,7 +210,7 @@
                         android:id="@+id/txt_smart_recommendation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Se analizează vremea și preferințele tale..."
+                        android:text="@string/auto_se_analizeaza_vremea_si_prefer_149121"
                         android:textColor="@color/smart_card_text_body"
                         android:textSize="14sp"
                         android:lineSpacingMultiplier="1.25" />
@@ -261,7 +261,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="MISIUNEA ZILEI"
+                                android:text="@string/auto_misiunea_zilei_3bb20c"
                                 android:textColor="@color/quest_card_text_primary"
                                 android:textSize="10sp"
                                 android:textStyle="bold"
@@ -272,7 +272,7 @@
                                 android:id="@+id/text_quest_title"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Exploratorul Urban"
+                                android:text="@string/auto_exploratorul_urban_386541"
                                 android:textColor="@color/app_text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
@@ -286,7 +286,7 @@
                             android:background="@drawable/bg_quest_reward_badge"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="6dp"
-                            android:text="+500 XP"
+                            android:text="@string/auto_500_xp_608dc0"
                             android:textColor="@color/quest_reward_text"
                             android:textSize="12sp"
                             android:textStyle="bold"
@@ -297,7 +297,7 @@
                         android:id="@+id/text_quest_objective"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Vizitează 2 cafenele și postează o poză mistică."
+                        android:text="@string/auto_viziteaza_2_cafenele_si_postea_5356a8"
                         android:textColor="@color/quest_card_text_body"
                         android:textSize="14sp"
                         android:lineSpacingMultiplier="1.2" />
@@ -307,7 +307,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Pentru că e soare, e timpul perfect!"
+                        android:text="@string/auto_pentru_ca_e_soare_e_timpul_per_d50641"
                         android:textColor="@color/quest_card_text_secondary"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-italic" />
@@ -341,7 +341,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="10dp"
-                        android:text="Recomandări Inteligente"
+                        android:text="@string/auto_recomandari_inteligente_d83c44"
                         android:textColor="@color/app_text_primary"
                         android:textSize="20sp"
                         android:fontFamily="sans-serif-black" />
@@ -364,7 +364,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
                 android:layout_marginTop="8dp"
-                android:text="Planifică-mi ziua"
+                android:text="@string/auto_planificami_ziua_942235"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
@@ -411,7 +411,7 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="⚔️ CONFRUNTARE LIVE"
+                            android:text="@string/auto_confruntare_live_ce2092"
                             android:textColor="@color/app_text_primary"
                             android:textSize="14sp"
                             android:fontFamily="sans-serif-black" />
@@ -420,7 +420,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="● LIVE"
+                            android:text="@string/auto_live_ccbfd8"
                             android:textColor="#EF4444"
                             android:textSize="10sp"
                             android:textStyle="bold"
@@ -435,7 +435,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="14dp"
-                        android:text="⚔️ Este egalitate acum! (50%)"
+                        android:text="@string/auto_este_egalitate_acum_50_be3d83"
                         android:textColor="@color/app_text_secondary"
                         android:textSize="12sp"
                         android:textStyle="bold"
@@ -461,7 +461,7 @@
                                 android:id="@+id/home_battle_name_a"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Ateneul Român"
+                                android:text="@string/auto_ateneul_roman_57672c"
                                 android:textColor="@color/app_text_primary"
                                 android:textSize="13sp"
                                 android:textStyle="bold"
@@ -473,7 +473,7 @@
                                 android:id="@+id/home_battle_pct_a"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="50%"
+                                android:text="@string/auto_50_2496af"
                                 android:textColor="@color/primary"
                                 android:textSize="22sp"
                                 android:textStyle="bold"
@@ -494,7 +494,7 @@
                                 android:id="@+id/btn_home_vote_a"
                                 android:layout_width="wrap_content"
                                 android:layout_height="36dp"
-                                android:text="Votează"
+                                android:text="@string/auto_voteaza_c58b2e"
                                 android:textSize="11sp"
                                 android:textAllCaps="false"
                                 android:textColor="@color/white"
@@ -509,7 +509,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="VS"
+                            android:text="@string/auto_vs_2c54e2"
                             android:textColor="@color/white"
                             android:textSize="11sp"
                             android:textStyle="bold"
@@ -531,7 +531,7 @@
                                 android:id="@+id/home_battle_name_b"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Teatrul Național"
+                                android:text="@string/auto_teatrul_national_fbdd7c"
                                 android:textColor="@color/app_text_primary"
                                 android:textSize="13sp"
                                 android:textStyle="bold"
@@ -543,7 +543,7 @@
                                 android:id="@+id/home_battle_pct_b"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="50%"
+                                android:text="@string/auto_50_2496af"
                                 android:textColor="#8B5CF6"
                                 android:textSize="22sp"
                                 android:textStyle="bold"
@@ -564,7 +564,7 @@
                                 android:id="@+id/btn_home_vote_b"
                                 android:layout_width="wrap_content"
                                 android:layout_height="36dp"
-                                android:text="Votează"
+                                android:text="@string/auto_voteaza_c58b2e"
                                 android:textSize="11sp"
                                 android:textAllCaps="false"
                                 android:textColor="@color/white"
@@ -603,7 +603,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="12dp"
                     android:background="@android:color/transparent"
-                    android:hint="Căutare destinații..."
+                    android:hint="@string/auto_cautare_destinatii_4cd742"
                     android:textColor="@color/app_text_primary"
                     android:textColorHint="@color/app_text_hint"
                     android:textSize="15sp"
@@ -788,11 +788,15 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/btn_see_all_near_you"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/see_all"
                     android:textColor="@color/primary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -818,17 +822,21 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Locații Vizitate"
+                    android:text="@string/auto_locatii_vizitate_d9d5f1"
                     android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/btn_see_all_visited"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/see_all"
                     android:textColor="@color/primary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -854,7 +862,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Evenimente Populare"
+                    android:text="@string/auto_evenimente_populare_d144db"
                     android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -870,12 +878,16 @@
                     app:tint="@color/primary" />
 
                 <TextView
+                    android:id="@+id/btn_see_all_events"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:text="@string/see_all"
                     android:textColor="@color/primary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -917,25 +929,29 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Fii la curent"
+                        android:text="@string/auto_fii_la_curent_560546"
                         android:textColor="@color/app_text_primary"
                         android:textSize="20sp"
                         android:fontFamily="sans-serif-black" />
 
                     <TextView
+                        android:id="@+id/btn_see_all_trending"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/see_all"
                         android:textColor="@color/primary"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Descoperă locurile emblematice și vibe-ul orașului"
+                    android:text="@string/auto_descopera_locurile_emblematice_5c3eac"
                     android:textColor="@color/app_text_secondary"
                     android:textSize="12sp" />
 
