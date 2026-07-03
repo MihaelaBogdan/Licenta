@@ -717,8 +717,8 @@ public class CalendarFragment extends Fragment {
         }
 
         shareText += "\n🔑 Cod de intrare: " + group.groupCode + "\n" +
-                "🌐 Descarcă aplicația aici: https://cityscape.app/join\n\n" +
-                "După instalare, mergi la Calendar -> Adaugă (+) și introdu codul!";
+                "📥 Descarcă aplicația: https://cityscape-delta.vercel.app\n\n" +
+                "După instalare, mergi la Calendar → Adaugă (+) și introdu codul!";
 
         try {
             Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
@@ -743,10 +743,11 @@ public class CalendarFragment extends Fragment {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         String dateStr = sdf.format(new Date(activity.scheduledDate));
 
-        String shareText = "Hai în grupul " + group.groupName + "!\n" +
-                activity.placeName + "\n" +
-                dateStr + ", ora " + activity.scheduledTime + "\n\n" +
-                "Cod de intrare: " + group.groupCode;
+        String shareText = "🏙️ Hai în grupul " + group.groupName + " pe CityScape!\n\n" +
+                "📍 Locație: " + activity.placeName + "\n" +
+                "📅 " + dateStr + ", ora " + activity.scheduledTime + "\n\n" +
+                "🔑 Cod de intrare: " + group.groupCode + "\n\n" +
+                "📥 Descarcă CityScape: https://cityscape-delta.vercel.app";
 
         showShareChooser(shareText, "Intră în " + group.groupName);
     }
