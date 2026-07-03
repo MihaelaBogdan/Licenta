@@ -5,7 +5,7 @@ import socketserver
 import os
 import sys
 
-PORT = 3000
+PORT = int(os.environ.get("PORT", 3000))
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
