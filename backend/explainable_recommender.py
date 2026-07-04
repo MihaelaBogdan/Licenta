@@ -11,14 +11,20 @@ import json
 import requests
 import time
 import threading
-from datetime import datetime
+import math
+from datetime import datetime, timezone
 from typing import Dict, List, Any
 import numpy as np
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # In-memory query caches with threading locks
 _recommender_cache_lock = threading.Lock()
 _recommender_text_search_cache = {}
 _recommender_nearby_search_cache = {}
+_recommender_weather_cache = {}
 SEARCH_CACHE_TTL = 600  # 10 minutes (600 seconds)
 
 ROMANIAN_INTEREST_TRANSLATION = {
@@ -51,8 +57,52 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     except:
         return 9999.0
 
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+
 def fetch_current_weather(lat, lng):
-    import time
+    # Check cache first
+    cache_key = (round(float(lat), 3), round(float(lng), 3))
+    now = time.time()
+    with _recommender_cache_lock:
+        if cache_key in _recommender_weather_cache:
+            val, exp = _recommender_weather_cache[cache_key]
+            if now < exp:
+                return val
+
+    try:
+        if OPENWEATHER_API_KEY:
+            url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lng}&appid={OPENWEATHER_API_KEY}&units=metric"
+            resp = requests.get(url, timeout=3)
+            if resp.status_code == 200:
+                w_data = resp.json()
+                temp = w_data.get("main", {}).get("temp", 22.0)
+                weather_id = w_data.get("weather", [{}])[0].get("id", 800)
+                # OpenWeather IDs: less than 700 are thunderstorm/drizzle/rain/snow
+                is_raining = (weather_id < 700) or ("rain" in w_data.get("weather", [{}])[0].get("main", "").lower())
+                
+                status = "Plouă" if is_raining else "Senin"
+                icon = "🌧️" if is_raining else "☀️"
+                if temp > 28:
+                    icon = "🔥"
+                elif temp < 10:
+                    icon = "❄️"
+                elif not is_raining and weather_id >= 801:
+                    icon = "☁️" # Cloudy but not raining
+
+                result = {
+                    "status": status,
+                    "is_bad": is_raining,
+                    "temp": f"{int(round(temp))}°C",
+                    "icon": icon,
+                    "advice": "Sugestii indoor activate" if is_raining else "Vreme perfectă pentru explorare"
+                }
+                with _recommender_cache_lock:
+                    _recommender_weather_cache[cache_key] = (result, now + SEARCH_CACHE_TTL)
+                return result
+    except Exception as e:
+        print(f"⚠️ OpenWeather API error: {e}")
+
+    # Fallback to simulation
     try:
         # Simulation: 20% chance of rain based on timestamp minutes
         is_raining = (int(time.time() / 60) % 5 == 0) 
@@ -61,13 +111,16 @@ def fetch_current_weather(lat, lng):
         status = "Plouă" if is_raining else "Senin"
         icon = "☁️" if is_raining else "☀️"
         
-        return {
+        result = {
             "status": status,
             "is_bad": is_raining,
             "temp": f"{temp}°C",
             "icon": icon,
             "advice": "Sugestii indoor activate" if is_raining else "Vreme perfectă pentru explorare"
         }
+        with _recommender_cache_lock:
+            _recommender_weather_cache[cache_key] = (result, now + SEARCH_CACHE_TTL)
+        return result
     except:
         return {
             "status": "Senin",
@@ -118,8 +171,17 @@ class ExplainableRecommender:
             # 1. Fetch user profile for personalization
             user_data = self._fetch_user_profile(user_id)
 
-            # 2. Fetch user's visit history
+            # Fallback to profile interests if client interests are empty
+            if not interests and user_data.get("interests"):
+                profile_interests = user_data.get("interests")
+                if isinstance(profile_interests, str):
+                    interests = [i.strip() for i in profile_interests.split(",") if i.strip()]
+                elif isinstance(profile_interests, list):
+                    interests = profile_interests
+
+            # 2. Fetch user's visit history and bookmarks
             visit_history = self._fetch_visit_history(user_id)
+            bookmarks = self._fetch_user_bookmarks(user_id)
 
             # 3. Find nearby places
             nearby_places = self._fetch_nearby_places(lat, lng, category=category)
@@ -200,7 +262,7 @@ class ExplainableRecommender:
             recommendations = []
             for place in all_places:  
                 score_breakdown = self._calculate_recommendation_score(
-                    place, user_data, visit_history, interests, lat, lng, language
+                    place, user_data, visit_history, bookmarks, interests, lat, lng, language
                 )
                 recommendations.append({
                     "place": place,
@@ -276,7 +338,23 @@ class ExplainableRecommender:
                 return resp.json() if resp.json() else []
         except Exception as e:
             print(f"⚠️ Visit history fetch error: {e}")
+        return []
 
+    def _fetch_user_bookmarks(self, user_id: str) -> List[Dict]:
+        """Fetch user's bookmarked places from Supabase by joining feed_bookmarks and feed_posts."""
+        try:
+            url = f"{SUPABASE_URL}/rest/v1/feed_bookmarks?user_id=eq.{user_id}&select=*,feed_posts(*)"
+            resp = requests.get(url, headers=self.supabase_headers, timeout=5)
+            if resp.status_code == 200:
+                bookmarks = resp.json() if resp.json() else []
+                places = []
+                for b in bookmarks:
+                    post = b.get("feed_posts")
+                    if post and isinstance(post, dict):
+                        places.append(post)
+                return places
+        except Exception as e:
+            print(f"⚠️ Bookmarks fetch error: {e}")
         return []
 
     def _fetch_nearby_places(self, lat: float, lng: float, radius: int = 5000, category: str = None) -> List[Dict]:
@@ -373,209 +451,194 @@ class ExplainableRecommender:
         return []
 
     def _calculate_recommendation_score(self, place: Dict, user_data: Dict,
-                                       visit_history: List[Dict],
+                                       visit_history: List[Dict], bookmarks: List[Dict],
                                        interests: List[str], lat: float, lng: float, language: str = "ro") -> Dict[str, float]:
         """
         Calculate confidence score breakdown for a place.
-        SMART algorithm that considers:
-        - Detailed interest matching
-        - Visit history patterns
-        - User preferences
-        - Recency bias
-        - Category diversity
-        - Weather & Time of Day suitability
+        Highly personalized algorithm (75% personal factors, 25% contextual/quality):
+        - Interest Match (35%)
+        - Visit History Affinity (decayed) (25%)
+        - Bookmarks Match (15%)
+        - Freshness / Novelty (10%)
+        - Weather & Time Suitability (10%)
+        - General Popularity (5%)
         """
         scores = {
             "interest_match": 0.0,
+            "history_affinity": 0.0,
+            "bookmarks": 0.0,
             "freshness": 0.0,
-            "popularity": 0.0,
-            "user_level": 0.0,
-            "diversity": 0.0,
             "weather_time": 0.0,
+            "popularity": 0.0,
             "total": 0.0
         }
 
         place_name = place.get("name", "").lower()
-        place_type = place.get("types", [])[0] if place.get("types") else "unknown"
         place_types_full = place.get("types", [])
+        place_type = place_types_full[0] if place_types_full else "unknown"
+        name_words = place_name.split()
 
-        # ==================== 1. INTEREST MATCH (0-40%) ====================
+        # ==================== 1. INTEREST MATCH (0-100 score, weight 35%) ====================
         interest_score = 0.0
         interests_clean = [i.lower().strip() for i in interests if i]
 
-        # Extract type counts from history for density boost
-        history_type_counts = {}
-        for visit in visit_history:
-            v_type = visit.get("place_type", "").lower()
-            if v_type:
-                history_type_counts[v_type] = history_type_counts.get(v_type, 0) + 1
+        interest_keywords = {
+            "museums": ["museum", "gallery", "exhibit", "muzeu", "galerie", "expozi", "expozitie"],
+            "art": ["art", "gallery", "artistic", "painting", "sculpture", "galerie", "pictura", "sculptura", "arta"],
+            "history": ["history", "historic", "historical", "monument", "archeolog", "ancient", "istoric", "istorie", "vestigiu", "monument", "ruine", "cetate", "palat", "castel"],
+            "food": ["restaurant", "cafe", "bistro", "pizzeria", "cuisine", "dining", "cafenea", "ceainarie", "pizzerie", "mancare", "pub", "taverna", "burger", "sushi", "trattoria"],
+            "parks": ["park", "garden", "botanical", "natural", "reserve", "nature", "parc", "gradina", "botanica", "rezervatie", "natura", "padure", "lac"],
+            "churches": ["church", "cathedral", "monastery", "chapel", "religious", "biserica", "cathedrala", "manastire", "capela", "schit", "templu", "sinagoga", "moschee"],
+            "culture": ["cultural", "culture", "theater", "theatre", "performance", "cultura", "teatru", "ateneu", "opera", "spectacol", "filarmonica"],
+            "adventure": ["hiking", "climbing", "trail", "outdoor", "adventure", "traseu", "alpinism", "drumetie", "aventura", "parc aventura", "escapada"],
+            "nightlife": ["bar", "club", "nightclub", "pub", "lounge", "disco", "club", "bar", "pub", "discoteca", "berarie", "cocktail"],
+            "shopping": ["mall", "market", "shop", "shopping", "store", "bazaar", "magazin", "piata", "bazar", "centru comercial", "boutique"],
+            "sports": ["sport", "gym", "stadium", "fitness", "arena", "billiard", "bowling", "pool", "tenis", "fotbal", "teren", "sala", "alergare", "complex sportiv", "piscina", "bazin"]
+        }
+
+        interest_google_types = {
+            "museums": ["museum", "art_gallery"],
+            "art": ["art_gallery", "museum"],
+            "history": ["church", "place_of_worship", "city_hall", "monument", "cemetery"],
+            "food": ["restaurant", "cafe", "food", "bakery", "bar", "meal_takeaway", "meal_delivery"],
+            "parks": ["park", "zoo", "aquarium", "campground", "amusement_park"],
+            "churches": ["church", "place_of_worship", "mosque", "synagogue"],
+            "culture": ["library", "theater", "museum", "movie_theater", "performing_arts_theater", "art_gallery"],
+            "adventure": ["campground", "amusement_park", "park", "zoo", "stadium"],
+            "nightlife": ["bar", "night_club", "casino"],
+            "shopping": ["shopping_mall", "store", "clothing_store", "department_store", "supermarket", "electronics_store", "book_store", "shoe_store", "jewelry_store"],
+            "sports": ["gym", "stadium", "bowling_alley", "sports_complex"]
+        }
 
         if interests_clean:
-            # ULTRA-SMART matching: analyze place name + type carefully
             match_score = 0.0
-
-            # Define detailed keyword mappings in both English and Romanian to match local place names
-            interest_keywords = {
-                "museums": ["museum", "gallery", "exhibit", "muzeu", "galerie", "expozi"],
-                "art": ["art", "gallery", "artistic", "painting", "sculpture", "galerie", "pictura", "sculptura", "arta"],
-                "history": ["history", "historic", "historical", "monument", "archeolog", "ancient", "istoric", "istorie", "vestigiu", "monument", "ruine"],
-                "food": ["restaurant", "cafe", "bistro", "pizzeria", "cuisine", "dining", "cafenea", "bistro", "ceainarie", "pizzerie", "mancare", "pub", "taverna"],
-                "parks": ["park", "garden", "botanical", "natural", "reserve", "nature", "parc", "gradina", "botanica", "rezervatie", "natura"],
-                "churches": ["church", "cathedral", "monastery", "chapel", "religious", "biserica", "cathedrala", "manastire", "capela", "schit", "templu"],
-                "culture": ["cultural", "culture", "theater", "theatre", "performance", "cultura", "teatru", "ateneu", "opera", "spectacol"],
-                "adventure": ["hiking", "climbing", "trail", "outdoor", "adventure", "sport", "traseu", "alpinism", "drumetie", "sport", "aventura"],
-                "nightlife": ["bar", "club", "nightclub", "pub", "lounge", "disco", "club", "bar", "pub", "discoteca"],
-                "shopping": ["mall", "market", "shop", "shopping", "store", "bazaar", "magazin", "piata", "bazar", "centru comercial"],
-            }
-
-            # Step 1: Parse place name for specific keywords
-            name_words = place_name.split()
-
             for interest in interests_clean:
                 translated = ROMANIAN_INTEREST_TRANSLATION.get(interest, interest)
                 keywords = interest_keywords.get(translated, [interest])
-                current_match = 0
+                google_types = interest_google_types.get(translated, [])
+                current_match = 0.0
 
-                # Check each keyword against place name and type
+                # Check against Google Place Types
+                for p_t in place_types_full:
+                    p_t_lower = p_t.lower()
+                    if p_t_lower in google_types:
+                        current_match = max(current_match, 3.5)
+                    for g_t in google_types:
+                        if g_t in p_t_lower:
+                            current_match = max(current_match, 3.0)
+
+                # Check against name keywords
                 for keyword in keywords:
-                    # EXACT WORD MATCH in name (highest)
                     if keyword in place_name:
-                        current_match = max(current_match, 3)
-
-                    # SUBSTRING match (medium)
+                        current_match = max(current_match, 3.5)
                     elif any(keyword in word for word in name_words):
-                        current_match = max(current_match, 2)
-
-                    # TYPE match (medium)
-                    if keyword in place_type.lower():
                         current_match = max(current_match, 2.5)
 
-                # Add this interest's contribution
                 if current_match > 0:
                     match_score += current_match
 
-            # Convert score to 0-40% confidence
-            if match_score >= 3:
-                # Strong exact match
-                interest_score = min(40.0, 32.0 + (match_score - 3) * 2)
-            elif match_score >= 2:
-                # Good keyword match
-                interest_score = min(40.0, 20.0 + (match_score - 2) * 8)
-            elif match_score >= 1:
-                # Partial match
-                interest_score = min(40.0, 8.0 + (match_score - 1) * 5)
+            if match_score >= 3.5:
+                interest_score = min(100.0, 85.0 + (match_score - 3.5) * 5)
+            elif match_score >= 2.0:
+                interest_score = min(100.0, 60.0 + (match_score - 2.0) * 15)
+            elif match_score >= 1.0:
+                interest_score = min(100.0, 30.0 + (match_score - 1.0) * 30)
             else:
-                # No real match
-                interest_score = 1.0  # Barely relevant
-
-            # Add a small name length/character-based jitter to differentiate places with the same match score
-            name_len_boost = (len(place.get("name", "")) % 10) * 0.1  # 0.0 to 0.9 points
-            interest_score = min(40.0, interest_score + name_len_boost)
-
-            # History density personalization boost:
-            if place_type.lower() in history_type_counts:
-                density_boost = min(10.0, history_type_counts[place_type.lower()] * 2.0)
-                interest_score = min(40.0, interest_score + density_boost)
-
-            interest_score = max(1.0, min(40.0, interest_score))
+                interest_score = 10.0
         else:
-            interest_score = 5.0
-            if place_type.lower() in history_type_counts:
-                density_boost = min(15.0, history_type_counts[place_type.lower()] * 2.0)
-                interest_score = min(40.0, interest_score + density_boost)
+            interest_score = 20.0
 
         scores["interest_match"] = interest_score
 
-        # ==================== 2. FRESHNESS (0-30%) ====================
+        # ==================== 2. VISIT HISTORY AFFINITY (0-100 score, weight 25%) ====================
+        history_affinity_score = 0.0
+        if visit_history:
+            history_category_weights = {}
+            now_ts = time.time()
+            for i, visit in enumerate(visit_history):
+                v_type = visit.get("place_type", "").lower()
+                if not v_type:
+                    continue
+                visited_at_str = visit.get("visited_at", "")
+                decay = 1.0
+                if visited_at_str:
+                    try:
+                        ts_str = visited_at_str.replace("Z", "+00:00")
+                        visit_ts = datetime.fromisoformat(ts_str).timestamp()
+                        age_days = (now_ts - visit_ts) / 86400.0
+                        decay = math.exp(-0.693 * age_days / 14.0)  # 14-day half-life
+                    except:
+                        decay = max(0.1, 1.0 - i * 0.05)
+                history_category_weights[v_type] = history_category_weights.get(v_type, 0.0) + decay
+
+            # Match types with weights
+            affinity = 0.0
+            for p_t in place_types_full:
+                p_t_lower = p_t.lower()
+                if p_t_lower in history_category_weights:
+                    affinity = max(affinity, history_category_weights[p_t_lower])
+
+            # Normalize: affinity of 3.0 visits gives max score
+            history_affinity_score = min(100.0, (affinity / 3.0) * 100.0)
+            history_affinity_score = max(15.0, history_affinity_score)  # base baseline
+        else:
+            history_affinity_score = 50.0  # neutral fallback
+
+        scores["history_affinity"] = history_affinity_score
+
+        # ==================== 3. BOOKMARKS MATCH (0-100 score, weight 15%) ====================
+        bookmark_score = 0.0
+        if bookmarks:
+            exact_match = False
+            type_match = False
+            for b in bookmarks:
+                b_name = b.get("place_name", "").lower()
+                b_id = b.get("place_id", "")
+                b_type = b.get("place_type", "").lower()
+
+                if (place.get("place_id") and place.get("place_id") == b_id) or (place_name == b_name):
+                    exact_match = True
+                    break
+                if b_type and (b_type in place_types_full or b_type == place_type.lower()):
+                    type_match = True
+
+            if exact_match:
+                bookmark_score = 100.0
+            elif type_match:
+                bookmark_score = 75.0
+            else:
+                bookmark_score = 20.0
+        else:
+            bookmark_score = 30.0
+
+        scores["bookmarks"] = bookmark_score
+
+        # ==================== 4. FRESHNESS / NOVELTY (0-100 score, weight 10%) ====================
+        freshness_score = 100.0
         visited_places = {v.get("place_name", "").lower(): v for v in visit_history}
-        visited_types = [v.get("place_type", "").lower() for v in visit_history]
 
         if place_name in visited_places:
-            # Already visited - no freshness bonus
-            freshness_score = 0.0
+            # Revisit policy depends on type
+            revisit_friendly = ["restaurant", "cafe", "bar", "night_club", "food", "establishment", "shopping_mall", "store"]
+            is_revisit_friendly = any(t in revisit_friendly for t in place_types_full) or place_type in revisit_friendly
+            
+            if is_revisit_friendly:
+                freshness_score = 40.0
+            else:
+                freshness_score = 10.0
         else:
-            # Boost based on how long since visiting similar type
-            freshness_score = 30.0
-
-            # Reduce slightly if they've visited similar type recently
-            for i, visit in enumerate(visit_history[:10]):  # Recent 10 visits
+            # Recency penalty if user recently visited a place of this type
+            for i, visit in enumerate(visit_history[:10]):
                 if visit.get("place_type", "").lower() == place_type.lower():
-                    # Penalize based on recency
-                    recency_penalty = (10 - i) * 2  # More recent = more penalty
-                    freshness_score = max(10.0, freshness_score - recency_penalty)
+                    freshness_score = max(50.0, freshness_score - (10 - i) * 5.0)
                     break
 
         scores["freshness"] = freshness_score
 
-        # ==================== 3. POPULARITY (0-15%) ====================
-        rating = float(place.get("rating") or 0.0)
-        user_ratings_total = int(place.get("user_ratings_total") or place.get("reviews") or 0)
-
-        # Rating score is continuous (0 to 12.0)
-        if rating > 0.0:
-            popularity_score = (rating / 5.0) * 12.0
-        else:
-            popularity_score = 8.0  # fallback
-
-        # Review count bonus is continuous (0 to 3.0) using log scale
-        import math
-        if user_ratings_total > 0:
-            review_bonus = min(3.0, (math.log10(user_ratings_total) / 4.0) * 3.0)
-        else:
-            review_bonus = 0.0
-
-        scores["popularity"] = max(0.0, min(15.0, popularity_score + review_bonus))
-
-        # ==================== 4. USER LEVEL MATCH (0-10%) ====================
-        user_level = user_data.get("level", 1)
-        user_xp = user_data.get("total_xp", 0)
-
-        # Higher level users get more "premium" recommendations
-        # Lower level users get more tourist attractions
-        if user_level >= 5:
-            # Advanced user - can recommend niche places
-            level_match_score = 10.0
-        elif user_level >= 3:
-            level_match_score = 7.0
-        else:
-            # Beginner - recommend popular tourist spots
-            level_match_score = 5.0
-
-        scores["user_level"] = level_match_score
-
-        # ==================== 5. DIVERSITY (0-10%) ====================
-        # Ensure user visits varied place types
-        recent_types = [v.get("place_type", "").lower() for v in visit_history[:15]]
-        type_count = recent_types.count(place_type.lower())
-
-        if type_count == 0:
-            # Completely new category
-            diversity_score = 10.0
-        elif type_count == 1:
-            # They've visited this type once
-            diversity_score = 7.0
-        elif type_count >= 2:
-            # They've visited this type multiple times - less diversity
-            diversity_score = 3.0
-        else:
-            diversity_score = 5.0
-
-        scores["diversity"] = diversity_score
-
-        # Distance calculation and continuous penalty (up to 3.0 points)
-        distance_penalty = 0.0
-        geo = place.get("geometry", {}).get("location", {})
-        p_lat, p_lng = geo.get("lat"), geo.get("lng")
-        if p_lat is not None and p_lng is not None:
-            dist = haversine_distance(lat, lng, p_lat, p_lng)
-            # 0.1 points penalty per km, max 3.0 points penalty
-            distance_penalty = min(3.0, dist * 0.1)
-
-        # ==================== 6. WEATHER & TIME MATCH (0-10%) ====================
+        # ==================== 5. WEATHER & TIME MATCH (0-100 score, weight 10%) ====================
         weather = fetch_current_weather(lat, lng)
         is_bad_weather = weather.get("is_bad", False)
-        
-        # Categorize place types
+
         indoor_types = [
             "museum", "art_gallery", "cafe", "restaurant", "movie_theater", 
             "library", "shopping_mall", "church", "place_of_worship", 
@@ -585,59 +648,77 @@ class ExplainableRecommender:
             "park", "zoo", "amusement_park", "tourist_attraction", 
             "stadium", "campground", "natural_feature"
         ]
-        
-        # Check types overlap
+
         is_indoor = any(t in indoor_types for t in place_types_full) or place_type in indoor_types
         is_outdoor = any(t in outdoor_types for t in place_types_full) or place_type in outdoor_types
-        
-        # Fallback default suitability (7.0 out of 10)
-        weather_time_score = 7.0
-        
-        # 1. Weather compatibility
+
+        weather_time_score = 70.0  # base neutral
+
+        # Weather
         if is_bad_weather:
             if is_indoor:
-                weather_time_score += 1.5
+                weather_time_score += 15.0
             elif is_outdoor:
-                weather_time_score -= 3.5
-        else: # Good weather
+                weather_time_score -= 35.0
+        else:
             if is_outdoor:
-                weather_time_score += 2.0
+                weather_time_score += 20.0
             elif is_indoor:
-                # Terrace boost for cafes/food
                 if "cafe" in place_types_full or "restaurant" in place_types_full or "food" in place_types_full:
-                    weather_time_score += 1.0
-                    
-        # 2. Time of day suitability
+                    weather_time_score += 10.0
+
+        # Time of day
         current_hour = datetime.now().hour
         is_night = current_hour >= 18 or current_hour < 6
-        
+
         if is_night:
             if any(t in ["bar", "nightclub", "restaurant", "food"] for t in place_types_full) or place_type in ["bar", "nightclub", "restaurant"]:
-                weather_time_score += 1.0
+                weather_time_score += 10.0
             elif any(t in ["park", "zoo", "library"] for t in place_types_full) or place_type in ["park", "zoo", "library"]:
-                weather_time_score -= 3.0
-        else: # Daytime
+                weather_time_score -= 30.0
+        else:
             if any(t in ["park", "museum", "zoo", "tourist_attraction"] for t in place_types_full) or place_type in ["park", "museum", "zoo", "tourist_attraction"]:
-                weather_time_score += 1.0
+                weather_time_score += 10.0
             elif any(t in ["bar", "nightclub"] for t in place_types_full) or place_type in ["bar", "nightclub"]:
-                weather_time_score -= 4.0
-                
-        # Clamp between 1.0 and 10.0
-        scores["weather_time"] = max(1.0, min(10.0, weather_time_score))
+                weather_time_score -= 40.0
+
+        scores["weather_time"] = max(0.0, min(100.0, weather_time_score))
+
+        # ==================== 6. POPULARITY & QUALITY (0-100 score, weight 5%) ====================
+        rating = float(place.get("rating") or 0.0)
+        user_ratings_total = int(place.get("user_ratings_total") or place.get("reviews") or 0)
+
+        if rating > 0.0:
+            popularity_score = (rating / 5.0) * 80.0
+        else:
+            popularity_score = 60.0
+
+        if user_ratings_total > 0:
+            review_bonus = min(20.0, (math.log10(user_ratings_total) / 4.0) * 20.0)
+        else:
+            review_bonus = 0.0
+
+        scores["popularity"] = max(0.0, min(100.0, popularity_score + review_bonus))
 
         # ==================== WEIGHTED TOTAL ====================
-        # Weight factors based on what matters most
         weighted_total = (
-            scores["interest_match"] * 0.30 +  # Interests (max 12.0)
-            scores["freshness"] * 0.20 +        # Freshness (max 6.0)
-            scores["popularity"] * 0.12 +       # Popularity & Quality (max 1.8)
-            scores["user_level"] * 0.10 +       # Level match (max 1.0)
-            scores["diversity"] * 0.10 +        # Diversity (max 1.0)
-            scores["weather_time"] * 0.18       # Weather & Time (max 1.8)
-        ) - distance_penalty
+            scores["interest_match"] * 0.35 +
+            scores["history_affinity"] * 0.25 +
+            scores["bookmarks"] * 0.15 +
+            scores["freshness"] * 0.10 +
+            scores["weather_time"] * 0.10 +
+            scores["popularity"] * 0.05
+        )
 
-        # Max possible sum of weighted factors is 23.6. Normalize to 0-100% scale.
-        scores["total"] = min(100.0, max(0.0, (weighted_total / 23.6) * 100.0))
+        # Distance penalty (up to 10 points penalty)
+        distance_penalty = 0.0
+        geo = place.get("geometry", {}).get("location", {})
+        p_lat, p_lng = geo.get("lat"), geo.get("lng")
+        if p_lat is not None and p_lng is not None:
+            dist = haversine_distance(lat, lng, p_lat, p_lng)
+            distance_penalty = min(10.0, dist * 0.4)
+
+        scores["total"] = max(0.0, min(100.0, weighted_total - distance_penalty))
 
         return scores
 
@@ -646,42 +727,41 @@ class ExplainableRecommender:
         reasons = []
 
         # Interest Match
-        if score_breakdown["interest_match"] > 30:
+        if score_breakdown["interest_match"] > 75:
             reason = "Perfect match cu interesele tale" if language == "ro" else "Perfect match with your interests"
             reasons.append(reason)
-        elif score_breakdown["interest_match"] > 15:
+        elif score_breakdown["interest_match"] > 50:
             reason = "Corespunde intereselor tale" if language == "ro" else "Matches your interests"
             reasons.append(reason)
-        elif score_breakdown["interest_match"] > 5:
-            reason = "Ar putea să-ți placă" if language == "ro" else "You might enjoy it"
+
+        # Bookmarks
+        if score_breakdown.get("bookmarks", 0.0) >= 95:
+            reason = "Salvat la favorite" if language == "ro" else "Saved to bookmarks"
+            reasons.append(reason)
+        elif score_breakdown.get("bookmarks", 0.0) >= 70:
+            reason = "Categorie preferată salvată" if language == "ro" else "Matches bookmarked category"
             reasons.append(reason)
 
         # Freshness
-        if score_breakdown["freshness"] >= 30:
+        if score_breakdown["freshness"] >= 90:
             reason = "Ceva complet nou pentru tine" if language == "ro" else "Something brand new for you"
             reasons.append(reason)
-        elif score_breakdown["freshness"] > 15:
+        elif score_breakdown["freshness"] > 60:
             reason = "Nu ai vizitat încă" if language == "ro" else "You haven't visited yet"
             reasons.append(reason)
 
-        # Popularity
-        if score_breakdown["popularity"] >= 14:
-            reason = "Foarte apreciat - 4.6+ rating" if language == "ro" else "Highly rated - 4.6+ stars"
-            reasons.append(reason)
-        elif score_breakdown["popularity"] > 8:
-            reason = "Bine cotat de vizitatori" if language == "ro" else "Well rated by visitors"
+        # History Affinity
+        if score_breakdown.get("history_affinity", 0.0) >= 80:
+            reason = "Frecventat de tine în trecut" if language == "ro" else "Frequently visited by you"
             reasons.append(reason)
 
-        # Diversity
-        if score_breakdown["diversity"] >= 8:
-            reason = "Categorie nouă pentru tine" if language == "ro" else "New category for you"
-            reasons.append(reason)
-        elif score_breakdown["diversity"] >= 5:
-            reason = "Diferit de locurile recente" if language == "ro" else "Different from your recent visits"
+        # Popularity
+        if score_breakdown["popularity"] >= 85:
+            reason = "Foarte apreciat - 4.6+ rating" if language == "ro" else "Highly rated - 4.6+ stars"
             reasons.append(reason)
 
         # Weather & Time Match
-        if score_breakdown.get("weather_time", 0.0) >= 9.0:
+        if score_breakdown.get("weather_time", 0.0) >= 85.0:
             reason = "Potrivit pentru vremea și momentul actual" if language == "ro" else "Great for current weather & time"
             reasons.append(reason)
 
@@ -692,46 +772,38 @@ class ExplainableRecommender:
         """Generate detailed explanation of how recommendation was calculated."""
         base_msg = "Pe baza" if language == "ro" else "Based on"
 
-        # Calculate normalized display percentages (0-100%)
-        interest_pct = min(100.0, (score_breakdown['interest_match'] / 40.0) * 100.0)
-        freshness_pct = min(100.0, (score_breakdown['freshness'] / 30.0) * 100.0)
-        popularity_pct = min(100.0, (score_breakdown['popularity'] / 15.0) * 100.0)
-        level_pct = min(100.0, (score_breakdown['user_level'] / 10.0) * 100.0)
-        diversity_pct = min(100.0, (score_breakdown['diversity'] / 10.0) * 100.0)
-        weather_pct = min(100.0, (score_breakdown.get('weather_time', 7.0) / 10.0) * 100.0)
-
         return {
-            "summary": f"{base_msg} analizei factorilor de personalizare",
+            "summary": f"{base_msg} analizei factorilor de personalizare" if language == "ro" else f"{base_msg} personalization factors analysis",
             "factors": [
                 {
                     "name": "Potrivire interese" if language == "ro" else "Interest Match",
-                    "score": f"{interest_pct:.1f}%",
+                    "score": f"{score_breakdown['interest_match']:.1f}%",
                     "description": "Cât de bine se potrivește cu interesele tale salvate" if language == "ro" else "How well it matches your saved interests"
                 },
                 {
+                    "name": "Afinitate istoric" if language == "ro" else "History Affinity",
+                    "score": f"{score_breakdown.get('history_affinity', 50.0):.1f}%",
+                    "description": "Corespunderea cu locurile vizitate de tine în trecut" if language == "ro" else "Match with places you visited in the past"
+                },
+                {
+                    "name": "Locuri salvate" if language == "ro" else "Bookmarked Places",
+                    "score": f"{score_breakdown.get('bookmarks', 30.0):.1f}%",
+                    "description": "Preferința pentru locațiile salvate la favorite" if language == "ro" else "Preference for places saved to bookmarks"
+                },
+                {
                     "name": "Noutate" if language == "ro" else "Freshness",
-                    "score": f"{freshness_pct:.1f}%",
-                    "description": "Dacă nu ai vizitat deja acest loc" if language == "ro" else "Whether you haven't visited this place yet"
-                },
-                {
-                    "name": "Popularitate" if language == "ro" else "Popularity",
-                    "score": f"{popularity_pct:.1f}%",
-                    "description": "Rating și numărul de recenzii" if language == "ro" else "Rating and number of reviews"
-                },
-                {
-                    "name": "Nivel potrivit" if language == "ro" else "Level Match",
-                    "score": f"{level_pct:.1f}%",
-                    "description": "Adecvat pentru nivelul tău de experiență" if language == "ro" else "Appropriate for your experience level"
-                },
-                {
-                    "name": "Diversitate" if language == "ro" else "Diversity",
-                    "score": f"{diversity_pct:.1f}%",
-                    "description": "Diferit de locurile vizitate recent" if language == "ro" else "Different from recent visits"
+                    "score": f"{score_breakdown['freshness']:.1f}%",
+                    "description": "Dacă nu ai vizitat deja acest loc recent" if language == "ro" else "Whether you haven't visited this place recently"
                 },
                 {
                     "name": "Vreme & Timp" if language == "ro" else "Weather & Time Match",
-                    "score": f"{weather_pct:.1f}%",
+                    "score": f"{score_breakdown['weather_time']:.1f}%",
                     "description": "Potrivirea cu vremea actuală și momentul zilei" if language == "ro" else "Compatibility with current weather and time of day"
+                },
+                {
+                    "name": "Popularitate" if language == "ro" else "Popularity",
+                    "score": f"{score_breakdown['popularity']:.1f}%",
+                    "description": "Rating și numărul de recenzii" if language == "ro" else "Rating and number of reviews"
                 }
             ],
             "total_confidence": f"{score_breakdown['total']:.1f}%"

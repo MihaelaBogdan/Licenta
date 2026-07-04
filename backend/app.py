@@ -5367,9 +5367,16 @@ def get_personalized_recommendations():
 
     lat, lng = float(lat_str), float(lng_str)
 
-    # Get user interests
-    user_interests = client_interests.split(',') if client_interests else []
-    user_interests = [i.strip().lower() for i in user_interests if i.strip()]
+    # Get user interests and translate them to ensure accurate matching
+    raw_interests = client_interests.split(',') if client_interests else []
+    user_interests = []
+    for i in raw_interests:
+        val = i.strip().lower()
+        if val:
+            user_interests.append(val)
+            translated = ROMANIAN_INTEREST_TRANSLATION.get(val)
+            if translated:
+                user_interests.append(translated.lower())
 
     # 1. GET CANDIDATES (from nearby search - FAST, no extra API calls)
     candidates = google_nearby_search(lat, lng, "tourist_attraction", radius=5000, keyword=query or "best places")
