@@ -853,8 +853,47 @@ def get_place_details(place_id):
             ref = result["photos"][0]["photo_reference"]
             img_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={ref}&key={MAPS_API_KEY}"
 
-        # Default review summary
+        # AI Review Summary (via OpenRouter)
         ai_summary = "An excellent location to discover." if language == "en" else "O locație interesantă care merită explorată pentru experiența sa unică."
+        openrouter_key = os.getenv("OPENROUTER_API_KEY")
+        if openrouter_key and reviews:
+            try:
+                reviews_text = "\n".join([f"- {r['text']}" for r in reviews if r.get('text')])
+                if reviews_text.strip():
+                    if language == "en":
+                        prompt = (
+                            f"You are a smart urban critic. Summarize these reviews for '{result.get('name')}' "
+                            "into a single ultra-short, honest, and engaging sentence (max 25 words). "
+                            "Use a modern, 'TL;DR' style. Mention one pro and one con if they exist. "
+                            f"Reviews:\n{reviews_text}"
+                        )
+                    else:
+                        prompt = (
+                            f"Ești un critic urban inteligent. Rezumă aceste recenzii pentru '{result.get('name')}' "
+                            "într-o singură frază ultra-scurtă, onestă și captivantă (max 25 cuvinte). "
+                            "Folosește un ton modern, de tip 'TL;DR'. Menționează un punct forte și un punct slab dacă există. "
+                            f"Recenzii:\n{reviews_text}"
+                        )
+                    
+                    headers = {
+                        "Authorization": f"Bearer {openrouter_key}",
+                        "Content-Type": "application/json"
+                    }
+                    resp_ai = requests.post(
+                        url="https://openrouter.ai/api/v1/chat/completions",
+                        headers=headers,
+                        json={
+                            "model": "google/gemini-2.5-flash",
+                            "messages": [{"role": "user", "content": prompt}],
+                            "max_tokens": 150
+                        },
+                        timeout=5
+                    )
+                    if resp_ai.status_code == 200:
+                        llm_text = resp_ai.json()['choices'][0]['message']['content']
+                        ai_summary = llm_text.strip().replace('"', '')
+            except Exception as ae:
+                print(f"⚠️ AI Summary Error (OpenRouter): {ae}")
 
         response_data = {
             "name": result.get("name"),

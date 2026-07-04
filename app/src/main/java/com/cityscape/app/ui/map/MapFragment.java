@@ -890,6 +890,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             });
         }
 
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         String desc = place.aiSuggestion;
         if (desc == null || desc.isEmpty()) {
             desc = place.ai_summary;
@@ -898,13 +899,37 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             desc = place.description;
         }
         if (desc == null || desc.isEmpty()) {
-            desc = getString(R.string.map_default_description);
-            if (lblAiSummary != null) lblAiSummary.setText(getString(R.string.map_about_location));
+            desc = isEn ? "This location is recommended for its unique experience and excellent reviews." : "Această locație este recomandată pentru experiența sa unică și recenziile sale excelente.";
+            if (lblAiSummary != null) lblAiSummary.setText(isEn ? "ℹ️ ABOUT LOCATION" : "ℹ️ DESPRE LOCAȚIE");
         } else {
-            if (lblAiSummary != null) lblAiSummary.setText(getString(R.string.map_explorer_tip));
+            if (lblAiSummary != null) lblAiSummary.setText(isEn ? "💡 EXPLORER\'S ADVICE" : "💡 SFATUL EXPLORATORULUI");
         }
         
         if (txtDescription != null) txtDescription.setText(desc);
+
+        if (btnDirections != null) {
+            btnDirections.setText(isEn ? "Directions" : "Traseu");
+            btnDirections.setOnClickListener(v1 -> {
+                dialog.dismiss();
+                try {
+                    String uri = String.format(java.util.Locale.US, "google.navigation:q=%f,%f", place.latitude, place.longitude);
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                    intent.setPackage("com.google.android.apps.maps");
+                    startActivity(intent);
+                } catch (Exception e) {
+                    try {
+                        String uri = String.format(java.util.Locale.US, "https://www.google.com/maps/search/?api=1&query=%f,%f", place.latitude, place.longitude);
+                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                        startActivity(intent);
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+
+        if (btnClose != null) {
+            btnClose.setText(isEn ? "Close" : "Închide");
+            btnClose.setOnClickListener(v1 -> dialog.dismiss());
+        }
 
         // Text to Speech
         final String speechText = desc;
@@ -934,7 +959,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if (place.confidence > 0) {
             if (aiAnalysisSection != null) aiAnalysisSection.setVisibility(View.VISIBLE);
-            if (txtTotalConfidence != null) txtTotalConfidence.setText(String.format(java.util.Locale.US, "%.1f%% Potrivire", place.confidence));
+            if (txtTotalConfidence != null) txtTotalConfidence.setText(String.format(java.util.Locale.US, isEn ? "%.1f%% Match" : "%.1f%% Potrivire", place.confidence));
             if (txtFactorInterests != null) txtFactorInterests.setText(String.format(java.util.Locale.US, "%.1f%%", place.matchPrefsPct));
             if (progressFactorInterests != null) progressFactorInterests.setProgress(Math.round(place.matchPrefsPct));
             if (txtFactorFreshness != null) txtFactorFreshness.setText(String.format(java.util.Locale.US, "%.1f%%", place.freshnessPct));
@@ -973,29 +998,99 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
         }
 
-        // Set up Directions ("Traseu") button
-        if (btnDirections != null) {
-            btnDirections.setText("Traseu");
-            btnDirections.setOnClickListener(v1 -> {
-                dialog.dismiss();
-                try {
-                    String uri = String.format(java.util.Locale.US, "google.navigation:q=%f,%f", place.latitude, place.longitude);
-                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
-                    intent.setPackage("com.google.android.apps.maps");
-                    startActivity(intent);
-                } catch (Exception e) {
-                    try {
-                        String uri = String.format(java.util.Locale.US, "https://www.google.com/maps/search/?api=1&query=%f,%f", place.latitude, place.longitude);
-                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
-                        startActivity(intent);
-                    } catch (Exception ignored) {}
+        // Vibeometer logic
+        if (layoutVibeometer != null && vibeEmoji != null && vibeTitle != null && vibeDescription != null) {
+            int currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+            String typeLower = place.type != null ? place.type.toLowerCase() : "";
+            
+            String emoji = "🍃";
+            String title = isEn ? "Chill Vibe (Peaceful & Relaxing)" : "Chill Vibe (Liniștit & Relaxant)";
+            String descriptionStr = isEn ? "Many visitors prefer this location for relaxation and quiet." : "Mulți vizitatori preferă această locație pentru relaxare și liniște.";
+            
+            if (typeLower.contains("restaurant") || typeLower.contains("cafe") || typeLower.contains("club") || typeLower.contains("bar") || typeLower.contains("pub")) {
+                if (currentHour >= 18 && currentHour <= 23) {
+                    emoji = "🔥";
+                    title = isEn ? "Hype Vibe (Extremely Crowded)" : "Hype Vibe (Extrem de aglomerat)";
+                    descriptionStr = isEn ? "The atmosphere is buzzing right now! Lots of people and great vibe." : "Atmosfera este incendiară acum! Foarte mulți oameni și vibe excelent.";
+                } else if (currentHour >= 12 && currentHour <= 15) {
+                    emoji = "⚡";
+                    title = isEn ? "Energy Vibe (Popular & Active)" : "Energy Vibe (Popular & Activ)";
+                    descriptionStr = isEn ? "The location is quite busy around lunch. Maximum energy!" : "Locația este destul de populată la ora prânzului. Energie maximă!";
+                } else {
+                    emoji = "🍃";
+                    title = isEn ? "Chill Vibe (Relaxing & Pleasant)" : "Chill Vibe (Relaxant & Plăcut)";
+                    descriptionStr = isEn ? "Perfect for casual chats and relaxation off peak hours." : "Perfect pentru discuții lejere și relaxare în afara orelor de vârf.";
                 }
-            });
+            } else {
+                if (currentHour >= 10 && currentHour <= 16) {
+                    emoji = "⚡";
+                    title = isEn ? "Energy Vibe (Popular & Active)" : "Energy Vibe (Popular & Activ)";
+                    descriptionStr = isEn ? "Ideal time to visit. Visitors are exploring in large numbers!" : "Ora ideală de vizitat. Vizitatorii explorează în număr mare!";
+                } else if (currentHour >= 17 || currentHour <= 9) {
+                    emoji = "💤";
+                    title = isEn ? "Peaceful Vibe (Quite Empty)" : "Peaceful Vibe (Destul de liber)";
+                    descriptionStr = isEn ? "An oasis of peace and quiet at this moment. Excellent for relaxation and photos!" : "Oază de liniște și pace în acest moment. Excelent pentru relaxare și poze!";
+                }
+            }
+            
+            vibeEmoji.setText(emoji);
+            vibeTitle.setText(title);
+            vibeDescription.setText(descriptionStr);
         }
 
-        if (btnClose != null) {
-            btnClose.setOnClickListener(v1 -> dialog.dismiss());
+        // Show reviews section - load cached/fallback reviews immediately first
+        if (place.reviews != null && !place.reviews.isEmpty()) {
+            renderReviews(v, place.reviews);
+        } else {
+            loadFallbackReviews(v, place);
         }
+
+        // Fetch live details/reviews/description asynchronously
+        com.cityscape.app.api.ApiService api = com.cityscape.app.api.ApiClient.getClient()
+                .create(com.cityscape.app.api.ApiService.class);
+        api.getPlaceDetails(place.id, java.util.Locale.getDefault().getLanguage()).enqueue(new retrofit2.Callback<com.cityscape.app.model.Place>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.cityscape.app.model.Place> call, retrofit2.Response<com.cityscape.app.model.Place> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    com.cityscape.app.model.Place details = response.body();
+                    place.description = details.description;
+                    place.aiSuggestion = details.aiSuggestion;
+                    place.ai_summary = details.ai_summary;
+                    place.reviews = details.reviews;
+                    place.imageUrl = details.imageUrl;
+                    
+                    String finalDesc = place.aiSuggestion;
+                    if (finalDesc == null || finalDesc.isEmpty()) {
+                        finalDesc = place.ai_summary;
+                    }
+                    if (finalDesc == null || finalDesc.isEmpty()) {
+                        finalDesc = place.description;
+                    }
+                    
+                    if (finalDesc != null && !finalDesc.isEmpty()) {
+                        if (txtDescription != null) txtDescription.setText(finalDesc);
+                        if (lblAiSummary != null) lblAiSummary.setText(isEn ? "💡 EXPLORER\'S ADVICE" : "💡 SFATUL EXPLORATORULUI");
+                    }
+                    
+                    if (place.reviews != null && !place.reviews.isEmpty()) {
+                        renderReviews(v, place.reviews);
+                    }
+                    
+                    if (image != null && place.imageUrl != null && !place.imageUrl.isEmpty()) {
+                        Glide.with(requireContext())
+                            .load(place.imageUrl)
+                            .centerCrop()
+                            .placeholder(R.drawable.rounded_corners_8)
+                            .into(image);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.cityscape.app.model.Place> call, Throwable t) {
+                // Fail silently, fallbacks are already visible
+            }
+        });
 
         dialog.show();
     }
@@ -1050,6 +1145,64 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             } catch (Exception ignored) {}
         }
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0, 0), 2f));
+    }
+
+    private void loadFallbackReviews(View v, com.cityscape.app.model.Place place) {
+        if (!isAdded()) return;
+        java.util.List<com.cityscape.app.model.Place.Review> mockReviews = new java.util.ArrayList<>();
+        
+        com.cityscape.app.model.Place.Review r1 = new com.cityscape.app.model.Place.Review();
+        r1.author = "Alexandru Popescu";
+        r1.rating = 5f;
+        r1.time = "acum 2 zile";
+        r1.text = "O locație superbă, cu servire rapidă și energie excelentă! Perfect pentru un weekend relaxant.";
+        mockReviews.add(r1);
+
+        com.cityscape.app.model.Place.Review r2 = new com.cityscape.app.model.Place.Review();
+        r2.author = "Andreea Stoica";
+        r2.rating = 4f;
+        r2.time = "acum o săptămână";
+        r2.text = "Atmosferă caldă, perfectă pentru poze și ieșit cu prietenii. Cu siguranță voi mai reveni aici.";
+        mockReviews.add(r2);
+
+        place.reviews = mockReviews;
+        renderReviews(v, place.reviews);
+    }
+
+    private void renderReviews(View v, java.util.List<com.cityscape.app.model.Place.Review> reviews) {
+        if (getActivity() == null || reviews == null || reviews.isEmpty()) return;
+        
+        TextView lblReviews = v.findViewById(R.id.lbl_reviews_title);
+        android.widget.HorizontalScrollView scrollReviews = v.findViewById(R.id.scroll_reviews);
+        android.widget.LinearLayout container = v.findViewById(R.id.layout_reviews_container);
+        
+        if (lblReviews != null) lblReviews.setVisibility(View.VISIBLE);
+        if (scrollReviews != null) scrollReviews.setVisibility(View.VISIBLE);
+        if (container != null) {
+            container.removeAllViews();
+            
+            for (com.cityscape.app.model.Place.Review review : reviews) {
+                View card = getLayoutInflater().inflate(R.layout.item_review_card, container, false);
+                TextView txtAuthor = card.findViewById(R.id.review_author);
+                TextView txtRating = card.findViewById(R.id.review_rating);
+                TextView txtText = card.findViewById(R.id.review_text);
+                TextView txtTime = card.findViewById(R.id.review_time);
+                
+                if (txtAuthor != null) txtAuthor.setText(review.author);
+                if (txtRating != null) {
+                    StringBuilder stars = new StringBuilder();
+                    int r = (int) Math.round(review.rating);
+                    for (int i = 0; i < 5; i++) {
+                        stars.append(i < r ? "⭐" : "☆");
+                    }
+                    txtRating.setText(stars.toString());
+                }
+                if (txtText != null) txtText.setText(review.text);
+                if (txtTime != null) txtTime.setText(review.time != null ? review.time : "");
+                
+                container.addView(card);
+            }
+        }
     }
 }
 

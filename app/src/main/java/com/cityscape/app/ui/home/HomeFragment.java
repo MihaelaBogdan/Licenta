@@ -2250,6 +2250,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
             }
             
+            boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
             String desc = place.aiSuggestion;
             
             LinearLayout aiAnalysisSection = v.findViewById(R.id.aiAnalysisSection);
@@ -2274,129 +2275,143 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 desc = place.description;
             }
             if (desc == null || desc.isEmpty()) {
-                desc = "Această locație este recomandată pentru experiența sa unică și recenziile sale excelente.";
-                if (lblAiSummary != null) lblAiSummary.setText("ℹ️ DESPRE LOCAȚIE");
+                desc = isEn ? "This location is recommended for its unique experience and excellent reviews." : "Această locație este recomandată pentru experiența sa unică și recenziile sale excelente.";
+                if (lblAiSummary != null) lblAiSummary.setText(isEn ? "ℹ️ ABOUT LOCATION" : "ℹ️ DESPRE LOCAȚIE");
             } else {
-                if (lblAiSummary != null) lblAiSummary.setText("💡 SFATUL EXPLORATORULUI");
-                
-                // Show AI Analysis Percentages if confidence score exists
-                if (place.confidence > 0) {
-                    if (aiAnalysisSection != null) {
-                        aiAnalysisSection.setVisibility(View.VISIBLE);
-                    }
-                    if (txtTotalConfidence != null) {
-                        txtTotalConfidence.setText(String.format(java.util.Locale.US, "%.1f%% Potrivire", place.confidence));
-                    }
-                    if (txtFactorInterests != null) {
-                        txtFactorInterests.setText(String.format(java.util.Locale.US, "%.1f%%", place.matchPrefsPct));
-                    }
-                    if (progressFactorInterests != null) {
-                        progressFactorInterests.setProgress(Math.round(place.matchPrefsPct));
-                    }
-                    if (txtFactorFreshness != null) {
-                        txtFactorFreshness.setText(String.format(java.util.Locale.US, "%.1f%%", place.freshnessPct));
-                    }
-                    if (progressFactorFreshness != null) {
-                        progressFactorFreshness.setProgress(Math.round(place.freshnessPct));
-                    }
-                    if (txtFactorPopularity != null) {
-                        txtFactorPopularity.setText(String.format(java.util.Locale.US, "%.1f%%", place.popularityPct));
-                    }
-                    if (progressFactorPopularity != null) {
-                        progressFactorPopularity.setProgress(Math.round(place.popularityPct));
-                    }
-                    if (txtFactorLevel != null) {
-                        txtFactorLevel.setText(String.format(java.util.Locale.US, "%.1f%%", place.userLevelPct));
-                    }
-                    if (progressFactorLevel != null) {
-                        progressFactorLevel.setProgress(Math.round(place.userLevelPct));
-                    }
-                    if (txtFactorDiversity != null) {
-                        txtFactorDiversity.setText(String.format(java.util.Locale.US, "%.1f%%", place.diversityPct));
-                    }
-                    if (progressFactorDiversity != null) {
-                        progressFactorDiversity.setProgress(Math.round(place.diversityPct));
-                    }
-                    if (txtFactorWeather != null) {
-                        txtFactorWeather.setText(String.format(java.util.Locale.US, "%.1f%%", place.weatherMatchPct));
-                    }
-                    if (progressFactorWeather != null) {
-                        progressFactorWeather.setProgress(Math.round(place.weatherMatchPct));
-                    }
+                if (lblAiSummary != null) lblAiSummary.setText(isEn ? "💡 EXPLORER\'S ADVICE" : "💡 SFATUL EXPLORATORULUI");
+            }
+            
+            if (btnPlan != null) {
+                btnPlan.setText(isEn ? "Plan Itinerary" : "Planifică");
+            }
+            if (btnClose != null) {
+                btnClose.setText(isEn ? "Close" : "Închide");
+            }
 
-                    // Dynamically build filter and interest chips inside dialog
-                    com.google.android.material.chip.ChipGroup dialogCriteriaChips = v.findViewById(R.id.dialog_criteria_chips);
-                    if (dialogCriteriaChips != null) {
-                        dialogCriteriaChips.removeAllViews();
-                        
-                        // 1. Category chip
-                        if (currentCategory != null && !currentCategory.equalsIgnoreCase("All")) {
-                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
-                            chip.setText("📂 Categorie: " + currentCategory);
-                            chip.setChipBackgroundColorResource(android.R.color.transparent);
-                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
-                            chip.setChipStrokeWidth(1.0f);
-                            dialogCriteriaChips.addView(chip);
-                        }
-                        
-                        // 2. Rating chip
-                        if (currentRatingFilter > 0) {
-                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
-                            chip.setText(String.format(java.util.Locale.US, "⭐ Rating > %.1f", currentRatingFilter));
-                            chip.setChipBackgroundColorResource(android.R.color.transparent);
-                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
-                            chip.setChipStrokeWidth(1.0f);
-                            dialogCriteriaChips.addView(chip);
-                        }
-                        
-                        // 3. Budget chip
-                        if (currentPriceFilter > 0) {
-                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
-                            String budgetStr = "Ieftin ($)";
+            // Show AI Analysis Percentages if confidence score exists
+            if (place.confidence > 0) {
+                if (aiAnalysisSection != null) {
+                    aiAnalysisSection.setVisibility(View.VISIBLE);
+                }
+                if (txtTotalConfidence != null) {
+                    txtTotalConfidence.setText(String.format(java.util.Locale.US, isEn ? "%.1f%% Match" : "%.1f%% Potrivire", place.confidence));
+                }
+                if (txtFactorInterests != null) {
+                    txtFactorInterests.setText(String.format(java.util.Locale.US, "%.1f%%", place.matchPrefsPct));
+                }
+                if (progressFactorInterests != null) {
+                    progressFactorInterests.setProgress(Math.round(place.matchPrefsPct));
+                }
+                if (txtFactorFreshness != null) {
+                    txtFactorFreshness.setText(String.format(java.util.Locale.US, "%.1f%%", place.freshnessPct));
+                }
+                if (progressFactorFreshness != null) {
+                    progressFactorFreshness.setProgress(Math.round(place.freshnessPct));
+                }
+                if (txtFactorPopularity != null) {
+                    txtFactorPopularity.setText(String.format(java.util.Locale.US, "%.1f%%", place.popularityPct));
+                }
+                if (progressFactorPopularity != null) {
+                    progressFactorPopularity.setProgress(Math.round(place.popularityPct));
+                }
+                if (txtFactorLevel != null) {
+                    txtFactorLevel.setText(String.format(java.util.Locale.US, "%.1f%%", place.userLevelPct));
+                }
+                if (progressFactorLevel != null) {
+                    progressFactorLevel.setProgress(Math.round(place.userLevelPct));
+                }
+                if (txtFactorDiversity != null) {
+                    txtFactorDiversity.setText(String.format(java.util.Locale.US, "%.1f%%", place.diversityPct));
+                }
+                if (progressFactorDiversity != null) {
+                    progressFactorDiversity.setProgress(Math.round(place.diversityPct));
+                }
+                if (txtFactorWeather != null) {
+                    txtFactorWeather.setText(String.format(java.util.Locale.US, "%.1f%%", place.weatherMatchPct));
+                }
+                if (progressFactorWeather != null) {
+                    progressFactorWeather.setProgress(Math.round(place.weatherMatchPct));
+                }
+
+                // Dynamically build filter and interest chips inside dialog
+                com.google.android.material.chip.ChipGroup dialogCriteriaChips = v.findViewById(R.id.dialog_criteria_chips);
+                if (dialogCriteriaChips != null) {
+                    dialogCriteriaChips.removeAllViews();
+                    
+                    // 1. Category chip
+                    if (currentCategory != null && !currentCategory.equalsIgnoreCase("All")) {
+                        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                        chip.setText(isEn ? "📂 Category: " + currentCategory : "📂 Categorie: " + currentCategory);
+                        chip.setChipBackgroundColorResource(android.R.color.transparent);
+                        chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                        chip.setChipStrokeWidth(1.0f);
+                        dialogCriteriaChips.addView(chip);
+                    }
+                    
+                    // 2. Rating chip
+                    if (currentRatingFilter > 0) {
+                        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                        chip.setText(isEn ? String.format(java.util.Locale.US, "⭐ Rating > %.1f", currentRatingFilter) : String.format(java.util.Locale.US, "⭐ Rating > %.1f", currentRatingFilter));
+                        chip.setChipBackgroundColorResource(android.R.color.transparent);
+                        chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                        chip.setChipStrokeWidth(1.0f);
+                        dialogCriteriaChips.addView(chip);
+                    }
+                    
+                    // 3. Budget chip
+                    if (currentPriceFilter > 0) {
+                        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                        String budgetStr;
+                        if (isEn) {
+                            budgetStr = "Cheap ($)";
+                            if (currentPriceFilter == 2) budgetStr = "Moderate ($$)";
+                            else if (currentPriceFilter >= 3) budgetStr = "Luxury ($$$)";
+                        } else {
+                            budgetStr = "Ieftin ($)";
                             if (currentPriceFilter == 2) budgetStr = "Mediu ($$)";
                             else if (currentPriceFilter >= 3) budgetStr = "Lux ($$$)";
-                            chip.setText("💰 Buget: " + budgetStr);
-                            chip.setChipBackgroundColorResource(android.R.color.transparent);
-                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
-                            chip.setChipStrokeWidth(1.0f);
-                            dialogCriteriaChips.addView(chip);
                         }
-                        
-                        // 4. Distance chip
-                        if (currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
-                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
-                            chip.setText(String.format(java.util.Locale.US, "📍 Distanță < %d km", (int) currentDistanceFilter));
-                            chip.setChipBackgroundColorResource(android.R.color.transparent);
-                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
-                            chip.setChipStrokeWidth(1.0f);
-                            dialogCriteriaChips.addView(chip);
-                        }
-                        
-                        // 5. Query chip
-                        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-                            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
-                            chip.setText("🔍 Căutare: \"" + searchQuery + "\"");
-                            chip.setChipBackgroundColorResource(android.R.color.transparent);
-                            chip.setChipStrokeColorResource(android.R.color.darker_gray);
-                            chip.setChipStrokeWidth(1.0f);
-                            dialogCriteriaChips.addView(chip);
-                        }
-                        
-                        // 6. User Interests chips
-                        com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
-                        String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests : "";
-                        if (userInterests != null && !userInterests.isEmpty()) {
-                            String[] parts = userInterests.split(",");
-                            for (String part : parts) {
-                                String clean = part.trim();
-                                if (!clean.isEmpty()) {
-                                    com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
-                                    chip.setText("💡 " + clean);
-                                    chip.setChipBackgroundColorResource(android.R.color.transparent);
-                                    chip.setChipStrokeColorResource(android.R.color.darker_gray);
-                                    chip.setChipStrokeWidth(1.0f);
-                                    dialogCriteriaChips.addView(chip);
-                                }
+                        chip.setText((isEn ? "💰 Budget: " : "💰 Buget: ") + budgetStr);
+                        chip.setChipBackgroundColorResource(android.R.color.transparent);
+                        chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                        chip.setChipStrokeWidth(1.0f);
+                        dialogCriteriaChips.addView(chip);
+                    }
+                    
+                    // 4. Distance chip
+                    if (currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
+                        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                        chip.setText(isEn ? String.format(java.util.Locale.US, "📍 Distance < %d km", (int) currentDistanceFilter) : String.format(java.util.Locale.US, "📍 Distanță < %d km", (int) currentDistanceFilter));
+                        chip.setChipBackgroundColorResource(android.R.color.transparent);
+                        chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                        chip.setChipStrokeWidth(1.0f);
+                        dialogCriteriaChips.addView(chip);
+                    }
+                    
+                    // 5. Query chip
+                    if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                        chip.setText(isEn ? "🔍 Search: \"" + searchQuery + "\"" : "🔍 Căutare: \"" + searchQuery + "\"");
+                        chip.setChipBackgroundColorResource(android.R.color.transparent);
+                        chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                        chip.setChipStrokeWidth(1.0f);
+                        dialogCriteriaChips.addView(chip);
+                    }
+                    
+                    // 6. User Interests chips
+                    com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
+                    String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests : "";
+                    if (userInterests != null && !userInterests.isEmpty()) {
+                        String[] parts = userInterests.split(",");
+                        for (String part : parts) {
+                            String clean = part.trim();
+                            if (!clean.isEmpty()) {
+                                com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+                                chip.setText("💡 " + clean);
+                                chip.setChipBackgroundColorResource(android.R.color.transparent);
+                                chip.setChipStrokeColorResource(android.R.color.darker_gray);
+                                chip.setChipStrokeWidth(1.0f);
+                                dialogCriteriaChips.addView(chip);
                             }
                         }
                     }
@@ -2419,32 +2434,32 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 String typeLower = place.type != null ? place.type.toLowerCase() : "";
                 
                 String emoji = "🍃";
-                String title = "Chill Vibe (Liniștit & Relaxant)";
-                String descriptionStr = "Mulți vizitatori preferă această locație pentru relaxare și liniște.";
+                String title = isEn ? "Chill Vibe (Peaceful & Relaxing)" : "Chill Vibe (Liniștit & Relaxant)";
+                String descriptionStr = isEn ? "Many visitors prefer this location for relaxation and quiet." : "Mulți vizitatori preferă această locație pentru relaxare și liniște.";
                 
                 if (typeLower.contains("restaurant") || typeLower.contains("cafe") || typeLower.contains("club") || typeLower.contains("bar") || typeLower.contains("pub")) {
                     if (currentHour >= 18 && currentHour <= 23) {
                         emoji = "🔥";
-                        title = "Hype Vibe (Extrem de aglomerat)";
-                        descriptionStr = "Atmosfera este incendiară acum! Foarte mulți oameni și vibe excelent.";
+                        title = isEn ? "Hype Vibe (Extremely Crowded)" : "Hype Vibe (Extrem de aglomerat)";
+                        descriptionStr = isEn ? "The atmosphere is buzzing right now! Lots of people and great vibe." : "Atmosfera este incendiară acum! Foarte mulți oameni și vibe excelent.";
                     } else if (currentHour >= 12 && currentHour <= 15) {
                         emoji = "⚡";
-                        title = "Energy Vibe (Popular & Activ)";
-                        descriptionStr = "Locația este destul de populată la ora prânzului. Energie maximă!";
+                        title = isEn ? "Energy Vibe (Popular & Active)" : "Energy Vibe (Popular & Activ)";
+                        descriptionStr = isEn ? "The location is quite busy around lunch. Maximum energy!" : "Locația este destul de populată la ora prânzului. Energie maximă!";
                     } else {
                         emoji = "🍃";
-                        title = "Chill Vibe (Relaxant & Plăcut)";
-                        descriptionStr = "Perfect pentru discuții lejere și relaxare în afara orelor de vârf.";
+                        title = isEn ? "Chill Vibe (Relaxing & Pleasant)" : "Chill Vibe (Relaxant & Plăcut)";
+                        descriptionStr = isEn ? "Perfect for casual chats and relaxation off peak hours." : "Perfect pentru discuții lejere și relaxare în afara orelor de vârf.";
                     }
                 } else {
                     if (currentHour >= 10 && currentHour <= 16) {
                         emoji = "⚡";
-                        title = "Energy Vibe (Popular & Activ)";
-                        descriptionStr = "Ora ideală de vizitat. Vizitatorii explorează în număr mare!";
+                        title = isEn ? "Energy Vibe (Popular & Active)" : "Energy Vibe (Popular & Activ)";
+                        descriptionStr = isEn ? "Ideal time to visit. Visitors are exploring in large numbers!" : "Ora ideală de vizitat. Vizitatorii explorează în număr mare!";
                     } else if (currentHour >= 17 || currentHour <= 9) {
                         emoji = "💤";
-                        title = "Peaceful Vibe (Destul de liber)";
-                        descriptionStr = "Oază de liniște și pace în acest moment. Excelent pentru relaxare și poze!";
+                        title = isEn ? "Peaceful Vibe (Quite Empty)" : "Peaceful Vibe (Destul de liber)";
+                        descriptionStr = isEn ? "An oasis of peace and quiet at this moment. Excellent for relaxation and photos!" : "Oază de liniște și pace în acest moment. Excelent pentru relaxare și poze!";
                     }
                 }
                 
@@ -2497,12 +2512,57 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
             }
 
-            // Show reviews section
+            // Show reviews section - load cached/fallback reviews immediately first
             if (place.reviews != null && !place.reviews.isEmpty()) {
                 renderReviews(v, place.reviews);
             } else {
                 loadFallbackReviews(v, place);
             }
+            
+            // Fetch live details/reviews/description asynchronously
+            apiService.getPlaceDetails(place.id, java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<Place>() {
+                @Override
+                public void onResponse(Call<Place> call, Response<Place> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null) {
+                        Place details = response.body();
+                        place.description = details.description;
+                        place.aiSuggestion = details.aiSuggestion;
+                        place.ai_summary = details.ai_summary;
+                        place.reviews = details.reviews;
+                        place.imageUrl = details.imageUrl;
+                        
+                        String finalDesc = place.aiSuggestion;
+                        if (finalDesc == null || finalDesc.isEmpty()) {
+                            finalDesc = place.ai_summary;
+                        }
+                        if (finalDesc == null || finalDesc.isEmpty()) {
+                            finalDesc = place.description;
+                        }
+                        
+                        if (finalDesc != null && !finalDesc.isEmpty()) {
+                            if (txtDescription != null) txtDescription.setText(finalDesc);
+                            if (lblAiSummary != null) lblAiSummary.setText(isEn ? "💡 EXPLORER\'S ADVICE" : "💡 SFATUL EXPLORATORULUI");
+                        }
+                        
+                        if (place.reviews != null && !place.reviews.isEmpty()) {
+                            renderReviews(v, place.reviews);
+                        }
+                        
+                        if (image != null && place.imageUrl != null && !place.imageUrl.isEmpty()) {
+                            com.bumptech.glide.Glide.with(requireContext())
+                                .load(place.imageUrl)
+                                .centerCrop()
+                                .placeholder(R.drawable.placeholder_place)
+                                .into(image);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Place> call, Throwable t) {
+                    // Fail silently, fallbacks are already visible
+                }
+            });
             
             dialog.show();
         }
