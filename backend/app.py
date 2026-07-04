@@ -2753,22 +2753,23 @@ def get_enhanced_itinerary():
     lat = float(lat_str)
     lng = float(lng_str)
 
-    # Get base itinerary
-    response = requests.get(
-        f"http://127.0.0.1:5001/itinerary",
-        params={
-            "lat": lat,
-            "lng": lng,
-            "user_id": user_id,
-            "type": request.args.get("type", "exploration"),
-            "duration": request.args.get("duration", 6),
-            "points": request.args.get("points", 4),
-            "budget": budget_str
-        },
-        timeout=15
-    )
-
-    itinerary = response.json() if response.status_code == 200 else []
+    # Get base itinerary in-memory via test_client to prevent HTTP deadlock
+    language = request.args.get("language", "ro")
+    with app.test_client() as client:
+        response = client.get(
+            "/itinerary",
+            query_string={
+                "lat": lat,
+                "lng": lng,
+                "user_id": user_id,
+                "type": request.args.get("type", "exploration"),
+                "duration": request.args.get("duration", 6),
+                "points": request.args.get("points", 4),
+                "budget": budget_str,
+                "language": language
+            }
+        )
+        itinerary = response.get_json() if response.status_code == 200 else []
 
     if not itinerary:
         return jsonify({"error": "Failed to generate itinerary"}), 500

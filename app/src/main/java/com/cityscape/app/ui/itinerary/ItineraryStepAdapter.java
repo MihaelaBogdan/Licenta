@@ -50,7 +50,22 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ItineraryItem item = items.get(position);
-        holder.textSlot.setText(item.slot);
+        
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        String displaySlot = item.slot;
+        if (isEn && item.slot != null) {
+            String lower = item.slot.toLowerCase();
+            if (lower.contains("mic dejun")) displaySlot = "Breakfast";
+            else if (lower.contains("cafea & plimbare") || lower.contains("cafea si plimbare")) displaySlot = "Coffee & Walk";
+            else if (lower.contains("activitate dimineață") || lower.contains("activitate dimineata")) displaySlot = "Morning Activity";
+            else if (lower.contains("prânz") || lower.contains("pranz")) displaySlot = "Lunch";
+            else if (lower.contains("activitate după-amiază") || lower.contains("activitate dupa-amiaza")) displaySlot = "Afternoon Activity";
+            else if (lower.contains("pauză / ceai") || lower.contains("pauza / ceai") || lower.contains("pauză ceai")) displaySlot = "Tea Time / Break";
+            else if (lower.contains("activitate seară") || lower.contains("activitate seara")) displaySlot = "Evening Activity";
+            else if (lower.contains("cină") || lower.contains("cina")) displaySlot = "Dinner";
+            else if (lower.contains("ieșire de seară") || lower.contains("iesire de seara") || lower.contains("viata de noapte")) displaySlot = "Nightlife";
+        }
+        holder.textSlot.setText(displaySlot);
         holder.textName.setText(item.name);
         holder.textAddress.setText(item.address);
 

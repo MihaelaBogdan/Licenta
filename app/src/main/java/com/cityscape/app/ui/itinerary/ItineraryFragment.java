@@ -70,8 +70,18 @@ public class ItineraryFragment extends Fragment {
             variants.add(itineraryItems); // Add the first one received
             
             String type = getArguments().getString("itinerary_type", "Explorare");
+            boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+            String translatedType = type;
+            if (isEn) {
+                String lower = type.toLowerCase();
+                if (lower.contains("explorare") || lower.contains("exploration")) translatedType = "Exploration";
+                else if (lower.contains("relaxare") || lower.contains("relax")) translatedType = "Relaxation";
+                else if (lower.contains("gastronomic") || lower.contains("food")) translatedType = "Gastronomic";
+                else if (lower.contains("sport") || lower.contains("active")) translatedType = "Active/Sport";
+                else if (lower.contains("cinema")) translatedType = "Cinema";
+            }
             if (binding.tvItineraryTitle != null) {
-                binding.tvItineraryTitle.setText("Plan: " + type.substring(0, 1).toUpperCase() + type.substring(1));
+                binding.tvItineraryTitle.setText("Plan: " + translatedType);
             }
 
             fetchExtraVariants();
@@ -536,7 +546,8 @@ public class ItineraryFragment extends Fragment {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
 
         // Call enhanced itinerary endpoint with optimization and budget
-        apiService.getEnhancedItinerary(lat, lng, userId, type, duration, points, true, budget)
+        String lang = com.cityscape.app.data.LocaleHelper.getLanguage(getContext());
+        apiService.getEnhancedItinerary(lat, lng, userId, type, duration, points, true, budget, lang)
             .enqueue(new Callback<com.google.gson.JsonObject>() {
             @Override
             public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
@@ -616,7 +627,8 @@ public class ItineraryFragment extends Fragment {
 
     private void displayTransportInfo(java.util.List<com.google.gson.JsonObject> travelLegs) {
         // Show transport times and distances between stops
-        StringBuilder transportInfo = new StringBuilder("🚌 TRANSPORT:\n");
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        StringBuilder transportInfo = new StringBuilder(isEn ? "🚌 TRANSPORT:\n" : "🚌 TRANSPORT:\n");
         int totalTime = 0;
         float totalDistance = 0;
 
@@ -630,10 +642,14 @@ public class ItineraryFragment extends Fragment {
             totalDistance += distance;
         }
 
-        transportInfo.append(String.format("\n⏱️ Total transport: %d min\n📍 Total distanță: %.1f km", totalTime, totalDistance));
+        if (isEn) {
+            transportInfo.append(String.format("\n⏱️ Total transport: %d min\n📍 Total distance: %.1f km", totalTime, totalDistance));
+        } else {
+            transportInfo.append(String.format("\n⏱️ Total transport: %d min\n📍 Total distanță: %.1f km", totalTime, totalDistance));
+        }
 
         // Display in a SnackBar or Toast for now
-        Toast.makeText(getContext(), String.format("Transport: %d min, %.1f km", totalTime, totalDistance),
+        Toast.makeText(getContext(), isEn ? String.format("Transport: %d min, %.1f km", totalTime, totalDistance) : String.format("Transport: %d min, %.1f km", totalTime, totalDistance),
             Toast.LENGTH_LONG).show();
     }
 
@@ -641,14 +657,19 @@ public class ItineraryFragment extends Fragment {
         // Show weather for the day with activity recommendations
         if (weatherForecast.isEmpty()) return;
 
-        StringBuilder weather = new StringBuilder("☀️ VREME:\n");
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        StringBuilder weather = new StringBuilder(isEn ? "☀️ WEATHER:\n" : "☀️ VREME:\n");
         for (com.google.gson.JsonObject w : weatherForecast) {
             String hour = w.get("hour").getAsString();
             int temp = w.get("temp").getAsInt();
             String condition = w.get("condition").getAsString();
             int rainProb = w.get("rain_prob").getAsInt();
 
-            weather.append(String.format("%s: %d°C %s (ploaie: %d%%)\n", hour, temp, condition, rainProb));
+            if (isEn) {
+                weather.append(String.format("%s: %d°C %s (rain: %d%%)\n", hour, temp, condition, rainProb));
+            } else {
+                weather.append(String.format("%s: %d°C %s (ploaie: %d%%)\n", hour, temp, condition, rainProb));
+            }
         }
 
         Log.d("ItineraryFragment", weather.toString());
@@ -658,15 +679,24 @@ public class ItineraryFragment extends Fragment {
         // Show detailed cost breakdown
         if (costInfo == null) return;
 
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         int total = costInfo.get("total").getAsInt();
         int transport = costInfo.get("transport").getAsInt();
         int meals = costInfo.get("estimated_meals").getAsInt();
         String savingsTip = costInfo.has("savings_tip") ? costInfo.get("savings_tip").getAsString() : "";
 
-        String costMessage = String.format(
-            "💰 Buget total: %d RON\n🚌 Transport: %d RON\n🍽️ Mâncare: %d RON\n%s",
-            total, transport, meals, savingsTip
-        );
+        String costMessage;
+        if (isEn) {
+            costMessage = String.format(
+                "💰 Total Budget: %d RON\n🚌 Transport: %d RON\n🍽️ Food: %d RON\n%s",
+                total, transport, meals, savingsTip
+            );
+        } else {
+            costMessage = String.format(
+                "💰 Buget total: %d RON\n🚌 Transport: %d RON\n🍽️ Mâncare: %d RON\n%s",
+                total, transport, meals, savingsTip
+            );
+        }
 
         Log.d("ItineraryFragment", costMessage);
     }

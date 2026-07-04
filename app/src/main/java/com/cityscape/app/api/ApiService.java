@@ -95,7 +95,8 @@ public interface ApiService {
                         @retrofit2.http.Query("duration") int duration,
                         @retrofit2.http.Query("points") int points,
                         @retrofit2.http.Query("optimize") boolean optimize,
-                        @retrofit2.http.Query("budget") Integer budget);
+                        @retrofit2.http.Query("budget") Integer budget,
+                        @retrofit2.http.Query("language") String language);
 
         @GET("analytics/personal/{user_id}")
         Call<com.google.gson.JsonObject> getPersonalAnalytics(

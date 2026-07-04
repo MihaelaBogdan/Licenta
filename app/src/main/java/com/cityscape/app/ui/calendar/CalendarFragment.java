@@ -81,7 +81,20 @@ public class CalendarFragment extends Fragment {
     private com.cityscape.app.api.ApiService apiService;
     private List<com.cityscape.app.model.Place> allPlaces = new ArrayList<>();
     private long selectedDate;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d MMMM", Locale.getDefault());
+    private SimpleDateFormat getDateFormat() {
+        String lang = "ro";
+        if (getContext() != null) {
+            lang = com.cityscape.app.data.LocaleHelper.getLanguage(getContext());
+        }
+        return new SimpleDateFormat("EEEE, d MMMM", new Locale(lang));
+    }
+
+    private String getLanguage() {
+        if (getContext() != null) {
+            return com.cityscape.app.data.LocaleHelper.getLanguage(getContext());
+        }
+        return "ro";
+    }
 
     @Nullable
     @Override
@@ -105,7 +118,7 @@ public class CalendarFragment extends Fragment {
         }
         
         calendarView.setDate(selectedDate);
-        textSelectedDate.setText(dateFormat.format(new Date(selectedDate)));
+        textSelectedDate.setText(getDateFormat().format(new Date(selectedDate)));
 
         if (getArguments() != null) {
             // Auto-trigger group creation if requested
@@ -475,9 +488,9 @@ public class CalendarFragment extends Fragment {
     }
 
     private void loadActivitiesForDate(long date) {
-        String formattedDate = dateFormat.format(new Date(date));
+        String formattedDate = getDateFormat().format(new Date(date));
 
-        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        boolean isEn = "en".equals(getLanguage());
         if (normalizeDate(System.currentTimeMillis()) == date) {
             textSelectedDate.setText(isEn ? "Today's Activities" : "Activitățile de azi");
         } else {
@@ -512,7 +525,7 @@ public class CalendarFragment extends Fragment {
                     if (textActivitySummary != null) {
                         int count = activities.size();
                         String summaryText;
-                        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
+                        boolean isEnVal = "en".equals(getLanguage());
                         if (count == 0) {
                             summaryText = isEnVal ? "No planned activities" : "Nu ai nicio activitate planificată";
                         } else if (count == 1) {
@@ -610,7 +623,7 @@ public class CalendarFragment extends Fragment {
 
 
     private void showFeedbackDialog(String placeName) {
-        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        boolean isEn = "en".equals(getLanguage());
         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
             .setTitle(isEn ? "Feedback for " + placeName : "Feedback pentru " + placeName)
             .setMessage(isEn ? "How was the activity? Your feedback helps us create better plans!" : "Cum a fost activitatea? Feedback-ul tău ne ajută să-ți oferim planuri mai bune!")
@@ -638,7 +651,7 @@ public class CalendarFragment extends Fragment {
                     } else {
                         recyclerGroups.setVisibility(View.VISIBLE);
                         emptyGroupsState.setVisibility(View.GONE);
-                        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
+                        boolean isEnVal = "en".equals(getLanguage());
                         textGroupCount.setText(groups.size() + (isEnVal ? (groups.size() == 1 ? " group" : " groups") : (groups.size() == 1 ? " grup" : " grupuri")));
 
                         groupCardAdapter = new GroupCardAdapter(context, groups,
@@ -1165,7 +1178,7 @@ public class CalendarFragment extends Fragment {
             btnFinalize.setVisibility(View.VISIBLE);
         }
 
-        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
+        boolean isEnVal = "en".equals(getLanguage());
         AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
                 .setView(dialogView)
                 .setPositiveButton(isEnVal ? "Done" : "Gata", null)
@@ -1298,7 +1311,7 @@ public class CalendarFragment extends Fragment {
         RecyclerView recyclerInvitations = dialogView.findViewById(R.id.recycler_invitations);
         recyclerInvitations.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        boolean isEnVal = "en".equals(java.util.Locale.getDefault().getLanguage());
+        boolean isEnVal = "en".equals(getLanguage());
         AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
                 .setTitle((isEnVal ? "Invitations (" : "Invitații (") + pending.size() + ")")
                 .setView(dialogView)
@@ -1486,7 +1499,7 @@ public class CalendarFragment extends Fragment {
                             .pushScheduleToCloud(schedule);
                     Toast.makeText(getContext(), getString(R.string.schedule_saved), Toast.LENGTH_SHORT).show();
                 })
-                .setNegativeButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Close" : "Închide", null)
+                .setNegativeButton("en".equals(getLanguage()) ? "Close" : "Închide", null)
                 .create();
 
         dialog.show();
@@ -1586,7 +1599,7 @@ public class CalendarFragment extends Fragment {
             }
             if (placeId != null) {
                 final String finalPlaceId = placeId;
-                apiService.getPlaceDetails(placeId, java.util.Locale.getDefault().getLanguage()).enqueue(new retrofit2.Callback<com.cityscape.app.model.Place>() {
+                apiService.getPlaceDetails(placeId, getLanguage()).enqueue(new retrofit2.Callback<com.cityscape.app.model.Place>() {
                     @Override
                     public void onResponse(retrofit2.Call<com.cityscape.app.model.Place> call, retrofit2.Response<com.cityscape.app.model.Place> response) {
                         if (isAdded() && response.isSuccessful() && response.body() != null) {
@@ -2067,7 +2080,8 @@ public class CalendarFragment extends Fragment {
             java.util.Map<Long, List<String>> theirBusy,
             long rangeStart, long rangeEnd) {
 
-        SimpleDateFormat dayFmt  = new SimpleDateFormat("EEE dd MMM", Locale.getDefault());
+        boolean isEn = "en".equals(getLanguage());
+        SimpleDateFormat dayFmt  = new SimpleDateFormat("EEE dd MMM", new Locale(getLanguage()));
         long cursor = rangeStart;
         while (cursor <= rangeEnd) {
             List<String> mine  = myBusy.getOrDefault(cursor, new ArrayList<>());
@@ -2079,7 +2093,7 @@ public class CalendarFragment extends Fragment {
                 boolean myFree    = !mine.contains(h);
                 boolean theirFree = !theirs.contains(h);
                 if (myFree && theirFree) {
-                    return dayFmt.format(new Date(cursor)) + " la " + h + ":00–"
+                    return dayFmt.format(new Date(cursor)) + (isEn ? " at " : " la ") + h + ":00–"
                             + String.format(Locale.getDefault(), "%02d", hour + 1) + ":00";
                 }
             }
