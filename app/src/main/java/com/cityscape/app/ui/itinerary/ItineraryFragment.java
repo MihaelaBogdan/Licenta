@@ -24,6 +24,14 @@ import com.cityscape.app.data.AppDatabase;
 import com.cityscape.app.data.SessionManager;
 import com.cityscape.app.data.SupabaseSyncManager;
 import com.cityscape.app.model.PlannedActivity;
+import com.cityscape.app.model.ActivityGroup;
+import com.cityscape.app.model.GroupMember;
+import com.cityscape.app.model.User;
+import com.cityscape.app.model.Invitation;
+import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import android.app.DatePickerDialog;
 import java.util.Calendar;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -49,6 +57,9 @@ public class ItineraryFragment extends Fragment {
     private List<ItineraryItem> itineraryItems;
     private List<List<ItineraryItem>> variants = new java.util.ArrayList<>();
     private ItineraryStepAdapter adapter;
+    private AppDatabase db;
+    private SessionManager sessionManager;
+    private ApiService apiService;
 
     @Nullable
     @Override
@@ -61,6 +72,10 @@ public class ItineraryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        db = AppDatabase.getInstance(requireContext());
+        sessionManager = new SessionManager(requireContext());
+        apiService = ApiClient.getClient().create(ApiService.class);
 
         String json = getArguments() != null ? getArguments().getString("itinerary_json") : null;
         if (json != null) {
@@ -101,7 +116,7 @@ public class ItineraryFragment extends Fragment {
 
         binding.btnSaveItinerary.setOnClickListener(v -> saveToCalendar());
 
-        binding.btnExportCalendar.setOnClickListener(v -> exportToSystemCalendar());
+        binding.btnExportCalendar.setOnClickListener(v -> showShareOptionsDialog());
 
         binding.btnAddLocation.setOnClickListener(v -> showAddLocationPicker());
 
@@ -847,6 +862,323 @@ public class ItineraryFragment extends Fragment {
             startActivity(intent);
         } catch (Exception e) {
             Log.e("ItineraryFragment", "Error adding to calendar", e);
+        }
+    }
+
+    private void showShareOptionsDialog() {
+        if (itineraryItems == null || itineraryItems.isEmpty()) {
+            Toast.makeText(getContext(), getString(R.string.generate_itinerary_first), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        String title = isEn ? "Share & Plan" : "Distribuie și Planifică";
+        String message = isEn ? "Choose how you want to share or save your itinerary:" : "Alege cum dorești să salvezi sau să partajezi itinerariul:";
+        
+        String[] options = isEn ? 
+            new String[]{"Add to Phone Calendar", "Create Group in App", "Send Details as Text"} :
+            new String[]{"Adaugă în Calendarul Telefonului", "Creează Grup în Aplicație", "Trimite ca Text"};
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+            .setTitle(title)
+            .setMessage(message)
+            .setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    exportToSystemCalendar();
+                } else if (which == 1) {
+                    createGroupFromItinerary();
+                } else if (which == 2) {
+                    shareItineraryAsText();
+                }
+            })
+            .setNegativeButton(isEn ? "Cancel" : "Anulează", null)
+            .show();
+    }
+
+    private void shareItineraryAsText() {
+        if (itineraryItems == null || itineraryItems.isEmpty()) return;
+
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        StringBuilder shareText = new StringBuilder();
+        shareText.append(isEn ? "🗺️ My CityScape Itinerary:\n\n" : "🗺️ Itinerariul meu CityScape:\n\n");
+
+        for (int i = 0; i < itineraryItems.size(); i++) {
+            ItineraryItem item = itineraryItems.get(i);
+            shareText.append(String.format("%d. %s (%s)\n", i + 1, item.name, item.time));
+            if (item.address != null && !item.address.isEmpty()) {
+                shareText.append(String.format("   📍 %s\n", item.address));
+            }
+            if (item.tip != null && !item.tip.isEmpty()) {
+                shareText.append(String.format("   💡 %s\n", item.tip));
+            }
+            shareText.append("\n");
+        }
+
+        shareText.append(isEn ? "Get the CityScape app: https://cityscape-delta.vercel.app" : "Descarcă aplicația CityScape: https://cityscape-delta.vercel.app");
+
+        try {
+            android.content.Intent sendIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+            sendIntent.setType("text/plain");
+            sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText.toString());
+            startActivity(android.content.Intent.createChooser(sendIntent, isEn ? "Share via" : "Distribuie prin"));
+        } catch (Exception e) {
+            Log.e("ItineraryFragment", "Error sharing text", e);
+        }
+    }
+
+    private void createGroupFromItinerary() {
+        if (itineraryItems == null || itineraryItems.isEmpty()) return;
+
+        Calendar cal = Calendar.getInstance();
+        new DatePickerDialog(requireContext(), (view, year, month, day) -> {
+            Calendar selected = Calendar.getInstance();
+            selected.set(year, month, day, 0, 0, 0);
+            selected.set(Calendar.MILLISECOND, 0);
+            long timestamp = selected.getTimeInMillis();
+
+            saveAndShowGroupDialog(timestamp);
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void saveAndShowGroupDialog(long date) {
+        if (sessionManager.getUserId() == null) {
+            Toast.makeText(getContext(), getString(R.string.must_be_authenticated), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        SupabaseSyncManager syncManager = SupabaseSyncManager.getInstance(requireContext());
+        boolean isEur = binding.itineraryToggleCurrency.getCheckedButtonId() == R.id.itinerary_btn_eur;
+        String currency = isEur ? "EUR" : "RON";
+
+        Toast.makeText(getContext(), "Pregătim grupul pe baza itinerariului...", Toast.LENGTH_SHORT).show();
+
+        new Thread(() -> {
+            try {
+                PlannedActivity firstActivity = null;
+                for (int i = 0; i < itineraryItems.size(); i++) {
+                    ItineraryItem item = itineraryItems.get(i);
+                    PlannedActivity activity = new PlannedActivity(
+                            sessionManager.getUserId(),
+                            item.placeId,
+                            item.name,
+                            item.type,
+                            item.imageUrl,
+                            date,
+                            item.time);
+                    activity.notes = item.address;
+                    activity.budget = item.estimatedCost;
+                    activity.currency = currency;
+
+                    db.activityDao().insert(activity);
+                    try {
+                        syncManager.pushActivityToCloud(activity);
+                    } catch (Exception e) {
+                        Log.e("ItineraryFragment", "Cloud sync failed, saved locally", e);
+                    }
+
+                    if (i == 0) {
+                        firstActivity = activity;
+                    }
+                }
+
+                if (getActivity() != null && firstActivity != null) {
+                    final PlannedActivity activityForGroup = firstActivity;
+                    getActivity().runOnUiThread(() -> {
+                        showCreateGroupDialog(activityForGroup);
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("ItineraryFragment", "Failed to save for group creation", e);
+            }
+        }).start();
+    }
+
+    private void showCreateGroupDialog(PlannedActivity activity) {
+        if (!isAdded() || getContext() == null) return;
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.DarkDialogTheme);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_group, null);
+
+        EditText inputGroupName = dialogView.findViewById(R.id.input_group_name);
+        EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
+        TextView btnShareLink = dialogView.findViewById(R.id.btn_share_link);
+        
+        RecyclerView rvRecommended = dialogView.findViewById(R.id.rv_recommended_friends);
+        View labelRecommended = dialogView.findViewById(R.id.text_recommended_label);
+        com.cityscape.app.adapter.SmallUserAdapter recommendedAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
+        if (rvRecommended != null) {
+            rvRecommended.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvRecommended.setAdapter(recommendedAdapter);
+            apiService.getRecommendedUsers(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
+                @Override
+                public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        labelRecommended.setVisibility(View.VISIBLE);
+                        rvRecommended.setVisibility(View.VISIBLE);
+                        recommendedAdapter.setUsers(response.body());
+                    } else {
+                        labelRecommended.setVisibility(View.GONE);
+                        rvRecommended.setVisibility(View.GONE);
+                    }
+                }
+                @Override public void onFailure(retrofit2.Call<List<User>> call, Throwable t) {}
+            });
+        }
+
+        RecyclerView rvFollowing = dialogView.findViewById(R.id.rv_following_to_invite);
+        View labelFollowing = dialogView.findViewById(R.id.text_following_label);
+        com.cityscape.app.adapter.SmallUserAdapter followingAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
+        if (rvFollowing != null) {
+            rvFollowing.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvFollowing.setAdapter(followingAdapter);
+            apiService.getFollowing(sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
+                @Override
+                public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        labelFollowing.setVisibility(View.VISIBLE);
+                        rvFollowing.setVisibility(View.VISIBLE);
+                        followingAdapter.setUsers(response.body());
+                    }
+                }
+                @Override public void onFailure(retrofit2.Call<List<User>> call, Throwable t) {}
+            });
+        }
+
+        inputGroupName.setText("Aventură la " + activity.placeName);
+
+        androidx.appcompat.app.AlertDialog dialog = builder.setView(dialogView).create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        dialogView.findViewById(R.id.btn_create_group_action).setOnClickListener(v -> {
+            String groupName = inputGroupName.getText().toString().trim();
+            if (groupName.isEmpty()) {
+                Toast.makeText(getContext(), getString(R.string.enter_group_name_dialog), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            User currentUser = sessionManager.getCurrentUser();
+            if (currentUser == null) return;
+
+            ActivityGroup group = new ActivityGroup(activity.id, currentUser.id, groupName);
+            db.groupDao().insertGroup(group);
+            SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
+
+            GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
+            db.groupDao().insertMember(creatorMember);
+            SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
+
+            List<User> selectedUsers = new ArrayList<>();
+            selectedUsers.addAll(followingAdapter.getSelectedUsers());
+            selectedUsers.addAll(recommendedAdapter.getSelectedUsers());
+            for (User u : selectedUsers) {
+                sendInvitation(group, activity, u);
+            }
+
+            String query = inputSearchEmail.getText().toString().trim();
+            if (!query.isEmpty()) {
+                android.content.Context context = getContext();
+                if (context != null) {
+                    new Thread(() -> {
+                        User targetUser = db.userDao().getUserByEmail(query);
+                        if (targetUser == null) targetUser = db.userDao().getUserByUsername(query);
+                        
+                        if (targetUser != null && getActivity() != null) {
+                            User finalTarget = targetUser;
+                            getActivity().runOnUiThread(() -> {
+                                if (isAdded()) sendInvitation(group, activity, finalTarget);
+                            });
+                        } else {
+                            apiService.searchUsers(query, sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
+                                @Override
+                                public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
+                                    if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                        sendInvitation(group, activity, response.body().get(0));
+                                    }
+                                }
+                                @Override public void onFailure(retrofit2.Call<List<User>> call, Throwable t) {}
+                            });
+                        }
+                    }).start();
+                }
+            }
+
+            Toast.makeText(getContext(), getString(R.string.group_created) + group.groupCode, Toast.LENGTH_LONG).show();
+            dialog.dismiss();
+        });
+
+        btnShareLink.setOnClickListener(v -> {
+            String groupName = inputGroupName.getText().toString().trim();
+            if (groupName.isEmpty()) groupName = activity.placeName + " - Grup";
+            ActivityGroup group = new ActivityGroup(activity.id, sessionManager.getUserId(), groupName);
+            db.groupDao().insertGroup(group);
+            SupabaseSyncManager.getInstance(requireContext()).pushGroupToCloud(group);
+            User currentUser = sessionManager.getCurrentUser();
+            GroupMember creatorMember = new GroupMember(group.id, currentUser.id, currentUser.name, true);
+            db.groupDao().insertMember(creatorMember);
+            SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
+            dialog.dismiss();
+            shareOnWhatsApp(group);
+        });
+
+        dialog.show();
+    }
+
+    private void sendInvitation(ActivityGroup group, PlannedActivity activity, User targetUser) {
+        GroupMember existingMember = db.groupDao().getMember(group.id, targetUser.id);
+        if (existingMember != null) {
+            Toast.makeText(getContext(), getString(R.string.already_in_group_msg, targetUser.name), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        User currentUser = sessionManager.getCurrentUser();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM", Locale.getDefault());
+
+        Invitation invitation = new Invitation(
+                currentUser.id,
+                currentUser.name,
+                targetUser.id,
+                group.id,
+                group.groupName,
+                activity.placeName,
+                sdf.format(new Date(activity.scheduledDate)),
+                activity.scheduledTime);
+        db.invitationDao().insert(invitation);
+        SupabaseSyncManager.getInstance(requireContext()).pushInvitationToCloud(invitation);
+
+        Toast.makeText(getContext(), "Invitație trimisă lui " + targetUser.name + "!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void shareOnWhatsApp(ActivityGroup group) {
+        PlannedActivity activity = db.activityDao().getActivityById(group.activityId);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+        String dateStr = activity != null ? sdf.format(new Date(activity.scheduledDate)) : "";
+
+        String shareText = "🚀 Te invit în grupul " + group.groupName + " pe CityScape!\n";
+        if (activity != null) {
+            shareText += "📍 Locație: " + activity.placeName + "\n" +
+                    "⏰ Când: " + dateStr + ", ora " + activity.scheduledTime + "\n";
+        }
+
+        shareText += "\n🔑 Cod de intrare: " + group.groupCode + "\n" +
+                "📥 Descarcă aplicația: https://cityscape-delta.vercel.app\n\n" +
+                "După instalare, mergi la Calendar → Adaugă (+) și introdu codul!";
+
+        try {
+            android.content.Intent whatsappIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+            whatsappIntent.setType("text/plain");
+            whatsappIntent.setPackage("com.whatsapp");
+            whatsappIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText);
+            startActivity(whatsappIntent);
+        } catch (Exception e) {
+            try {
+                android.content.Intent sendIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                sendIntent.setType("text/plain");
+                sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText);
+                startActivity(android.content.Intent.createChooser(sendIntent, "Trimite prin"));
+            } catch (Exception ex) {
+                Log.e("ItineraryFragment", "Error launching share", ex);
+            }
         }
     }
 
