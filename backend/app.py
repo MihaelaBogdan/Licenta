@@ -2140,6 +2140,29 @@ def get_itinerary():
                 return val
         return None
 
+    def get_slot_rank(label: str, index: int, total: int):
+        lbl = label.lower()
+        if any(k in lbl for k in ["mic dejun", "breakfast", "cafea", "cafe", "antrenament", "dimineață", "dimineata"]):
+            return 1
+        if any(k in lbl for k in ["prânz", "pranz", "lunch"]):
+            return 3
+        if any(k in lbl for k in ["cină", "cina", "dinner", "seară", "seara"]):
+            return 5
+        if any(k in lbl for k in ["noapte", "nightlife", "club", "cocktail", "desert"]):
+            return 6
+        if index < total / 2:
+            return 2
+        return 4
+
+    RANK_TIMES = {
+        1: (8, 60),    # 8:00 AM, 60 min duration
+        2: (10, 120),  # 10:00 AM, 120 min duration
+        3: (13, 75),   # 1:00 PM, 75 min duration
+        4: (15, 120),  # 3:00 PM, 120 min duration
+        5: (19, 90),   # 7:00 PM, 90 min duration
+        6: (21, 120)   # 9:00 PM, 120 min duration
+    }
+
     # Build slots and assign realistic times
     raw_slots = []
     for i in range(points_count):
@@ -2149,21 +2172,17 @@ def get_itinerary():
             label += f" {(i // len(pattern)) + 1}"
         raw_slots.append({"type": item["type"], "label": label})
 
-    # Assign times: use fixed windows when known, fill gaps for others
-    # First pass: assign known windows
-    assigned_times = []  # list of (start_hour, dur_mins) or None
-    for slot in raw_slots:
-        t = get_slot_time(slot["label"])
-        assigned_times.append(t)
+    # Sort slots chronologically based on their ranked time slots
+    slots_with_ranks = []
+    for i, slot in enumerate(raw_slots):
+        rank = get_slot_rank(slot["label"], i, len(raw_slots))
+        slots_with_ranks.append((slot, rank))
 
-    # Sort slots by their natural time anchor, unknowns go after knowns
-    def sort_key(pair):
-        _, t = pair
-        return t[0] if t else 99
-
-    slots_with_times = sorted(zip(raw_slots, assigned_times), key=sort_key)
-    slots = [s for s, _ in slots_with_times]
-    slot_hint_times = [t for _, t in slots_with_times]
+    # Sort strictly by rank
+    slots_with_ranks = sorted(slots_with_ranks, key=lambda pair: pair[1])
+    
+    slots = [pair[0] for pair in slots_with_ranks]
+    slot_hint_times = [RANK_TIMES[pair[1]] for pair in slots_with_ranks]
 
     # Tips contextuale pentru tranzitii
     TRANSITION_TIPS = {
@@ -2336,19 +2355,18 @@ def get_itinerary():
                 if natural_min and natural_min > current_total_min:
                     current_total_min = natural_min
 
-                start_h = current_total_min // 60
-                start_m = current_total_min % 60
+                def format_ampm(total_min):
+                    h = (total_min // 60) % 24
+                    m = total_min % 60
+                    suffix = "AM" if h < 12 else "PM"
+                    display_h = h % 12
+                    if display_h == 0:
+                        display_h = 12
+                    return f"{display_h:02d}:{m:02d} {suffix}"
+
+                t_start = format_ampm(current_total_min)
                 end_total_min = current_total_min + slot_dur
-
-                # Clamp to midnight
-                if start_h >= 24:
-                    start_h = 23
-                    start_m = 0
-                end_h = min(end_total_min // 60, 23)
-                end_m = end_total_min % 60
-
-                t_start = f"{start_h:02d}:{start_m:02d}"
-                t_end = f"{end_h:02d}:{end_m:02d}"
+                t_end = format_ampm(end_total_min)
 
                 prev_end_min = current_total_min
                 current_total_min = end_total_min + travel_time_mins
@@ -2792,6 +2810,58 @@ def get_enhanced_itinerary():
     # Calculate cost breakdown
     cost_info = calculate_cost_breakdown(itinerary)
     print(f"✅ Cost breakdown: Total {cost_info.get('total')} RON")
+
+    # Recalculate chronological times sequentially after optimization/reordering
+    try:
+        start_hour = int(request.args.get("start_hour", 8))
+        current_min = start_hour * 60
+
+        def format_ampm(total_min):
+            h = (total_min // 60) % 24
+            m = total_min % 60
+            suffix = "AM" if h < 12 else "PM"
+            display_h = h % 12
+            if display_h == 0:
+                display_h = 12
+            return f"{display_h:02d}:{m:02d} {suffix}"
+
+        for idx, item in enumerate(itinerary):
+            dur = 90
+            old_time = item.get("time", "")
+            if old_time and "-" in old_time:
+                try:
+                    parts = old_time.split("-")
+                    def to_min(t_str):
+                        t_str = t_str.strip().upper()
+                        is_pm = "PM" in t_str
+                        t_str = t_str.replace("AM", "").replace("PM", "").strip()
+                        h_m = t_str.split(":")
+                        hr = int(h_m[0])
+                        mn = int(h_m[1])
+                        if is_pm and hr < 12:
+                            hr += 12
+                        elif not is_pm and hr == 12:
+                            hr = 0
+                        return hr * 60 + mn
+                    dur = to_min(parts[1]) - to_min(parts[0])
+                    if dur <= 0:
+                        dur = 90
+                except:
+                    dur = 90
+            
+            start_str = format_ampm(current_min)
+            end_min = current_min + dur
+            end_str = format_ampm(end_min)
+            item["time"] = f"{start_str} - {end_str}"
+
+            if idx < len(itinerary) - 1:
+                travel_mins = 15
+                if idx < len(travel_legs):
+                    travel_mins = travel_legs[idx].get("duration_minutes", 15)
+                current_min = end_min + travel_mins
+        print(f"✅ Itinerary times recalculated chronologically")
+    except Exception as e:
+        print(f"⚠️ Failed to recalculate times: {e}")
 
     # Restructure response with all enhanced data
     return jsonify({

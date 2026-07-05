@@ -1096,7 +1096,17 @@ RĂSPUNDE EXCLUSIV cu un bloc JSON valid, fără alte explicații sau text:
             item["slot"] = lbl
             start = current_min
             end = current_min + dur
-            item["time"] = f"{start // 60:02d}:{start % 60:02d} - {end // 60:02d}:{end % 60:02d}"
+            
+            def format_ampm(total_min):
+                h = (total_min // 60) % 24
+                m = total_min % 60
+                suffix = "AM" if h < 12 else "PM"
+                display_h = h % 12
+                if display_h == 0:
+                    display_h = 12
+                return f"{display_h:02d}:{m:02d} {suffix}"
+                
+            item["time"] = f"{format_ampm(start)} - {format_ampm(end)}"
 
             if i > 0:
                 prev = plan[i - 1]

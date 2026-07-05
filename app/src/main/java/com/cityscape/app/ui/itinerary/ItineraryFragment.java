@@ -84,14 +84,16 @@ public class ItineraryFragment extends Fragment {
                 binding.tvItineraryTitle.setText("Plan: " + translatedType);
             }
 
-            fetchExtraVariants();
+            // fetchExtraVariants();
         } else if (getArguments() != null) {
             // No initial JSON? Trigger full generation from here
             Log.d("ItineraryFragment", "No initial JSON, triggering generation...");
             variants.clear();
             regenerateItinerary();
-            fetchExtraVariants();
+            // fetchExtraVariants();
         }
+
+        binding.itineraryTabs.setVisibility(View.GONE);
 
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
 
