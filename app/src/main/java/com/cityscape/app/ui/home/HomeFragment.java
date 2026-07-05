@@ -3763,9 +3763,67 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             if (btnSeeAllEvents != null) {
                 btnSeeAllEvents.setOnClickListener(v -> {
                     try {
-                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_calendar);
+                        if (eventsList == null || eventsList.isEmpty()) {
+                            boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                            android.widget.Toast.makeText(getContext(), isEn ? "No events currently available" : "Niciun eveniment disponibil momentan", android.widget.Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        com.google.android.material.bottomsheet.BottomSheetDialog dialog = 
+                            new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.TransparentBottomSheetDialogTheme);
+
+                        LinearLayout layout = new LinearLayout(requireContext());
+                        layout.setOrientation(LinearLayout.VERTICAL);
+                        layout.setPadding(48, 48, 48, 48);
+                        layout.setBackgroundResource(R.drawable.bg_rounded_surface);
+
+                        View handle = new View(requireContext());
+                        LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
+                        handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+                        handleLp.bottomMargin = 32;
+                        handle.setLayoutParams(handleLp);
+                        handle.setBackgroundResource(R.drawable.rounded_handle);
+                        layout.addView(handle);
+
+                        TextView title = new TextView(requireContext());
+                        boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                        title.setText(isEn ? "All Active Events" : "Toate Evenimentele Active");
+                        title.setTextSize(20);
+                        title.setTypeface(null, android.graphics.Typeface.BOLD);
+                        try {
+                            title.setTextColor(getResources().getColor(R.color.app_text_primary));
+                        } catch (Exception e) {
+                            title.setTextColor(getResources().getColor(android.R.color.white));
+                        }
+                        title.setPadding(0, 16, 0, 32);
+                        layout.addView(title);
+
+                        androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
+                        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+                        LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT, 
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        rv.setLayoutParams(rvLp);
+
+                        com.cityscape.app.adapter.EventAdapter adapter = new com.cityscape.app.adapter.EventAdapter(eventsList, event -> {
+                            Intent intent = new Intent(getContext(), com.cityscape.app.ui.home.EventDetailActivity.class);
+                            intent.putExtra("event_json", new com.google.gson.Gson().toJson(event));
+                            startActivity(intent);
+                            dialog.dismiss();
+                        });
+
+                        User user = sessionManager.getCurrentUser();
+                        if (user != null && user.interests != null) {
+                            adapter.setUserInterests(user.interests);
+                        }
+                        rv.setAdapter(adapter);
+                        layout.addView(rv);
+
+                        dialog.setContentView(layout);
+                        dialog.show();
                     } catch (Exception e) {
-                        Log.e("HomeFragment", "Navigation to calendar failed", e);
+                        Log.e("HomeFragment", "Failed to show all events dialog", e);
                     }
                 });
             }
