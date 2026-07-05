@@ -18,6 +18,19 @@ public class ApiClient {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        okhttp3.Request request = chain.request();
+                        try {
+                            okhttp3.Response response = chain.proceed(request);
+                            if (response.isSuccessful()) {
+                                return response;
+                            }
+                            response.close();
+                        } catch (java.io.IOException e) {
+                            android.util.Log.w("ApiClient", "Flask server unreachable, falling back to offline LocalApiInterceptor: " + e.getMessage());
+                        }
+                        return new LocalApiInterceptor().intercept(chain);
+                    })
                     .addInterceptor(interceptor)
                     .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                     .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)

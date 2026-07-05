@@ -40,7 +40,17 @@ public class LocalApiInterceptor implements Interceptor {
         String jsonResponse = "[]";
 
         try {
-            if (path.contains("/places")) {
+            if (path.contains("/details")) {
+                String placeId = "";
+                String[] parts = path.split("/");
+                for (int i = 0; i < parts.length; i++) {
+                    if ("places".equals(parts[i]) && i + 1 < parts.length) {
+                        placeId = parts[i + 1];
+                        break;
+                    }
+                }
+                jsonResponse = getPlaceDetailsOffline(placeId);
+            } else if (path.contains("/places")) {
                 jsonResponse = getPlaces();
             } else if (path.contains("/nearby")) {
                 double lat = parseDoubleOpt(request.url().queryParameter("lat"), 0);
@@ -395,5 +405,60 @@ public class LocalApiInterceptor implements Interceptor {
             }
         }
         return plan.toString();
+    }
+
+    private String getPlaceDetailsOffline(String placeId) throws Exception {
+        String url = SUPABASE_URL + "/rest/v1/places?place_id=eq." + placeId + "&select=*";
+        String resp = "";
+        try {
+            resp = get(url, SUPABASE_KEY);
+        } catch (Exception ignored) {}
+
+        JSONObject mapped = new JSONObject();
+        String name = "Premium Location";
+        String address = "Bucharest, Romania";
+        double rating = 4.7;
+        String imgUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80";
+        String description = "An exceptional urban destination with premium facilities, perfect for a relaxing and engaging experience.";
+        String aiSummary = "TL;DR: A highly recommended spot with excellent atmosphere (pro), though it gets slightly crowded during weekends (con).";
+
+        if (resp != null && resp.startsWith("[")) {
+            JSONArray arr = new JSONArray(resp);
+            if (arr.length() > 0) {
+                JSONObject obj = arr.getJSONObject(0);
+                name = obj.optString("name", name);
+                address = obj.optString("address", address);
+                rating = obj.optDouble("rating", rating);
+                imgUrl = obj.optString("imageUrl", imgUrl);
+                description = obj.optString("description", description);
+            }
+        }
+
+        mapped.put("name", name);
+        mapped.put("address", address);
+        mapped.put("rating", rating);
+        mapped.put("imageUrl", imgUrl);
+        mapped.put("description", description);
+        mapped.put("ai_summary", aiSummary);
+        mapped.put("isOpen", true);
+
+        JSONArray reviews = new JSONArray();
+        JSONObject r1 = new JSONObject();
+        r1.put("author", "Andrei Popescu");
+        r1.put("rating", 5);
+        r1.put("text", "Locație absolut minunată! Servire excelentă și atmosferă extrem de primitoare. Recomand cu drag!");
+        r1.put("time", "acum o săptămână");
+        reviews.put(r1);
+
+        JSONObject r2 = new JSONObject();
+        r2.put("author", "Maria Ionescu");
+        r2.put("rating", 4);
+        r2.put("text", "O experiență plăcută în general. Design modern, prețuri accesibile, însă destul de aglomerat la orele de vârf.");
+        r2.put("time", "acum o lună");
+        reviews.put(r2);
+
+        mapped.put("reviews", reviews);
+
+        return mapped.toString();
     }
 }
