@@ -51,7 +51,7 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ItineraryItem item = items.get(position);
         
-        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(holder.itemView.getContext()));
         String displaySlot = item.slot;
         if (isEn && item.slot != null) {
             String lower = item.slot.toLowerCase();
@@ -88,7 +88,6 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             if (position > 0 && item.travelMinutes > 0) {
                 holder.travelSeparator.setVisibility(View.VISIBLE);
                 if (holder.textTravelTime != null) {
-                    boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
                     String label = (item.travelLabel != null && !item.travelLabel.isEmpty())
                         ? item.travelLabel + (isEn ? " to here" : " până aici")
                         : "🚶 ~" + item.travelMinutes + (isEn ? " min to here" : " min până aici");
@@ -116,7 +115,6 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
 
         // Mock distance for demo (improved calculation)
         double dist = (position == 0) ? 0.5 : 1.2 + (position * 0.5);
-        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         holder.textDistance.setText(String.format(java.util.Locale.getDefault(), isEn ? "%.1f km distance" : "%.1f km distanță", dist));
 
         Glide.with(holder.itemView.getContext())
