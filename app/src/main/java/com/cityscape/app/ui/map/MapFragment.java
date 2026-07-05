@@ -688,18 +688,61 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        boolean statusMatch = !hasStatusFilter;
-        if (fNearby && item.categories.contains(CAT_NEARBY)) statusMatch = true;
-        if (fFav && item.categories.contains(CAT_FAVORITE)) statusMatch = true;
-        if (fTrend && item.categories.contains(CAT_TRENDING)) statusMatch = true;
+        Object markerTag = item.marker.getTag();
+        java.util.Set<String> itemCats = new java.util.HashSet<>(item.categories);
+        if (markerTag instanceof MarkerData) {
+            MarkerData data = (MarkerData) markerTag;
+            if (data.place != null) {
+                itemCats.addAll(categoryFromType(data.place.type));
+            }
+        }
 
+        // Determine Nearby status (actual distance <= 6km)
+        boolean isItemNearby = itemCats.contains(CAT_NEARBY);
+        if (mUserLocation != null && item.marker != null) {
+            float[] results = new float[1];
+            android.location.Location.distanceBetween(
+                mUserLocation.getLatitude(), mUserLocation.getLongitude(),
+                item.marker.getPosition().latitude, item.marker.getPosition().longitude,
+                results
+            );
+            if (results[0] <= 6000) { // 6 km limit
+                isItemNearby = true;
+            }
+        }
+
+        // Determine Trending status (rating >= 4.5)
+        boolean isItemTrending = itemCats.contains(CAT_TRENDING);
+        if (markerTag instanceof MarkerData) {
+            MarkerData data = (MarkerData) markerTag;
+            if (data.place != null && data.place.rating >= 4.5f) {
+                isItemTrending = true;
+            }
+        }
+
+        // Determine Favorite status
+        boolean isItemFavorite = item.isFavorite || itemCats.contains(CAT_FAVORITE);
+        if (markerTag instanceof MarkerData) {
+            MarkerData data = (MarkerData) markerTag;
+            if (data.place != null && sessionManager != null && sessionManager.isPlaceFavorite(data.place.id)) {
+                isItemFavorite = true;
+            }
+        }
+
+        // Evaluate status filters (AND logic: if checked, item must satisfy it)
+        boolean statusMatch = true;
+        if (fNearby && !isItemNearby) statusMatch = false;
+        if (fFav && !isItemFavorite) statusMatch = false;
+        if (fTrend && !isItemTrending) statusMatch = false;
+
+        // Evaluate category filters (OR logic: if any matches, categoryMatch is true)
         boolean categoryMatch = !hasCategoryFilter;
-        if (fRest && item.categories.contains(CAT_RESTAURANT)) categoryMatch = true;
-        if (fCafe && item.categories.contains(CAT_CAFE)) categoryMatch = true;
-        if (fPark && item.categories.contains(CAT_PARK)) categoryMatch = true;
-        if (fMuseum && item.categories.contains(CAT_MUSEUM)) categoryMatch = true;
-        if (fEvent && item.categories.contains(CAT_EVENT)) categoryMatch = true;
-        if (fNight && item.categories.contains(CAT_NIGHTLIFE)) categoryMatch = true;
+        if (fRest && itemCats.contains(CAT_RESTAURANT)) categoryMatch = true;
+        if (fCafe && itemCats.contains(CAT_CAFE)) categoryMatch = true;
+        if (fPark && itemCats.contains(CAT_PARK)) categoryMatch = true;
+        if (fMuseum && itemCats.contains(CAT_MUSEUM)) categoryMatch = true;
+        if (fEvent && itemCats.contains(CAT_EVENT)) categoryMatch = true;
+        if (fNight && itemCats.contains(CAT_NIGHTLIFE)) categoryMatch = true;
 
         item.marker.setVisible(statusMatch && categoryMatch);
     }
@@ -1109,11 +1152,46 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         java.util.Set<String> cats = new java.util.HashSet<>();
         if (type == null) return cats;
         String t = type.toLowerCase();
-        if (t.contains("restaurant") || t.contains("food") || t.contains("meal"))        cats.add(CAT_RESTAURANT);
-        if (t.contains("cafe") || t.contains("coffee") || t.contains("bakery"))          cats.add(CAT_CAFE);
-        if (t.contains("park") || t.contains("garden") || t.contains("natural"))         cats.add(CAT_PARK);
-        if (t.contains("museum") || t.contains("art_gallery") || t.contains("gallery"))  cats.add(CAT_MUSEUM);
-        if (t.contains("night_club") || t.contains("bar") || t.contains("club"))         cats.add(CAT_NIGHTLIFE);
+        
+        // Restaurants
+        if (t.contains("restaurant") || t.contains("food") || t.contains("meal") || 
+            t.contains("bistro") || t.contains("diner") || t.contains("pizzeria") || 
+            t.contains("steakhouse") || t.contains("fast_food") || t.contains("fast food") ||
+            t.contains("sushi") || t.contains("burger")) {
+            cats.add(CAT_RESTAURANT);
+        }
+        
+        // Cafes
+        if (t.contains("cafe") || t.contains("coffee") || t.contains("bakery") || 
+            t.contains("tea") || t.contains("sweet") || t.contains("donut") || 
+            t.contains("gelato") || t.contains("ice_cream") || t.contains("ice cream") ||
+            t.contains("pastry")) {
+            cats.add(CAT_CAFE);
+        }
+        
+        // Parks
+        if (t.contains("park") || t.contains("garden") || t.contains("natural") || 
+            t.contains("zoo") || t.contains("amusement") || t.contains("playground") || 
+            t.contains("forest") || t.contains("lake")) {
+            cats.add(CAT_PARK);
+        }
+        
+        // Museums & Culture
+        if (t.contains("museum") || t.contains("art_gallery") || t.contains("gallery") || 
+            t.contains("exhibition") || t.contains("historical") || t.contains("castle") || 
+            t.contains("church") || t.contains("cathedral") || t.contains("palace") || 
+            t.contains("monument") || t.contains("sight") || t.contains("tourist_attraction") ||
+            t.contains("tourist attraction")) {
+            cats.add(CAT_MUSEUM);
+        }
+        
+        // Nightlife
+        if (t.contains("night_club") || t.contains("night club") || t.contains("bar") || 
+            t.contains("club") || t.contains("pub") || t.contains("disco") || 
+            t.contains("lounge") || t.contains("dance")) {
+            cats.add(CAT_NIGHTLIFE);
+        }
+        
         return cats;
     }
 
