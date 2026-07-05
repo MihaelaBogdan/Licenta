@@ -1718,7 +1718,21 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 }
 
                 // 3. Populate Lists
-                List<Place> filteredNearby = new ArrayList<>(nearbyPlacesList);
+                List<Place> filteredNearby = new ArrayList<>();
+                for (Place p : nearbyPlacesList) {
+                    if (currentLocation != null) {
+                        float[] distRes = new float[1];
+                        android.location.Location.distanceBetween(
+                            currentLocation.getLatitude(), currentLocation.getLongitude(),
+                            p.latitude, p.longitude, distRes
+                        );
+                        double distanceKm = distRes[0] / 1000.0;
+                        if (distanceKm > 6.0) {
+                            continue; // Skip places further than 6 km
+                        }
+                    }
+                    filteredNearby.add(p);
+                }
                 updateNearYouAdapter(filteredNearby);
 
                 List<Place> filteredAiPicks = new ArrayList<>();
@@ -3821,7 +3835,22 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             if (btnSeeAllNearYou != null) {
                 btnSeeAllNearYou.setOnClickListener(v -> {
                     boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
-                    showPlacesBottomSheetDialog(isEn ? "Locations Near You" : "Locații în Apropiere", nearbyPlacesList);
+                    List<Place> filteredNear = new ArrayList<>();
+                    for (Place p : nearbyPlacesList) {
+                        if (currentLocation != null) {
+                            float[] distRes = new float[1];
+                            android.location.Location.distanceBetween(
+                                currentLocation.getLatitude(), currentLocation.getLongitude(),
+                                p.latitude, p.longitude, distRes
+                            );
+                            double distanceKm = distRes[0] / 1000.0;
+                            if (distanceKm > 6.0) {
+                                continue;
+                            }
+                        }
+                        filteredNear.add(p);
+                    }
+                    showPlacesBottomSheetDialog(isEn ? "Locations Near You" : "Locații în Apropiere", filteredNear);
                 });
             }
 
