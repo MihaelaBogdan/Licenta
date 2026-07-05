@@ -1638,6 +1638,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 if (isAdded()) {
                                     getActivity().runOnUiThread(() -> {
                                         if (binding != null) {
+                                            binding.cardOfflineBanner.setVisibility(View.GONE);
                                             aiPicksList.clear();
                                             aiPicksList.addAll(places);
                                             if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
