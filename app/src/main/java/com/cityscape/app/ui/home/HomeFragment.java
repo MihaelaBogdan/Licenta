@@ -3762,29 +3762,58 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 LinearLayout layout = new LinearLayout(requireContext());
                 layout.setOrientation(LinearLayout.VERTICAL);
-                layout.setPadding(48, 48, 48, 48);
+                layout.setPadding(48, 24, 48, 48);
                 layout.setBackgroundResource(R.drawable.bg_rounded_surface);
 
+                // Sleek Drag Handle
                 View handle = new View(requireContext());
                 LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
                 handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
-                handleLp.bottomMargin = 32;
+                handleLp.bottomMargin = 24;
                 handle.setLayoutParams(handleLp);
                 handle.setBackgroundResource(R.drawable.rounded_handle);
                 layout.addView(handle);
 
+                // Header container (Vertical stack for title and subtitle)
+                LinearLayout headerLayout = new LinearLayout(requireContext());
+                headerLayout.setOrientation(LinearLayout.VERTICAL);
+                headerLayout.setPadding(0, 0, 0, 24);
+
                 TextView title = new TextView(requireContext());
                 title.setText(titleStr);
-                title.setTextSize(20);
+                title.setTextSize(21);
                 title.setTypeface(null, android.graphics.Typeface.BOLD);
                 try {
                     title.setTextColor(getResources().getColor(R.color.app_text_primary));
                 } catch (Exception e) {
                     title.setTextColor(getResources().getColor(android.R.color.white));
                 }
-                title.setPadding(0, 16, 0, 32);
-                layout.addView(title);
+                headerLayout.addView(title);
 
+                // Subtitle / Counter
+                TextView subtitle = new TextView(requireContext());
+                boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                subtitle.setText(isEn ? places.size() + " unique places matching your vibe" : places.size() + " locații unice găsite pentru tine");
+                subtitle.setTextSize(13);
+                try {
+                    subtitle.setTextColor(getResources().getColor(R.color.app_text_secondary));
+                } catch (Exception e) {
+                    subtitle.setTextColor(0xAAFFFFFF);
+                }
+                subtitle.setPadding(0, 8, 0, 0);
+                headerLayout.addView(subtitle);
+
+                layout.addView(headerLayout);
+
+                // Subtle separator line
+                View divider = new View(requireContext());
+                LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2);
+                divLp.bottomMargin = 24;
+                divider.setLayoutParams(divLp);
+                divider.setBackgroundColor(0x1FFFFFFF);
+                layout.addView(divider);
+
+                // RecyclerView
                 androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
                 rv.setLayoutManager(new LinearLayoutManager(getContext()));
                 LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
@@ -3792,6 +3821,16 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 );
                 rv.setLayoutParams(rvLp);
+
+                // Gentle layout slide-in micro-animation
+                try {
+                    android.view.animation.LayoutAnimationController lac = new android.view.animation.LayoutAnimationController(
+                        android.view.animation.AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in)
+                    );
+                    lac.setDelay(0.1f);
+                    lac.setOrder(android.view.animation.LayoutAnimationController.ORDER_NORMAL);
+                    rv.setLayoutAnimation(lac);
+                } catch (Exception ignored) {}
 
                 PlaceAdapter adapter = new PlaceAdapter(getContext(), places, false, new PlaceAdapter.OnPlaceClickListener() {
                     @Override
@@ -3826,6 +3865,110 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 dialog.show();
             } catch (Exception e) {
                 Log.e("HomeFragment", "Failed to show places dialog", e);
+            }
+        }
+
+        private void showEventsBottomSheetDialog(String titleStr, List<com.cityscape.app.model.Event> events) {
+            try {
+                if (events == null || events.isEmpty()) {
+                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                    android.widget.Toast.makeText(getContext(), isEn ? "No events currently available" : "Niciun eveniment disponibil momentan", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                com.google.android.material.bottomsheet.BottomSheetDialog dialog = 
+                    new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.TransparentBottomSheetDialogTheme);
+
+                LinearLayout layout = new LinearLayout(requireContext());
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setPadding(48, 24, 48, 48);
+                layout.setBackgroundResource(R.drawable.bg_rounded_surface);
+
+                // Sleek Drag Handle
+                View handle = new View(requireContext());
+                LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
+                handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+                handleLp.bottomMargin = 24;
+                handle.setLayoutParams(handleLp);
+                handle.setBackgroundResource(R.drawable.rounded_handle);
+                layout.addView(handle);
+
+                // Header container (Vertical stack for title and subtitle)
+                LinearLayout headerLayout = new LinearLayout(requireContext());
+                headerLayout.setOrientation(LinearLayout.VERTICAL);
+                headerLayout.setPadding(0, 0, 0, 24);
+
+                TextView title = new TextView(requireContext());
+                title.setText(titleStr);
+                title.setTextSize(21);
+                title.setTypeface(null, android.graphics.Typeface.BOLD);
+                try {
+                    title.setTextColor(getResources().getColor(R.color.app_text_primary));
+                } catch (Exception e) {
+                    title.setTextColor(getResources().getColor(android.R.color.white));
+                }
+                headerLayout.addView(title);
+
+                // Subtitle / Counter
+                TextView subtitle = new TextView(requireContext());
+                boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                subtitle.setText(isEn ? events.size() + " active events matching your vibe" : events.size() + " evenimente active găsite pentru tine");
+                subtitle.setTextSize(13);
+                try {
+                    subtitle.setTextColor(getResources().getColor(R.color.app_text_secondary));
+                } catch (Exception e) {
+                    subtitle.setTextColor(0xAAFFFFFF);
+                }
+                subtitle.setPadding(0, 8, 0, 0);
+                headerLayout.addView(subtitle);
+
+                layout.addView(headerLayout);
+
+                // Subtle separator line
+                View divider = new View(requireContext());
+                LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2);
+                divLp.bottomMargin = 24;
+                divider.setLayoutParams(divLp);
+                divider.setBackgroundColor(0x1FFFFFFF);
+                layout.addView(divider);
+
+                // RecyclerView
+                androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
+                rv.setLayoutManager(new LinearLayoutManager(getContext()));
+                LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                rv.setLayoutParams(rvLp);
+
+                // Gentle layout slide-in micro-animation
+                try {
+                    android.view.animation.LayoutAnimationController lac = new android.view.animation.LayoutAnimationController(
+                        android.view.animation.AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in)
+                    );
+                    lac.setDelay(0.1f);
+                    lac.setOrder(android.view.animation.LayoutAnimationController.ORDER_NORMAL);
+                    rv.setLayoutAnimation(lac);
+                } catch (Exception ignored) {}
+
+                com.cityscape.app.adapter.EventAdapter adapter = new com.cityscape.app.adapter.EventAdapter(events, event -> {
+                    Intent intent = new Intent(getContext(), com.cityscape.app.ui.home.EventDetailActivity.class);
+                    intent.putExtra("event_json", new com.google.gson.Gson().toJson(event));
+                    startActivity(intent);
+                    dialog.dismiss();
+                });
+
+                User user = sessionManager.getCurrentUser();
+                if (user != null && user.interests != null) {
+                    adapter.setUserInterests(user.interests);
+                }
+                rv.setAdapter(adapter);
+                layout.addView(rv);
+
+                dialog.setContentView(layout);
+                dialog.show();
+            } catch (Exception e) {
+                Log.e("HomeFragment", "Failed to show events dialog", e);
             }
         }
 
@@ -3865,69 +4008,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             View btnSeeAllEvents = root.findViewById(R.id.btn_see_all_events);
             if (btnSeeAllEvents != null) {
                 btnSeeAllEvents.setOnClickListener(v -> {
-                    try {
-                        if (eventsList == null || eventsList.isEmpty()) {
-                            boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
-                            android.widget.Toast.makeText(getContext(), isEn ? "No events currently available" : "Niciun eveniment disponibil momentan", android.widget.Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        com.google.android.material.bottomsheet.BottomSheetDialog dialog = 
-                            new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.TransparentBottomSheetDialogTheme);
-
-                        LinearLayout layout = new LinearLayout(requireContext());
-                        layout.setOrientation(LinearLayout.VERTICAL);
-                        layout.setPadding(48, 48, 48, 48);
-                        layout.setBackgroundResource(R.drawable.bg_rounded_surface);
-
-                        View handle = new View(requireContext());
-                        LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
-                        handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
-                        handleLp.bottomMargin = 32;
-                        handle.setLayoutParams(handleLp);
-                        handle.setBackgroundResource(R.drawable.rounded_handle);
-                        layout.addView(handle);
-
-                        TextView title = new TextView(requireContext());
-                        boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
-                        title.setText(isEn ? "All Active Events" : "Toate Evenimentele Active");
-                        title.setTextSize(20);
-                        title.setTypeface(null, android.graphics.Typeface.BOLD);
-                        try {
-                            title.setTextColor(getResources().getColor(R.color.app_text_primary));
-                        } catch (Exception e) {
-                            title.setTextColor(getResources().getColor(android.R.color.white));
-                        }
-                        title.setPadding(0, 16, 0, 32);
-                        layout.addView(title);
-
-                        androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
-                        rv.setLayoutManager(new LinearLayoutManager(getContext()));
-                        LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT, 
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        );
-                        rv.setLayoutParams(rvLp);
-
-                        com.cityscape.app.adapter.EventAdapter adapter = new com.cityscape.app.adapter.EventAdapter(eventsList, event -> {
-                            Intent intent = new Intent(getContext(), com.cityscape.app.ui.home.EventDetailActivity.class);
-                            intent.putExtra("event_json", new com.google.gson.Gson().toJson(event));
-                            startActivity(intent);
-                            dialog.dismiss();
-                        });
-
-                        User user = sessionManager.getCurrentUser();
-                        if (user != null && user.interests != null) {
-                            adapter.setUserInterests(user.interests);
-                        }
-                        rv.setAdapter(adapter);
-                        layout.addView(rv);
-
-                        dialog.setContentView(layout);
-                        dialog.show();
-                    } catch (Exception e) {
-                        Log.e("HomeFragment", "Failed to show all events dialog", e);
-                    }
+                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                    showEventsBottomSheetDialog(isEn ? "All Active Events" : "Toate Evenimentele Active", eventsList);
                 });
             }
 
