@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.cityscape.app.R;
 import com.cityscape.app.api.ItineraryItem;
 import android.widget.Toast;
+import android.widget.EditText;
 import com.cityscape.app.api.ApiClient;
 import com.cityscape.app.api.ApiService;
 import retrofit2.Call;
