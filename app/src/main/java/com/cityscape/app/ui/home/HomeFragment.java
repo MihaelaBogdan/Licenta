@@ -3735,27 +3735,101 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             });
         }
 
+        private void showPlacesBottomSheetDialog(String titleStr, List<Place> places) {
+            try {
+                if (places == null || places.isEmpty()) {
+                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                    android.widget.Toast.makeText(getContext(), isEn ? "No locations currently available" : "Nicio locație disponibilă momentan", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                com.google.android.material.bottomsheet.BottomSheetDialog dialog = 
+                    new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.TransparentBottomSheetDialogTheme);
+
+                LinearLayout layout = new LinearLayout(requireContext());
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setPadding(48, 48, 48, 48);
+                layout.setBackgroundResource(R.drawable.bg_rounded_surface);
+
+                View handle = new View(requireContext());
+                LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
+                handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+                handleLp.bottomMargin = 32;
+                handle.setLayoutParams(handleLp);
+                handle.setBackgroundResource(R.drawable.rounded_handle);
+                layout.addView(handle);
+
+                TextView title = new TextView(requireContext());
+                title.setText(titleStr);
+                title.setTextSize(20);
+                title.setTypeface(null, android.graphics.Typeface.BOLD);
+                try {
+                    title.setTextColor(getResources().getColor(R.color.app_text_primary));
+                } catch (Exception e) {
+                    title.setTextColor(getResources().getColor(android.R.color.white));
+                }
+                title.setPadding(0, 16, 0, 32);
+                layout.addView(title);
+
+                androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
+                rv.setLayoutManager(new LinearLayoutManager(getContext()));
+                LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                rv.setLayoutParams(rvLp);
+
+                PlaceAdapter adapter = new PlaceAdapter(getContext(), places, false, new PlaceAdapter.OnPlaceClickListener() {
+                    @Override
+                    public void onPlaceClick(Place place) {
+                        sessionManager.recordPlaceVisit(place.name);
+                        com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
+                        com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
+                        showPlaceDetailDialog(place);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFavoriteClick(Place place) {
+                        sessionManager.setPlaceFavorite(place.id, place.isFavorite);
+                    }
+
+                    @Override
+                    public void onVisitedClick(Place place) {
+                        handleVisitedClick(place);
+                    }
+
+                    @Override
+                    public void onPlanClick(Place place) {
+                        // Plan click
+                    }
+                });
+
+                rv.setAdapter(adapter);
+                layout.addView(rv);
+
+                dialog.setContentView(layout);
+                dialog.show();
+            } catch (Exception e) {
+                Log.e("HomeFragment", "Failed to show places dialog", e);
+            }
+        }
+
         private void setupSeeAllButtons() {
             View root = binding.getRoot();
             View btnSeeAllNearYou = root.findViewById(R.id.btn_see_all_near_you);
             if (btnSeeAllNearYou != null) {
                 btnSeeAllNearYou.setOnClickListener(v -> {
-                    try {
-                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_map);
-                    } catch (Exception e) {
-                        Log.e("HomeFragment", "Navigation to map failed", e);
-                    }
+                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                    showPlacesBottomSheetDialog(isEn ? "Locations Near You" : "Locații în Apropiere", nearbyPlacesList);
                 });
             }
 
             View btnSeeAllVisited = root.findViewById(R.id.btn_see_all_visited);
             if (btnSeeAllVisited != null) {
                 btnSeeAllVisited.setOnClickListener(v -> {
-                    try {
-                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_profile);
-                    } catch (Exception e) {
-                        Log.e("HomeFragment", "Navigation to profile failed", e);
-                    }
+                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                    showPlacesBottomSheetDialog(isEn ? "Your Visited Places" : "Locații Vizitate de Tine", visitedPlacesList);
                 });
             }
 
@@ -3831,11 +3905,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             View btnSeeAllTrending = root.findViewById(R.id.btn_see_all_trending);
             if (btnSeeAllTrending != null) {
                 btnSeeAllTrending.setOnClickListener(v -> {
-                    try {
-                        androidx.navigation.Navigation.findNavController(root).navigate(R.id.navigation_feed);
-                    } catch (Exception e) {
-                        Log.e("HomeFragment", "Navigation to feed failed", e);
-                    }
+                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
+                    showPlacesBottomSheetDialog(isEn ? "Trending Locations" : "Locații Populare / Trending", allPlacesList);
                 });
             }
         }
