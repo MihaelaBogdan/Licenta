@@ -194,7 +194,7 @@
     <string name="failed_load_places">Eșec la încărcarea locurilor</string>
     <string name="error_connecting">Eroare la conectare la server</string>
     <string name="greeting_morning">Bună dimineața</string>
-    <string name="greeting_afternoon">Bună după-amiaza</string>
+    <string name="greeting_afternoon">Bună ziua</string>
     <string name="greeting_evening">Bună seara</string>
     <string name="greeting_night">Noapte bună</string>
     

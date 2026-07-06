@@ -1166,13 +1166,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void setupGreeting() {
-                User user = sessionManager.getCurrentUser();
                 String greeting = getGreetingForTime();
-                if (user != null && user.name != null) {
-                        binding.textGreeting.setText(greeting + ", " + user.name);
-                } else {
-                        binding.textGreeting.setText(greeting);
-                }
+                binding.textGreeting.setText(greeting);
         }
 
         private String getGreetingForTime() {
