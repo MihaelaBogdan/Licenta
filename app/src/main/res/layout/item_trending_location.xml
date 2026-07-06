@@ -4,99 +4,112 @@
     android:layout_width="280dp"
     android:layout_height="320dp"
     android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
+    app:cardCornerRadius="32dp"
     app:cardElevation="4dp"
-    app:cardBackgroundColor="@color/app_surface">
+    app:cardBackgroundColor="@android:color/transparent">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <!-- Image -->
+        <!-- Full-Bleed Place Image -->
         <ImageView
             android:id="@+id/img_location"
             android:layout_width="match_parent"
-            android:layout_height="160dp"
+            android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:contentDescription="Location photo" />
 
-        <!-- Hype Badge -->
+        <!-- Scrim gradient overlay for light/dark text contrast -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_gradient_overlay" />
+
+        <!-- Glowing Hype Badge (top-left) -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_glass_card"
             android:gravity="center_vertical"
-            android:background="@drawable/bg_badge"
-            android:backgroundTint="#FF6B35"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:layout_margin="8dp">
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp">
 
             <TextView
+                android:id="@+id/txt_hype_score"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/txt_hype_score"
                 android:text="@string/auto_98_hype_7dda5f"
-                android:textColor="#FFFFFF"
+                android:textColor="#FF6B35"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Content -->
+        <!-- Rating Badge (top-right) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_glass_card"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_star"
+                app:tint="@color/gold_accent" />
+
+            <TextView
+                android:id="@+id/txt_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/auto_48_432d3c"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Premium Glass Content Capsule (floating at bottom) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_glass_card_premium"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="16dp">
 
-            <!-- Name -->
+            <!-- Category Badge -->
+            <TextView
+                android:id="@+id/txt_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_glass_card"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/auto_landmark_cedaec"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="true" />
+
+            <!-- Location Name -->
             <TextView
                 android:id="@+id/txt_location_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/auto_location_name_e8a6d1"
-                android:textColor="@color/app_text_primary"
-                android:textSize="14sp"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-condensed-medium"
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end" />
-
-            <!-- Category & Rating -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:id="@+id/txt_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/auto_landmark_cedaec"
-                    android:textColor="@color/primary"
-                    android:textSize="11sp"
-                    android:background="@drawable/bg_badge"
-                    android:backgroundTint="#1F2937"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="2dp" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/txt_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/auto_48_432d3c"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
 
             <!-- Tags -->
             <com.google.android.material.chip.ChipGroup
@@ -105,7 +118,14 @@
                 android:layout_height="wrap_content"
                 app:chipSpacingHorizontal="4dp"
                 app:singleLine="true"
-                android:layout_marginTop="4dp" />
+                android:layout_marginTop="8dp" />
         </LinearLayout>
-    </LinearLayout>
+
+        <!-- Translucent glass stroke border overlay -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_card_border_glow" />
+
+    </FrameLayout>
 </androidx.cardview.widget.CardView>

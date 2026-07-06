@@ -6,7 +6,7 @@
     android:layout_marginEnd="18dp"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="32dp"
-    app:cardElevation="6dp"
+    app:cardElevation="3dp"
     app:cardBackgroundColor="@color/app_card">
 
         <FrameLayout
@@ -111,8 +111,8 @@
                     android:paddingVertical="4dp"
                     android:text="@string/auto_restaurant_b0dfbb"
                     android:textColor="@color/white"
-                    android:textSize="8sp"
-                    android:fontFamily="sans-serif-black"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.1"
                     android:textAllCaps="true" />
 
@@ -125,7 +125,7 @@
                     android:maxLines="2"
                     android:text="@string/auto_place_name_ec8e16"
                     android:textColor="@color/white"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:fontFamily="sans-serif-condensed-medium"
                     android:textStyle="bold"
                     android:lineSpacingExtra="1dp" />
@@ -238,6 +238,12 @@
                         android:fontFamily="sans-serif-medium" />
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- Translucent glass stroke border overlay -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_card_border_glow" />
 
         </FrameLayout>
 </androidx.cardview.widget.CardView>

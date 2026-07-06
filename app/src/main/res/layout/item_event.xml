@@ -5,7 +5,7 @@
     android:layout_marginEnd="16dp"
     android:layout_marginBottom="8dp"
     app:cardBackgroundColor="@android:color/transparent"
-    app:cardCornerRadius="24dp"
+    app:cardCornerRadius="32dp"
     app:cardElevation="0dp">
 
     <FrameLayout
@@ -28,8 +28,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_glass_card_premium"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/text_event_time"
@@ -54,17 +56,36 @@
                 android:maxLines="2"
                 android:text="@string/auto_event_title_9502ef"
                 android:textColor="@color/white"
-                android:textSize="20sp"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-condensed-medium"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/text_event_location"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/auto_location_details_ba250a"
-                android:textColor="#CCFFFFFF"
-                android:textSize="13sp" />
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_location"
+                    app:tint="#D1FAE5" />
+
+                <TextView
+                    android:id="@+id/text_event_location"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/auto_location_details_ba250a"
+                    android:textColor="#D1FAE5"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -107,6 +128,12 @@
                 android:visibility="gone" />
 
         </LinearLayout>
+
+        <!-- Translucent glass stroke border overlay -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_card_border_glow" />
 
     </FrameLayout>
 </androidx.cardview.widget.CardView>
