@@ -261,6 +261,7 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             body.put("rating", (rb != null) ? rb.getRating() : 0);
             body.put("latitude", sessionManager.getLastLat());
             body.put("longitude", sessionManager.getLastLng());
+            body.put("language", "en".equals(java.util.Locale.getDefault().getLanguage()) ? "en" : "ro");
 
             if (apiService != null) {
                 apiService.createPost(body).enqueue(new Callback<JsonObject>() {
@@ -272,6 +273,25 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                                 
                                 // Award badge for posting
                                 com.cityscape.app.util.BadgeManager.awardPostBadge(getContext(), sessionManager.getUserId());
+                                
+                                // Check for mission status in response
+                                JsonObject bodyRes = res.body();
+                                if (bodyRes != null && bodyRes.has("mission_status") && !bodyRes.get("mission_status").isJsonNull()) {
+                                    JsonObject ms = bodyRes.getAsJsonObject("mission_status");
+                                    boolean success = ms.get("success").getAsBoolean();
+                                    String message = ms.get("message").getAsString();
+                                    int xpAwarded = ms.get("xp_awarded").getAsInt();
+                                    
+                                    new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
+                                        .setTitle(success ? 
+                                            ("en".equals(java.util.Locale.getDefault().getLanguage()) ? "🎉 Mission Verified!" : "🎉 Misiune Validată!") : 
+                                            ("en".equals(java.util.Locale.getDefault().getLanguage()) ? "🤖 Mission Verification" : "🤖 Verificare Misiune"))
+                                        .setMessage(success ? 
+                                            (message + ("en".equals(java.util.Locale.getDefault().getLanguage()) ? "\n\nYou received: +" : "\n\nAi primit: +") + xpAwarded + " XP!") :
+                                            (message))
+                                        .setPositiveButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Great" : "Excelent", null)
+                                        .show();
+                                }
                                 
                                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> loadFeed(), 500);
                             } else if (res.code() == 400) {

@@ -3146,6 +3146,74 @@ def is_content_safe(text):
         
     return True, "" # Fallback to safe if AI fails
 
+
+def verify_mission_post_ai(caption, place_name, category):
+    """Uses Gemini to verify if the post's caption and place name align with the mission category."""
+    try:
+        import google.generativeai as genai
+        try:
+            model = genai.GenerativeModel("gemini-flash-latest")
+        except:
+            genai.configure(api_key=GOOGLE_API_KEY)
+            model = genai.GenerativeModel("gemini-flash-latest")
+
+        prompt = (
+            f"You are a validation assistant for an urban exploration game called CityScape.\n"
+            f"Determine if a user's post qualifies for a daily mission category.\n\n"
+            f"Mission Category: {category}\n"
+            f"Place Name: {place_name}\n"
+            f"User Post Caption: \"{caption}\"\n\n"
+            f"Rules for Categories:\n"
+            f"- 'foodie': Place must be a restaurant, cafe, bar, bakery, or street food spot. Caption should mention food, drinks, or dining experience.\n"
+            f"- 'culture': Place must be a museum, gallery, theater, historic landmark, statue, church, or library.\n"
+            f"- 'outdoor': Place must be a park, garden, lake, mountain, forest, square, or outdoor recreational area.\n"
+            f"- 'photographer': Place can be anything visual/architectural. Caption must relate to photography, nice views, architecture, or city aesthetics.\n"
+            f"- 'discovery': Place must be a tourist attraction or landmark. Caption must relate to exploring, discovering, or sightseeing.\n"
+            f"- 'social': Caption must relate to meeting people, socializing, groups, friends, or traveling together.\n\n"
+            f"Respond ONLY in valid JSON format: {{\"qualified\": true/false, \"explanation\": \"short Romanian/English explanation corresponding to user language\"}}."
+        )
+
+        response = model.generate_content(prompt)
+        import re
+        json_match = re.search(r"\{.*\}", response.text, re.DOTALL)
+        if json_match:
+            import json
+            result = json.loads(json_match.group())
+            return result.get("qualified", False), result.get("explanation", "")
+    except Exception as e:
+        print(f"⚠️ AI Mission Verification Error: {e}")
+    
+    return True, "Validare automată reușită (AI offline)"
+
+
+def award_user_xp(user_id, xp_amount):
+    """Awards XP to a user profile in Supabase and handles level-up."""
+    try:
+        headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        p_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=total_xp",
+            headers=headers,
+            timeout=3
+        ).json()
+
+        if p_res and isinstance(p_res, list) and len(p_res) > 0:
+            current_xp = p_res[0].get("total_xp", 0)
+            new_xp = current_xp + xp_amount
+            new_level = max(1, int(new_xp // 1000) + 1)
+
+            requests.patch(
+                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}",
+                headers=headers,
+                json={"total_xp": new_xp, "level": new_level},
+                timeout=3
+            )
+            print(f"💎 XP awarded: {current_xp} → {new_xp} (Level {new_level})")
+            return True, new_xp, new_level
+    except Exception as e:
+        print(f"⚠️ Error awarding XP: {e}")
+    return False, 0, 1
+
+
 @app.post("/feed")
 def create_post():
     """Creates a new feed post with AI moderation and UUID validation."""
@@ -3198,7 +3266,75 @@ def create_post():
     try:
         res = requests.post(url, headers=headers, json=post_data)
         if res.status_code in [200, 201]:
-            return jsonify({"status": "success", "post": res.json()})
+            # Process mission rewards (AI-verified mission check)
+            mission_status = None
+            caption_lower = caption.lower()
+            detected_category = None
+            
+            # Map hashtags to categories
+            category_map = {
+                "foodie": ["#foodie", "#gurmand", "#restaurant", "#cafe", "#mancare", "#mâncare"],
+                "culture": ["#culture", "#muzeu", "#art", "#istorie", "#cultural", "#monument"],
+                "outdoor": ["#outdoor", "#natura", "#parc", "#aventura", "#natură"],
+                "photographer": ["#photographer", "#photo", "#arhitectura", "#cityscape", "#peisaj", "#arhitectură"],
+                "discovery": ["#discovery", "#explorer", "#descoperire", "#locuri"],
+                "social": ["#social", "#prieteni", "#confruntare", "#comunitate"]
+            }
+            
+            for cat, tags in category_map.items():
+                if any(tag in caption_lower for tag in tags):
+                    detected_category = cat
+                    break
+                    
+            if detected_category:
+                # 1. Location / Visit verification
+                visit_verified = False
+                lat_post = post_data.get("latitude", 0)
+                lng_post = post_data.get("longitude", 0)
+                
+                # Check if user has checked in to this place in visited_places OR has non-zero post coordinates
+                if lat_post != 0 and lng_post != 0:
+                    visit_verified = True
+                else:
+                    try:
+                        visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&place_name=eq.{post_data['place_name']}&limit=1"
+                        v_res = requests.get(visits_url, headers=headers, timeout=2).json()
+                        if v_res:
+                            visit_verified = True
+                    except Exception as e:
+                        print(f"⚠️ Visit verification error: {e}")
+                
+                language = data.get("language", "ro")
+                if not visit_verified:
+                    mission_status = {
+                        "success": False,
+                        "xp_awarded": 0,
+                        "message": "Visit verification failed. Make sure you post with location coordinates or check in first!" if language == "en"
+                                   else "Verificarea vizitei a eșuat. Asigură-te că postarea conține coordonate GPS sau ai bifat vizita locației!"
+                    }
+                else:
+                    # 2. AI validation
+                    qualified, explanation = verify_mission_post_ai(caption, post_data["place_name"], detected_category)
+                    if qualified:
+                        # Award XP
+                        xp_reward = 300
+                        success_xp, final_xp, final_level = award_user_xp(user_id, xp_reward)
+                        
+                        mission_status = {
+                            "success": True,
+                            "xp_awarded": xp_reward,
+                            "message": f"AI Verification success: {explanation}" if language == "en"
+                                       else f"Validare AI reușită: {explanation}"
+                        }
+                    else:
+                        mission_status = {
+                            "success": False,
+                            "xp_awarded": 0,
+                            "message": f"AI Verification failed: {explanation}" if language == "en"
+                                       else f"Verificarea AI a eșuat: {explanation}"
+                        }
+            
+            return jsonify({"status": "success", "post": res.json(), "mission_status": mission_status})
         
         # Log the error for the developer
         print(f"❌ Supabase Insert Error ({res.status_code}): {res.text}")
