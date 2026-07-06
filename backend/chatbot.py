@@ -402,6 +402,7 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
     user_xp_val = user_xp or 0
     user_interests_val = interests or "Generale"
     user_badges_val = "Nicio insignă momentan"
+    user_bookmarks_val = "none" if language == "en" else "niciunul"
     visited_places_list = []
     visits_list = []
 
@@ -418,11 +419,14 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
             p_res = requests.get(profile_url, headers=headers, timeout=2).json()
             
-            visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=10"
+            visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=15"
             v_res = requests.get(visits_url, headers=headers, timeout=2).json()
             
             badges_url = f"{SUPABASE_URL}/rest/v1/user_badges?user_id=eq.{user_id}&select=name"
             b_res = requests.get(badges_url, headers=headers, timeout=2).json()
+
+            bookmarks_url = f"{SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.{user_id}&select=place_name&limit=15"
+            bm_res = requests.get(bookmarks_url, headers=headers, timeout=2).json()
 
             if p_res:
                 u = p_res[0]
@@ -439,6 +443,11 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             if v_res and isinstance(v_res, list):
                 visited_places_list = [v.get('place_name') for v in v_res if v.get('place_name')]
                 visits_list = [f"{v.get('place_name')} ({v.get('place_type', 'Atracție')})" for v in v_res if v.get('place_name')]
+
+            if bm_res and isinstance(bm_res, list):
+                bookmark_names = [bm.get("place_name") for bm in bm_res if bm.get("place_name")]
+                if bookmark_names:
+                    user_bookmarks_val = ", ".join(bookmark_names)
         except Exception as e:
             print(f"⚠️ RAG Supabase Context Fetch Error: {e}")
             pass
@@ -529,6 +538,38 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             )
         situr_block = "DATE OFICIALE MINISTERUL TURISMULUI (SITUR):\n" + "\n".join(situr_list) + "\n\n"
 
+    # Dynamic Google Places search for specific places referenced in the query
+    searched_places_block = ""
+    if len(msg) > 5 and not any(g in msg.lower() for g in ["buna", "salut", "hey", "ciao", "hello", "hi", "ce faci", "cine esti", "cine ești", "multumesc", "mulțumesc", "mrs", "thx", "thanks"]):
+        try:
+            from app import google_text_search
+            clean_q = msg.lower()
+            preambles = ["ce parere ai despre", "ce părere ai despre", "spune-mi despre", "stii ceva despre", "știi ceva despre", "cum ajung la", "recomanda-mi", "recomandă-mi", "unde este", "unde e"]
+            for pr in preambles:
+                clean_q = clean_q.replace(pr, "")
+            clean_q = clean_q.strip("? .!,\"'-")
+            
+            if len(clean_q) > 3:
+                search_results = google_text_search(clean_q, lat, lng)
+                if search_results:
+                    places_info = []
+                    for r in search_results[:3]: # top 3 matches
+                        name = r.get("name")
+                        addr = r.get("formatted_address") or r.get("vicinity")
+                        rating = r.get("rating", 0)
+                        reviews = r.get("user_ratings_total", 0)
+                        price = r.get("price_level", "N/A")
+                        types = ", ".join(r.get("types", []))
+                        loc = r.get("geometry", {}).get("location", {})
+                        plat, plng = loc.get("lat"), loc.get("lng")
+                        places_info.append(
+                            f"• {name} ({types}) - Adresă: {addr}, Rating: ⭐{rating} ({reviews} recenzii), Preț: {price} [lat: {plat}, lng: {plng}]"
+                        )
+                    if places_info:
+                        searched_places_block = "SPECIFIC SEARCHED PLACES (HIGHLY RELEVANT):\n" + "\n".join(places_info) + "\n\n"
+        except Exception as e:
+            print(f"⚠️ Chatbot dynamic text search error: {e}")
+
     nav_keywords = ["ajung", "directii", "ruta", "navigatie", "maps", "cum merg", "drum", "directions", "route", "map", "navigation", "how to get", "get to"]
     wants_navigation = any(k in msg.lower() for k in nav_keywords)
     visited_str = ", ".join(visited_places_list[:5]) if visited_places_list else ("none" if language == "en" else "niciunul")
@@ -561,16 +602,20 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
     if language == "en":
         system_prompt = (
             "You are CityScape AI, the friendly urban guide of the CityScape app.\n\n"
-            f"STRICT SCOPE LIMITATION: You are strictly an urban travel guide. You must ONLY answer queries related to "
-            f"places, traveling, cities, local recommendations, events, itineraries, local weather, and user stats/profile "
-            f"within the CityScape app. If the user asks about ANY other topic (such as general knowledge, history not related to places, "
-            f"cooking/recipes, homework, coding, general advice, etc.), you MUST decline to answer by returning EXACTLY this response: "
+            f"DOMAIN SCOPE: You are an expert urban travel guide. You answer queries related to "
+            f"places, traveling, cities, local recommendations, landmarks, events, itineraries, local weather, user stats/profile "
+            f"within the CityScape app, local history/stories/legends of places, local transportation (metro, bus, ticketing), "
+            f"traditional food/dishes/recipes of the region, local customs, and travel tips. "
+            f"If the user asks about topics completely unrelated to travel, cities, local life, or the CityScape app "
+            f"(such as software development/coding, academic mathematics/science homework, plumbing/home repair, or medical advice), "
+            f"you MUST decline to answer by returning EXACTLY this response: "
             f"'{out_of_scope_reply}' and nothing else (except the SUGGESTIONS block at the end).\n\n"
             f"CONTEXT:\n"
             f"- City: {detected_city}\n"
             f"- Username: {user_name}\n"
             f"- User Level: {user_level_val} (XP: {user_xp_val})\n"
             f"- User Preferences & Interests: {user_interests_val}\n"
+            f"- User Bookmarked / Saved Places: {user_bookmarks_val}\n"
             f"- User Unlocked Badges: {user_badges_val}\n"
             f"- Already visited places (do not recommend these): {visited_str}\n"
         )
@@ -578,27 +623,34 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             system_prompt += f"- Recent visit history: {', '.join(visits_list)}\n"
         system_prompt += (
             f"\n{situr_block}"
+            f"{searched_places_block}"
             f"{nearby_block}\n"
             f"{events_block}\n"
             f"{social_trends_context}\n"
             f"You MUST answer ONLY in English, naturally and friendly, like a local friend who knows the city well. "
-            f"MAXIMUM 2 short sentences (under 30 words total). Do NOT use bullet points, do NOT use markdown.\n\n"
+            f"Keep your answers concise, friendly, and structured. Try to answer in under 120 words (around 3 to 5 sentences maximum). "
+            f"You can use simple formatting like bolding or short bullet points if it improves readability, but do NOT use headers. "
+            f"Make sure to greet the user by name if it's the beginning of a conversation, and dynamically tailor recommendations based on their interests, recent visits, and bookmarked places.\n\n"
             f"{nav_instruction}\n\n"
             f"At the end add exactly: [SUGGESTIONS: suggestion1 | suggestion2 | suggestion3]"
         )
     else:
         system_prompt = (
             "Esti CityScape AI, ghidul urban prietenos al aplicatiei CityScape.\n\n"
-            f"STRICT SCOPE LIMITATION: You are strictly an urban travel guide. You must ONLY answer queries related to "
-            f"places, traveling, cities, local recommendations, events, itineraries, local weather, and user stats/profile "
-            f"within the CityScape app. If the user asks about ANY other topic (such as general knowledge, history not related to places, "
-            f"cooking/recipes, homework, coding, general advice, etc.), you MUST decline to answer by returning EXACTLY this response: "
-            f"'{out_of_scope_reply}' and nothing else (except the SUGGESTIONS block at the end).\n\n"
+            f"DOMENIU DE COMPETENȚĂ: Ești un ghid expert de călătorie urbană. Răspunzi la întrebări legate de "
+            f"locuri, călătorii, orașe, recomandări locale, atracții/monumente, evenimente, itinerarii, vreme locală, profil/statistici utilizator "
+            f"din aplicația CityScape, istorie locală/povești/legende ale locurilor, transport local (metrou, autobuz, bilete), "
+            f"mâncare/preparate/rețete tradiționale din regiune, obiceiuri locale și sfaturi de călătorie. "
+            f"Dacă utilizatorul pune întrebări complet străine de călătorii, orașe, viață urbană sau aplicația CityScape "
+            f"(cum ar fi programare/scriere de cod, teme academice de matematică/știință, reparații casnice sau sfaturi medicale), "
+            f"trebuie să refuzi politicos returnând EXACT acest răspuns: "
+            f"'{out_of_scope_reply}' și nimic altceva (cu excepția blocului SUGGESTIONS de la final).\n\n"
             f"CONTEXT:\n"
             f"- Oraș: {detected_city}\n"
             f"- Nume Utilizator: {user_name}\n"
             f"- Nivel Utilizator: {user_level_val} (XP: {user_xp_val})\n"
             f"- Preferințe & Interese Utilizator: {user_interests_val}\n"
+            f"- Locuri Favorite / Salvate (Bookmarks) Utilizator: {user_bookmarks_val}\n"
             f"- Insigne deblocate Utilizator: {user_badges_val}\n"
             f"- Locuri deja vizitate (nu le recomanda): {visited_str}\n"
         )
@@ -606,11 +658,14 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             system_prompt += f"- Istoric vizite recente: {', '.join(visits_list)}\n"
         system_prompt += (
             f"\n{situr_block}"
+            f"{searched_places_block}"
             f"{nearby_block}\n"
             f"{events_block}\n"
             f"{social_trends_context}\n"
-            f"RASPUNDE in română, natural si prietenos, ca un prieten care cunoaste bine orasul. "
-            f"MAXIM 2 propozitii scurte (sub 30 cuvinte total). Fara bullet points, fara markdown.\n\n"
+            f"RASPUNDE în limba română, natural și prietenos, ca un prieten local care cunoaște foarte bine orașul. "
+            f"Răspunde concis, prietenos și structurat, în maximum 120 de cuvinte (aproximativ 3-5 propoziții). "
+            f"Poți folosi formatare simplă precum bold sau liste scurte pentru lizibilitate, dar NU folosi titluri mari (headers). "
+            f"Salută utilizatorul pe nume dacă este la începutul conversației și personalizează dinamic recomandările în funcție de interesele lor, vizitele recente și locurile favorite.\n\n"
             f"{nav_instruction}\n\n"
             f"La final adauga exact: [SUGGESTIONS: sugestie1 | sugestie2 | sugestie3]"
         )

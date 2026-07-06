@@ -739,7 +739,7 @@ def google_text_search(query, lat=None, lng=None, radius=50000):
         params["locationbias"] = f"circle:{radius}@{lat},{lng}"
 
     try:
-        res = requests.get(url, params=params, timeout=5, retries=2).json()
+        res = requests.get(url, params=params, timeout=5).json()
         results = res.get("results", [])
 
         if lat and lng:
