@@ -3652,29 +3652,79 @@ def get_liked_posts(user_id):
         print(f"Error fetching liked posts: {e}")
         return jsonify([])
 
+@app.get("/admin/reports")
+def get_all_reports():
+    """Get all reports for admin panel"""
+    err = admin_auth()
+    if err: return err
+
+    try:
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        url = f"{SUPABASE_URL}/rest/v1/content_reports?order=created_at.desc&limit=100"
+        res = requests.get(url, headers=hdrs, timeout=10)
+
+        if res.ok and isinstance(res.json(), list):
+            return jsonify({
+                "status": "success",
+                "total": len(res.json()),
+                "reports": res.json()
+            })
+        return jsonify({"error": "Failed to fetch reports"}), 500
+    except Exception as e:
+        print(f"❌ Admin reports error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.post("/report")
 def report_content():
     """Handles manual reporting of posts or comments."""
-    data = request.get_json()
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "application/json"
-    }
-    
-    report_data = {
-        "reporter_id": data.get("user_id"),
-        "post_id": data.get("post_id"),
-        "comment_id": data.get("comment_id"),
-        "reason": data.get("reason", "Conținut neadecvat")
-    }
-    
-    url = f"{SUPABASE_URL}/rest/v1/content_reports"
-    res = requests.post(url, headers=headers, json=report_data)
-    
-    if res.status_code in [200, 201]:
-        return jsonify({"status": "success", "message": "Raport trimis cu succes. Mulțumim!"})
-    return jsonify({"error": "Eroare la trimiterea raportului"}), 500
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        if not data or not data.get("user_id"):
+            return jsonify({"error": "user_id is required"}), 400
+
+        if not data.get("post_id") and not data.get("comment_id"):
+            return jsonify({"error": "Either post_id or comment_id is required"}), 400
+
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        report_data = {
+            "reporter_id": data.get("user_id"),
+            "post_id": data.get("post_id"),
+            "comment_id": data.get("comment_id"),
+            "reason": data.get("reason", "Conținut neadecvat"),
+            "status": "pending",
+            "created_at": datetime.datetime.utcnow().isoformat()
+        }
+
+        url = f"{SUPABASE_URL}/rest/v1/content_reports"
+        res = requests.post(url, headers=headers, json=report_data, timeout=10)
+
+        if res.status_code in [200, 201]:
+            print(f"✅ Report submitted: {report_data}")
+            return jsonify({
+                "status": "success",
+                "message": "Raport trimis cu succes. Mulțumim!",
+                "report_id": res.json().get("id") if res.text else None
+            }), 201
+
+        print(f"❌ Report failed: {res.status_code} - {res.text}")
+        return jsonify({
+            "error": "Eroare la trimiterea raportului. Te rog încearcă din nou.",
+            "details": res.text if res.text else None
+        }), 500
+
+    except Exception as e:
+        print(f"❌ Report error: {e}")
+        return jsonify({
+            "error": "Eroare internă la trimiterea raportului",
+            "details": str(e)
+        }), 500
 
 # ==================== REAL ROMANIAN EVENTS (iabilet.ro scraper) ====================
 
