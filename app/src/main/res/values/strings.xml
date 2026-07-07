@@ -3,7 +3,7 @@
     <string name="app_name">CityScape</string>
     <string name="google_web_client_id">295858702969-fbog9vjhppg41tk1rb0r8tks61p9lur8.apps.googleusercontent.com</string>
     
-    <!-- Auth strings -->
+    
     <string name="sign_in">Sign In</string>
     <string name="full_name">Full Name</string>
     <string name="email">Email</string>
@@ -23,12 +23,12 @@
     <string name="already_have_account">Already have an account? Login</string>
     <string name="sign_in_with_google">Sign in with Google</string>
     
-    <!-- Calendar strings -->
+    
     <string name="close">Close</string>
     <string name="planned_activities">Planned Activities</string>
     <string name="no_planned_activities">No planned activities</string>
     
-    <!-- Guide strings -->
+    
     <string name="ai_assistant">Local Guide</string>
     <string name="ask_anything">Ask me anything about places to visit!</string>
     <string name="type_message">Type a message…</string>
@@ -37,26 +37,30 @@
     <string name="chatbot_connection_error">I\'m having connection issues right now. I\'ll be back soon!</string>
     <string name="please_type_something">Please type a message!</string>
     
-    <!-- City select strings -->
+    
     <string name="select_city">Select City</string>
     <string name="search_cities">Search cities…</string>
     
-    <!-- Itinerary strings -->
+    
     <string name="perfect_day">Plan Your Perfect Day</string>
     <string name="create_itinerary">Create Itinerary</string>
     <string name="choose_theme">Choose a Theme</string>
     <string name="generate_personalized">Generate Personalized Itinerary</string>
     
-    <!-- Place detail strings -->
+    
     <string name="your_compatibility">Your Compatibility</string>
     <string name="about">About</string>
+    <string name="about_content">CityScape is an AI-powered location discovery platform that helps you explore your city intelligently. Using personalized AI recommendations, saved routes, and community insights, we help you find unique places and experiences tailored to your interests.\n\nOur mission: Make urban exploration accessible, personalized, and fun for everyone.</string>
+    <string name="contact">Contact</string>
+    <string name="contact_content">Have questions or feedback? We\'d love to hear from you!\n\nEmail: support@cityscape.app\nWebsite: www.cityscape.app\n\nFor privacy concerns: privacy@cityscape.app\nFor legal inquiries: legal@cityscape.app</string>
+    <string name="app_description">AI-powered city exploration and discovery</string>
     <string name="atmosphere">Atmosphere</string>
     <string name="call">Call</string>
     <string name="website">Website</string>
     <string name="directions">Directions</string>
     <string name="write_review">Write a Review</string>
     
-    <!-- Profile setup strings -->
+    
     <string name="tell_us">Tell Us About Yourself</string>
     <string name="setup_subtitle">Help us personalize your experience</string>
     <string name="what_interests_you">What interests you?</string>
@@ -65,7 +69,7 @@
     <string name="get_started">Get Started</string>
     <string name="skip_for_now">Skip for Now</string>
     
-    <!-- Settings strings -->
+    
     <string name="settings">Settings</string>
     <string name="dark_mode">Dark Mode</string>
     <string name="notifications">Notifications</string>
@@ -86,16 +90,16 @@
     <string name="no">No</string>
     <string name="cancel">Cancel</string>
     
-    <!-- Explore strings -->
+    
     <string name="search_hint">Search places…</string>
     <string name="discover_nearby">Discover Nearby</string>
     
-    <!-- Favorites strings -->
+    
     <string name="favorites">Favorites</string>
     <string name="no_favorites">No favorites yet</string>
     <string name="add_favorites_hint">Start exploring and add places to your favorites!</string>
     
-    <!-- Profile strings -->
+    
     <string name="explorer_level">Explorer Level %d</string>
     <string name="level_progress">Level Progress</string>
     <string name="xp_to_next_level">%d XP to next level</string>
@@ -104,13 +108,13 @@
     <string name="your_badges">Your Badges</string>
     <string name="recent_achievements">Recent Achievements</string>
     
-    <!-- Welcome strings -->
+    
     <string name="welcome_title">Explore the City</string>
     <string name="welcome_subtitle">Your personal exploration guide</string>
     <string name="btn_get_started">Get Started</string>
     <string name="already_have_account_prompt">Already have an account? Sign In</string>
     
-    <!-- Toast messages -->
+    
     <string name="please_fill_all_fields">Please fill all fields</string>
     <string name="invalid_credentials">Invalid email or password</string>
     <string name="welcome_user">Welcome back, %s!</string>
@@ -123,12 +127,12 @@
     <string name="check_email_confirmation">Account created! Check your email for confirmation</string>
     <string name="email_checking">Checking email address...</string>
     
-    <!-- Welcome page -->
+    
     <string name="welcome_pocket_guide">Your intelligent guide</string>
     <string name="welcome_to_bucharest">for exploration</string>
     <string name="welcome_description">Plan the perfect day with curated experiences and personalized recommendations</string>
     
-    <!-- Groups -->
+    
     <string name="my_groups">My Groups</string>
     <string name="create_group">Create Group</string>
     <string name="join_group">Join Group</string>
@@ -163,17 +167,17 @@
     <string name="code_must_be_6">Code must be 6 characters</string>
     <string name="you_have_invitations">You have %d pending invitation(s)</string>
     
-    <!-- Navigation -->
+    
     <string name="nav_home">Home</string>
     <string name="nav_map">Map</string>
     <string name="nav_calendar">Calendar</string>
     <string name="nav_profile">Profile</string>
     
-    <!-- Search -->
+    
     <string name="search_map_hint">Search on map…</string>
     <string name="search_home_hint">Search places, events…</string>
     
-    <!-- Home -->
+    
     <string name="greeting_template">Hello, %s</string>
     <string name="ready_to_explore">Ready for new adventures?</string>
     <string name="category_all">All</string>
@@ -189,7 +193,7 @@
     <string name="see_all">See all</string>
     <string name="trending_now">Trending Now</string>
     
-    <!-- Fragment strings -->
+    
     <string name="visited_place">Visited: %s (+50 XP)</string>
     <string name="failed_load_places">Failed to load places</string>
     <string name="error_connecting">Error connecting to server</string>
@@ -198,18 +202,18 @@
     <string name="greeting_evening">Good evening</string>
     <string name="greeting_night">Good night</string>
     
-    <!-- Profile guest -->
+    
     <string name="guest_user">Guest</string>
     <string name="login_to_see_profile">Sign in to see your profile</string>
     <string name="login_prompt">Sign In</string>
     <string name="register_prompt">Create Account</string>
     
-    <!-- Live Battle -->
+    
     <string name="live_battle_title">⚔️ Live Battle</string>
     <string name="live_battle_desc">City landmarks face off! Vote today for +50 XP. Winners get 300 XP! 🚀</string>
     <string name="live_battle_btn">⚔️ Live Battle</string>
     
-    <!-- Additional UI -->
+    
     <string name="confirm_email_title">Confirm Email</string>
     <string name="globe_watching">GLOBE WATCHING...</string>
     <string name="energy_concentrating">Energy concentrating...</string>
@@ -225,7 +229,7 @@
     <string name="place_type">ATTRACTION</string>
     <string name="address_unspecified">Unspecified</string>
     
-    <!-- More strings -->
+    
     <string name="no_events">No events found</string>
     <string name="events">Events</string>
     <string name="places">Places</string>
@@ -246,7 +250,7 @@
     <string name="save_preferences">Save Preferences</string>
     <string name="reset_to_simple">Reset to Simple</string>
 
-    <!-- Additional hardcoded strings that were in Java -->
+    
     <string name="search_error">Search Error</string>
     <string name="network_error">Network Error</string>
     <string name="google_connection_error">Google Connection Error (10/12500)</string>
@@ -282,7 +286,7 @@
     <string name="following_status">Now following </string>
     <string name="unfollowing_status">No longer following </string>
 
-    <!-- All remaining hardcoded strings from Java -->
+    
     <string name="vote_registered">Vote registered! +50 XP! 🚀</string>
     <string name="thank_you">Thank you!</string>
     <string name="choose">Choose</string>
@@ -939,8 +943,8 @@
     <string name="auto_92_a36111">🎯 92%</string>
     <string name="dialog_select_city_subtitle">Enter your preferred city or choose a popular one:</string>
     <string name="dialog_understand">Understood</string>
-    <string name="privacy_policy_text">Privacy Policy - CityScape AI\n\n1. Data Collection: We collect history of visited locations and your interests to offer a personalized experience.\n2. AI Transparency: Every recommendation generated by AI explains to you in percentage why it was chosen based on your data.\n3. We do not sell data: Your profile is processed exclusively for CityScape features.\n\nGuaranteed security.</string>
-    <string name="terms_of_service_text">Terms and Conditions - CityScape\n\n1. By using the application, you agree to respect the community rules.\n2. Your data (name, preferences) are used exclusively for personalizing recommendations via AI.\n3. We do not store passwords in plain text, and authentication is secured via Supabase.\n4. We reserve the right to suspend accounts that spam in the \'Hype Battle\' module.\n\nLast update: Today.</string>
+    <string name="privacy_policy_text">PRIVACY POLICY\n\nEffective Date: January 2025\n\n1. INFORMATION WE COLLECT\n• Location history: Places you visit and your travel patterns\n• User preferences: Your interests, favorite categories, and activity history\n• Profile data: Name, email, authentication credentials\n• Device information: Device ID, OS version, app version\n\n2. HOW WE USE YOUR DATA\n• Personalization: AI-powered recommendations based on your interests and location history\n• Service improvement: Analytics to enhance app performance and features\n• Safety: Fraud detection and abuse prevention\n• Communication: Service updates and important notifications\n\n3. AI TRANSPARENCY\n• Every AI recommendation includes an explainability score showing why it was suggested\n• You can view and manage your preference profile at any time\n• Your data influences only YOUR recommendations, not others\'\n\n4. DATA SECURITY\n• Passwords are never stored in plain text\n• All authentication handled through Supabase (industry-standard security)\n• Data is encrypted in transit and at rest\n• We do not share or sell your personal data to third parties\n\n5. DATA RETENTION &amp; DELETION\n• You can delete your account and all associated data from Settings\n• Location history can be cleared independently\n• We retain minimal data after account deletion for legal compliance\n\n6. YOUR RIGHTS\n• Access: Request a copy of your data\n• Correction: Update inaccurate information\n• Deletion: Request permanent deletion of your account\n• Contact: privacy@cityscape.app for privacy inquiries</string>
+    <string name="terms_of_service_text">TERMS OF SERVICE\n\nEffective Date: January 2025\n\n1. ACCEPTANCE OF TERMS\nBy downloading, installing, or using CityScape, you agree to these Terms and Conditions. If you do not agree, please do not use the application.\n\n2. USER RESPONSIBILITIES\n• You are responsible for maintaining the confidentiality of your login credentials\n• You agree not to impersonate other users or provide false information\n• You agree to respect community guidelines and local laws\n• Harassment, spam, or abusive behavior will result in account suspension\n\n3. ACCEPTABLE USE POLICY\nYou agree NOT to:\n• Post misleading, offensive, or defamatory content\n• Spam, flood, or harass other users\n• Exploit or abuse gamification features (e.g., Hype Battles)\n• Attempt to hack, reverse-engineer, or bypass security measures\n• Collect data about other users without consent\n\n4. INTELLECTUAL PROPERTY\n• CityScape content, design, and technology are our intellectual property\n• You may use the app for personal, non-commercial purposes only\n• You may not reproduce, distribute, or publicly display our content\n\n5. USER-GENERATED CONTENT\n• You retain ownership of content you create (reviews, posts, itineraries)\n• You grant us a license to display and improve recommendations based on your content\n• We reserve the right to moderate or remove inappropriate content\n\n6. LIMITATION OF LIABILITY\n• We provide the app \"as is\" without warranties of any kind\n• We are not liable for errors in GPS data, recommendations, or third-party services\n• We are not responsible for actions taken based on app recommendations\n\n7. ACCOUNT SUSPENSION &amp; TERMINATION\n• We reserve the right to suspend or terminate accounts violating these terms\n• Violations include: spam, harassment, repeated policy breaches\n• Suspension may be immediate for severe violations\n\n8. CHANGES TO TERMS\n• We may update these terms at any time\n• Continued use of the app constitutes acceptance of updated terms\n• We will notify users of material changes\n\n9. DISCLAIMER\n• Location data accuracy depends on device GPS and network conditions\n• We do not guarantee real-time accuracy of recommendations\n• Always verify recommendations before making travel decisions\n\n10. CONTACT\nFor questions about these terms, contact: legal@cityscape.app</string>
     <string name="err_password_required">Password is required</string>
     <string name="err_password_too_short">Password must be at least 8 characters long</string>
     <string name="err_password_uppercase">Password must contain at least one uppercase letter</string>
@@ -1005,4 +1009,14 @@ Do you want to send an invitation to %2$s?</string>
 
 </string>
     <string name="auto_tipul_locului_e967be">Place Type</string>
+
+    <!-- Offline Hub -->
+    <string name="offline_mode_label">Offline Mode</string>
+    <string name="offline_works_without_internet">CityScape works\neven without internet 📴</string>
+    <string name="offline_access_features">Access to saved routes, favorite locations, and maps.</string>
+    <string name="offline_saved_routes">Saved Routes</string>
+    <string name="offline_no_routes">No routes saved yet.\nGenerate an itinerary and press Save!</string>
+    <string name="offline_btn_map">Map</string>
+    <string name="offline_btn_favorites">Favorites</string>
+    <string name="offline_btn_routes">Routes</string>
 </resources>

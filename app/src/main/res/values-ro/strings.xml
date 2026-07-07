@@ -3,7 +3,7 @@
     <string name="app_name">CityScape</string>
     <string name="google_web_client_id">295858702969-fbog9vjhppg41tk1rb0r8tks61p9lur8.apps.googleusercontent.com</string>
     
-    <!-- Auth strings -->
+    
     <string name="sign_in">Autentificare</string>
     <string name="full_name">Nume Complet</string>
     <string name="email">Email</string>
@@ -23,12 +23,12 @@
     <string name="already_have_account">Ai deja cont? Autentifică-te</string>
     <string name="sign_in_with_google">Conectare cu Google</string>
     
-    <!-- Calendar strings -->
+    
     <string name="close">Închide</string>
     <string name="planned_activities">Activități Planificate</string>
     <string name="no_planned_activities">Nicio activitate planificată</string>
     
-    <!-- Guide strings -->
+    
     <string name="ai_assistant">Ghid Local</string>
     <string name="ask_anything">Întreabă-mă orice despre locuri de vizitat!</string>
     <string name="type_message">Scrie un mesaj…</string>
@@ -37,26 +37,30 @@
     <string name="chatbot_connection_error">Momentan am probleme de conexiune. Revin imediat!</string>
     <string name="please_type_something">Te rog scrie un mesaj!</string>
     
-    <!-- City select strings -->
+    
     <string name="select_city">Selectează Orașul</string>
     <string name="search_cities">Caută orașe…</string>
     
-    <!-- Itinerary strings -->
+    
     <string name="perfect_day">Planifică-ți Ziua Perfectă</string>
     <string name="create_itinerary">Creează Itinerariu</string>
     <string name="choose_theme">Alege o Temă</string>
     <string name="generate_personalized">Generează Itinerariu Personalizat</string>
     
-    <!-- Place detail strings -->
+    
     <string name="your_compatibility">Compatibilitatea Ta</string>
     <string name="about">Despre</string>
+    <string name="about_content">CityScape este o platformă de descoperire a locațiilor alimentată de AI care te ajută să explorezi orașul tău în mod inteligent. Folosind recomandări personalizate de IA, rute salvate și perspective comunității, te ajutăm să găsești locuri unice și experiențe adaptate intereselor tale.\n\nMisiunea noastră: Să facem explorarea urbană accesibilă, personalizată și distractivă pentru toată lumea.</string>
+    <string name="contact">Contact</string>
+    <string name="contact_content">Ai întrebări sau feedback? Ne-ar plăcea să auzim din tine!\n\nEmail: support@cityscape.app\nSite Web: www.cityscape.app\n\nPentru probleme de confidențialitate: privacy@cityscape.app\nPentru cereri legale: legal@cityscape.app</string>
+    <string name="app_description">Descoperire și explorare a orașului alimentată de AI</string>
     <string name="atmosphere">Atmosferă</string>
     <string name="call">Apelează</string>
     <string name="website">Site Web</string>
     <string name="directions">Direcții</string>
     <string name="write_review">Scrie o Recenzie</string>
     
-    <!-- Profile setup strings -->
+    
     <string name="tell_us">Spune-ne Despre Tine</string>
     <string name="setup_subtitle">Ajută-ne să personalizez experiența ta</string>
     <string name="what_interests_you">Ce te interesează?</string>
@@ -65,7 +69,7 @@
     <string name="get_started">Să Începem</string>
     <string name="skip_for_now">Sări Deocamdată</string>
     
-    <!-- Settings strings -->
+    
     <string name="settings">Setări</string>
     <string name="dark_mode">Mod Nocturn</string>
     <string name="notifications">Notificări</string>
@@ -86,16 +90,16 @@
     <string name="no">Nu</string>
     <string name="cancel">Anulează</string>
     
-    <!-- Explore strings -->
+    
     <string name="search_hint">Caută locuri…</string>
     <string name="discover_nearby">Descoperă Aproape</string>
     
-    <!-- Favorites strings -->
+    
     <string name="favorites">Favorite</string>
     <string name="no_favorites">Niciun favorit încă</string>
     <string name="add_favorites_hint">Explorează și adaugă locuri la favorite!</string>
     
-    <!-- Profile strings -->
+    
     <string name="explorer_level">Nivel Explorer %d</string>
     <string name="level_progress">Progres Nivel</string>
     <string name="xp_to_next_level">%d XP până la următorul nivel</string>
@@ -104,13 +108,13 @@
     <string name="your_badges">Insignele Tale</string>
     <string name="recent_achievements">Realizări Recente</string>
     
-    <!-- Welcome strings -->
+    
     <string name="welcome_title">Explorează Orașul</string>
     <string name="welcome_subtitle">Ghidul tău personal de explorare</string>
     <string name="btn_get_started">Să Începem</string>
     <string name="already_have_account_prompt">Ai deja cont? Conectează-te</string>
     
-    <!-- Toast messages -->
+    
     <string name="please_fill_all_fields">Te rog completează toate câmpurile</string>
     <string name="invalid_credentials">Email sau parolă incorectă</string>
     <string name="welcome_user">Bine ai revenit, %s!</string>
@@ -123,12 +127,12 @@
     <string name="check_email_confirmation">Cont creat! Verifică email-ul pentru confirmare</string>
     <string name="email_checking">Se verifică adresa de email…</string>
     
-    <!-- Welcome page -->
+    
     <string name="welcome_pocket_guide">Ghidul tău inteligent</string>
     <string name="welcome_to_bucharest">de explorare</string>
     <string name="welcome_description">Planifică ziua perfectă cu experiențe selectate și recomandări personalizate</string>
     
-    <!-- Groups -->
+    
     <string name="my_groups">Grupurile Mele</string>
     <string name="create_group">Creează Grup</string>
     <string name="join_group">Alătură-te Grupului</string>
@@ -163,17 +167,17 @@
     <string name="code_must_be_6">Codul trebuie să aibă 6 caractere</string>
     <string name="you_have_invitations">Ai %d invitație(i) în așteptare</string>
     
-    <!-- Navigation -->
+    
     <string name="nav_home">Acasă</string>
     <string name="nav_map">Hartă</string>
     <string name="nav_calendar">Calendar</string>
     <string name="nav_profile">Profil</string>
     
-    <!-- Search -->
+    
     <string name="search_map_hint">Caută pe hartă…</string>
     <string name="search_home_hint">Caută locuri, evenimente…</string>
     
-    <!-- Home -->
+    
     <string name="greeting_template">Salut, %s</string>
     <string name="ready_to_explore">Ești gata pentru noi aventuri?</string>
     <string name="category_all">Toate</string>
@@ -189,7 +193,7 @@
     <string name="see_all">Vezi toate</string>
     <string name="trending_now">Trending Acum</string>
     
-    <!-- Fragment strings -->
+    
     <string name="visited_place">Vizitat: %s (+50 XP)</string>
     <string name="failed_load_places">Eșec la încărcarea locurilor</string>
     <string name="error_connecting">Eroare la conectare la server</string>
@@ -198,18 +202,18 @@
     <string name="greeting_evening">Bună seara</string>
     <string name="greeting_night">Noapte bună</string>
     
-    <!-- Profile guest -->
+    
     <string name="guest_user">Oaspete</string>
     <string name="login_to_see_profile">Conectează-te pentru a vedea profilul</string>
     <string name="login_prompt">Conectare</string>
     <string name="register_prompt">Creează Cont</string>
     
-    <!-- Live Battle -->
+    
     <string name="live_battle_title">⚔️ Bătălie Live</string>
     <string name="live_battle_desc">Monumente se confruntă! Votează pentru +50 XP. Câștigători obțin 300 XP! 🚀</string>
     <string name="live_battle_btn">⚔️ Bătălie Live</string>
     
-    <!-- Additional UI -->
+    
     <string name="confirm_email_title">Confirmă Email</string>
     <string name="globe_watching">GLOBUL VEDE...</string>
     <string name="energy_concentrating">Energia se concentrează...</string>
@@ -225,7 +229,7 @@
     <string name="place_type">ATRACȚIE</string>
     <string name="address_unspecified">Nespecificată</string>
     
-    <!-- More strings -->
+    
     <string name="no_events">Niciun eveniment găsit</string>
     <string name="events">Evenimente</string>
     <string name="places">Locuri</string>
@@ -246,7 +250,7 @@
     <string name="save_preferences">Salvează Preferințe</string>
     <string name="reset_to_simple">Resetează la Simplu</string>
 
-    <!-- Additional hardcoded strings that were in Java -->
+    
     <string name="search_error">Eroare la Căutare</string>
     <string name="network_error">Eroare Rețea</string>
     <string name="google_connection_error">Eroare Conectare Google (10/12500)</string>
@@ -282,7 +286,7 @@
     <string name="following_status">Acum îl urmărești pe </string>
     <string name="unfollowing_status">Nu îl mai urmărești pe </string>
 
-    <!-- All remaining hardcoded strings from Java -->
+    
     <string name="vote_registered">Vot înregistrat! +50 XP! 🚀</string>
     <string name="thank_you">Mulțumim!</string>
     <string name="choose">Alege</string>
@@ -939,8 +943,8 @@
     <string name="auto_92_a36111">🎯 92%</string>
     <string name="dialog_select_city_subtitle">Introdu orașul preferat sau alege unul popular:</string>
     <string name="dialog_understand">Am Înțeles</string>
-    <string name="privacy_policy_text">Politica de Confidențialitate - CityScape AI\n\n1. Colectarea Datelor: Colectăm istoricul locațiilor vizitate și interesele tale pentru a oferi o experiență personalizată.\n2. Transparență AI: Fiecare recomandare generată de AI îți explică procentual de ce a fost aleasă pe baza datelor tale.\n3. Nu vindem datele: Profilul tău este procesat exclusiv pentru funcționalitățile CityScape.\n\nSecuritate garantată.</string>
-    <string name="terms_of_service_text">Termeni și Condiții - CityScape\n\n1. Prin utilizarea aplicației, ești de acord să respecți regulile comunității.\n2. Datele tale (nume, preferințe) sunt folosite exclusiv pentru personalizarea recomandărilor prin AI.\n3. Nu stocăm parole în clar, iar autentificarea este securizată via Supabase.\n4. Ne rezervăm dreptul de a suspenda conturile care fac spam în modulul \'Hype Battle\'.\n\nUltima actualizare: Astăzi.</string>
+    <string name="privacy_policy_text">POLITICA DE CONFIDENȚIALITATE\n\nData intrării în vigoare: ianuarie 2025\n\n1. INFORMAȚII PE CARE LE COLECTĂM\n• Istoricul de locații: Locurile pe care le vizitezi și tiparele de călătorie\n• Preferințele utilizatorului: Interesele tale, categoriile preferate, istoricul activităților\n• Datele profilului: Nume, email, credențiale de autentificare\n• Informații despre dispozitiv: ID-ul dispozitivului, versiunea SO, versiunea aplicației\n\n2. MODUL ÎN CARE FOLOSIM DATELE TALE\n• Personalizare: Recomandări bazate pe AI conform intereselor și istoricului de locații\n• Îmbunătățirea serviciilor: Analitica pentru optimizarea performanței și funcționalităților\n• Siguranță: Detectarea fraudei și prevenirea abuzului\n• Comunicare: Actualizări de servicii și notificări importante\n\n3. TRANSPARENȚĂ AI\n• Fiecare recomandare AI include un scor care explică de ce a fost sugerată\n• Poți consulta și gestiona profilul tău oricând din setări\n• Datele tale influențează doar TALE recomandări, nu ale altora\n\n4. SECURITATEA DATELOR\n• Parolele nu sunt niciodată stocate în text clar\n• Toată autentificarea este gestionată prin Supabase (securitate la standarde industriale)\n• Datele sunt criptate la transmisie și în repaus\n• Nu partajăm sau vindem datele personale terților\n\n5. RETENȚIA &amp; ȘTERGEREA DATELOR\n• Poți șterge contul și toate datele asociate din Setări\n• Istoricul de locații poate fi șters independent\n• Reținea date minimale după ștergerea contului din motive legale\n\n6. DREPTURILE TALE\n• Acces: Cere o copie a datelor tale\n• Corectare: Actualizează informații inexacte\n• Ștergere: Cere ștergerea permanentă a contului\n• Contactare: privacy@cityscape.app pentru întrebări de confidențialitate</string>
+    <string name="terms_of_service_text">TERMENI ȘI CONDIȚII\n\nData intrării în vigoare: ianuarie 2025\n\n1. ACCEPTAREA TERMENILOR\nPrin descărcarea, instalarea sau utilizarea CityScape, ești de acord cu acești Termeni și Condiții. Dacă nu ești de acord, te rugăm să nu folosești aplicația.\n\n2. RESPONSABILITĂȚI ALE UTILIZATORULUI\n• Ești responsabil pentru menținerea confidențialității credențialelor de conectare\n• Ești de acord să nu te dai drept alt utilizator și să nu furnizezi informații false\n• Ești de acord să respecți normele comunității și legile locale\n• Hărțuirea, spam-ul sau comportamentul abuziv vor rezulta în suspendarea contului\n\n3. POLITICA DE UTILIZARE ACCEPTABILĂ\nEști de acord SĂ NU:\n• Postezi conținut misleading, ofensator sau defamator\n• Faci spam, flood sau hărțuești alți utilizatori\n• Exploatezi sau abuzezi caracteristicile de gamificare (ex. Hype Battles)\n• Încerc să execuți hacking, reverse-engineering sau să ocolești măsurile de securitate\n• Colectezi date despre alți utilizatori fără consimțământ\n\n4. PROPRIETATEA INTELECTUALĂ\n• Conținutul, designul și tehnologia CityScape sunt proprietatea noastră intelectuală\n• Poți folosi aplicația numai pentru scopuri personale, non-comerciale\n• Nu poți reproduce, distribui sau expune public conținutul nostru\n\n5. CONȚINUT GENERAT DE UTILIZATORI\n• Păstrezi proprietatea conținutului pe care îl creezi (recenzii, postări, itinerarii)\n• Ne acordi o licență pentru a afișa și îmbunătăți recomandările pe baza conținutului tău\n• Ne rezervăm dreptul de a moderat sau șterge conținutul neadecvat\n\n6. LIMITAREA RĂSPUNDERII\n• Oferim aplicația \"ca atare\" fără garanții de niciun fel\n• Nu suntem răspunzători pentru erori în datele GPS, recomandări sau serviciile terților\n• Nu suntem responsabili pentru acțiuni întreprinse pe baza recomandărilor aplicației\n\n7. SUSPENDAREA &amp; TERMINAREA CONTULUI\n• Ne rezervăm dreptul de a suspenda sau termina conturile care încalcă termenii\n• Încălcări includ: spam, hărțuire, încălcări repetate ale politicii\n• Suspendarea poate fi imediată pentru încălcări grave\n\n8. MODIFICĂRI ALE TERMENILOR\n• Putem actualiza acești termeni oricând\n• Continuarea folosirii aplicației constituie acceptarea termenilor actualizați\n• Te vom notifica cu privire la modificări substanțiale\n\n9. DECLINARE DE RĂSPUNDERE\n• Acuratețea datelor de locație depinde de GPS-ul dispozitivului și condițiile de rețea\n• Nu garantez acuratețea în timp real a recomandărilor\n• Verifică întotdeauna recomandările înainte de a lua decizii de călătorie\n\n10. CONTACTARE\nPentru întrebări despre acești termeni, contactează: legal@cityscape.app</string>
     <string name="err_password_required">Parola este obligatorie</string>
     <string name="err_password_too_short">Parola trebuie să aibă cel puțin 8 caractere</string>
     <string name="err_password_uppercase">Parola trebuie să conțină cel puțin o literă mare</string>
@@ -1005,4 +1009,14 @@ Vrei să trimiți o invitație lui %2$s?</string>
 
 </string>
     <string name="auto_tipul_locului_e967be">Tipul locului</string>
+
+    <!-- Offline Hub -->
+    <string name="offline_mode_label">Mod Offline</string>
+    <string name="offline_works_without_internet">CityScape funcționează\nși fără internet 📴</string>
+    <string name="offline_access_features">Ai acces la trasee salvate, locații favorite și hartă.</string>
+    <string name="offline_saved_routes">Trasee salvate</string>
+    <string name="offline_no_routes">Niciun traseu salvat încă.\nGenerează un itinerar și apasă Salvează!</string>
+    <string name="offline_btn_map">Hartă</string>
+    <string name="offline_btn_favorites">Favorite</string>
+    <string name="offline_btn_routes">Trasee</string>
 </resources>
