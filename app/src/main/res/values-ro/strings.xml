@@ -2,8 +2,13 @@
 <resources>
     <string name="app_name">CityScape</string>
     <string name="google_web_client_id">295858702969-fbog9vjhppg41tk1rb0r8tks61p9lur8.apps.googleusercontent.com</string>
-    
-    
+
+    <!-- API Configuration -->
+    <!-- Production: Vercel Flask Server -->
+    <string name="api_base_url">https://flask-serve.vercel.app/</string>
+    <!-- Development: Uncomment to use local ngrok -->
+    <!-- <string name="api_base_url">https://your-ngrok-url.ngrok.io/</string> -->
+
     <string name="sign_in">Autentificare</string>
     <string name="full_name">Nume Complet</string>
     <string name="email">Email</string>
