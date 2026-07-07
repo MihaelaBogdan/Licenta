@@ -862,12 +862,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (container != null) {
                     for (int i = 0; i < container.getChildCount(); i++) {
                         android.view.View child = container.getChildAt(i);
-                        int id = child.getId();
-                        if (id != R.id.layout_offline_hub && id != R.id.card_offline_banner) {
-                            child.setVisibility(android.view.View.VISIBLE);
-                        } else {
-                            child.setVisibility(android.view.View.GONE);
-                        }
+                        child.setVisibility(android.view.View.VISIBLE);
                     }
                 }
                 
@@ -962,130 +957,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void updateSmartRecommendationOffline() {
-                isOfflineMode = true;
-                if (!isAdded() || getView() == null) return;
-                
-                // Hide ALL online elements dynamically
-                android.widget.LinearLayout container = getView().findViewById(R.id.home_content_container);
-                if (container != null) {
-                    for (int i = 0; i < container.getChildCount(); i++) {
-                        android.view.View child = container.getChildAt(i);
-                        int id = child.getId();
-                        if (id != R.id.layout_offline_hub && id != R.id.card_offline_banner && id != R.id.home_header) {
-                            child.setVisibility(android.view.View.GONE);
-                        } else if (id == R.id.layout_offline_hub || id == R.id.card_offline_banner) {
-                            child.setVisibility(android.view.View.VISIBLE);
-                        }
-                    }
-                }
-                
-                // Hide header buttons and weather
-                android.view.View textWeather = getView().findViewById(R.id.text_weather);
-                android.view.View btnFilter = getView().findViewById(R.id.btn_filter_header);
-                android.view.View btnCrystal = getView().findViewById(R.id.btn_reveal_fate);
-                
-                if (textWeather != null) textWeather.setVisibility(android.view.View.GONE);
-                if (btnFilter != null) btnFilter.setVisibility(android.view.View.GONE);
-                if (btnCrystal != null) btnCrystal.setVisibility(android.view.View.GONE);
-
-                // Set banner text
-                TextView txtRec = getView().findViewById(R.id.txt_smart_recommendation);
-                if (txtRec != null) txtRec.setText(getString(R.string.offline_mode_description));
-
-                // Wire quick-action buttons
-                View btnMap = getView().findViewById(R.id.btn_offline_map);
-                View btnFavs = getView().findViewById(R.id.btn_offline_favorites);
-                View btnItinerary = getView().findViewById(R.id.btn_offline_itinerary);
-                if (btnMap != null) btnMap.setOnClickListener(v -> {
-                    if (getActivity() instanceof com.cityscape.app.MainActivity) {
-                        ((com.cityscape.app.MainActivity) getActivity()).navigateToTab(R.id.navigation_map);
-                    }
-                });
-                if (btnFavs != null) btnFavs.setOnClickListener(v -> {
-                    if (getActivity() instanceof com.cityscape.app.MainActivity) {
-                        ((com.cityscape.app.MainActivity) getActivity()).navigateToTab(R.id.navigation_map);
-                    }
-                });
-                if (btnItinerary != null) btnItinerary.setOnClickListener(v -> {
-                    if (getActivity() instanceof com.cityscape.app.MainActivity) {
-                        ((com.cityscape.app.MainActivity) getActivity()).navigateToTab(R.id.navigation_itinerary);
-                    }
-                });
-
-                // Load offline itineraries from Room
-                View offlineEmpty = getView().findViewById(R.id.layout_offline_empty);
-                androidx.recyclerview.widget.RecyclerView recyclerOffline = getView().findViewById(R.id.recycler_offline_activities);
-                TextView txtRoutesCount = getView().findViewById(R.id.txt_offline_routes_count);
-                TextView txtFavsCount = getView().findViewById(R.id.txt_offline_favs_count);
-
-                // Count favorites from SharedPreferences (keys prefixed with "fav_")
-                if (txtFavsCount != null) {
-                    try {
-                        android.content.SharedPreferences prefs = requireContext()
-                            .getSharedPreferences("CityScapePrefs", android.content.Context.MODE_PRIVATE);
-                        int favCount = 0;
-                        for (String key : prefs.getAll().keySet()) {
-                            if (key.startsWith("fav_") && prefs.getBoolean(key, false)) favCount++;
-                        }
-                        txtFavsCount.setText(String.valueOf(favCount));
-                    } catch (Exception ignored) {}
-                }
-
-                if (offlineEmpty != null && recyclerOffline != null && sessionManager != null) {
-                    new Thread(() -> {
-                        String userId = sessionManager.getUserId() != null ? sessionManager.getUserId() : "guest";
-                        java.util.List<com.cityscape.app.model.PlannedActivity> activities = new java.util.ArrayList<>();
-                        
-                        java.util.List<com.cityscape.app.model.PlannedActivity> dbActivities = com.cityscape.app.data.AppDatabase.getInstance(requireContext()).activityDao().getActivitiesForUser(userId);
-                        if (dbActivities != null) activities.addAll(dbActivities);
-                        final int routeCount = activities.size();
-
-                        if (activities.isEmpty()) {
-                            try {
-                                android.content.SharedPreferences prefs = requireContext().getSharedPreferences("CityScapePrefs", android.content.Context.MODE_PRIVATE);
-                                java.util.List<com.cityscape.app.model.Place> allPlaces = com.cityscape.app.data.AppDatabase.getInstance(requireContext()).placeDao().getAllPlaces();
-                                if (allPlaces != null) {
-                                    for (com.cityscape.app.model.Place p : allPlaces) {
-                                        if (prefs.getBoolean("fav_" + p.id, false)) {
-                                            com.cityscape.app.model.PlannedActivity favActivity = new com.cityscape.app.model.PlannedActivity(
-                                                userId, null, p.name, p.type != null ? p.type : "Favorit", p.imageUrl, System.currentTimeMillis(), "Oricând"
-                                            );
-                                            favActivity.notes = "Locație favorită";
-                                            activities.add(favActivity);
-                                        }
-                                    }
-                                }
-                            } catch (Exception ignored) {}
-                        }
-
-                        if (getActivity() == null) return;
-                        
-                        getActivity().runOnUiThread(() -> {
-                            if (txtRoutesCount != null) txtRoutesCount.setText(String.valueOf(routeCount));
-                            if (activities.isEmpty()) {
-                                offlineEmpty.setVisibility(View.VISIBLE);
-                                recyclerOffline.setVisibility(View.GONE);
-                            } else {
-                                offlineEmpty.setVisibility(View.GONE);
-                                recyclerOffline.setVisibility(View.VISIBLE);
-                                recyclerOffline.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
-                                com.cityscape.app.adapter.ActivityAdapter adapter = new com.cityscape.app.adapter.ActivityAdapter(getContext(), activities, new com.cityscape.app.adapter.ActivityAdapter.OnActivityActionListener() {
-                                    @Override
-                                    public void onCompleteClick(com.cityscape.app.model.PlannedActivity activity, int position) {}
-                                    @Override
-                                    public void onShareClick(com.cityscape.app.model.PlannedActivity activity) {}
-                                    @Override
-                                    public void onCreateGroupClick(com.cityscape.app.model.PlannedActivity activity) {}
-                                    @Override
-                                    public void onExportClick(com.cityscape.app.model.PlannedActivity activity) {}
-                                    @Override
-                                    public void onEditClick(com.cityscape.app.model.PlannedActivity activity) {}
-                                });
-                                recyclerOffline.setAdapter(adapter);
-                            }
-                        });
-                    }).start();
-                }
+                isOfflineMode = false;
         }
 
         private void fetchItinerary(String scope, String type, int budget, int duration, int points, String manualInterests) {
@@ -1683,8 +1555,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                             if (binding == null) return;
                             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                                
-                                binding.cardOfflineBanner.setVisibility(View.GONE);
 
                                 
                                 final List<Place> places = response.body();
@@ -1714,7 +1584,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     if (cached != null && !cached.isEmpty() && getActivity() != null) {
                                         getActivity().runOnUiThread(() -> {
                                             if (binding != null) {
-                                                binding.cardOfflineBanner.setVisibility(View.VISIBLE);
                                                 if (aiPicksList.isEmpty()) {
                                                     aiPicksList.clear();
                                                     aiPicksList.addAll(cached);
@@ -1812,7 +1681,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 if (isAdded()) {
                                     getActivity().runOnUiThread(() -> {
                                         if (binding != null) {
-                                            binding.cardOfflineBanner.setVisibility(View.GONE);
                                             aiPicksList.clear();
                                             aiPicksList.addAll(places);
                                             if (aiPicksAdapter != null) aiPicksAdapter.notifyDataSetChanged();
