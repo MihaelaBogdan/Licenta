@@ -2195,9 +2195,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                             }
 
                                             @Override
-                                            public void onVisitedClick(Place place) {
-                                                    handleVisitedClick(place);
-                                            }
+                                            public void onVisitedClick(Place place) { }
 
                                             @Override
                                             public void onPlanClick(Place place) {
@@ -2228,9 +2226,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         }
 
                                         @Override
-                                        public void onVisitedClick(Place place) {
-                                                handleVisitedClick(place);
-                                        }
+                                        public void onVisitedClick(Place place) { }
 
                                         @Override
                                         public void onPlanClick(Place place) {
@@ -2269,9 +2265,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                             }
 
                                             @Override
-                                            public void onVisitedClick(Place place) {
-                                                    handleVisitedClick(place);
-                                            }
+                                            public void onVisitedClick(Place place) { }
 
                                             @Override
                                             public void onPlanClick(Place place) {
@@ -4132,14 +4126,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         filteredNear.add(p);
                     }
                     showPlacesBottomSheetDialog(isEn ? "Locations Near You" : "Locații în Apropiere", filteredNear);
-                });
-            }
-
-            View btnSeeAllVisited = root.findViewById(R.id.btn_see_all_visited);
-            if (btnSeeAllVisited != null) {
-                btnSeeAllVisited.setOnClickListener(v -> {
-                    boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
-                    showPlacesBottomSheetDialog(isEn ? "Your Visited Places" : "Locații Vizitate de Tine", visitedPlacesList);
                 });
             }
 
