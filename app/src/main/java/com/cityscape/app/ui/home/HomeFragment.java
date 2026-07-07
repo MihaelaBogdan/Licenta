@@ -1369,9 +1369,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext()));
                 binding.recyclerEvents.setLayoutManager(
                                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                binding.recyclerVisited.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                
-                
                 binding.recyclerAiPicks.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 aiPicksAdapter = new PlaceAdapter(getContext(), aiPicksList, true, new PlaceAdapter.OnPlaceClickListener() {
                     @Override
