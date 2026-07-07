@@ -324,75 +324,14 @@ public class RegisterActivity extends BaseActivity {
         }
     }
 
-    private android.os.Handler verifyPollHandler;
-    private Runnable verifyPollRunnable;
-
     private void showVerificationNeededDialog(String email) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_email_verify, null);
+        // Don't show dialog - just show a simple message and auto-proceed to next screen
+        Toast.makeText(this, "Email de confirmare trimis la: " + email, Toast.LENGTH_LONG).show();
 
-        android.widget.TextView txtEmail = dialogView.findViewById(R.id.txt_verify_email);
-        android.widget.TextView txtStatus = dialogView.findViewById(R.id.txt_verify_status);
-        android.widget.Button btnCheck = dialogView.findViewById(R.id.btn_check_confirmed);
-        android.widget.Button btnResend = dialogView.findViewById(R.id.btn_resend_verify);
-
-        if (txtEmail != null) txtEmail.setText(email);
-
-        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
-                .setView(dialogView)
-                .setCancelable(false)
-                .create();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
-        }
-
-        if (btnCheck != null) {
-            btnCheck.setOnClickListener(v -> {
-                btnCheck.setEnabled(false);
-                btnCheck.setText("Se verifică...");
-                if (txtStatus != null) txtStatus.setText("");
-
-                supabaseAuth.checkEmailConfirmed(new SupabaseAuthManager.EmailConfirmedCallback() {
-                    @Override
-                    public void onConfirmed() {
-                        stopVerifyPolling();
-                        runOnUiThread(() -> {
-                            dialog.dismiss();
-                            String name = supabaseAuth.getStoredName();
-                            Toast.makeText(RegisterActivity.this,
-                                    "Email confirmat! Bine ai venit" + (name != null ? ", " + name : "") + "! 🎉",
-                                    Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                            finish();
-                        });
-                    }
-
-                    @Override
-                    public void onNotConfirmed() {
-                        runOnUiThread(() -> {
-                            btnCheck.setEnabled(true);
-                            btnCheck.setText("Am confirmat, verifică acum");
-                            if (txtStatus != null) {
-                                txtStatus.setText("⚠️ Email-ul nu a fost confirmat încă. Verifică inbox-ul (și spam-ul).");
-                                txtStatus.setTextColor(0xFFFF9800);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        runOnUiThread(() -> {
-                            btnCheck.setEnabled(true);
-                            btnCheck.setText("Am confirmat, verifică acum");
-                            if (txtStatus != null) {
-                                txtStatus.setText("Eroare: " + errorMessage);
-                                txtStatus.setTextColor(0xFFEF4444);
-                            }
-                        });
-                    }
-                });
-            });
-        }
+        // Start MainActivity and let user login after confirming email
+        startActivity(new Intent(this, LoginActivity.class));
+        finish();
+    }
 
         if (btnResend != null) {
             btnResend.setOnClickListener(v -> {
@@ -422,55 +361,10 @@ public class RegisterActivity extends BaseActivity {
                 });
             });
         }
-
-        dialog.show();
-
-        
-        verifyPollHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-        verifyPollRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!dialog.isShowing()) return;
-                supabaseAuth.checkEmailConfirmed(new SupabaseAuthManager.EmailConfirmedCallback() {
-                    @Override
-                    public void onConfirmed() {
-                        stopVerifyPolling();
-                        runOnUiThread(() -> {
-                            if (dialog.isShowing()) dialog.dismiss();
-                            String name = supabaseAuth.getStoredName();
-                            Toast.makeText(RegisterActivity.this,
-                                    "Email confirmat automat! Bine ai venit" + (name != null ? ", " + name : "") + "! 🎉",
-                                    Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                            finish();
-                        });
-                    }
-
-                    @Override
-                    public void onNotConfirmed() {
-                        
-                        if (verifyPollHandler != null) verifyPollHandler.postDelayed(verifyPollRunnable, 5000);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        if (verifyPollHandler != null) verifyPollHandler.postDelayed(verifyPollRunnable, 8000);
-                    }
-                });
-            }
-        };
-        verifyPollHandler.postDelayed(verifyPollRunnable, 5000);
-    }
-
-    private void stopVerifyPolling() {
-        if (verifyPollHandler != null && verifyPollRunnable != null) {
-            verifyPollHandler.removeCallbacks(verifyPollRunnable);
-        }
     }
 
     @Override
     protected void onDestroy() {
-        stopVerifyPolling();
         super.onDestroy();
     }
 

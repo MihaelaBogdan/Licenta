@@ -7968,6 +7968,62 @@ def admin_delete_user(user_id):
 
 from flask import send_from_directory
 
+# Email confirmation page
+@app.route("/auth/confirm", methods=['GET'])
+def email_confirm_page():
+    """Serve email confirmation page"""
+    return send_from_directory(os.path.join(current_dir, 'templates'), 'email_confirm.html')
+
+# API endpoint to confirm email with Supabase
+@app.post("/api/auth/confirm-email")
+def confirm_email():
+    """Confirm email using token from email link"""
+    try:
+        data = request.get_json()
+        token = data.get('token')
+
+        if not token:
+            return jsonify({"success": False, "message": "Token missing"}), 400
+
+        # Exchange token for session using Supabase API
+        hdrs = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        # Call Supabase verify endpoint
+        body = {
+            "token_hash": token,
+            "type": "email"
+        }
+
+        res = requests.post(
+            f"{SUPABASE_URL}/auth/v1/verify",
+            headers=hdrs,
+            json=body,
+            timeout=10
+        )
+
+        if res.status_code == 200:
+            return jsonify({
+                "success": True,
+                "message": "Email confirmed successfully! You can now login."
+            })
+        else:
+            print(f"Supabase verification error: {res.status_code} - {res.text}")
+            return jsonify({
+                "success": False,
+                "message": "Token expired or invalid. Please register again."
+            }), 400
+
+    except Exception as e:
+        print(f"Email confirmation error: {e}")
+        return jsonify({
+            "success": False,
+            "message": f"Error: {str(e)}"
+        }), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
     debug = os.environ.get('FLASK_ENV', 'production') != 'production'

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmare Email - CityScape</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: scaleIn 0.6s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .status {
+            margin-bottom: 25px;
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            color: #166534;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            color: #7f1d1d;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .next-steps {
+            background: #f9f3ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .next-steps h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .next-steps ol {
+            margin-left: 20px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #667eea;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" style="display: none;">
+            <div class="loading"></div>
+            <h1>Se procesează confirmarea...</h1>
+            <p class="status">Te rog asteaptă, confirmăm emailul tău.</p>
+        </div>
+
+        <div id="success" style="display: none;">
+            <div class="icon">✅</div>
+            <h1>Email Confirmat!</h1>
+            <div class="success">
+                <strong>Felicitări!</strong> Emailul tău a fost confirmat cu succes.
+            </div>
+
+            <div class="next-steps">
+                <h3>🎯 Următorii pași:</h3>
+                <ol>
+                    <li>Deschide aplicația CityScape pe telefonul tău</li>
+                    <li>Apasă "Log in"</li>
+                    <li>Introdu emailul și parola tale</li>
+                    <li>Gata! Ești logat și gata să explorezi 🗺️</li>
+                </ol>
+            </div>
+
+            <p class="status" style="color: #10b981; font-weight: 600;">Poți reveni la aplicație și te conectezi acum!</p>
+
+            <div style="margin-top: 20px;">
+                <button class="btn" onclick="goBackToApp()">Înapoi la Aplicație</button>
+            </div>
+        </div>
+
+        <div id="error" style="display: none;">
+            <div class="icon">⚠️</div>
+            <h1>Oops! Ceva nu a mers</h1>
+            <div class="error" id="error-message">
+                Linkul de confirmare a expirat sau nu e valid. Te rog, încearcă din nou.
+            </div>
+
+            <p class="status">
+                Dacă problema persistă, contactează suportul sau încearcă să te înregistrezi din nou.
+            </p>
+
+            <div style="margin-top: 20px;">
+                <a href="https://cityscapeapp.com" class="btn">Întoarce-te la site</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>CityScape © 2026 | Email Confirmation System</p>
+        </div>
+    </div>
+
+    <script>
+        // Get token and type from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const type = urlParams.get('type');
+
+        // Show loading screen
+        document.getElementById('loading').style.display = 'block';
+
+        if (!token || type !== 'email') {
+            showError('Token invalid sau inexistent.');
+        } else {
+            // Call backend to confirm email with Supabase
+            confirmEmailWithBackend(token);
+        }
+
+        function confirmEmailWithBackend(token) {
+            fetch('/api/auth/confirm-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: token })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess();
+                } else {
+                    showError(data.message || 'Eroare la confirmare.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Eroare de conectare. Te rog încearcă mai târziu.');
+            });
+        }
+
+        function showSuccess() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function goBackToApp() {
+            // Try to open the app, fallback to website
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // Mobile device - try to open app
+                setTimeout(() => {
+                    window.location.href = 'cityscape://';
+                }, 100);
+            } else {
+                // Desktop - show instructions
+                alert('Deschide aplicația CityScape pe telefonul tău și te conectează cu emailul și parola tale.');
+            }
+        }
+    </script>
+</body>
+</html>
