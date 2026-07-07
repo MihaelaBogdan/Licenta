@@ -5,10 +5,15 @@
     android:layout_height="match_parent"
     android:background="@color/app_background">
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -17,13 +22,15 @@
             android:background="@drawable/bg_main_gradient">
 
             <LinearLayout
+                android:id="@+id/home_content_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
 
-            <!-- Elegant Profi Header -->
+            
             <RelativeLayout
+                android:id="@+id/home_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp">
@@ -94,57 +101,290 @@
                     app:tint="@color/primary" />
             </RelativeLayout>
 
-            <!-- Offline Banner Card -->
+            
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_offline_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="@color/app_card">
+                app:cardBackgroundColor="#0D10B981">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- Pulsing dot -->
+                        <View
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:background="@drawable/shape_dot_primary"
+                            android:layout_marginEnd="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/offline_mode_label"
+                            android:textColor="@color/primary"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.1" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/auto_str_d1b276"
-                        android:textSize="28sp"
-                        android:layout_marginEnd="16dp" />
+                        android:text="@string/offline_works_without_internet"
+                        android:textColor="@color/app_text_primary"
+                        android:textSize="20sp"
+                        android:fontFamily="sans-serif-black"
+                        android:lineSpacingMultiplier="1.2"
+                        android:layout_marginBottom="6dp" />
 
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/auto_mod_offline_activ_1059d2"
-                            android:textColor="@color/primary"
-                            android:textSize="14sp"
-                            android:fontFamily="sans-serif-black" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/auto_chiar_daca_esti_in_avion_la_me_f41e5b"
-                            android:textColor="@color/app_text_secondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
+                        android:text="@string/offline_access_features"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="13sp"
+                        android:lineSpacingMultiplier="1.3" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- NEXT LEVEL: Weather/Contextual Smart Recommendation Card -->
+            <!-- ═══════════ OFFLINE HUB ═══════════ -->
+            <LinearLayout
+                android:id="@+id/layout_offline_hub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Stats row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal">
+
+                    <!-- Stat: Trasee -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#1A10B981">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:gravity="center">
+                            <TextView
+                                android:id="@+id/txt_offline_routes_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="28sp"
+                                android:textColor="@color/primary"
+                                android:fontFamily="sans-serif-black" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Trasee salvate"
+                                android:textSize="11sp"
+                                android:textColor="@color/primary"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Stat: Favorite -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#1AF59E0B">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:gravity="center">
+                            <TextView
+                                android:id="@+id/txt_offline_favs_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="28sp"
+                                android:textColor="@color/gold_accent"
+                                android:fontFamily="sans-serif-black" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Locații favorite"
+                                android:textSize="11sp"
+                                android:textColor="@color/gold_accent"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <!-- Quick action buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:orientation="horizontal">
+
+                    <!-- Harta -->
+                    <LinearLayout
+                        android:id="@+id/btn_offline_map"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="14dp"
+                        android:background="@drawable/bg_chip_selected"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🗺️"
+                            android:textSize="24sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/offline_btn_map"
+                            android:textSize="11sp"
+                            android:textColor="@color/primary"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Favorite -->
+                    <LinearLayout
+                        android:id="@+id/btn_offline_favorites"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:layout_marginEnd="6dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="14dp"
+                        android:background="@drawable/bg_chip_selected"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="❤️"
+                            android:textSize="24sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/offline_btn_favorites"
+                            android:textSize="11sp"
+                            android:textColor="@color/primary"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Itinerar -->
+                    <LinearLayout
+                        android:id="@+id/btn_offline_itinerary"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="14dp"
+                        android:background="@drawable/bg_chip_selected"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🧭"
+                            android:textSize="24sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/offline_btn_routes"
+                            android:textSize="11sp"
+                            android:textColor="@color/primary"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Saved itineraries section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/offline_saved_routes"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="18sp" />
+
+                <LinearLayout
+                    android:id="@+id/layout_offline_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🧭"
+                        android:textSize="48sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/offline_no_routes"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="14sp"
+                        android:lineSpacingMultiplier="1.4" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_offline_activities"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingBottom="24dp" />
+
+            </LinearLayout>
+
+            
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_smart_recommendation"
                 android:layout_width="match_parent"
@@ -217,7 +457,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- NEXT LEVEL: Daily Quest Card -->
+            
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_daily_quest"
                 android:layout_width="match_parent"
@@ -273,7 +513,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/auto_exploratorul_urban_386541"
-                                android:textColor="@color/app_text_primary"
+                                android:textColor="@color/quest_card_text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:fontFamily="sans-serif-black" />
@@ -313,7 +553,6 @@
                         android:fontFamily="sans-serif-italic" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-
 
             <LinearLayout
                 android:id="@+id/section_ai_picks"
@@ -358,7 +597,7 @@
                     android:orientation="horizontal" />
             </LinearLayout>
 
-            <!-- Content Tabs -->
+            
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_plan_day"
                 android:layout_width="match_parent"
@@ -377,8 +616,8 @@
                 app:iconPadding="12dp"
                 app:iconGravity="textStart" />
 
-            <!-- Interactive Live Battle Home Screen Widget Card -->
-            <!-- Interactive Live Battle Home Screen Widget Card -->
+            
+            
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_home_live_battle"
                 android:layout_width="match_parent"
@@ -399,7 +638,7 @@
                     android:background="@drawable/bg_live_battle_card"
                     android:padding="16dp">
 
-                    <!-- Header -->
+                    
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -416,7 +655,7 @@
                             android:textSize="14sp"
                             android:fontFamily="sans-serif-black" />
 
-                        <!-- Red LIVE Badge -->
+                        
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -429,7 +668,7 @@
                             android:paddingVertical="3dp" />
                     </LinearLayout>
 
-                    <!-- Leader Indicator -->
+                    
                     <TextView
                         android:id="@+id/txt_home_battle_leader"
                         android:layout_width="match_parent"
@@ -442,14 +681,14 @@
                         android:fontFamily="sans-serif-medium"
                         android:gravity="center" />
 
-                    <!-- Clash Row (Horizontal) -->
+                    
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
-                        <!-- Place A Column -->
+                        
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -505,7 +744,7 @@
                                 android:paddingHorizontal="16dp" />
                         </LinearLayout>
 
-                        <!-- VS Indicator in Middle -->
+                        
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -519,7 +758,7 @@
                             android:layout_marginHorizontal="10dp"
                             android:gravity="center" />
 
-                        <!-- Place B Column -->
+                        
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -579,9 +818,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-
-
-            <!-- Modern Search Bar -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
@@ -628,7 +865,7 @@
                     app:tint="@color/primary" />
             </LinearLayout>
 
-            <!-- Active Filters List -->
+            
             <HorizontalScrollView
                 android:id="@+id/scroll_active_filters"
                 android:layout_width="match_parent"
@@ -644,7 +881,7 @@
                     app:singleLine="true" />
             </HorizontalScrollView>
 
-            <!-- Categories -->
+            
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -721,7 +958,7 @@
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
-            <!-- Map Preview Section -->
+            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -768,7 +1005,7 @@
                 </FrameLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Near You Section -->
+            
             <LinearLayout
                 android:id="@+id/section_near_you"
                 android:layout_width="match_parent"
@@ -808,7 +1045,7 @@
                 android:paddingHorizontal="16dp"
                 android:orientation="horizontal" />
 
-            <!-- Visited Section -->
+            
             <LinearLayout
                 android:id="@+id/section_visited"
                 android:layout_width="match_parent"
@@ -849,7 +1086,7 @@
                 android:orientation="horizontal"
                 android:visibility="gone" />
 
-            <!-- Events Section -->
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -900,7 +1137,7 @@
                 android:orientation="horizontal"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-            <!-- Enhanced Trending Section Container -->
+            
             <LinearLayout
                 android:id="@+id/section_trending"
                 android:layout_width="match_parent"
@@ -971,5 +1208,5 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

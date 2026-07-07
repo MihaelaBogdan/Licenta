@@ -83,14 +83,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private FusedLocationProviderClient fusedLocationClient;
         private Location currentLocation;
         private Location actualGpsLocation;
-        private List<Place> nearbyPlacesList = new ArrayList<>(); // For Near You (real-time)
-        private List<Place> allPlacesList = new ArrayList<>(); // For Trending (whole city)
-        private List<Place> combinedPlacesList = new ArrayList<>(); // NEW: Combined/Filtered list for current city
-        private List<Place> visitedPlacesList = new ArrayList<>(); // NEW: Visited Section
+        private List<Place> nearbyPlacesList = new ArrayList<>(); 
+        private List<Place> allPlacesList = new ArrayList<>(); 
+        private List<Place> combinedPlacesList = new ArrayList<>(); 
+        private List<Place> visitedPlacesList = new ArrayList<>(); 
         private List<Place> restaurantsList = new ArrayList<>();
         private List<Place> cafesList = new ArrayList<>();
         private List<Place> museumsList = new ArrayList<>();
-        private List<Place> aiPicksList = new ArrayList<>(); // NEW: AI Recommendations
+        private List<Place> aiPicksList = new ArrayList<>(); 
         private List<com.cityscape.app.model.Event> eventsList = new ArrayList<>();
         private String currentCategory = "All";
         private String searchQuery = "";
@@ -103,6 +103,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private String eventMusicFilter = "All";
         private com.cityscape.app.api.WeatherResponse currentWeather;
         private boolean isManualLocation = false;
+        private boolean isOfflineMode = false;
         private static final int REQUEST_CHECK_SETTINGS = 101;
 
         public View onCreateView(@NonNull LayoutInflater inflater,
@@ -121,7 +122,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 setupMoodSearch();
                 setupItineraryButton();
                 setupCrystalBall();
-                // Hide location-only sections until GPS confirms real location
+                
                 View battleCard = binding.getRoot().findViewById(R.id.card_home_live_battle);
                 if (battleCard != null) battleCard.setVisibility(View.GONE);
                 androidx.cardview.widget.CardView smartCard = binding.getRoot().findViewById(R.id.card_smart_recommendation);
@@ -130,6 +131,22 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 setupHypeBattle();
                 binding.btnResetLocation.setOnClickListener(v -> setupLocationReset());
                 
+                androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh = binding.getRoot().findViewById(R.id.swipe_refresh);
+                if (swipeRefresh != null) {
+                    swipeRefresh.setOnRefreshListener(() -> {
+                        isOfflineMode = false;
+                        if (currentLocation != null) {
+                            fetchWeather();
+                            fetchPlaces(false);
+                            fetchAIPicks();
+                            loadDailyQuest();
+                        } else {
+                            checkLocationPermission();
+                        }
+                        swipeRefresh.setRefreshing(false);
+                    });
+                }
+
                 com.google.android.gms.maps.SupportMapFragment mapFragment = (com.google.android.gms.maps.SupportMapFragment) getChildFragmentManager()
                         .findFragmentById(R.id.map_preview);
                 if (mapFragment != null) {
@@ -142,7 +159,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 showPreviousSessionPromptIfAvailable();
                 setupSeeAllButtons();
 
-                // DEBUG: Show the current API URL on start to verify build updates
+                
                 try {
                     String apiUrl = BuildConfig.FLASK_API_URL;
                     Toast.makeText(getContext(), getString(R.string.connected_to) + apiUrl, Toast.LENGTH_LONG).show();
@@ -154,16 +171,21 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void showPreviousSessionPromptIfAvailable() {
-            // No prompt needed anymore, we automatically respect the preferred city
-            // as per user request to ignore current location when set.
+            
+            
         }
 
         private void setupLocationReset() {
+            // Button shows when in manual location mode → clicking it goes back to real GPS
             if (binding.btnResetLocation != null) {
                 binding.btnResetLocation.setOnClickListener(v -> {
                     isManualLocation = false;
                     sessionManager.setPreferredCity(null);
+                    sessionManager.setPreferredLocation(Double.NaN, Double.NaN); // clear stored coords
                     Toast.makeText(getContext(), getString(R.string.reverting_to_gps), Toast.LENGTH_SHORT).show();
+                    // Hide the button immediately
+                    binding.btnResetLocation.setVisibility(View.GONE);
+                    // Go back to real GPS location
                     checkLocationPermission();
                 });
             }
@@ -180,7 +202,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 return;
                         }
 
-                        // Show dialog for scope selection
+                        
                         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(
                                         requireContext(), R.style.DarkDialogTheme);
                         View dialogView = getLayoutInflater().inflate(R.layout.dialog_plan_itinerary, null);
@@ -232,20 +254,21 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         View btnPlan = dialogView.findViewById(R.id.btn_generate_itinerary);
 
                         btnPlan.setOnClickListener(v1 -> {
-                                String scope = (toggleScope.getCheckedButtonId() == R.id.btn_scope_city) ? "city"
-                                                : "nearby";
+                                String scope = (toggleScope.getCheckedButtonId() == R.id.btn_scope_nearby) ? "nearby" : "city"; // Default to city if not specified
                                                 
-                                String type = "exploration";
-                                int checkedChipId = styleChips.getCheckedChipId();
-                                
-                                if (checkedChipId == R.id.chip_type_relaxation) type = "relaxation";
-                                else if (checkedChipId == R.id.chip_type_cultural) type = "cultural";
-                                else if (checkedChipId == R.id.chip_type_gastronomic) type = "gastronomic";
-                                else if (checkedChipId == R.id.chip_type_nightlife) type = "nightlife";
-                                else if (checkedChipId == R.id.chip_type_cinema) type = "cinema";
-                                else if (checkedChipId == R.id.chip_type_sport) type = "sport";
+                                List<String> selectedStyles = new ArrayList<>();
+                                for (int i = 0; i < styleChips.getChildCount(); i++) {
+                                    com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) styleChips.getChildAt(i);
+                                    if (chip.isChecked()) {
+                                        if (chip.getId() == R.id.chip_type_relaxation) selectedStyles.add("relaxation");
+                                        else if (chip.getId() == R.id.chip_type_cultural) selectedStyles.add("cultural");
+                                        else if (chip.getId() == R.id.chip_type_gastronomic) selectedStyles.add("gastronomic");
+                                        else if (chip.getId() == R.id.chip_type_sport) selectedStyles.add("sport");
+                                    }
+                                }
+                                String type = selectedStyles.isEmpty() ? "exploration" : String.join(",", selectedStyles);
 
-                                // Collect interests
+                                
                                 List<String> selectedInterests = new ArrayList<>();
                                 if (interestChips != null) {
                                     for (int i = 0; i < interestChips.getChildCount(); i++) {
@@ -262,7 +285,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 int duration = (int) (durationSlider != null ? durationSlider.getValue() : 6);
                                 int points = (int) (densitySlider != null ? densitySlider.getValue() : 4);
 
-                                // Read transport mode
+                                
                                 String travelMode = "walking";
                                 com.google.android.material.chip.ChipGroup transportChips = dialogView.findViewById(R.id.dialog_transport_chips);
                                 if (transportChips != null) {
@@ -271,7 +294,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     else if (transportChipId == R.id.chip_transport_driving) travelMode = "driving";
                                 }
 
-                                // Read companion
+                                
                                 String companion = "solo";
                                 com.google.android.material.chip.ChipGroup companionChips = dialogView.findViewById(R.id.dialog_companion_chips);
                                 if (companionChips != null) {
@@ -281,10 +304,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     else if (companionChipId == R.id.chip_companion_family) companion = "family";
                                 }
 
-                                // Read start hour
+                                
                                 int startHour = (startHourSlider != null) ? (int) startHourSlider.getValue() : 8;
 
-                                // Read avoid crowds
+                                
                                 boolean avoidCrowds = false;
                                 com.google.android.material.materialswitch.MaterialSwitch switchAvoidCrowds = dialogView.findViewById(R.id.switch_avoid_crowds);
                                 if (switchAvoidCrowds != null) {
@@ -300,7 +323,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void setupCrystalBall() {
-                // Add a subtle pulsing animation to make it look "alive"
+                
                 android.animation.ObjectAnimator pulseX = android.animation.ObjectAnimator.ofFloat(binding.btnRevealFate, "scaleX", 1f, 1.15f);
                 android.animation.ObjectAnimator pulseY = android.animation.ObjectAnimator.ofFloat(binding.btnRevealFate, "scaleY", 1f, 1.15f);
                 pulseX.setDuration(1200); pulseY.setDuration(1200);
@@ -309,7 +332,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 pulseX.start(); pulseY.start();
 
                 binding.btnRevealFate.setOnClickListener(v -> {
-                        // Header button feedback
+                        
                         v.animate().scaleX(1.4f).scaleY(1.4f).setDuration(150).withEndAction(() -> v.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150)).start();
                         v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
                         
@@ -341,12 +364,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 com.google.android.material.chip.Chip prediction2 = dialogView.findViewById(R.id.prediction_2);
                 com.google.android.material.chip.Chip prediction3 = dialogView.findViewById(R.id.prediction_3);
 
-                // Setup initial state
+                
                 ballContainer.setVisibility(View.GONE);
                 textReveal.setAlpha(0f);
                 btnGo.setVisibility(View.GONE);
 
-                // Puls subtil al glow-ului în timp ce utilizatorul alege categoria
+                
                 android.animation.ObjectAnimator idlePulse = android.animation.ObjectAnimator.ofFloat(glow1, "alpha", 0.2f, 0.5f);
                 idlePulse.setDuration(2000);
                 idlePulse.setRepeatCount(android.animation.ValueAnimator.INFINITE);
@@ -370,8 +393,11 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         if (crystalBallView != null) crystalBallView.resetBall();
                         ballContainer.setVisibility(View.VISIBLE);
 
-                        textStatus.setText(getString(R.string.globe_watching));
-                        textInstruction.setText(getString(R.string.energy_concentrating));
+                        
+                        textStatus.setVisibility(View.GONE);
+                        textInstruction.setVisibility(View.GONE);
+                        View predictions = dialogView.findViewById(R.id.layout_predictions);
+                        if (predictions != null) predictions.setVisibility(View.GONE);
 
                         startMagicAnimations(glow1, glow2, shimmer, ballShadow, ballContainer);
 
@@ -425,7 +451,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 android.view.animation.AccelerateDecelerateInterpolator smooth =
                         new android.view.animation.AccelerateDecelerateInterpolator();
 
-                // Levitare: globul plutește sus-jos
+                
                 android.animation.ObjectAnimator levitate = android.animation.ObjectAnimator.ofFloat(
                         ballContainer, "translationY", 0f, -18f);
                 levitate.setDuration(2600);
@@ -434,7 +460,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 levitate.setInterpolator(smooth);
                 levitate.start();
 
-                // Umbra se micșorează sincronizat cu levitarea
+                
                 if (ballShadow != null) {
                     android.animation.ObjectAnimator shadowScale = android.animation.ObjectAnimator.ofFloat(
                             ballShadow, "scaleX", 1.0f, 0.50f);
@@ -453,7 +479,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     shadowAlpha.start();
                 }
 
-                // Glow 1: puls dramatic cu scalare
+                
                 android.animation.ObjectAnimator pulseGlow1 = android.animation.ObjectAnimator.ofFloat(
                         glow1, "alpha", 0.3f, 0.88f);
                 pulseGlow1.setDuration(1900);
@@ -471,7 +497,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     sg.start();
                 }
 
-                // Glow 2: în antifază față de glow1
+                
                 android.animation.ObjectAnimator pulseGlow2 = android.animation.ObjectAnimator.ofFloat(
                         glow2, "alpha", 0.18f, 0.62f);
                 pulseGlow2.setDuration(2700);
@@ -481,7 +507,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 pulseGlow2.setStartDelay(950);
                 pulseGlow2.start();
 
-                // Shimmer / glint: flash specultar periodic aleator
+                
                 if (shimmer != null) {
                     shimmer.setAlpha(0f);
                     java.util.Random rng = new java.util.Random();
@@ -535,16 +561,15 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 String name, com.google.gson.JsonObject result) {
             textReveal.postDelayed(() -> {
                 if (!dialog.isShowing()) return;
-                textStatus.setText(getString(R.string.destiny_chosen));
-                // Nebula se estompează treptat (via CrystalBallView.startReveal)
+                
                 if (crystalBallView != null) crystalBallView.startReveal();
-                // Flash specultar final (glint de reveal)
+                
                 if (shimmer != null) {
                     shimmer.animate().alpha(1.0f).setDuration(150)
                         .withEndAction(() -> shimmer.animate().alpha(0.3f).setDuration(800).start())
                         .start();
                 }
-                // Numele apare cu fade-in întârziat față de mist
+                
                 textReveal.postDelayed(() -> {
                     textReveal.setText(name);
                     textReveal.animate().alpha(1.0f).setDuration(450)
@@ -581,22 +606,23 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
              if (getContext() == null) return;
              
              String name = result.get("name").getAsString();
-             String defaultReason = "en".equals(java.util.Locale.getDefault().getLanguage()) ? "Destiny guides you to a unique local experience!" : "Destinul te ghidează spre o experiență locală unică!";
+             String defaultReason = "en".equals(java.util.Locale.getDefault().getLanguage()) ? "A place that matches your interests, close to you." : "Un loc care se potrivește intereselor tale, aproape de tine.";
              String reason = result.has("reason") && !result.get("reason").isJsonNull() ? result.get("reason").getAsString() : defaultReason;
              com.google.gson.JsonArray activitiesArr = result.has("activities") && !result.get("activities").isJsonNull() ? result.getAsJsonArray("activities") : null;
-             
+
              StringBuilder actStr = new StringBuilder();
              if (activitiesArr != null) {
                  for (int i = 0; i < activitiesArr.size(); i++) {
-                     actStr.append("  ✨ ").append(activitiesArr.get(i).getAsString()).append("\n");
+                     actStr.append("•  ").append(activitiesArr.get(i).getAsString());
+                     if (i < activitiesArr.size() - 1) actStr.append("\n");
                  }
              } else {
-                 actStr.append("  ✨ Explorează împrejurimile în ritmul tău.\n");
-                 actStr.append("  ✨ Admiră detaliile arhitecturale și farmecul locului.\n");
-                 actStr.append("  ✨ Descoperă secretele ascunse ale comunității.\n");
+                 actStr.append("•  Explorează împrejurimile în ritmul tău.\n");
+                 actStr.append("•  Admiră detaliile arhitecturale și farmecul locului.\n");
+                 actStr.append("•  Descoperă secretele ascunse ale comunității.");
              }
 
-             // Create custom reveal dialog
+             
              androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
              View dialogView = getLayoutInflater().inflate(R.layout.dialog_magic_reveal, null);
              builder.setView(dialogView);
@@ -611,7 +637,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
              com.google.android.material.button.MaterialButton btnClose = dialogView.findViewById(R.id.btn_reveal_close);
 
              textName.setText(name);
-             textReason.setText("\"" + reason + "\"");
+             textReason.setText(reason);
              textActivities.setText(actStr.toString());
 
              btnNavigate.setOnClickListener(v -> {
@@ -633,7 +659,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
              btnShare.setOnClickListener(v -> {
                  try {
-                     String shareMsg = "Hei! Globul de Cristal CityScape mi-a prezis o aventură la " + name + ". Vrei să vii cu mine? ✨🚀";
+                     String shareMsg = "Hei! CityScape mi-a recomandat " + name + ". Vrei să vii cu mine?";
                      android.content.Intent sendIntent = new android.content.Intent();
                      sendIntent.setAction(android.content.Intent.ACTION_SEND);
                      sendIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMsg);
@@ -656,11 +682,11 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(
                                 requireContext(), R.style.DarkDialogTheme);
 
-                // Use custom view if possible, or just standard alert
+                
                 builder.setTitle(getString(R.string.perfect_weather))
                                 .setMessage(getString(R.string.how_visit, place.name) + place.description)
                                 .setPositiveButton(getString(R.string.choose), (d, w) -> {
-                                        // Open detail
+                                        
                                         Toast.makeText(getContext(), getString(R.string.details_place) + place.name,
                                                         Toast.LENGTH_SHORT).show();
                                 })
@@ -704,8 +730,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
                 task.addOnSuccessListener(requireActivity(), locationSettingsResponse -> {
-                        // Check if user has a preferred city set in Settings. 
-                        // If so, we IGNORE GPS completely to respect their choice.
+                        
+                        
                         String prefCity = sessionManager.getPreferredCity();
                         if (prefCity != null && !prefCity.isEmpty()) {
                             Log.d("HomeFragment", "Using preferred city override: " + prefCity);
@@ -714,7 +740,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             return;
                         }
 
-                        // Settings are good, get location only if no manual override is active
+                        
                         if (!isManualLocation) {
                             performLocationFetch();
                         }
@@ -740,7 +766,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (preferredCity != null && !preferredCity.isEmpty()) {
                         searchForCity(preferredCity);
                 } else {
-                        // Global Fallback and for local testing convenience
+                        
                         Log.d("HomeFragment", "Using London as global fallback city");
                         searchForCity("London");
                 }
@@ -753,7 +779,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 performLocationFetch();
                         } else {
                                 onLocationNotFound();
-                                fetchPlaces(false); // Fetch static if GPS denied
+                                fetchPlaces(false); 
                         }
                 }
         }
@@ -766,14 +792,16 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         .addOnSuccessListener(location -> {
                                                 if (!isAdded()) return;
                                                 if (location != null) {
-                                                        currentLocation = location;
-                                                        actualGpsLocation = location; // Store real physical location
+                                                        if (!isManualLocation) {
+                                                                currentLocation = location;
+                                                        }
+                                                        actualGpsLocation = location; 
                                                         sessionManager.saveLastLocation(location.getLatitude(), location.getLongitude());
                                                         updateLocationUI();
                                                         fetchPlaces(true);
                                                         fetchPlaces(false);
-                                                        fetchWeather(); // Fetch weather context
-                                                        fetchEvents();  // Ensure events are populated on launch
+                                                        fetchWeather(); 
+                                                        fetchEvents();  
                                                 } else {
                                                         onLocationNotFound();
                                                 }
@@ -827,7 +855,31 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void updateSmartRecommendation(double temp, String condition) {
+                isOfflineMode = false;
                 if (!isAdded() || getView() == null) return;
+                
+                // Restore online elements
+                android.widget.LinearLayout container = getView().findViewById(R.id.home_content_container);
+                if (container != null) {
+                    for (int i = 0; i < container.getChildCount(); i++) {
+                        android.view.View child = container.getChildAt(i);
+                        int id = child.getId();
+                        if (id != R.id.layout_offline_hub && id != R.id.card_offline_banner) {
+                            child.setVisibility(android.view.View.VISIBLE);
+                        } else {
+                            child.setVisibility(android.view.View.GONE);
+                        }
+                    }
+                }
+                
+                android.view.View textWeather = getView().findViewById(R.id.text_weather);
+                android.view.View btnFilter = getView().findViewById(R.id.btn_filter_header);
+                android.view.View btnCrystal = getView().findViewById(R.id.btn_reveal_fate);
+
+                if (textWeather != null) textWeather.setVisibility(android.view.View.VISIBLE);
+                if (btnFilter != null) btnFilter.setVisibility(android.view.View.VISIBLE);
+                if (btnCrystal != null) btnCrystal.setVisibility(android.view.View.VISIBLE);
+
                 if (isManualLocation) {
                     androidx.cardview.widget.CardView cs = getView().findViewById(R.id.card_smart_recommendation);
                     if (cs != null) cs.setVisibility(View.GONE);
@@ -848,7 +900,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 String recText;
                 String emoji;
                 
-                // Helper to check user interests
+                
                 boolean likesMuseums = interests.contains("muzee") || interests.contains("cultur") || interests.contains("istor");
                 boolean likesParks = interests.contains("parc") || interests.contains("natur");
                 boolean likesArt = interests.contains("art") || interests.contains("design");
@@ -911,21 +963,130 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void updateSmartRecommendationOffline() {
+                isOfflineMode = true;
                 if (!isAdded() || getView() == null) return;
-                if (isManualLocation) {
-                    androidx.cardview.widget.CardView cs = getView().findViewById(R.id.card_smart_recommendation);
-                    if (cs != null) cs.setVisibility(View.GONE);
-                    return;
+                
+                // Hide ALL online elements dynamically
+                android.widget.LinearLayout container = getView().findViewById(R.id.home_content_container);
+                if (container != null) {
+                    for (int i = 0; i < container.getChildCount(); i++) {
+                        android.view.View child = container.getChildAt(i);
+                        int id = child.getId();
+                        if (id != R.id.layout_offline_hub && id != R.id.card_offline_banner && id != R.id.home_header) {
+                            child.setVisibility(android.view.View.GONE);
+                        } else if (id == R.id.layout_offline_hub || id == R.id.card_offline_banner) {
+                            child.setVisibility(android.view.View.VISIBLE);
+                        }
+                    }
                 }
-                androidx.cardview.widget.CardView cardSmart = getView().findViewById(R.id.card_smart_recommendation);
-                TextView txtEmoji = getView().findViewById(R.id.txt_smart_emoji);
+                
+                // Hide header buttons and weather
+                android.view.View textWeather = getView().findViewById(R.id.text_weather);
+                android.view.View btnFilter = getView().findViewById(R.id.btn_filter_header);
+                android.view.View btnCrystal = getView().findViewById(R.id.btn_reveal_fate);
+                
+                if (textWeather != null) textWeather.setVisibility(android.view.View.GONE);
+                if (btnFilter != null) btnFilter.setVisibility(android.view.View.GONE);
+                if (btnCrystal != null) btnCrystal.setVisibility(android.view.View.GONE);
+
+                // Set banner text
                 TextView txtRec = getView().findViewById(R.id.txt_smart_recommendation);
-                
-                if (cardSmart == null || txtEmoji == null || txtRec == null) return;
-                
-                txtEmoji.setText("🔌");
-                txtRec.setText(getString(R.string.offline_mode_description));
-                cardSmart.setVisibility(View.VISIBLE);
+                if (txtRec != null) txtRec.setText(getString(R.string.offline_mode_description));
+
+                // Wire quick-action buttons
+                View btnMap = getView().findViewById(R.id.btn_offline_map);
+                View btnFavs = getView().findViewById(R.id.btn_offline_favorites);
+                View btnItinerary = getView().findViewById(R.id.btn_offline_itinerary);
+                if (btnMap != null) btnMap.setOnClickListener(v -> {
+                    if (getActivity() instanceof com.cityscape.app.MainActivity) {
+                        ((com.cityscape.app.MainActivity) getActivity()).navigateToTab(R.id.navigation_map);
+                    }
+                });
+                if (btnFavs != null) btnFavs.setOnClickListener(v -> {
+                    if (getActivity() instanceof com.cityscape.app.MainActivity) {
+                        ((com.cityscape.app.MainActivity) getActivity()).navigateToTab(R.id.navigation_map);
+                    }
+                });
+                if (btnItinerary != null) btnItinerary.setOnClickListener(v -> {
+                    if (getActivity() instanceof com.cityscape.app.MainActivity) {
+                        ((com.cityscape.app.MainActivity) getActivity()).navigateToTab(R.id.navigation_itinerary);
+                    }
+                });
+
+                // Load offline itineraries from Room
+                View offlineEmpty = getView().findViewById(R.id.layout_offline_empty);
+                androidx.recyclerview.widget.RecyclerView recyclerOffline = getView().findViewById(R.id.recycler_offline_activities);
+                TextView txtRoutesCount = getView().findViewById(R.id.txt_offline_routes_count);
+                TextView txtFavsCount = getView().findViewById(R.id.txt_offline_favs_count);
+
+                // Count favorites from SharedPreferences (keys prefixed with "fav_")
+                if (txtFavsCount != null) {
+                    try {
+                        android.content.SharedPreferences prefs = requireContext()
+                            .getSharedPreferences("CityScapePrefs", android.content.Context.MODE_PRIVATE);
+                        int favCount = 0;
+                        for (String key : prefs.getAll().keySet()) {
+                            if (key.startsWith("fav_") && prefs.getBoolean(key, false)) favCount++;
+                        }
+                        txtFavsCount.setText(String.valueOf(favCount));
+                    } catch (Exception ignored) {}
+                }
+
+                if (offlineEmpty != null && recyclerOffline != null && sessionManager != null) {
+                    new Thread(() -> {
+                        String userId = sessionManager.getUserId() != null ? sessionManager.getUserId() : "guest";
+                        java.util.List<com.cityscape.app.model.PlannedActivity> activities = new java.util.ArrayList<>();
+                        
+                        java.util.List<com.cityscape.app.model.PlannedActivity> dbActivities = com.cityscape.app.data.AppDatabase.getInstance(requireContext()).activityDao().getActivitiesForUser(userId);
+                        if (dbActivities != null) activities.addAll(dbActivities);
+                        final int routeCount = activities.size();
+
+                        if (activities.isEmpty()) {
+                            try {
+                                android.content.SharedPreferences prefs = requireContext().getSharedPreferences("CityScapePrefs", android.content.Context.MODE_PRIVATE);
+                                java.util.List<com.cityscape.app.model.Place> allPlaces = com.cityscape.app.data.AppDatabase.getInstance(requireContext()).placeDao().getAllPlaces();
+                                if (allPlaces != null) {
+                                    for (com.cityscape.app.model.Place p : allPlaces) {
+                                        if (prefs.getBoolean("fav_" + p.id, false)) {
+                                            com.cityscape.app.model.PlannedActivity favActivity = new com.cityscape.app.model.PlannedActivity(
+                                                userId, null, p.name, p.type != null ? p.type : "Favorit", p.imageUrl, System.currentTimeMillis(), "Oricând"
+                                            );
+                                            favActivity.notes = "Locație favorită";
+                                            activities.add(favActivity);
+                                        }
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                        }
+
+                        if (getActivity() == null) return;
+                        
+                        getActivity().runOnUiThread(() -> {
+                            if (txtRoutesCount != null) txtRoutesCount.setText(String.valueOf(routeCount));
+                            if (activities.isEmpty()) {
+                                offlineEmpty.setVisibility(View.VISIBLE);
+                                recyclerOffline.setVisibility(View.GONE);
+                            } else {
+                                offlineEmpty.setVisibility(View.GONE);
+                                recyclerOffline.setVisibility(View.VISIBLE);
+                                recyclerOffline.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
+                                com.cityscape.app.adapter.ActivityAdapter adapter = new com.cityscape.app.adapter.ActivityAdapter(getContext(), activities, new com.cityscape.app.adapter.ActivityAdapter.OnActivityActionListener() {
+                                    @Override
+                                    public void onCompleteClick(com.cityscape.app.model.PlannedActivity activity, int position) {}
+                                    @Override
+                                    public void onShareClick(com.cityscape.app.model.PlannedActivity activity) {}
+                                    @Override
+                                    public void onCreateGroupClick(com.cityscape.app.model.PlannedActivity activity) {}
+                                    @Override
+                                    public void onExportClick(com.cityscape.app.model.PlannedActivity activity) {}
+                                    @Override
+                                    public void onEditClick(com.cityscape.app.model.PlannedActivity activity) {}
+                                });
+                                recyclerOffline.setAdapter(adapter);
+                            }
+                        });
+                    }).start();
+                }
         }
 
         private void fetchItinerary(String scope, String type, int budget, int duration, int points, String manualInterests) {
@@ -951,7 +1112,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 User user = sessionManager.getCurrentUser();
                 String profileInterests = user != null && user.interests != null ? user.interests : "";
 
-                // Combine profile interests with manual ones from dialog
+                
                 String combinedInterests = profileInterests;
                 if (manualInterests != null && !manualInterests.isEmpty()) {
                     combinedInterests = combinedInterests.isEmpty() ? manualInterests : combinedInterests + "," + manualInterests;
@@ -964,9 +1125,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private void updateLocationUI() {
                 if (currentLocation == null || binding == null)
                         return;
-                // Update city text
+                
                 try {
-                        // Use a background thread for geocoding to avoid blocking the main UI if it takes too long or hangs
+                        
                         new Thread(() -> {
                             try {
                                 android.location.Geocoder geocoder = new android.location.Geocoder(requireContext(),
@@ -991,7 +1152,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         Log.e("HomeFragment", "Geocoder error", e);
                 }
 
-                // Update Map Preview with Markers
+                
                 com.google.android.gms.maps.SupportMapFragment mapFragment = (com.google.android.gms.maps.SupportMapFragment) getChildFragmentManager()
                                 .findFragmentById(R.id.map_preview);
                 if (mapFragment != null) {
@@ -1002,9 +1163,21 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                                         currentLocation.getLatitude(), currentLocation.getLongitude());
                                         googleMap.moveCamera(com.google.android.gms.maps.CameraUpdateFactory
                                                         .newLatLngZoom(userPos, 13));
-                                        googleMap.setMyLocationEnabled(true);
 
-                                        // Add markers for all known places (Trending + Nearby)
+                                        if (isManualLocation) {
+                                            // Manual location: disable GPS blue dot, add red marker for selected city
+                                            try { googleMap.setMyLocationEnabled(false); } catch (SecurityException se) {}
+                                            googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+                                                .position(userPos)
+                                                .title(binding.textLocation.getText().toString())
+                                                .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory
+                                                    .defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_RED)));
+                                        } else {
+                                            // Real GPS location: show blue dot
+                                            try { googleMap.setMyLocationEnabled(true); } catch (SecurityException se) {}
+                                        }
+
+                                        // Add place markers
                                         List<Place> mapPlaces = new ArrayList<>(allPlacesList);
                                         for (Place np : nearbyPlacesList) {
                                                 boolean exists = false;
@@ -1088,6 +1261,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         currentLocation = mockLoc;
                                         isManualLocation = true;
                                         sessionManager.setPreferredCity(displayName);
+                                        sessionManager.setPreferredLocation(lat, lng);
 
                                         binding.textLocation.setText(displayName);
                                         Toast.makeText(getContext(), getString(R.string.welcome_city, displayName), Toast.LENGTH_SHORT).show();
@@ -1098,6 +1272,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         updateFilters();
 
                                         updateLocationUI();
+                                        refreshMainMap();
                                         fetchPlaces(false);
                                         fetchWeather();
                                         fetchEvents();
@@ -1117,7 +1292,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void handleManualCityFallback(String cityName) {
-            // Hardcoded coordinates for common cities as fallback for geocoder
+            
             double lat = 0, lng = 0;
             String cleanName = cityName.toLowerCase();
             
@@ -1139,9 +1314,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 mockLoc.setLongitude(lng);
                 currentLocation = mockLoc;
                 isManualLocation = true;
+                sessionManager.setPreferredCity(cityName);
+                sessionManager.setPreferredLocation(lat, lng);
                 
                 binding.textLocation.setText(cityName);
                 updateLocationUI();
+                refreshMainMap();
                 fetchPlaces(false);
                 fetchWeather();
                 fetchEvents();
@@ -1154,7 +1332,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (getContext() == null)
                         return;
                 
-                // Final fallback if even preferred city is missing
+                
                 String city = sessionManager.getPreferredCity();
                 if (city != null) {
                     searchForCity(city);
@@ -1167,6 +1345,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
         private void setupGreeting() {
                 String greeting = getGreetingForTime();
+                
+                if (sessionManager != null && sessionManager.isLoggedIn()) {
+                        String name = sessionManager.getUserName();
+                        if (name != null && !name.isEmpty() && !name.equalsIgnoreCase("Explorer")) {
+                                greeting = greeting + ", " + name;
+                        }
+                }
                 binding.textGreeting.setText(greeting);
         }
 
@@ -1187,13 +1372,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 binding.recyclerVisited.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 
-                // AI Picks Recycler
+                
                 binding.recyclerAiPicks.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 aiPicksAdapter = new PlaceAdapter(getContext(), aiPicksList, true, new PlaceAdapter.OnPlaceClickListener() {
                     @Override
                     public void onPlaceClick(Place place) {
                         sessionManager.recordPlaceVisit(place.name);
-                        // Award XP for exploring
+                        
                         com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
                         com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
                         showPlaceDetailDialog(place);
@@ -1221,7 +1406,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 fetchVisitedPlaces();
         }
 
-
     private void setupCategoryChips() {
                 ChipGroup chipGroup = binding.categoryChipGroup;
                 for (int i = 0; i < chipGroup.getChildCount(); i++) {
@@ -1231,7 +1415,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                 chip.setOnClickListener(v -> {
                                         currentCategory = chip.getText().toString();
                                         
-                                        // Highlight selected chip and reset others
+                                        
                                         for (int j = 0; j < chipGroup.getChildCount(); j++) {
                                             View c = chipGroup.getChildAt(j);
                                             if (c instanceof Chip) {
@@ -1271,7 +1455,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                         fetchAIPicks();
                                     }
                                 };
-                                searchHandler.postDelayed(searchRunnable, 400); // 400ms debounce
+                                searchHandler.postDelayed(searchRunnable, 400); 
                         }
                         @Override
                         public void afterTextChanged(android.text.Editable s) { }
@@ -1303,15 +1487,16 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 com.google.android.material.chip.ChipGroup distanceGroup = view.findViewById(R.id.filter_distance_group);
                 com.google.android.material.chip.ChipGroup budgetGroup = view.findViewById(R.id.filter_budget_group);
 
-                // If filtering for events, hide rating, distance and budget filters
+                
                 if (forEvents) {
                     if (ratingGroup != null) ratingGroup.setVisibility(View.GONE);
                     if (distanceGroup != null) distanceGroup.setVisibility(View.GONE);
                     if (budgetGroup != null) budgetGroup.setVisibility(View.GONE);
                     
-                    // Also hide headers by traversing parent or finding them
-                    for (int i = 0; i < ((LinearLayout)view).getChildCount(); i++) {
-                        View child = ((LinearLayout)view).getChildAt(i);
+                    
+                    LinearLayout contentContainer = (LinearLayout) ((android.widget.ScrollView)view).getChildAt(0);
+                    for (int i = 0; i < contentContainer.getChildCount(); i++) {
+                        View child = contentContainer.getChildAt(i);
                         if (child instanceof TextView) {
                             String text = ((TextView) child).getText().toString();
                             if (text.contains("Rating") || text.contains("Distan") || text.contains("preț") || text.contains("Buget")) {
@@ -1320,7 +1505,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         }
                     }
                 } else {
-                    // Populate initial states for advanced filters
+                    
                     if (ratingGroup != null) {
                         if (currentRatingFilter == 4.0) ratingGroup.check(R.id.chip_rating_4);
                         else if (currentRatingFilter == 4.5) ratingGroup.check(R.id.chip_rating_45);
@@ -1341,7 +1526,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
                 }
 
-                // Music filter setup
+                
                 if (musicGroup != null) {
                     String activeMusic = forEvents ? eventMusicFilter : currentMusicFilter;
                     for (int i = 0; i < musicGroup.getChildCount(); i++) {
@@ -1357,7 +1542,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             int checkedMusic = musicGroup.getCheckedChipId();
                             String musicVal = "All";
                             if (checkedMusic != View.NO_ID) {
-                                    musicVal = ((com.google.android.material.chip.Chip)view.findViewById(checkedMusic)).getText().toString();
+                                View checkedChip = view.findViewById(checkedMusic);
+                                if (checkedChip instanceof com.google.android.material.chip.Chip) {
+                                    musicVal = ((com.google.android.material.chip.Chip) checkedChip).getText().toString();
+                                }
                             }
 
                             if (forEvents) {
@@ -1366,7 +1554,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             } else {
                                 currentMusicFilter = musicVal;
 
-                                // Read rating
+                                
                                 if (ratingGroup != null) {
                                     int checkedRating = ratingGroup.getCheckedChipId();
                                     if (checkedRating == R.id.chip_rating_4) currentRatingFilter = 4.0;
@@ -1374,7 +1562,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     else currentRatingFilter = 0.0;
                                 }
 
-                                // Read distance
+                                
                                 if (distanceGroup != null) {
                                     int checkedDistance = distanceGroup.getCheckedChipId();
                                     if (checkedDistance == R.id.chip_distance_2) currentDistanceFilter = 2.0;
@@ -1384,7 +1572,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     else currentDistanceFilter = 50.0;
                                 }
 
-                                // Read budget
+                                
                                 if (budgetGroup != null) {
                                     int checkedBudget = budgetGroup.getCheckedChipId();
                                     if (checkedBudget == R.id.chip_budget_1) currentPriceFilter = 1;
@@ -1415,8 +1603,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 else if (currentCategory.equalsIgnoreCase(getString(R.string.category_museums)) || currentCategory.equalsIgnoreCase("Muzee"))
                         type = "museum";
                 else if (currentCategory.equalsIgnoreCase(getString(R.string.category_culture)) || currentCategory.equalsIgnoreCase("Cultură"))
-                        type = "culture"; 
-                else if (currentCategory.equalsIgnoreCase(getString(R.string.category_commerce)) || currentCategory.equalsIgnoreCase("Comercial"))
+                        type = "culture";
+                else if (currentCategory.equalsIgnoreCase(getString(R.string.category_commerce)) || currentCategory.equalsIgnoreCase("Shopping"))
                         type = "shopping";
                 
                 if (isAllCategory(currentCategory)) {
@@ -1425,9 +1613,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 
                 if (!isNearbyOnly) {
                     fetchPlaces(true); 
-                    fetchAIPicks(); // Trigger AI Recommendations
-                    loadDailyQuest(); // Trigger AI Daily Quest
-                    loadHypeMap(); // Refresh Hype Map for the new city
+                    fetchAIPicks(); 
+                    loadDailyQuest(); 
+                    loadHypeMap(); 
                 }
 
                 String userId = sessionManager.getUserId();
@@ -1436,6 +1624,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         .enqueue(new Callback<List<Place>>() {
                             @Override
                             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+                                if (!isAdded()) return;
                                 if (response.isSuccessful() && response.body() != null) {
                                     nearbyPlacesList.clear();
                                     nearbyPlacesList.addAll(response.body());
@@ -1444,7 +1633,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             }
                             @Override
                             public void onFailure(Call<List<Place>> call, Throwable t) {
-                                Log.e("HomeFragment", "Nearby fetch failed", t);
+                                if (!isAdded()) return;
+                                Log.e("HomeFragment", "Nearby fetch failed: " + t.getMessage());
                             }
                         });
                 } else {
@@ -1460,12 +1650,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     combinedPlacesList.clear();
                                     combinedPlacesList.addAll(results);
                                     
-                                    // DEBUG TOAST: Remove later once confirmed
-                                    // Removed results toast
+                                    
+                                    
                                     
                                     updateFilters();
                                 } else {
-                                    // Removed error toast
+                                    
                                 }
                             }
 
@@ -1490,20 +1680,20 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     interests = currentUser.interests;
                 }
 
-                // First, fetch explainable recommendations with confidence scores
+                
                 fetchExplainableRecommendations(userId, currentCity, interests);
 
-                // Fallback to regular recommendations if needed
+                
                 apiService.getPersonalizedRecommendations(currentLocation.getLatitude(), currentLocation.getLongitude(), userId, searchQuery, currentCategory, currentCity, interests)
                     .enqueue(new Callback<List<Place>>() {
                         @Override
                         public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                             if (binding == null) return;
                             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                                // Hide offline banner on success
+                                
                                 binding.cardOfflineBanner.setVisibility(View.GONE);
 
-                                // Cache fetched places in Room
+                                
                                 final List<Place> places = response.body();
                                 new Thread(() -> {
                                     try {
@@ -1511,7 +1701,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                                     } catch (Exception ignored) {}
                                 }).start();
 
-                                // Only add if explainable didn't already populate
+                                
                                 if (aiPicksList.isEmpty()) {
                                     aiPicksList.clear();
                                     aiPicksList.addAll(places);
@@ -1524,7 +1714,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         @Override
                         public void onFailure(Call<List<Place>> call, Throwable t) {
                             Log.e("HomeFragment", "AI Picks fetch failed", t);
-                            // Load from Room cache and show offline banner
+                            
                             new Thread(() -> {
                                 try {
                                     final List<Place> cached = com.cityscape.app.data.AppDatabase.getInstance(getContext()).placeDao().getAllPlaces();
@@ -1547,9 +1737,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     });
         }
 
-        /**
-         * Fetch recommendations with explainable confidence scores and match percentages
-         */
+        
         private void fetchExplainableRecommendations(String userId, String city, String interestsStr) {
                 final String categoryParam = isAllCategory(currentCategory) ? null : currentCategory;
                 final String queryParam = searchQuery.isEmpty() ? null : searchQuery;
@@ -1559,7 +1747,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 new Thread(() -> {
                     try {
-                        // Build interests array from string
+                        
                         java.util.List<String> interestsList = new ArrayList<>();
                         if (interestsStr != null && !interestsStr.isEmpty()) {
                             String[] parts = interestsStr.split(",");
@@ -1572,15 +1760,16 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             interestsList.add("general");
                         }
 
-                        // Build request JSON
+                        
                         org.json.JSONObject requestBody = new org.json.JSONObject();
                         requestBody.put("user_id", userId);
                         requestBody.put("lat", currentLocation.getLatitude());
                         requestBody.put("lng", currentLocation.getLongitude());
                         requestBody.put("interests", new org.json.JSONArray(interestsList));
                         requestBody.put("city_name", city != null ? city : "București");
-                        requestBody.put("limit", 10);
+                        requestBody.put("limit", 20);
                         requestBody.put("trending", true);
+                        requestBody.put("city_wide", true);
                         requestBody.put("language", java.util.Locale.getDefault().getLanguage());
 
                         if (categoryParam != null) {
@@ -1592,14 +1781,11 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         if (ratingParam > 0) {
                             requestBody.put("min_rating", ratingParam);
                         }
-                        if (distanceParam > 0 && distanceParam < 50.0) {
-                            requestBody.put("max_distance", distanceParam);
-                        }
                         if (priceParam > 0) {
                             requestBody.put("price_level", priceParam);
                         }
 
-                        // Make HTTP request to explainable recommendations endpoint
+                        
                         String baseUrl = ApiClient.getBaseUrl();
                         String apiUrl = baseUrl.replace("/api/", "") + "recommendations/explainable";
 
@@ -1625,11 +1811,11 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             org.json.JSONArray recommendations = jsonResponse.optJSONArray("recommendations");
 
                             if (recommendations != null && recommendations.length() > 0) {
-                                // Convert recommendations to Place objects with match percentages
+                                
                                 java.util.List<Place> places = com.cityscape.app.utils.RecommendationMapper
                                     .mapRecommendationsToPlaces(recommendations);
 
-                                // Update UI on main thread
+                                
                                 if (isAdded()) {
                                     getActivity().runOnUiThread(() -> {
                                         if (binding != null) {
@@ -1665,7 +1851,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private void updateFilters() {
                 if (binding == null) return;
 
-                // 1. Manage Trending Visibility and Location Title
+                
                 if (currentLocation != null) {
                     String city = binding.textLocation.getText().toString();
                     if (!isManualLocation) {
@@ -1682,18 +1868,22 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         }
                     }
 
-                    binding.sectionTrending.setVisibility(View.VISIBLE);
-                    binding.recyclerRecommended.setVisibility(View.VISIBLE);
+                    if (!isOfflineMode) {
+                        binding.sectionTrending.setVisibility(View.VISIBLE);
+                        binding.recyclerRecommended.setVisibility(View.VISIBLE);
+                    }
                     binding.trendingTitle.setText("Trending");
                 } else {
                     binding.sectionTrending.setVisibility(View.GONE);
                     binding.recyclerRecommended.setVisibility(View.GONE);
                 }
 
-                // 2. Manage Near You Visibility
+                
                 if (currentLocation != null) {
-                    binding.sectionNearYou.setVisibility(View.VISIBLE);
-                    binding.recyclerNearYou.setVisibility(View.VISIBLE);
+                    if (!isOfflineMode) {
+                        binding.sectionNearYou.setVisibility(View.VISIBLE);
+                        binding.recyclerNearYou.setVisibility(View.VISIBLE);
+                    }
                     
                     if (isManualLocation) {
                         binding.btnResetLocation.setVisibility(View.VISIBLE);
@@ -1712,23 +1902,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
                 }
 
-                // 3. Populate Lists
-                List<Place> filteredNearby = new ArrayList<>();
-                for (Place p : nearbyPlacesList) {
-                    if (currentLocation != null) {
-                        float[] distRes = new float[1];
-                        android.location.Location.distanceBetween(
-                            currentLocation.getLatitude(), currentLocation.getLongitude(),
-                            p.latitude, p.longitude, distRes
-                        );
-                        double distanceKm = distRes[0] / 1000.0;
-                        if (distanceKm > 6.0) {
-                            continue; // Skip places further than 6 km
-                        }
-                    }
-                    filteredNearby.add(p);
-                }
-                updateNearYouAdapter(filteredNearby);
+                
+                updateNearYouAdapter(new ArrayList<>(nearbyPlacesList));
 
                 List<Place> filteredAiPicks = new ArrayList<>();
                 for (Place p : aiPicksList) {
@@ -1740,7 +1915,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (filteredAiPicks.isEmpty()) {
                     binding.sectionAiPicks.setVisibility(View.GONE);
                 } else {
-                    binding.sectionAiPicks.setVisibility(View.VISIBLE);
+                    if (!isOfflineMode) binding.sectionAiPicks.setVisibility(View.VISIBLE);
                 }
 
                 com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
@@ -1750,7 +1925,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 String[] blacklist = {"mcdonald", "kfc", "subway", "5 to go", "amanet", "casino", "supermarket", "mega image", "lidl", "kaufland", "profi", "penny"};
                 
                 for (Place p : allPlacesList) {
-                    // EXCLUDE things already in "Near You" to ensure variety
+                    
                     boolean alreadyInNearYou = false;
                     for (Place np : nearbyPlacesList) {
                         if (np.id.equals(p.id) || (np.googlePlaceId != null && np.googlePlaceId.equals(p.googlePlaceId))) {
@@ -1773,14 +1948,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         }
                         if (blocked) continue;
 
-                        // Allow high ratings OR curated types OR anything if needed
+                        
                         if (p.rating >= 3.0 || typeLower.contains("museum") || typeLower.contains("park") || 
                             typeLower.contains("cafe") || typeLower.contains("restaurant") || typeLower.contains("landmark") ||
                             typeLower.contains("art") || typeLower.contains("historic") || typeLower.contains("attraction") ||
                             typeLower.contains("landmark") || typeLower.contains("tourism") || typeLower.contains("entertainment")) {
                             stageFiltered.add(p);
                         } else if (p.rating == 0 || stageFiltered.size() < 20) {
-                            stageFiltered.add(p); // Add more if we are desperate
+                            stageFiltered.add(p); 
                         }
                     }
                 }
@@ -1789,8 +1964,8 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         double score1 = (p1.rating != 0) ? p1.rating : 3.0;
                         double score2 = (p2.rating != 0) ? p2.rating : 3.0;
                         
-                        // POPULARITY BOOST (Rating * normalized Review Count)
-                        // This is NOT hardcoded - it uses real crowd data
+                        
+                        
                         score1 += (p1.reviewCount / 1000.0); 
                         score2 += (p2.reviewCount / 1000.0);
 
@@ -1804,8 +1979,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         return Double.compare(score2, score1);
                 });
 
-
-                // FINAL CURATION PULL - HEAVILY SIMPLIFIED FOR RELIABILITY
+                
                 List<Place> realTrending = new ArrayList<>();
                 for (Place p : stageFiltered) {
                     if (isCuratedDiscoveryType(p)) {
@@ -1813,13 +1987,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
                 }
                 
-                // If curated is empty, use any filtered
+                
                 if (realTrending.isEmpty()) {
                     realTrending.addAll(stageFiltered);
                 }
 
-                // If even stageFiltered is empty, use raw data unfiltered 
-                // but STILL exclude nearby ONLY if we have plenty of results
+                
+                
                 if (realTrending.isEmpty() && !allPlacesList.isEmpty()) {
                     for (Place p : allPlacesList) {
                         boolean alreadyInNearYou = false;
@@ -1830,14 +2004,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             }
                         }
                         
-                        // Only exclude if we have enough items already, otherwise allow it to prevent empty screen
+                        
                         if (!alreadyInNearYou || (realTrending.size() < 4 && allPlacesList.size() < 10)) {
                              realTrending.add(p);
                         }
                     }
                 }
 
-                // Clean image placeholders for trending
+                
                 for (Place p : realTrending) {
                     if (p.imageUrl == null || p.imageUrl.isEmpty()) {
                         p.imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400";
@@ -1847,9 +2021,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (!realTrending.isEmpty()) {
                     java.util.Collections.shuffle(realTrending);
                     updateRecommendedAdapter(realTrending);
-                    binding.sectionTrending.setVisibility(View.VISIBLE);
+                    if (!isOfflineMode) binding.sectionTrending.setVisibility(View.VISIBLE);
                 } else {
-                    // If absolutely nothing unique found in 50km (unlikely), hide section
+                    
                     binding.sectionTrending.setVisibility(View.GONE);
                 }
                 updateActiveFilterChips();
@@ -1866,7 +2040,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             activeFiltersChipGroup.removeAllViews();
             boolean hasFilters = false;
             
-            // 1. Rating filter chip
+            
             if (currentRatingFilter > 0) {
                 hasFilters = true;
                 com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
@@ -1880,7 +2054,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 activeFiltersChipGroup.addView(chip);
             }
             
-            // 2. Budget/Price filter chip
+            
             if (currentPriceFilter > 0) {
                 hasFilters = true;
                 com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
@@ -1897,7 +2071,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 activeFiltersChipGroup.addView(chip);
             }
             
-            // 3. Distance filter chip
+            
             if (currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
                 hasFilters = true;
                 com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
@@ -1911,7 +2085,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 activeFiltersChipGroup.addView(chip);
             }
             
-            // 4. Search query chip
+            
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                 hasFilters = true;
                 com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
@@ -1979,17 +2153,17 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 if (!pName.contains(currentMusicFilter.toLowerCase()) && !pType.contains(currentMusicFilter.toLowerCase())) return false;
             }
 
-            // Rating filter
+            
             if (currentRatingFilter > 0 && p.rating < currentRatingFilter) {
                 return false;
             }
 
-            // Price level filter
+            
             if (currentPriceFilter > 0 && p.priceLevel > 0 && p.priceLevel != currentPriceFilter) {
                 return false;
             }
 
-            // Distance filter
+            
             if (currentLocation != null && currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
                 float[] results = new float[1];
                 android.location.Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.latitude, p.longitude, results);
@@ -2087,8 +2261,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                     if (isAdded() && binding != null && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                         visitedPlacesList = response.body();
-                        binding.sectionVisited.setVisibility(View.VISIBLE);
-                        binding.recyclerVisited.setVisibility(View.VISIBLE);
+                        if (!isOfflineMode) {
+                            binding.sectionVisited.setVisibility(View.VISIBLE);
+                            binding.recyclerVisited.setVisibility(View.VISIBLE);
+                        }
                         updateVisitedAdapter();
                     } else if (isAdded() && binding != null) {
                         if (binding != null) {
@@ -2160,7 +2336,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private void updateRecommendedAdapter(List<Place> list) {
                 if (binding == null) return;
                 
-                // Show exactly up to 10 locations in the trending section
+                
                 List<Place> limitedList = list;
                 if (list != null && list.size() > 10) {
                         limitedList = new java.util.ArrayList<>(list.subList(0, 10));
@@ -2235,7 +2411,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             }
             if (txtAddress != null) txtAddress.setText(place.address != null ? place.address : getString(R.string.address_unspecified_text));
             
-            // Dynamic Live Weather Fetch for this specific place location
+            
             if (txtWeather != null && place.latitude != 0 && place.longitude != 0) {
                 apiService.getWeather(place.latitude, place.longitude).enqueue(new Callback<com.cityscape.app.api.WeatherResponse>() {
                     @Override
@@ -2298,10 +2474,10 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 btnClose.setText(isEn ? "Close" : "Închide");
             }
 
-            // Show AI Analysis Percentages if confidence score exists
+            
             if (place.confidence > 0) {
                 if (aiAnalysisSection != null) {
-                    aiAnalysisSection.setVisibility(View.VISIBLE);
+                    if (!isOfflineMode) aiAnalysisSection.setVisibility(View.VISIBLE);
                 }
                 if (txtTotalConfidence != null) {
                     txtTotalConfidence.setText(String.format(java.util.Locale.US, isEn ? "%.1f%% Match" : "%.1f%% Potrivire", place.confidence));
@@ -2343,12 +2519,12 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     progressFactorWeather.setProgress(Math.round(place.weatherMatchPct));
                 }
 
-                // Dynamically build filter and interest chips inside dialog
+                
                 com.google.android.material.chip.ChipGroup dialogCriteriaChips = v.findViewById(R.id.dialog_criteria_chips);
                 if (dialogCriteriaChips != null) {
                     dialogCriteriaChips.removeAllViews();
                     
-                    // 1. Category chip
+                    
                     if (currentCategory != null && !currentCategory.equalsIgnoreCase("All")) {
                         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
                         chip.setText(isEn ? "📂 Category: " + currentCategory : "📂 Categorie: " + currentCategory);
@@ -2358,7 +2534,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         dialogCriteriaChips.addView(chip);
                     }
                     
-                    // 2. Rating chip
+                    
                     if (currentRatingFilter > 0) {
                         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
                         chip.setText(isEn ? String.format(java.util.Locale.US, "⭐ Rating > %.1f", currentRatingFilter) : String.format(java.util.Locale.US, "⭐ Rating > %.1f", currentRatingFilter));
@@ -2368,7 +2544,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         dialogCriteriaChips.addView(chip);
                     }
                     
-                    // 3. Budget chip
+                    
                     if (currentPriceFilter > 0) {
                         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
                         String budgetStr;
@@ -2388,7 +2564,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         dialogCriteriaChips.addView(chip);
                     }
                     
-                    // 4. Distance chip
+                    
                     if (currentDistanceFilter > 0 && currentDistanceFilter < 50.0) {
                         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
                         chip.setText(isEn ? String.format(java.util.Locale.US, "📍 Distance < %d km", (int) currentDistanceFilter) : String.format(java.util.Locale.US, "📍 Distanță < %d km", (int) currentDistanceFilter));
@@ -2398,7 +2574,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         dialogCriteriaChips.addView(chip);
                     }
                     
-                    // 5. Query chip
+                    
                     if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
                         chip.setText(isEn ? "🔍 Search: \"" + searchQuery + "\"" : "🔍 Căutare: \"" + searchQuery + "\"");
@@ -2408,7 +2584,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         dialogCriteriaChips.addView(chip);
                     }
                     
-                    // 6. User Interests chips
+                    
                     com.cityscape.app.model.User currentUser = sessionManager.getCurrentUser();
                     String userInterests = (currentUser != null && currentUser.interests != null) ? currentUser.interests : "";
                     if (userInterests != null && !userInterests.isEmpty()) {
@@ -2438,7 +2614,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     .into(image);
             }
 
-            // Vibeometer logic
+            
             if (layoutVibeometer != null && vibeEmoji != null && vibeTitle != null && vibeDescription != null) {
                 int currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
                 String typeLower = place.type != null ? place.type.toLowerCase() : "";
@@ -2478,7 +2654,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 vibeDescription.setText(descriptionStr);
             }
 
-            // Audio Guide Click Logic
+            
             if (btnSpeakAi != null) {
                 initTextToSpeech();
                 final String textToRead = desc;
@@ -2522,14 +2698,14 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
             }
 
-            // Show reviews section - load cached/fallback reviews immediately first
+            
             if (place.reviews != null && !place.reviews.isEmpty()) {
                 renderReviews(v, place.reviews);
             } else {
                 loadFallbackReviews(v, place);
             }
             
-            // Fetch live details/reviews/description asynchronously
+            
             apiService.getPlaceDetails(place.id, java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<Place>() {
                 @Override
                 public void onResponse(Call<Place> call, Response<Place> response) {
@@ -2570,11 +2746,37 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 @Override
                 public void onFailure(Call<Place> call, Throwable t) {
-                    // Fail silently, fallbacks are already visible
+                    
                 }
             });
-            
             dialog.show();
+
+            
+            if (dialog.getWindow() != null) {
+                v.post(() -> {
+                    if (!isAdded()) return;
+                    int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                    int maxAllowedHeight = (int) (screenHeight * 0.82); 
+                    
+                    int contentHeight = v.getMeasuredHeight();
+                    if (contentHeight > maxAllowedHeight) {
+                        dialog.getWindow().setLayout(
+                            ViewGroup.LayoutParams.MATCH_PARENT, 
+                            maxAllowedHeight
+                        );
+                        
+                        View nestedScroll = v.findViewById(R.id.dialog_nested_scroll);
+                        if (nestedScroll != null) {
+                            ViewGroup.LayoutParams lp = nestedScroll.getLayoutParams();
+                            if (lp instanceof android.widget.LinearLayout.LayoutParams) {
+                                ((android.widget.LinearLayout.LayoutParams) lp).height = 0;
+                                ((android.widget.LinearLayout.LayoutParams) lp).weight = 1.0f;
+                                nestedScroll.setLayoutParams(lp);
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         private void loadFallbackReviews(View v, Place place) {
@@ -2832,12 +3034,15 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     for (String interest : interests.split(",")) {
                         String trimInt = interest.trim();
                         if (!trimInt.isEmpty()) {
-                            if (e1.title.toLowerCase().contains(trimInt)) score1 += 50;
-                            if (e2.title.toLowerCase().contains(trimInt)) score2 += 50;
+                            if (e1.title != null && e1.title.toLowerCase().contains(trimInt)) score1 += 50;
+                            if (e2.title != null && e2.title.toLowerCase().contains(trimInt)) score2 += 50;
                         }
                     }
                 }
-                if (score1 == score2) return e1.title.compareTo(e2.title);
+                if (score1 == score2) {
+                    if (e1.title != null && e2.title != null) return e1.title.compareTo(e2.title);
+                    return 0;
+                }
                 return Integer.compare(score2, score1);
             });
         }
@@ -2881,8 +3086,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 return false;
         }
 
-
-
         private void loadDailyQuest() {
             if (currentLocation == null || !isAdded()) return;
             if (isManualLocation) {
@@ -2901,13 +3104,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         if (response.isSuccessful() && response.body() != null && binding != null) {
                             try {
                                 com.google.gson.JsonObject quest = response.body();
-                                binding.cardDailyQuest.setVisibility(View.VISIBLE);
+                                if (!isOfflineMode) binding.cardDailyQuest.setVisibility(View.VISIBLE);
                                 binding.textQuestTitle.setText(quest.get("title").getAsString());
                                 binding.textQuestObjective.setText(quest.get("objective").getAsString());
                                 binding.textQuestReward.setText(quest.get("reward").getAsString());
                                 binding.textQuestReason.setText(quest.get("reason").getAsString());
                                 
-                                // Add a subtle animation
+                                
                                 binding.cardDailyQuest.setAlpha(0f);
                                 binding.cardDailyQuest.animate().alpha(1f).setDuration(500).start();
                             } catch (Exception e) {
@@ -2923,22 +3126,59 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 });
         }
 
+        /**
+         * Refreshes the main/full GoogleMap when location changes programmatically.
+         * Adds a red marker for manual locations, shows GPS blue dot for real locations.
+         */
+        private void refreshMainMap() {
+            if (googleMap == null || currentLocation == null) return;
+            com.google.android.gms.maps.model.LatLng latLng = new com.google.android.gms.maps.model.LatLng(
+                currentLocation.getLatitude(), currentLocation.getLongitude());
+            googleMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(latLng, 14f));
+            if (isManualLocation) {
+                googleMap.clear();
+                try { googleMap.setMyLocationEnabled(false); } catch (SecurityException se) {}
+                String cityLabel = (binding != null) ? binding.textLocation.getText().toString() : "Locație selectată";
+                googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+                    .position(latLng)
+                    .title(cityLabel)
+                    .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory
+                        .defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_RED)));
+            } else {
+                try { googleMap.setMyLocationEnabled(true); } catch (SecurityException se) {}
+                loadHypeMap();
+            }
+        }
+
         @Override
         public void onMapReady(@NonNull com.google.android.gms.maps.GoogleMap map) {
             this.googleMap = map;
             try {
-                // Style the map to be dark/premium
                 boolean success = map.setMapStyle(com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style_dark));
                 if (!success) Log.e("HomeFragment", "Style parsing failed.");
             } catch (Exception e) {
                 Log.e("HomeFragment", "Can't find style. Error: ", e);
             }
-            
+
             if (currentLocation != null) {
                 com.google.android.gms.maps.model.LatLng latLng = new com.google.android.gms.maps.model.LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                 map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(latLng, 14f));
+
+                if (isManualLocation) {
+                    // Show red marker for manually selected city, no GPS blue dot
+                    try { map.setMyLocationEnabled(false); } catch (SecurityException se) {}
+                    String cityLabel = (binding != null) ? binding.textLocation.getText().toString() : "Locație selectată";
+                    map.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+                        .position(latLng)
+                        .title(cityLabel)
+                        .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory
+                            .defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_RED)));
+                } else {
+                    // Real GPS: show blue dot
+                    try { map.setMyLocationEnabled(true); } catch (SecurityException se) {}
+                }
             }
-            
+
             loadHypeMap();
         }
 
@@ -2980,7 +3220,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             if (!isManualLocation) {
                 startLocationUpdates();
             }
-            // Refresh live battle widget every time user comes back to home
+            
             loadHomeBattleWidget();
         }
 
@@ -3058,7 +3298,9 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 public void onLocationResult(@NonNull com.google.android.gms.location.LocationResult locationResult) {
                     for (Location location : locationResult.getLocations()) {
                         if (location != null) {
-                            currentLocation = location;
+                            if (!isManualLocation) {
+                                currentLocation = location;
+                            }
                             actualGpsLocation = location;
                             checkGeofencingQuests(location);
                         }
@@ -3105,7 +3347,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 Location.distanceBetween(location.getLatitude(), location.getLongitude(), placeLat, placeLng, results);
                 float distance = results[0];
                 
-                if (distance < 50) { // Sub 50 de metri
+                if (distance < 50) { 
                     discoveredPlaceIds.add(placeId);
                     triggerQuestDiscovery(place);
                     break;
@@ -3233,7 +3475,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         }
 
         private void setupHypeBattle() {
-            // Load live battle data into home widget
+            
             loadHomeBattleWidget();
         }
 
@@ -3295,7 +3537,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
                     
                     if (cardView != null) {
-                        cardView.setVisibility(View.VISIBLE);
+                        if (!isOfflineMode) cardView.setVisibility(View.VISIBLE);
                         cardView.setOnClickListener(null);
                     }
                     
@@ -3372,7 +3614,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
 
                     if (cardView != null) {
-                        cardView.setVisibility(View.VISIBLE);
+                        if (!isOfflineMode) cardView.setVisibility(View.VISIBLE);
                         cardView.setOnClickListener(v2 -> showHypeBattleDialog());
                     }
 
@@ -3380,7 +3622,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         voteABtn.setText(placeAId.equals(userChoice) ? "⭐ Votat" : getString(R.string.vote));
                         voteABtn.setEnabled(true);
                         voteABtn.setOnClickListener(v2 -> {
-                            v2.setEnabled(false); // previne dublu-click
+                            v2.setEnabled(false); 
                             ViewGroup animRoot = (ViewGroup) root;
                             playClashAnimation(animRoot, () -> submitHomeVote(placeAId, battleId, nameA, nameB));
                         });
@@ -3390,7 +3632,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                         voteBBtn.setText(placeBId.equals(userChoice) ? "⭐ Votat" : getString(R.string.vote));
                         voteBBtn.setEnabled(true);
                         voteBBtn.setOnClickListener(v2 -> {
-                            v2.setEnabled(false); // previne dublu-click
+                            v2.setEnabled(false); 
                             ViewGroup animRoot = (ViewGroup) root;
                             playClashAnimation(animRoot, () -> submitHomeVote(placeBId, battleId, nameA, nameB));
                         });
@@ -3420,7 +3662,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     if (response.isSuccessful() && response.body() != null) {
                         com.google.gson.JsonObject res = response.body();
 
-                        // Show Snackbar with XP confirmation
+                        
                         com.google.android.material.snackbar.Snackbar.make(
                             binding.getRoot(),
                             "🎉 Vot înregistrat! +50 XP câștigat!",
@@ -3429,7 +3671,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                          .setTextColor(android.graphics.Color.WHITE)
                          .show();
 
-                        // Refresh widget with new vote counts
+                        
                         double newPctA = res.has("pct_a") ? res.get("pct_a").getAsDouble() : 50.0;
                         double newPctB = res.has("pct_b") ? res.get("pct_b").getAsDouble() : 50.0;
                         String newMostVoted = res.has("most_voted_name") ? res.get("most_voted_name").getAsString() : "";
@@ -3444,16 +3686,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                         com.google.android.material.button.MaterialButton voteABtn = root.findViewById(R.id.btn_home_vote_a);
 
-
                         if (pctAView != null) pctAView.setText(String.format(java.util.Locale.US, "%.0f%%", newPctA));
                         if (pctBView != null) pctBView.setText(String.format(java.util.Locale.US, "%.0f%%", newPctB));
                         if (progA    != null) progA.setProgress((int) newPctA);
                         if (progB    != null) progB.setProgress((int) newPctB);
 
-
-
-                        // Update button labels to reflect new vote
-                        // We need to know which is A and B — re-load for accuracy
+                        
+                        
                         loadHomeBattleWidget();
 
                     } else {
@@ -3478,7 +3717,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             });
         }
 
-
         private void showHypeBattleDialog() {
             if (getContext() == null || !isAdded()) return;
 
@@ -3493,7 +3731,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
             TextView txtTimer = v.findViewById(R.id.hype_timer);
             
-            // Place A views
+            
             ImageView imgA = v.findViewById(R.id.hype_img_a);
             TextView txtNameA = v.findViewById(R.id.hype_name_a);
             TextView txtTypeA = v.findViewById(R.id.hype_type_a);
@@ -3503,7 +3741,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             TextView txtReviewA = v.findViewById(R.id.hype_review_text_a);
             TextView txtReviewAuthorA = v.findViewById(R.id.hype_review_author_a);
 
-            // Place B views
+            
             ImageView imgB = v.findViewById(R.id.hype_img_b);
             TextView txtNameB = v.findViewById(R.id.hype_name_b);
             TextView txtTypeB = v.findViewById(R.id.hype_type_b);
@@ -3513,7 +3751,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
             TextView txtReviewB = v.findViewById(R.id.hype_review_text_b);
             TextView txtReviewAuthorB = v.findViewById(R.id.hype_review_author_b);
 
-            // Leaderboard and winner views
+            
             android.widget.LinearLayout leaderboardContainer = v.findViewById(R.id.battle_leaderboard_container);
             TextView txtWinnerValue = v.findViewById(R.id.txt_battle_winner_value);
 
@@ -3586,7 +3824,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             txtTimer.setText(String.format(java.util.Locale.getDefault(), "⏳ Se încheie în: %02d ore %02d min", hours, minutes));
                         }
 
-                        // Populating the Dynamic Explorer Leaderboard
+                        
                         if (leaderboardContainer != null) {
                             leaderboardContainer.removeAllViews();
                             if (battle.has("leaderboard") && battle.get("leaderboard").isJsonArray()) {
@@ -3639,7 +3877,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             }
                         }
 
-                        // Binding the real-time winner / most voted location
+                        
                         String winnerName = battle.has("most_voted_name") ? battle.get("most_voted_name").getAsString() : "";
                         double winnerPct = battle.has("most_voted_pct") ? battle.get("most_voted_pct").getAsDouble() : 50.0;
                         if (txtWinnerValue != null) {
@@ -3650,7 +3888,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                             }
                         }
 
-                        // High-interaction voting: buttons are ALWAYS active and click-able so the user can switch sides and test the boxing clash animation infinitely!
+                        
                         if (btnVoteA != null) {
                             btnVoteA.setText(userChoice.equals(placeAId) ? "⭐️ Votat!" : getString(R.string.choose));
                             btnVoteA.setEnabled(true);
@@ -3683,13 +3921,13 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 return;
             }
 
-            // SIMPLES: Quick flash + run callback immediately (NO fancy animations)
+            
             android.widget.FrameLayout flashView = new android.widget.FrameLayout(requireContext());
             flashView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            flashView.setBackgroundColor(android.graphics.Color.parseColor("#30FFFFFF"));  // Light white flash
+            flashView.setBackgroundColor(android.graphics.Color.parseColor("#30FFFFFF"));  
             rootView.addView(flashView);
 
-            // Quick fade out in 200ms and remove
+            
             flashView.animate()
                 .alpha(0f)
                 .setDuration(200)
@@ -3697,7 +3935,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     @Override
                     public void onAnimationEnd(android.animation.Animator animation) {
                         rootView.removeView(flashView);
-                        onEnd.run();  // Run vote immediately after flash
+                        onEnd.run();  
                     }
                 });
         }
@@ -3760,7 +3998,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 layout.setPadding(48, 24, 48, 48);
                 layout.setBackgroundResource(R.drawable.bg_rounded_surface);
 
-                // Sleek Drag Handle
+                
                 View handle = new View(requireContext());
                 LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
                 handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
@@ -3769,7 +4007,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 handle.setBackgroundResource(R.drawable.rounded_handle);
                 layout.addView(handle);
 
-                // Header container (Vertical stack for title and subtitle)
+                
                 LinearLayout headerLayout = new LinearLayout(requireContext());
                 headerLayout.setOrientation(LinearLayout.VERTICAL);
                 headerLayout.setPadding(0, 0, 0, 24);
@@ -3785,7 +4023,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 }
                 headerLayout.addView(title);
 
-                // Subtitle / Counter
+                
                 TextView subtitle = new TextView(requireContext());
                 boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
                 subtitle.setText(isEn ? places.size() + " unique places matching your vibe" : places.size() + " locații unice găsite pentru tine");
@@ -3800,7 +4038,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 layout.addView(headerLayout);
 
-                // Subtle separator line
+                
                 View divider = new View(requireContext());
                 LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2);
                 divLp.bottomMargin = 24;
@@ -3808,7 +4046,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 divider.setBackgroundColor(0x1FFFFFFF);
                 layout.addView(divider);
 
-                // RecyclerView
+                
                 androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
                 rv.setLayoutManager(new LinearLayoutManager(getContext()));
                 LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
@@ -3817,7 +4055,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 );
                 rv.setLayoutParams(rvLp);
 
-                // Gentle layout slide-in micro-animation
+                
                 try {
                     android.view.animation.LayoutAnimationController lac = new android.view.animation.LayoutAnimationController(
                         android.view.animation.AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in)
@@ -3849,7 +4087,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                     @Override
                     public void onPlanClick(Place place) {
-                        // Plan click
+                        
                     }
                 });
 
@@ -3879,7 +4117,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 layout.setPadding(48, 24, 48, 48);
                 layout.setBackgroundResource(R.drawable.bg_rounded_surface);
 
-                // Sleek Drag Handle
+                
                 View handle = new View(requireContext());
                 LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(96, 8);
                 handleLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
@@ -3888,7 +4126,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 handle.setBackgroundResource(R.drawable.rounded_handle);
                 layout.addView(handle);
 
-                // Header container (Vertical stack for title and subtitle)
+                
                 LinearLayout headerLayout = new LinearLayout(requireContext());
                 headerLayout.setOrientation(LinearLayout.VERTICAL);
                 headerLayout.setPadding(0, 0, 0, 24);
@@ -3904,7 +4142,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 }
                 headerLayout.addView(title);
 
-                // Subtitle / Counter
+                
                 TextView subtitle = new TextView(requireContext());
                 boolean isEn = "en".equals(com.cityscape.app.data.LocaleHelper.getLanguage(getContext()));
                 subtitle.setText(isEn ? events.size() + " active events matching your vibe" : events.size() + " evenimente active găsite pentru tine");
@@ -3919,7 +4157,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
 
                 layout.addView(headerLayout);
 
-                // Subtle separator line
+                
                 View divider = new View(requireContext());
                 LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2);
                 divLp.bottomMargin = 24;
@@ -3927,7 +4165,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 divider.setBackgroundColor(0x1FFFFFFF);
                 layout.addView(divider);
 
-                // RecyclerView
+                
                 androidx.recyclerview.widget.RecyclerView rv = new androidx.recyclerview.widget.RecyclerView(requireContext());
                 rv.setLayoutManager(new LinearLayoutManager(getContext()));
                 LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(
@@ -3936,7 +4174,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 );
                 rv.setLayoutParams(rvLp);
 
-                // Gentle layout slide-in micro-animation
+                
                 try {
                     android.view.animation.LayoutAnimationController lac = new android.view.animation.LayoutAnimationController(
                         android.view.animation.AnimationUtils.loadAnimation(getContext(), android.R.anim.fade_in)
@@ -4015,5 +4253,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     showPlacesBottomSheetDialog(isEn ? "Trending Locations" : "Locații Populare / Trending", allPlacesList);
                 });
             }
+
         }
 }

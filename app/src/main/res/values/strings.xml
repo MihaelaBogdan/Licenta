@@ -122,6 +122,7 @@
     <string name="welcome_new_user">Welcome, %s!</string>
     <string name="google_sign_in_failed">Google Sign-In failed</string>
     <string name="language_changed">Language changed</string>
+
     <string name="invalid_email">Please enter a valid email address</string>
     <string name="password_too_weak">Password must be at least 8 characters with uppercase, number, and special character</string>
     <string name="check_email_confirmation">Account created! Check your email for confirmation</string>
