@@ -1044,4 +1044,11 @@ Vrei să trimiți o invitație lui %2$s?</string>
     <string name="hype_battle_badge_champion">Campion Hype</string>
     <string name="hype_battle_posted_by">Postat de %s</string>
     <string name="hype_battle_rank">%d. %s</string>
+
+    <!-- Interests Screen -->
+    <string name="auto_ce_te_intereseaza_9fdb67">Ce te interesează?</string>
+    <string name="auto_alege_categoriile_preferate_pe_4c1790">Alege-ți categoriile preferate pentru a primi recomandări personalizate când explorezi!</string>
+    <string name="save_preferences">Salvează preferințele</string>
+    <string name="reset_to_simple">Resetare la simplu</string>
+    <string name="at_least_one_interest">Te rog alege cel puțin o categorie, sau apasă Skip!</string>
 </resources>
