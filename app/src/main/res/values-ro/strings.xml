@@ -1020,4 +1020,28 @@ Vrei să trimiți o invitație lui %2$s?</string>
     <string name="offline_btn_map">Hartă</string>
     <string name="offline_btn_favorites">Favorite</string>
     <string name="offline_btn_routes">Trasee</string>
+
+    <!-- Confruntarea Live / Bătălia de Trending -->
+    <string name="hype_battle_title">Confruntarea Live</string>
+    <string name="hype_battle_subtitle">Votează pentru cel mai bun post</string>
+    <string name="hype_battle_today">Duelul de azi: %s - %s</string>
+    <string name="hype_battle_left">Stânga</string>
+    <string name="hype_battle_right">Dreapta</string>
+    <string name="hype_battle_votes">voturi</string>
+    <string name="hype_battle_vote">Votează</string>
+    <string name="hype_battle_time_remaining">Timp rămas: %s</string>
+    <string name="hype_battle_top_10">Top 10 postări astazi</string>
+    <string name="hype_battle_winner">Câștigător</string>
+    <string name="hype_battle_finalist">Finalist</string>
+    <string name="hype_battle_congratulations">Felicitări!</string>
+    <string name="hype_battle_you_won">Ai câștigat duelu! +200 XP și insigna Campion Hype</string>
+    <string name="hype_battle_you_finalist">Ești finalist! +100 XP</string>
+    <string name="hype_battle_new_battle">Duel nou: %s versus %s</string>
+    <string name="hype_battle_ended">Duelul s-a terminat</string>
+    <string name="hype_battle_points">puncte</string>
+    <string name="hype_battle_started">⚔️ Confruntarea Live a început! Votează acum!</string>
+    <string name="hype_battle_final_minutes">⏱️ 5 minute rămase! Votează rapid!</string>
+    <string name="hype_battle_badge_champion">Campion Hype</string>
+    <string name="hype_battle_posted_by">Postat de %s</string>
+    <string name="hype_battle_rank">%d. %s</string>
 </resources>
