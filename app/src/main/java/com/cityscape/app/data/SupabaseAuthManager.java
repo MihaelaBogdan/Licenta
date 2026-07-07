@@ -451,7 +451,7 @@ public class SupabaseAuthManager {
     public void checkEmailConfirmed(EmailConfirmedCallback callback) {
         String accessToken = getAccessToken();
         if (accessToken == null) {
-            callback.onError("Nicio sesiune activă.");
+            callback.onNotConfirmed();
             return;
         }
 
@@ -465,14 +465,14 @@ public class SupabaseAuthManager {
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                callback.onError(e.getMessage());
+                callback.onNotConfirmed();
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String body = response.body() != null ? response.body().string() : "";
                 if (!response.isSuccessful()) {
-                    callback.onError("HTTP " + response.code());
+                    callback.onNotConfirmed();
                     return;
                 }
                 try {
@@ -488,7 +488,7 @@ public class SupabaseAuthManager {
                     if (confirmed) callback.onConfirmed();
                     else callback.onNotConfirmed();
                 } catch (Exception e) {
-                    callback.onError("Parse error: " + e.getMessage());
+                    callback.onNotConfirmed();
                 }
             }
         });
