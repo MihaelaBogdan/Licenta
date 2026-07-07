@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark Theme (NIGHT) Semantic Overrides -->
+    
     <color name="app_background">#0D1117</color>
     <color name="app_surface">#161B22</color>
     <color name="app_card">#1C2128</color>
@@ -14,7 +14,7 @@
 
     <color name="overlay_dark">#B0000000</color>
 
-    <!-- Glassmorphism Tokens (Dark Mode) -->
+    
     <color name="glass_background">#4DFFFFFF</color>
     <color name="glass_center">#26FFFFFF</color>
     <color name="glass_stroke">#80FFFFFF</color>
@@ -23,7 +23,7 @@
     <color name="login_overlay_end">#0D1117</color>
 
     
-    <!-- Branding -->
+    
     <color name="primary">#10B981</color>
     <color name="primary_variant">#059669</color>
     <color name="secondary">#6EE7B7</color>
@@ -38,9 +38,9 @@
     <color name="accent_purple">#A78BFA</color>
     <color name="accent_gold">#FBBF24</color>
 
-    <color name="bg_chat_bot">#1F2937</color>
+    <color name="bg_chat_bot">#1F2937</color>
 
-    <!-- Smart Recommendation Card Colors (Dark Mode) -->
+    
     <color name="smart_card_start">#162E3A</color>
     <color name="smart_card_center">#0F1E26</color>
     <color name="smart_card_end">#0A1319</color>
@@ -49,7 +49,7 @@
     <color name="smart_card_text_secondary">#22D3EE</color>
     <color name="smart_card_text_body">#E2E8F0</color>
 
-    <!-- Daily Quest Card Colors (Dark Mode) -->
+    
     <color name="quest_card_start">#0E2A20</color>
     <color name="quest_card_center">#091B15</color>
     <color name="quest_card_end">#050F0C</color>
@@ -61,7 +61,7 @@
     <color name="quest_reward_stroke">#4D10B981</color>
     <color name="quest_reward_text">#10B981</color>
 
-    <!-- Live Battle Card Colors (Dark Mode) -->
+    
     <color name="battle_card_start">#1E102E</color>
     <color name="battle_card_center">#120A1C</color>
     <color name="battle_card_end">#0B0612</color>

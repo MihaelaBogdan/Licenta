@@ -10,5 +10,5 @@ public class ChatResponse {
     public java.util.List<String> suggestions;
 
     @SerializedName("itinerary_json")
-    public String itineraryJson; // Dynamic route JSON returned by the AI chatbot
+    public String itineraryJson; 
 }

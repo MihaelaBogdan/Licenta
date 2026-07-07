@@ -29,13 +29,13 @@ except ImportError as e:
     print("ℹ️ Continuing without chatbot support (explainable recommendations API still works)")
     CHATBOT_AVAILABLE = False
 
-# Trending stories scraper
+# Trending stories scraper (except Exception: serverul porneste chiar daca scraperul e defect)
 try:
     from trending_scraper import get_trending_locations
     print("✅ Trending scraper loaded")
-except ImportError as e:
+except Exception as e:
     print(f"⚠️ Trending scraper not available: {e}")
-    get_trending_locations = lambda city="București": []
+    get_trending_locations = lambda city="București", interests=None: []
 
 # Load environment variables
 env_path = os.path.join(current_dir, '.env')
@@ -49,6 +49,7 @@ import time
 GOOGLE_TEXT_SEARCH_CACHE = {}
 GOOGLE_NEARBY_SEARCH_CACHE = {}
 PLACE_DETAILS_CACHE = {}
+pending_follows_db = []
 
 # Cache TTL in seconds (10 minutes for searches, 30 minutes for details)
 SEARCH_CACHE_TTL = 600
@@ -665,6 +666,7 @@ OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 PREDICTHQ_API_KEY = os.getenv("PREDICTHQ_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY")
+EVENTS_MEM_CACHE = {}
 
 # Foursquare Category Mapping
 FSQ_CATEGORIES = {
@@ -864,14 +866,14 @@ def get_place_details(place_id):
                         prompt = (
                             f"You are a smart urban critic. Summarize these reviews for '{result.get('name')}' "
                             "into a single ultra-short, honest, and engaging sentence (max 25 words). "
-                            "Use a modern, 'TL;DR' style. Mention one pro and one con if they exist. "
+                            "Do NOT include any 'TL;DR' prefix or label. Mention one pro and one con if they exist. "
                             f"Reviews:\n{reviews_text}"
                         )
                     else:
                         prompt = (
                             f"Ești un critic urban inteligent. Rezumă aceste recenzii pentru '{result.get('name')}' "
                             "într-o singură frază ultra-scurtă, onestă și captivantă (max 25 cuvinte). "
-                            "Folosește un ton modern, de tip 'TL;DR'. Menționează un punct forte și un punct slab dacă există. "
+                            "NU include nicio etichetă de tip 'TL;DR' la început. Menționează un punct forte și un punct slab dacă există. "
                             f"Recenzii:\n{reviews_text}"
                         )
                     
@@ -892,6 +894,8 @@ def get_place_details(place_id):
                     if resp_ai.status_code == 200:
                         llm_text = resp_ai.json()['choices'][0]['message']['content']
                         ai_summary = llm_text.strip().replace('"', '')
+                        import re
+                        ai_summary = re.sub(r'^(?i)\*?\*?(?:TL;DR|TLDR)\*?\*?:\s*', '', ai_summary)
             except Exception as ae:
                 print(f"⚠️ AI Summary Error (OpenRouter): {ae}")
 
@@ -1381,6 +1385,69 @@ def score_item(item, context, user_lat=None, user_lng=None,
 
     # Normalize to 0-100 (raw max ≈ 132)
     normalized = max(0.0, min(score / 132.0 * 100.0, 100.0))
+
+    # Calculate explanation breakdown percentages for UI dialog factors
+    # 1. Interest Match
+    if interests:
+        match_prefs_pct = min(100.0, (interest_score / 25.0 * 80.0) + 20.0)
+    else:
+        match_prefs_pct = 50.0
+
+    # 2. History Affinity / User Level
+    match_history_pct = min(100.0, (habit_score / 20.0 * 80.0) + 20.0)
+    user_level_pct = match_history_pct
+
+    # 3. Freshness
+    if place_id and place_id in visited_ids:
+        freshness_pct = 20.0
+    else:
+        # Give some bonus based on review count
+        freshness_pct = min(100.0, 60.0 + min(40.0, (review_cnt / 100.0) * 10.0))
+
+    # 4. Popularity
+    popularity_pct = min(100.0, (pop_score / 15.0 * 80.0) + 20.0)
+
+    # 5. Diversity
+    type_count = already_scored_types.get(raw_type, 0) if already_scored_types else 0
+    if type_count == 0:
+        diversity_pct = 100.0
+    elif type_count == 1:
+        diversity_pct = 70.0
+    else:
+        diversity_pct = 40.0
+
+    # 6. Weather Match
+    if use_weather:
+        is_indoor_place = raw_type in INDOOR_TYPES or any(gt in INDOOR_TYPES for gt in g_types)
+        is_outdoor_place = raw_type in OUTDOOR_TYPES or any(gt in OUTDOOR_TYPES for gt in g_types)
+        weather_bad = item.get("_weather_bad", False)
+        if weather_bad and is_indoor_place:
+            weather_match_pct = 95.0
+        elif not weather_bad and is_outdoor_place:
+            weather_match_pct = 95.0
+        elif weather_bad and is_outdoor_place:
+            weather_match_pct = 25.0
+        else:
+            weather_match_pct = 75.0
+    else:
+        weather_match_pct = 80.0
+
+    # Write breakdown to item dictionary
+    item["match_prefs_pct"] = round(match_prefs_pct, 1)
+    item["matchPrefsPct"] = item["match_prefs_pct"]
+    item["match_history_pct"] = round(match_history_pct, 1)
+    item["matchHistoryPct"] = item["match_history_pct"]
+    item["freshness_pct"] = round(freshness_pct, 1)
+    item["freshnessPct"] = item["freshness_pct"]
+    item["popularity_pct"] = round(popularity_pct, 1)
+    item["popularityPct"] = item["popularity_pct"]
+    item["user_level_pct"] = round(user_level_pct, 1)
+    item["userLevelPct"] = item["user_level_pct"]
+    item["diversity_pct"] = round(diversity_pct, 1)
+    item["diversityPct"] = item["diversity_pct"]
+    item["weather_match_pct"] = round(weather_match_pct, 1)
+    item["weatherMatchPct"] = item["weather_match_pct"]
+
     return round(normalized, 2)
 
 
@@ -1431,6 +1498,59 @@ def rank_places(formatted_places, context, user_lat=None, user_lng=None,
     formatted_places.sort(key=lambda x: x["relevance_score"], reverse=True)
     return formatted_places
 
+def fetch_foursquare_nearby(lat, lng, place_type=None, radius=5000):
+    """Wikipedia Geosearch — free, no key, returns cultural landmarks near coordinates."""
+    cultural_types = {None, "", "tourist_attraction", "museum", "art_gallery", "park"}
+    if place_type not in cultural_types:
+        return []
+    forbidden = {"metro station", "bus stop", "street", "road", "stradă", "bulevard",
+                 "bridge", "pod", "sector", "casino", "parking", "parcare", "stație"}
+    try:
+        resp = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={"action": "query", "list": "geosearch",
+                    "gscoord": f"{lat}|{lng}", "gsradius": min(radius, 10000),
+                    "gslimit": 30, "format": "json"},
+            headers={"User-Agent": "CityScapeApp/1.0"},
+            timeout=8,
+        )
+        if not resp.ok:
+            return []
+        items = resp.json().get("query", {}).get("geosearch", [])
+        results = []
+        for p in items:
+            title = p.get("title", "")
+            if not title or any(f in title.lower() for f in forbidden):
+                continue
+            results.append({
+                "id": f"wiki_{p.get('pageid', title)}",
+                "name": title,
+                "address": "",
+                "latitude": float(p.get("lat", 0)),
+                "longitude": float(p.get("lon", 0)),
+                "rating": 4.0,
+                "type": "tourist_attraction",
+                "imageUrl": "",
+                "description": "",
+                "confidence": 55.0,
+                "source": "wikipedia",
+            })
+        return results
+    except Exception as ex:
+        print(f"⚠️ Wikipedia nearby error: {ex}")
+        return []
+
+
+def fetch_osm_nearby(lat, lng, place_type=None, radius=5000):
+    """Serper /places — coordinate-based, max 5km. Used as extra source for non-cultural types."""
+    if not SERPER_API_KEY:
+        return []
+    try:
+        return fetch_serper_nearby(lat, lng, place_type=place_type, language="ro")
+    except Exception as ex:
+        print(f"⚠️ Serper extra nearby error: {ex}")
+        return []
+
 # --------------------------------
 
 @app.get("/nearby")
@@ -1454,11 +1574,11 @@ def get_nearby_realtime():
     }
     actual_type = type_map.get(place_type, place_type)
     
-    radius_val = request.args.get("radius", 15000)
+    radius_val = request.args.get("radius", 5000)
     try:
         radius = int(radius_val)
     except:
-        radius = 15000
+        radius = 5000
         
     results = []
     if not actual_type or actual_type == "" or actual_type.lower() == "all":
@@ -1493,25 +1613,66 @@ def get_nearby_realtime():
                     continue
             formatted.append(f)
 
-    if user_id:
-        context = get_user_context(user_id)
-        formatted = rank_places(formatted, context,
-                                user_lat=float(lat), user_lng=float(lng),
-                                check_weather=True)
-    else:
-        # Sort guest users: sort by rating × log(reviews)
-        import math, random
-        for p in formatted:
-            rc = p.get("reviewCount") or 0
-            p["_guest_score"] = float(p.get("rating") or 0) * math.log1p(rc) + random.uniform(0, 0.5)
-        formatted.sort(key=lambda x: x.get("_guest_score", 0), reverse=True)
-        for p in formatted:
-            p.pop("_guest_score", None)
-
-    # Slice to top 15 first!
-    top_n = formatted[:15]
-
     language = request.args.get("language", "ro")
+
+    # Foursquare — always runs in parallel with Google for more variety
+    try:
+        fsq_results = fetch_foursquare_nearby(float(lat), float(lng), actual_type, radius)
+        seen_names = {p["name"].lower() for p in formatted}
+        for fp in fsq_results:
+            if fp["name"].lower() not in seen_names:
+                formatted.append(fp)
+                seen_names.add(fp["name"].lower())
+        if fsq_results:
+            print(f"✅ Foursquare nearby: {len(fsq_results)} extra places")
+    except Exception as e:
+        print(f"⚠️ Foursquare nearby error: {e}")
+
+    # OpenStreetMap Overpass — free, no key, good for parks/museums/landmarks
+    try:
+        osm_results = fetch_osm_nearby(float(lat), float(lng), actual_type, radius)
+        seen_names = {p["name"].lower() for p in formatted}
+        for op in osm_results:
+            if op["name"].lower() not in seen_names:
+                formatted.append(op)
+                seen_names.add(op["name"].lower())
+        if osm_results:
+            print(f"✅ OSM nearby: {len(osm_results)} extra places")
+    except Exception as e:
+        print(f"⚠️ OSM nearby error: {e}")
+
+    # Serper fallback: ONLY when everything else returns 0
+    if len(formatted) == 0 and SERPER_API_KEY:
+        try:
+            types_for_serper = [actual_type] if actual_type else ["restaurant", "cafe", "tourist_attraction", "park", "museum"]
+            seen_names = set()
+            for st in types_for_serper:
+                serper_res = fetch_serper_nearby(lat, lng, place_type=st, language=language)
+                for sp in serper_res:
+                    if sp["name"].lower() not in seen_names and sp["latitude"] != 0:
+                        formatted.append(sp)
+                        seen_names.add(sp["name"].lower())
+            print(f"✅ Serper nearby fallback (coord-based): total {len(formatted)} results")
+        except Exception as e:
+            print(f"⚠️ Serper nearby fallback error: {e}")
+
+    context = get_user_context(user_id)
+    formatted = rank_places(formatted, context,
+                            user_lat=float(lat), user_lng=float(lng),
+                            check_weather=True)
+    for p in formatted:
+        p['confidence'] = p.get('relevance_score', 0.0)
+
+    # Keep top Google/Serper results + inject Wikipedia/extra sources for variety
+    google_top = [p for p in formatted if p.get("source") not in ("wikipedia", "serper_extra")][:15]
+    extra = [p for p in formatted if p.get("source") in ("wikipedia",)][:5]
+    seen = {p["name"].lower() for p in google_top}
+    for p in extra:
+        if p["name"].lower() not in seen:
+            google_top.append(p)
+            seen.add(p["name"].lower())
+    top_n = google_top[:20]
+
     # Enrich in parallel
     import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
@@ -1594,23 +1755,13 @@ def personalized_discovery():
                 formatted.append(f)
                 seen_ids.add(pid)
 
-    if user_id:
-        context = get_user_context(user_id)
-        formatted = rank_places(formatted, context,
-                                user_lat=float(lat), user_lng=float(lng),
-                                check_weather=True)
-        # Map relevance_score to confidence for the Android app
-        for p in formatted:
-            p['confidence'] = p.get('relevance_score', 0.0)
-    else:
-        # Guest users: sort by rating × log(reviews) with small jitter for freshness
-        for p in formatted:
-            rc = p.get("reviewCount") or 0
-            p["_guest_score"] = float(p.get("rating") or 0) * math.log1p(rc) + random.uniform(0, 0.5)
-        formatted.sort(key=lambda x: x.get("_guest_score", 0), reverse=True)
-        for p in formatted:
-            p.pop("_guest_score", None)
-            p.pop("_raw_types", None)
+    context = get_user_context(user_id)
+    formatted = rank_places(formatted, context,
+                            user_lat=float(lat), user_lng=float(lng),
+                            check_weather=True)
+    # Map relevance_score to confidence for the Android app
+    for p in formatted:
+        p['confidence'] = p.get('relevance_score', 0.0)
 
     # Slice to top 40 first!
     top_n = formatted[:40]
@@ -4089,13 +4240,21 @@ def scrape_eventbook_events(lat, lng):
                         event_slug = item.get("event_slug", "")
                         ev_url = f"https://eventbook.ro{event_slug}" if event_slug.startswith("/") else event_slug
                         
-                        # Category mapping
+                        # Category mapping (eventbook may return wrong cat_ids for cinema)
                         cat_id = item.get("category_id")
+                        cat_name_raw = (item.get("category_name") or "").lower()
                         cat = "Recreativ"
-                        if cat_id == 1: cat = "Muzică"
-                        elif cat_id == 2: cat = "Film"
-                        elif cat_id == 3: cat = "Sport"
-                        elif cat_id == 4: cat = "Teatru"
+                        if cat_id == 1 or "muzic" in cat_name_raw or "concert" in cat_name_raw: cat = "Muzică"
+                        elif cat_id == 2 or "film" in cat_name_raw or "cinema" in cat_name_raw: cat = "Film"
+                        elif cat_id == 4 or "teatru" in cat_name_raw or "spectacol" in cat_name_raw: cat = "Teatru"
+                        elif cat_id == 3 or "sport" in cat_name_raw: cat = "Sport"
+                        # Override by title keywords when category seems wrong
+                        title_lower = title.lower()
+                        if cat == "Sport" and any(w in title_lower for w in [
+                            "film", "movie", "cinema", "/", "povest", "story", "singin", "napoli", "grazi", "parazit",
+                            "toy", "obsess", "orphan", "malul", "primaverä", "primavera", "la grazia"
+                        ]):
+                            cat = "Film"
                         
                         # Date formatting
                         date_display = item.get("text_date") or item.get("starting_date") or "TBA"
@@ -4598,66 +4757,221 @@ def get_event_details_enriched(event, lat, lng, skip_enrichment=False):
     return event
 
 
-def fetch_serper_events(city_name, user_interests, user_history_titles, is_romania=True):
-    """Fetch events via Serper Google Events API, personalized by interests. Works globally."""
+def fetch_serper_nearby(lat, lng, place_type=None, city_name=None, language="ro"):
+    """Serper Google Places fallback for nearby search when Google Places API returns too few results."""
     if not SERPER_API_KEY:
         return []
     try:
-        if is_romania:
-            interest_query = " OR ".join(user_interests[:3]) if user_interests else "evenimente"
-            query = f"evenimente {city_name} {interest_query}"
-            gl_val = "ro"
-            hl_val = "ro"
-        else:
-            # Map common Romanian interests to English for global search
-            english_interests = []
-            for interest in user_interests:
-                val = interest.lower().strip()
-                if "muzic" in val or "concert" in val: english_interests.append("music")
-                elif "teatru" in val: english_interests.append("theater")
-                elif "film" in val: english_interests.append("movies")
-                elif "sport" in val: english_interests.append("sports")
-                elif "art" in val: english_interests.append("art")
-                elif "mâncare" in val or "culinar" in val: english_interests.append("food")
-                else: english_interests.append(val)
-            
-            interest_query = " OR ".join(english_interests[:3]) if english_interests else "events"
-            query = f"events in {city_name} {interest_query}"
-            gl_val = "us"
-            hl_val = "en"
+        loc_str = f"{lat},{lng}"
+        type_query_map = {
+            "restaurant": "restaurante",
+            "cafe": "cafenele",
+            "park": "parcuri",
+            "museum": "muzee",
+            "tourist_attraction": "atracții turistice",
+            "art_gallery": "galerii de artă",
+            "night_club": "cluburi",
+        }
+        if language != "ro":
+            type_query_map = {
+                "restaurant": "restaurants",
+                "cafe": "cafes",
+                "park": "parks",
+                "museum": "museums",
+                "tourist_attraction": "tourist attractions",
+                "art_gallery": "art galleries",
+                "night_club": "nightclubs",
+            }
 
+        type_label = type_query_map.get(place_type, ("locații populare" if language == "ro" else "popular places"))
+        # Use coordinate-based query for genuinely nearby results
+        query = f"{type_label} near {lat},{lng}"
+
+        resp = requests.post(
+            "https://google.serper.dev/places",
+            headers={"X-API-KEY": SERPER_API_KEY, "Content-Type": "application/json"},
+            json={"q": query, "gl": "ro" if language == "ro" else "us", "hl": language,
+                  "location": f"{lat},{lng}", "num": 20},
+            timeout=8
+        )
+        if resp.status_code != 200:
+            return []
+
+        raw = resp.json().get("places", [])
+        results = []
+        forbidden = ["casino", "cazino", "pacanele", "betting", "superbet", "fortuna", "parking", "parcare"]
+        for p in raw:
+            name = p.get("title", "") or p.get("name", "")
+            if not name:
+                continue
+            if any(f in name.lower() for f in forbidden):
+                continue
+            address = p.get("address", "") or p.get("vicinity", "")
+            rating = float(p.get("rating", 0) or 0)
+            p_lat = float(p.get("latitude") or p.get("lat") or 0)
+            p_lng = float(p.get("longitude") or p.get("lng") or 0)
+            if p_lat == 0 and p_lng == 0:
+                # try geocoding from address
+                try:
+                    geo_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={requests.utils.quote(address)}&key={MAPS_API_KEY}"
+                    geo_resp = requests.get(geo_url, timeout=4).json()
+                    geo_res = geo_resp.get("results", [])
+                    if geo_res:
+                        loc = geo_res[0]["geometry"]["location"]
+                        p_lat = loc["lat"]
+                        p_lng = loc["lng"]
+                except:
+                    pass
+            # Filter: only keep places within 5km of user location
+            if p_lat != 0 and p_lng != 0:
+                import math
+                R = 6371
+                dlat = math.radians(p_lat - float(lat))
+                dlng = math.radians(p_lng - float(lng))
+                a = math.sin(dlat/2)**2 + math.cos(math.radians(float(lat))) * math.cos(math.radians(p_lat)) * math.sin(dlng/2)**2
+                dist_km = R * 2 * math.asin(math.sqrt(a))
+                if dist_km > 5.0:
+                    continue
+
+            results.append({
+                "id": p.get("place_id") or p.get("cid") or name,
+                "name": name,
+                "address": address,
+                "latitude": p_lat,
+                "longitude": p_lng,
+                "rating": rating,
+                "type": place_type or "tourist_attraction",
+                "imageUrl": p.get("thumbnailUrl") or p.get("imageUrl") or "",
+                "description": p.get("description") or "",
+                "confidence": min(100.0, rating * 18),
+            })
+        return results
+    except Exception as ex:
+        print(f"⚠️ Serper nearby error: {ex}")
+        return []
+
+
+def _serper_events_query(query, gl_val, hl_val, city_name, history_lower, category_label):
+    """Single Serper /events query — max 4 results per category for diversity."""
+    try:
         resp = requests.post(
             "https://google.serper.dev/events",
             headers={"X-API-KEY": SERPER_API_KEY, "Content-Type": "application/json"},
-            json={"q": query, "gl": gl_val, "hl": hl_val, "num": 30},
+            json={"q": query, "gl": gl_val, "hl": hl_val, "num": 10},
             timeout=8
         )
         raw = resp.json().get("events", [])
-        events = []
+        results = []
         for e in raw:
             title = e.get("title", "")
-            if not title or title in user_history_titles:
+            if not title or title.lower() in history_lower:
                 continue
-            
             loc = e.get("address", [city_name])[0] if isinstance(e.get("address"), list) else city_name
             ev_lat, ev_lng = get_event_coords(loc, city_name, 0.0, 0.0)
-            
-            events.append({
+            thumbnail = e.get("thumbnail", "") or e.get("imageUrl", "")
+            results.append({
                 "title": title,
                 "date": e.get("date", {}).get("when", "TBA") if isinstance(e.get("date"), dict) else str(e.get("date", "TBA")),
                 "location": loc,
-                "image_url": e.get("thumbnail", ""),
+                "image_url": thumbnail,
                 "event_url": e.get("link", ""),
-                "category": e.get("type", "Eveniment"),
+                "category": category_label,
                 "source": "serper",
                 "description": e.get("description", ""),
                 "latitude": ev_lat,
                 "longitude": ev_lng,
             })
-        return events
+        return results[:4]
     except Exception as ex:
-        print(f"⚠️ Serper events error: {ex}")
+        print(f"⚠️ Serper query '{query}': {ex}")
         return []
+
+
+def fetch_serper_events(city_name, user_interests, user_history_titles, is_romania=True):
+    """Disabled — Serper /events not available on this plan. Scrapers handle diversity."""
+    return []
+    if not SERPER_API_KEY:
+        return []
+
+    c = city_name
+    gl_val = "ro" if is_romania else "us"
+    hl_val = "ro" if is_romania else "en"
+    history_lower = {t.lower() for t in user_history_titles}
+
+    if is_romania:
+        base_queries = [
+            (f"concert live {c} 2026", "Concert"),
+            (f"festival muzică {c} 2026", "Festival"),
+            (f"teatru spectacol premieră {c}", "Teatru"),
+            (f"stand-up comedy show {c}", "Comedy"),
+            (f"expoziție vernisaj artă {c}", "Expoziție"),
+            (f"film aer liber cinema {c}", "Film"),
+            (f"atelier workshop {c}", "Workshop"),
+            (f"festival gastronomic culinar {c}", "Food"),
+            (f"meci sport eveniment {c}", "Sport"),
+            (f"petrecere club party {c}", "Party"),
+            (f"eveniment familie copii {c}", "Familie"),
+            (f"dans balet spectacol {c}", "Dans"),
+            (f"conferință tech startup {c}", "Tech"),
+            (f"outdoor drumeție aventură {c}", "Outdoor"),
+        ]
+        interest_map = {
+            "muzic": (f"concert muzică live {c}", "Concert"),
+            "concert": (f"concert live {c} 2026", "Concert"),
+            "teatru": (f"teatru premieră {c}", "Teatru"),
+            "film": (f"premieră film cinema {c}", "Film"),
+            "art": (f"vernisaj galerie artă {c}", "Expoziție"),
+            "sport": (f"meci sport {c}", "Sport"),
+            "dans": (f"balet dans spectacol {c}", "Dans"),
+            "comedy": (f"stand-up comedy {c}", "Comedy"),
+            "mâncar": (f"festival culinar degustare {c}", "Food"),
+            "tech": (f"conferință tech it {c}", "Tech"),
+            "natur": (f"outdoor aventură {c}", "Outdoor"),
+            "copii": (f"eveniment copii familie {c}", "Familie"),
+        }
+    else:
+        base_queries = [
+            (f"live concert music {c} 2026", "Concert"),
+            (f"theater show {c}", "Theater"),
+            (f"comedy show {c}", "Comedy"),
+            (f"art exhibition {c}", "Exhibition"),
+            (f"outdoor festival {c}", "Festival"),
+            (f"food festival {c}", "Food"),
+            (f"sports event {c}", "Sport"),
+            (f"family kids event {c}", "Family"),
+            (f"dance performance {c}", "Dance"),
+            (f"film screening {c}", "Film"),
+        ]
+        interest_map = {}
+
+    extra_queries = []
+    for interest in user_interests[:4]:
+        key = interest.strip().lower()
+        for k, v in interest_map.items():
+            if k in key:
+                extra_queries.append(v)
+                break
+
+    all_queries = base_queries + extra_queries
+
+    import concurrent.futures
+    events = []
+    seen_titles = set(history_lower)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {
+            executor.submit(_serper_events_query, q, gl_val, hl_val, c, history_lower, cat): cat
+            for q, cat in all_queries
+        }
+        for future in concurrent.futures.as_completed(futures):
+            for ev in future.result():
+                t = ev["title"].lower()
+                if t not in seen_titles:
+                    seen_titles.add(t)
+                    events.append(ev)
+
+    print(f"✅ Serper events: {len(events)} din {len(all_queries)} categorii")
+    return events
 
 
 def score_event_for_user(event, user_interests, user_history_titles, user_history_categories):
@@ -4902,8 +5216,12 @@ def get_events():
 
     user_id = request.args.get("user_id", "")
 
-    # Check if user has a preferred location in settings
-    if user_id:
+    # Only use Supabase preferred location if the app didn't send explicit coords
+    # (i.e. if coords are exactly the Bucharest default, which means no real location was sent)
+    DEFAULT_LAT, DEFAULT_LNG = 44.4268, 26.1025
+    app_sent_explicit_location = not (abs(lat - DEFAULT_LAT) < 0.001 and abs(lng - DEFAULT_LNG) < 0.001)
+
+    if user_id and not app_sent_explicit_location:
         try:
             hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
             prof_resp = requests.get(
@@ -4915,11 +5233,26 @@ def get_events():
                 pref_lng = prof_resp.json()[0].get("preferred_location_lng")
                 if pref_lat is not None and pref_lng is not None:
                     lat, lng = float(pref_lat), float(pref_lng)
-                    print(f"✅ Using user's preferred location: {lat}, {lng}")
+                    print(f"✅ Using user's preferred location from Supabase: {lat}, {lng}")
         except Exception as e:
             print(f"⚠️ Preferred location fetch: {e}")
+    else:
+        if app_sent_explicit_location:
+            print(f"✅ Using device/manual location sent by app: {lat}, {lng}")
 
     city_name = get_city_name(lat, lng) or "Bucuresti"
+    
+    # Check memory cache - include coordinates rounded to 2 decimals for different cities/areas
+    from datetime import datetime, timedelta
+    lat_r = round(lat, 2)
+    lng_r = round(lng, 2)
+    cache_key = f"{lat_r}_{lng_r}_{interests}"
+    if cache_key in EVENTS_MEM_CACHE:
+        cache_entry = EVENTS_MEM_CACHE[cache_key]
+        if datetime.now() - cache_entry["timestamp"] < timedelta(hours=3):
+            print(f"⚡ Returning cached events for {cache_key} (instant!)")
+            return jsonify(cache_entry["data"])
+
     is_romania = (43.0 <= lat <= 49.0) and (20.0 <= lng <= 30.2)
 
     # Fetch user profile for personalization
@@ -5166,6 +5499,12 @@ def get_events():
             enriched['description'] = event['personalized_description']
         final_events.append(enriched)
 
+    # Save to memory cache
+    EVENTS_MEM_CACHE[cache_key] = {
+        "timestamp": datetime.now(),
+        "data": final_events
+    }
+
     print(f"✅ Returning {len(final_events)} relevant events for {city_name} (interests: {user_interests}, history_cats: {len(user_history_categories)})")
     return jsonify(final_events)
 
@@ -5273,6 +5612,7 @@ def get_event_categories():
         "all_categories": list(categories.keys())
     })
 
+
 @app.get("/users/search")
 def search_users():
     query = request.args.get("query", "")
@@ -5283,25 +5623,35 @@ def search_users():
         "Authorization": f"Bearer {SUPABASE_KEY}"
     }
     
-    # Search for users by name, email or unique username
-    url = f"{SUPABASE_URL}/rest/v1/user_profiles?or=(name.ilike.*{query}*,email.ilike.*{query}*,username.ilike.*{query}*)&limit=20"
+    url = f"{SUPABASE_URL}/rest/v1/user_profiles?or=(name.ilike.*{query}*,email.ilike.*{query}*)&limit=20"
     
     try:
         res = requests.get(url, headers=headers)
+        print("Supabase Search URL:", url)
+        print("Supabase Search Status:", res.status_code)
+        print("Supabase Search Response:", res.text)
         if res.status_code != 200:
             return jsonify([])
         
         users = res.json()
-        # Enrich with follow status
+        print("Raw users list length:", len(users))
+
         for user in users:
             u_id = user.get("id")
             if u_id == current_user_id:
                 user["is_me"] = True
                 continue
-                
-            check_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{current_user_id}&following_id=eq.{u_id}&select=id"
-            follow_res = requests.get(check_url, headers=headers).json()
-            user["is_following"] = len(follow_res) > 0
+            
+            # Check pending
+            pending = [p for p in pending_follows_db if p["follower_id"] == current_user_id and p["following_id"] == u_id]
+            if pending:
+                user["is_following"] = False
+                user["is_requested"] = True
+            else:
+                check_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{current_user_id}&following_id=eq.{u_id}&select=id"
+                follow_res = requests.get(check_url, headers=headers).json()
+                user["is_following"] = len(follow_res) > 0
+                user["is_requested"] = False
             
         return jsonify(users)
     except Exception as e:
@@ -5369,6 +5719,15 @@ def toggle_follow():
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/json"
     }
+
+    if str(t_id).startswith("dummy-"):
+        key = f"{f_id}_{t_id}"
+        if key in dummy_follows:
+            dummy_follows.remove(key)
+            return jsonify({"status": "unfollowed"})
+        else:
+            dummy_follows.add(key)
+            return jsonify({"status": "followed"})
 
     # Check if exists
     check_url = f"{SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.{f_id}&following_id=eq.{t_id}&select=id"
@@ -5501,7 +5860,19 @@ def get_magic_recommendation():
     
     target_types = type_map.get(requested_type, ["tourist_attraction", "museum", "park", "restaurant", "cafe"])
     
+    # Resolve city name from coordinates for prompts and trending lookup
+    city_name = get_city_name(lat, lng) or "București"
+    print(f"🔮 Crystal Ball: city={city_name}, lat={lat}, lng={lng}, type={requested_type}")
+
     # 1. Fetch real places based on requested type
+    # Locurile aflate in trending (scraper multi-sursa) primesc bonus de scor
+    trending_names = set()
+    try:
+        for t in get_trending_locations(city_name, interests=u_interests):
+            trending_names.add(t.get("name", "").lower())
+    except Exception as e:
+        print(f"⚠️ Trending boost unavailable: {e}")
+
     candidates = []
     seen_ids = set()
     import concurrent.futures
@@ -5513,12 +5884,21 @@ def get_magic_recommendation():
                 res = future.result() or []
                 for c in res:
                     if c.get('place_id') and c['place_id'] not in seen_ids:
-                        # Add a "match_score" based on user interests
+                        # Scor personalizat: rating + potrivire interese + popularitate + trending
                         score = c.get('rating', 0) * 10
+                        c['matched_interests'] = []
                         if u_interests:
                             for interest in u_interests.split(','):
-                                if interest.strip().lower() in c['name'].lower() or any(interest.strip().lower() in t.lower() for t in c.get('types', [])):
-                                    score += 20
+                                ik = interest.strip().lower()
+                                if ik and (ik in c['name'].lower() or any(ik in t.lower() for t in c.get('types', []))):
+                                    score += 25
+                                    c['matched_interests'].append(interest.strip())
+                        # Locuri cu multe recenzii = mai sigure ca recomandare
+                        score += min(10, c.get('user_ratings_total', 0) / 500)
+                        # Bonus daca locul e in trending acum
+                        if c['name'].lower() in trending_names:
+                            score += 15
+                            c['is_trending'] = True
                         c['personal_score'] = score
                         candidates.append(c)
                         seen_ids.add(c['place_id'])
@@ -5528,37 +5908,44 @@ def get_magic_recommendation():
     if not candidates:
         return jsonify({"error": "No candidates found"}), 404
 
-    # Sort by personal score and pick some to give Gemini options
+    # Sort by personal score and pick the strongest matches for Gemini
     candidates.sort(key=lambda x: x.get('personal_score', 0), reverse=True)
-    subset = candidates[:15]
-    random.shuffle(subset) # Shuffle top 15 to keep it "magic"
+    subset = candidates[:10]
 
     # 2. Use Gemini to pick the BEST one
     import google.generativeai as genai
     model = genai.GenerativeModel('gemini-flash-latest')
     
-    candidates_data = [{"id": c['place_id'], "name": c['name'], "types": c.get('types', []), "rating": c.get('rating', 0)} for c in subset]
-    
+    candidates_data = [{
+        "id": c['place_id'], "name": c['name'], "types": c.get('types', []),
+        "rating": c.get('rating', 0), "reviews": c.get('user_ratings_total', 0),
+        "matched_interests": c.get('matched_interests', []),
+        "trending_now": bool(c.get('is_trending'))
+    } for c in subset]
+
     if language == "en":
         prompt = (
-            f"You are the expert 'CityScape AI'. From the following locations: {json.dumps(candidates_data)}, "
+            f"You are 'CityScape AI', a local expert for {city_name}. From these real locations: {json.dumps(candidates_data)}, "
             f"choose EXACTLY ONE that best fits the requested category '{requested_type}' "
             f"and the user profile: {user_context}. "
-            "Take their interests into account, but add a touch of mystery and destiny. "
-            "For this location, generate 3 specific and creative activities in English. "
+            "Prefer places with matched_interests or trending_now=true. "
+            f"The reason must be CONCRETE and personal: mention the user's specific interest it matches and what makes this place special in {city_name}. "
+            "No mysticism, no fortune-teller tone. "
+            "Generate 3 specific, practical activities the user can actually do there, in English. "
             "RESPONSE: A JSON object (no explanations, no markdown code block) with this format: "
-            '{"place_id": "...", "name": "...", "reason": "Why I chose this for YOU based on your interests (max 15 words, in English)", '
+            '{"place_id": "...", "name": "...", "reason": "concrete personalized reason, max 20 words", '
             '"activities": ["Activity 1", "Activity 2", "Activity 3"]}'
         )
     else:
         prompt = (
-            f"Ești expertul 'CityScape AI'. Din următoarele locații: {json.dumps(candidates_data)}, "
+            f"Ești 'CityScape AI', un expert local al orașului {city_name}. Din aceste locații reale: {json.dumps(candidates_data)}, "
             f"alege EXACT UNA care se potrivește cel mai bine cu categoria cerută '{requested_type}' "
             f"și cu profilul utilizatorului: {user_context}. "
-            "Ține cont de interesele lui dar adaugă un gram de mister și destin. "
-            "Pentru această locație, generează 3 activități specifice și creative în română. "
+            "Preferă locurile cu matched_interests sau trending_now=true. "
+            f"Motivul trebuie să fie CONCRET și personal: menționează interesul utilizatorului cu care se potrivește și ce face locul special în {city_name}. Fără misticism, fără ton de ghicitoare. "
+            "Generează 3 activități specifice și practice pe care utilizatorul chiar le poate face acolo, în română. "
             "RĂSPUNS: Un obiect JSON (fără explicații, fără cod markdown) cu formatul: "
-            '{"place_id": "...", "name": "...", "reason": "De ce am ales asta pentru TINE bazat pe interesele tale (max 15 cuvinte, în română)", '
+            '{"place_id": "...", "name": "...", "reason": "motiv concret personalizat, max 20 cuvinte", '
             '"activities": ["Activitate 1", "Activitate 2", "Activitate 3"]}'
         )
 
@@ -7507,6 +7894,79 @@ def mark_message_read(message_id):
         print(f"❌ Mark read error: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "cityscape_admin_2026")
+
+def admin_auth():
+    auth = request.headers.get("X-Admin-Token", "")
+    if auth != ADMIN_PASSWORD:
+        return jsonify({"error": "Unauthorized"}), 401
+    return None
+
+@app.route("/admin")
+def admin_panel():
+    pwd = request.args.get("pwd", "")
+    if pwd != ADMIN_PASSWORD:
+        return """<!DOCTYPE html><html><body style='background:#050A06;color:#10B981;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column'>
+        <h2>🔐 CityScape Admin</h2>
+        <form method='get'>
+        <input name='pwd' type='password' placeholder='Parolă admin' style='padding:12px 20px;border-radius:10px;border:1px solid #10B981;background:#0D1810;color:white;font-size:16px;margin-right:8px'>
+        <button type='submit' style='padding:12px 20px;border-radius:10px;background:#10B981;color:black;font-weight:bold;border:none;cursor:pointer'>Intră</button>
+        </form></body></html>""", 401
+    return send_from_directory(os.path.join(current_dir, 'templates'), 'admin.html')
+
+@app.route("/admin/api/stats")
+def admin_stats():
+    err = admin_auth()
+    if err: return err
+    hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    try:
+        users_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?select=id,name,email,total_xp,level,created_at&order=created_at.desc", headers=hdrs, timeout=8)
+        users = users_res.json() if users_res.ok else []
+
+        posts_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_posts?select=id,user_name,caption,place_name,created_at,rating&order=created_at.desc&limit=100", headers=hdrs, timeout=8)
+        posts = posts_res.json() if posts_res.ok else []
+
+        badges_res = requests.get(f"{SUPABASE_URL}/rest/v1/user_badges?select=user_id,name,unlocked_at&is_unlocked=eq.true&limit=200", headers=hdrs, timeout=8)
+        badges = badges_res.json() if badges_res.ok else []
+
+        reports_res = requests.get(f"{SUPABASE_URL}/rest/v1/content_reports?select=*&order=created_at.desc&limit=100", headers=hdrs, timeout=8)
+        reports = reports_res.json() if reports_res.ok and isinstance(reports_res.json(), list) else []
+
+        likes_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_likes?select=id&limit=1000", headers=hdrs, timeout=8)
+        likes_count = len(likes_res.json()) if likes_res.ok and isinstance(likes_res.json(), list) else 0
+
+        comments_res = requests.get(f"{SUPABASE_URL}/rest/v1/feed_comments?select=id,user_name,content,created_at&order=created_at.desc&limit=50", headers=hdrs, timeout=8)
+        comments = comments_res.json() if comments_res.ok and isinstance(comments_res.json(), list) else []
+
+        return jsonify({
+            "users": users,
+            "posts": posts,
+            "badges": badges,
+            "reports": reports,
+            "likes_count": likes_count,
+            "comments": comments,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/api/delete_post/<post_id>", methods=["DELETE"])
+def admin_delete_post(post_id):
+    err = admin_auth()
+    if err: return err
+    hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    r = requests.delete(f"{SUPABASE_URL}/rest/v1/feed_posts?id=eq.{post_id}", headers=hdrs, timeout=8)
+    return jsonify({"ok": r.ok, "status": r.status_code})
+
+@app.route("/admin/api/delete_user/<user_id>", methods=["DELETE"])
+def admin_delete_user(user_id):
+    err = admin_auth()
+    if err: return err
+    hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    r = requests.delete(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}", headers=hdrs, timeout=8)
+    return jsonify({"ok": r.ok, "status": r.status_code})
+
+from flask import send_from_directory
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))

@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Full-Bleed Place Image -->
+        
         <ImageView
             android:id="@+id/img_location"
             android:layout_width="match_parent"
@@ -20,13 +20,13 @@
             android:scaleType="centerCrop"
             android:contentDescription="Location photo" />
 
-        <!-- Scrim gradient overlay for light/dark text contrast -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/bg_gradient_overlay" />
 
-        <!-- Glowing Hype Badge (top-left) -->
+        
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -46,7 +46,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Rating Badge (top-right) -->
+        
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -74,7 +74,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Premium Glass Content Capsule (floating at bottom) -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Category Badge -->
+            
             <TextView
                 android:id="@+id/txt_category"
                 android:layout_width="wrap_content"
@@ -98,7 +98,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:textAllCaps="true" />
 
-            <!-- Location Name -->
+            
             <TextView
                 android:id="@+id/txt_location_name"
                 android:layout_width="match_parent"
@@ -111,7 +111,7 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <!-- Tags -->
+            
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chip_group_tags"
                 android:layout_width="match_parent"
@@ -121,7 +121,7 @@
                 android:layout_marginTop="8dp" />
         </LinearLayout>
 
-        <!-- Translucent glass stroke border overlay -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"

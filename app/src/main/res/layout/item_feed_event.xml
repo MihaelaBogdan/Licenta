@@ -71,7 +71,7 @@
 
         </LinearLayout>
 
-        <!-- Small Recommended Indicator -->
+        
         <View
             android:id="@+id/indicator_recommended"
             android:layout_width="8dp"

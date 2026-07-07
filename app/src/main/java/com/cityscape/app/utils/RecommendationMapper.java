@@ -72,7 +72,7 @@ public class RecommendationMapper {
 
             place.aiSuggestion = recJson.optString("reasoning", "");
 
-            // Default percentages
+            
             place.matchHistoryPct = 50f;
             place.matchPrefsPct = 50f;
             place.freshnessPct = 50f;
@@ -84,7 +84,7 @@ public class RecommendationMapper {
             String confStr = recJson.optString("confidence", "50%");
             place.confidence = extractPercentage(confStr);
 
-            // Parse detailed explanations if available
+            
             if (recJson.has("explanation")) {
                 try {
                     JSONObject explanation = recJson.getJSONObject("explanation");
@@ -100,7 +100,7 @@ public class RecommendationMapper {
                                 place.matchPrefsPct = score;
                             } else if (name.toLowerCase().contains("noutate") || name.toLowerCase().contains("fresh")) {
                                 place.freshnessPct = score;
-                                place.matchHistoryPct = score; // Sync history percentage with freshness
+                                place.matchHistoryPct = score; 
                             } else if (name.toLowerCase().contains("popular") || name.toLowerCase().contains("rating")) {
                                 place.popularityPct = score;
                             } else if (name.toLowerCase().contains("nivel") || name.toLowerCase().contains("level")) {

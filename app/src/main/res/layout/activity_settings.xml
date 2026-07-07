@@ -7,7 +7,7 @@
     android:background="@color/app_background"
     android:orientation="vertical">
 
-    <!-- Header -->
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Account Section -->
+            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -118,7 +118,7 @@
                     app:tint="@color/app_text_hint" />
             </LinearLayout>
 
-            <!-- Preferences Section -->
+            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -128,7 +128,7 @@
                 android:textSize="12sp"
                 android:textAllCaps="true" />
 
-            <!-- Personalize Options -->
+            
             <LinearLayout
                 android:id="@+id/personalizeItem"
                 android:layout_width="match_parent"
@@ -162,7 +162,7 @@
                     app:tint="@color/app_text_hint" />
             </LinearLayout>
 
-            <!-- Language Selection -->
+            
             <LinearLayout
                 android:id="@+id/languageItem"
                 android:layout_width="match_parent"
@@ -271,7 +271,7 @@
                     app:trackTint="@color/accent_green" />
             </LinearLayout>
 
-            <!-- About Section -->
+            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -336,7 +336,7 @@
                     android:textSize="16sp" />
             </LinearLayout>
 
-            <!-- Logout Button -->
+            
             <Button
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
@@ -349,7 +349,7 @@
                 android:backgroundTint="@color/app_card"
                 app:cornerRadius="12dp" />
 
-            <!-- Version -->
+            
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

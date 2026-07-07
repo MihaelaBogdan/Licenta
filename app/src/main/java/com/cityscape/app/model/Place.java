@@ -22,9 +22,9 @@ public class Place implements Serializable {
     public String type;
     public String address;
     public boolean isFavorite;
-    public int priceLevel; // 1 to 4
-    public int reviewCount; // user_ratings_total from Google
-    public String aiSuggestion; // Reason from Gemini
+    public int priceLevel; 
+    public int reviewCount; 
+    public String aiSuggestion; 
     
     @SerializedName("match_history_pct")
     public float matchHistoryPct;
@@ -32,14 +32,24 @@ public class Place implements Serializable {
     @SerializedName("match_prefs_pct")
     public float matchPrefsPct;
 
+    @SerializedName("freshness_pct")
     public float freshnessPct;
+
+    @SerializedName("popularity_pct")
     public float popularityPct;
+
+    @SerializedName("user_level_pct")
     public float userLevelPct;
+
+    @SerializedName("diversity_pct")
     public float diversityPct;
+
+    @SerializedName("weather_match_pct")
     public float weatherMatchPct;
 
-    public float confidence; // Overall recommendation confidence (0-100)
-    public String ai_summary; // TL;DR from Gemini
+    @SerializedName("confidence")
+    public float confidence; 
+    public String ai_summary; 
 
     @androidx.room.Ignore
     public java.util.List<Review> reviews;

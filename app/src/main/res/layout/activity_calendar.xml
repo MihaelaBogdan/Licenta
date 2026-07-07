@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Header -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -39,7 +39,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Calendar View -->
+        
         <CalendarView
             android:id="@+id/calendarView"
             android:layout_width="match_parent"
@@ -49,7 +49,7 @@
             android:weekDayTextAppearance="@style/TextAppearance.CityScape.Caption"
             android:theme="@style/Theme.CityScape" />
 
-        <!-- Selected Date -->
+        
         <TextView
             android:id="@+id/selectedDateText"
             android:layout_width="match_parent"
@@ -60,13 +60,13 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <!-- Divider -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/divider" />
 
-        <!-- Activities List -->
+        
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -79,7 +79,7 @@
                 android:padding="16dp"
                 android:clipToPadding="false" />
 
-            <!-- Empty State -->
+            
             <LinearLayout
                 android:id="@+id/noActivitiesText"
                 android:layout_width="match_parent"
@@ -114,7 +114,7 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- FAB -->
+    
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addActivityFab"
         android:layout_width="wrap_content"

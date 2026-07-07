@@ -34,15 +34,15 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         holder.xp.setText(String.format("%,d XP", user.totalXp));
         holder.stats.setText(user.placesVisited + " locuri explorate");
 
-        // First place gets special color
+        
         if (position == 0) {
-            holder.rank.setTextColor(android.graphics.Color.parseColor("#FFD700")); // Gold
+            holder.rank.setTextColor(android.graphics.Color.parseColor("#FFD700")); 
         } else if (position == 1) {
-            holder.rank.setTextColor(android.graphics.Color.parseColor("#C0C0C0")); // Silver
+            holder.rank.setTextColor(android.graphics.Color.parseColor("#C0C0C0")); 
         } else if (position == 2) {
-            holder.rank.setTextColor(android.graphics.Color.parseColor("#CD7F32")); // Bronze
+            holder.rank.setTextColor(android.graphics.Color.parseColor("#CD7F32")); 
         } else {
-            holder.rank.setTextColor(android.graphics.Color.parseColor("#4CAF50")); // Default Green
+            holder.rank.setTextColor(android.graphics.Color.parseColor("#4CAF50")); 
         }
     }
 

@@ -40,7 +40,7 @@ public class LoginActivity extends BaseActivity {
     private AppDatabase db;
     private SessionManager sessionManager;
 
-    // Supabase
+    
     private SupabaseAuthManager supabaseAuth;
     private GoogleSignInClient googleSignInClient;
 
@@ -130,7 +130,7 @@ public class LoginActivity extends BaseActivity {
 
         setContentView(R.layout.activity_login);
 
-        // Configure Google Sign-In
+        
         try {
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.google_web_client_id))
@@ -152,6 +152,11 @@ public class LoginActivity extends BaseActivity {
             btnBack.setOnClickListener(v -> finish());
         }
 
+        android.widget.TextView btnForgotPassword = findViewById(R.id.btnForgotPassword);
+        if (btnForgotPassword != null) {
+            btnForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
+        }
+
         loginButton.setOnClickListener(v -> {
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
@@ -166,7 +171,7 @@ public class LoginActivity extends BaseActivity {
                 return;
             }
 
-            // Try Supabase email/password auth first
+            
             supabaseAuth.signInWithEmail(email, password, new SupabaseAuthManager.AuthCallback() {
                 @Override
                 public void onSuccess(String userEmail, String displayName) {
@@ -176,18 +181,22 @@ public class LoginActivity extends BaseActivity {
                             
                             if (supabaseAuth.isUserConfirmed()) {
                                 String name = displayName != null ? displayName : userEmail;
+                                if ("admin@cityscape.ro".equals(userEmail)) {
+                                    startActivity(new Intent(LoginActivity.this, AdminActivity.class));
+                                    finish();
+                                    return;
+                                }
                                 Toast.makeText(LoginActivity.this,
                                         String.format(getString(R.string.welcome_user), name),
                                         Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                 finish();
                             } else {
-                                // Block and show verification reminder
                                 showVerificationNeededDialog(userEmail);
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Error after Supabase login success", e);
-                            // Still try local fallback
+                            
                             tryLocalLogin(email, password);
                         }
                     });
@@ -241,16 +250,15 @@ public class LoginActivity extends BaseActivity {
             });
         }
 
-        // Apply Entrance Animations
+        
         Animation fadeInUp = AnimationUtils.loadAnimation(this, R.anim.fade_in_up);
         findViewById(R.id.imgLogo).startAnimation(fadeInUp);
         findViewById(R.id.txtTitle).startAnimation(fadeInUp);
-        findViewById(R.id.txtSubtitle).startAnimation(fadeInUp);
         findViewById(R.id.loginCard).startAnimation(fadeInUp);
         findViewById(R.id.btnRegister).startAnimation(fadeInUp);
         if (btnGuest != null) btnGuest.startAnimation(fadeInUp);
 
-        // TestAccount helpers removed
+        
     }
 
     private void tryLocalLogin(String email, String password) {
@@ -320,7 +328,7 @@ public class LoginActivity extends BaseActivity {
             String supabaseId = supabaseAuth.getStoredUserId();
 
             if (existingUser != null) {
-                // Update local user ID to match Supabase if they differ (migration)
+                
                 if (supabaseId != null && !existingUser.id.equals(supabaseId)) {
                     db.userDao().delete(existingUser);
                     existingUser.id = supabaseId;
@@ -338,11 +346,82 @@ public class LoginActivity extends BaseActivity {
                 sessionManager.awardAchievement("Account Created", 100);
             }
 
-            // Always trigger a background sync to get full profile (XP, level, etc.)
+            
             SupabaseSyncManager.getInstance(this).syncUserProfile(supabaseId);
         } catch (Exception e) {
             Log.e(TAG, "Error creating session for user", e);
         }
+    }
+
+    private void showForgotPasswordDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_forgot_password, null);
+        android.widget.TextView txtStatus = dialogView.findViewById(R.id.txt_reset_status);
+        com.google.android.material.textfield.TextInputEditText inputEmail = dialogView.findViewById(R.id.input_reset_email);
+
+        
+        String currentEmail = emailEditText.getText().toString().trim();
+        if (!currentEmail.isEmpty() && inputEmail != null) {
+            inputEmail.setText(currentEmail);
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        android.widget.Button btnSendReset = dialogView.findViewById(R.id.btn_send_reset);
+        android.widget.Button btnCancelReset = dialogView.findViewById(R.id.btn_cancel_reset);
+
+        if (btnSendReset != null) {
+            btnSendReset.setOnClickListener(v -> {
+                String resetEmail = inputEmail != null ? inputEmail.getText().toString().trim() : "";
+                if (resetEmail.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(resetEmail).matches()) {
+                    if (txtStatus != null) {
+                        txtStatus.setText("⚠️ Introdu o adresă de email validă.");
+                        txtStatus.setTextColor(0xFFFF9800);
+                    }
+                    return;
+                }
+
+                btnSendReset.setEnabled(false);
+                btnSendReset.setText("Se trimite...");
+                if (txtStatus != null) txtStatus.setText("");
+
+                supabaseAuth.requestPasswordReset(resetEmail, new com.cityscape.app.data.SupabaseAuthManager.PasswordResetCallback() {
+                    @Override
+                    public void onSent() {
+                        runOnUiThread(() -> {
+                            dialog.dismiss();
+                            Toast.makeText(LoginActivity.this,
+                                    "✅ Link de resetare trimis la " + resetEmail + ". Verifică inbox-ul!",
+                                    Toast.LENGTH_LONG).show();
+                        });
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        runOnUiThread(() -> {
+                            btnSendReset.setEnabled(true);
+                            btnSendReset.setText("Trimite link de resetare");
+                            if (txtStatus != null) {
+                                txtStatus.setText("❌ Eroare: " + errorMessage);
+                                txtStatus.setTextColor(0xFFEF4444);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        if (btnCancelReset != null) {
+            btnCancelReset.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
     }
 
     private void showVerificationNeededDialog(String email) {

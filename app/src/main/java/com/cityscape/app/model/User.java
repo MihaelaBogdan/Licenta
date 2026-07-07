@@ -15,13 +15,27 @@ public class User {
     public String email;
     public String password;
     public int level;
+    @com.google.gson.annotations.SerializedName("current_xp")
     public int currentXp;
+    
+    @com.google.gson.annotations.SerializedName("total_xp")
     public int totalXp;
+    
+    @com.google.gson.annotations.SerializedName("places_visited")
     public int placesVisited;
+    
+    @com.google.gson.annotations.SerializedName("badges_earned")
     public int badgesEarned;
+    
     public String interests;
     public String avatar;
+    
+    @com.google.gson.annotations.SerializedName("is_following")
     public boolean isFollowing;
+    
+    @androidx.room.Ignore
+    @com.google.gson.annotations.SerializedName("is_requested")
+    public boolean isRequested;
 
     public User() {
         this.id = java.util.UUID.randomUUID().toString();
@@ -45,7 +59,7 @@ public class User {
     }
 
     public int getXpForNextLevel() {
-        return level * 500; // Each level requires level * 500 XP
+        return level * 500; 
     }
 
     public int getProgressPercentage() {
@@ -57,7 +71,7 @@ public class User {
         currentXp += amount;
         totalXp += amount;
 
-        // Check for level up
+        
         while (currentXp >= getXpForNextLevel()) {
             currentXp -= getXpForNextLevel();
             level++;

@@ -12,8 +12,8 @@ class CrystalBallAnimator:
     """Generate realistic crystal ball animation data."""
 
     def __init__(self):
-        self.frame_rate = 60
-        self.animation_duration = 3.0  # seconds
+        self.frame_rate = 20
+        self.animation_duration = 1.0  # seconds
 
     def generate_animation_frame(self, confidence: float, prediction_index: int) -> Dict[str, Any]:
         """

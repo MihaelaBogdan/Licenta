@@ -13,11 +13,11 @@ public class MemberSchedule {
     public String groupId;
     public String userId;
     public String userName;
-    public long date; // Specific date (normalized to midnight)
-    public String startTime; // e.g., "09:00"
-    public String endTime; // e.g., "17:00"
-    public boolean isAvailable; // true = available, false = busy
-    public String note; // Optional note about availability
+    public long date; 
+    public String startTime; 
+    public String endTime; 
+    public boolean isAvailable; 
+    public String note; 
 
     public MemberSchedule() {
         this.id = java.util.UUID.randomUUID().toString();

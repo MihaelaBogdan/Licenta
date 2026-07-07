@@ -21,6 +21,9 @@ public interface PlaceDao {
     @Query("SELECT * FROM places WHERE type = :type")
     List<Place> getPlacesByType(String type);
 
+    @Query("SELECT * FROM places WHERE isFavorite = 1")
+    List<Place> getFavoritePlaces();
+
     @Query("SELECT * FROM places WHERE id = :id")
     Place getPlaceById(String id);
 

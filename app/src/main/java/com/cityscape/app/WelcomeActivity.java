@@ -116,14 +116,14 @@ public class WelcomeActivity extends BaseActivity {
         db = AppDatabase.getInstance(this);
         sessionManager = new SessionManager(this);
 
-        // If already logged in, skip to Home
+        
         try {
             if (sessionManager.isLoggedIn()) {
                 startActivity(new Intent(this, MainActivity.class));
                 finish();
                 return;
             }
-            // Check if Supabase session exists
+            
             if (supabaseAuth.isAuthenticated()) {
                 handleSupabaseUserSession(supabaseAuth.getStoredEmail(), supabaseAuth.getStoredName());
                 startActivity(new Intent(this, MainActivity.class));
@@ -136,7 +136,7 @@ public class WelcomeActivity extends BaseActivity {
 
         setContentView(R.layout.activity_welcome);
 
-        // Configure Google Sign-In
+        
         try {
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.google_web_client_id))
@@ -155,7 +155,7 @@ public class WelcomeActivity extends BaseActivity {
             startActivity(new Intent(WelcomeActivity.this, RegisterActivity.class));
         });
 
-        // Google Sign-In button
+        
         btnGoogle.setOnClickListener(v -> {
             try {
                 if (googleSignInClient != null) {

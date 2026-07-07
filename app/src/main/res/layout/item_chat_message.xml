@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:paddingVertical="4dp">
 
-    <!-- Bot Message (Left) -->
+    
     <LinearLayout
         android:id="@+id/bot_message_container"
         android:layout_width="wrap_content"
@@ -44,7 +44,7 @@
                 android:orientation="vertical"
                 android:layout_marginTop="6dp" />
 
-            <!-- ITINERARY CARD ACTION inside Chat -->
+            
             <androidx.cardview.widget.CardView
                 android:id="@+id/chat_itinerary_card"
                 android:layout_width="260dp"
@@ -109,7 +109,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- User Message (Right) -->
+    
     <TextView
         android:id="@+id/user_message_text"
         android:layout_width="wrap_content"

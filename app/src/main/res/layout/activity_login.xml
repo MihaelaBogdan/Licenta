@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Premium Background Image -->
+    
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:src="@drawable/bg_welcome" />
 
-    <!-- Dark Overlay to make text pop -->
+    
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -58,6 +58,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:layout_marginBottom="40dp"
                 android:text="@string/auto_cityscape_af4fa6"
                 android:textColor="@color/app_text_primary"
                 android:textSize="36sp"
@@ -65,17 +66,9 @@
                 android:fontFamily="sans-serif-condensed-medium"
                 android:letterSpacing="0.1" />
 
-            <TextView
-                android:id="@+id/txtSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="40dp"
-                android:text="@string/auto_destinatii_fara_limite_546179"
-                android:textColor="@color/app_text_secondary"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-light" />
 
-            <!-- Glassmorphism Container with Animation Hook -->
+
+            
             <LinearLayout
                 android:id="@+id/loginCard"
                 android:layout_width="match_parent"
@@ -137,6 +130,20 @@
                         android:textColor="@color/app_text_primary"
                         android:paddingStart="12dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
+
+                
+                <TextView
+                    android:id="@+id/btnForgotPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginBottom="12dp"
+                    android:text="Ai uitat parola?"
+                    android:textColor="@color/primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLogin"
@@ -202,7 +209,7 @@
                 android:textSize="14sp"
                 app:rippleColor="@color/primary_faded" />
 
-            <!-- Removed shortcut buttons -->
+            
 
         </LinearLayout>
     </ScrollView>

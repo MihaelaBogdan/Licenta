@@ -55,11 +55,17 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             holder.avatar.setImageResource(R.drawable.ic_profile);
         }
 
-        // Follow Button State
+        
         if (user.isFollowing) {
             holder.btnFollow.setText("Urmărești");
             holder.btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(context.getColor(R.color.app_surface)));
             holder.btnFollow.setTextColor(context.getColor(R.color.app_text_primary));
+            holder.btnFollow.setStrokeWidth(1);
+            holder.btnFollow.setStrokeColor(android.content.res.ColorStateList.valueOf(context.getColor(R.color.app_text_hint)));
+        } else if (user.isRequested) {
+            holder.btnFollow.setText("În așteptare");
+            holder.btnFollow.setBackgroundTintList(android.content.res.ColorStateList.valueOf(context.getColor(R.color.app_surface)));
+            holder.btnFollow.setTextColor(context.getColor(R.color.app_text_secondary));
             holder.btnFollow.setStrokeWidth(1);
             holder.btnFollow.setStrokeColor(android.content.res.ColorStateList.valueOf(context.getColor(R.color.app_text_hint)));
         } else {

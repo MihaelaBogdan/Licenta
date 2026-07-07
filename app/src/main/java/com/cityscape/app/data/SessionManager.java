@@ -15,6 +15,8 @@ public class SessionManager {
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
     private static final String KEY_PREFERRED_CITY = "preferred_city";
+    private static final String KEY_PREFERRED_LAT  = "preferred_lat";
+    private static final String KEY_PREFERRED_LNG  = "preferred_lng";
 
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
@@ -35,17 +37,16 @@ public class SessionManager {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.apply();
 
-        // Also ensure user is in local DB for offline access/session continuity
+        
         new Thread(() -> {
             if (db.userDao().getUserById(user.id) == null) {
                 db.userDao().insert(user);
             }
         }).start();
 
-        // Initialize badges for user if not exists
+        
         initializeBadgesForUser(user.id);
     }
-
 
     public boolean isLoggedIn() {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
@@ -55,7 +56,7 @@ public class SessionManager {
         try {
             return prefs.getString(KEY_USER_ID, null);
         } catch (ClassCastException e) {
-            // Legacy int ID detected, clear it to force a fresh login with Supabase UUID
+            
             editor.remove(KEY_USER_ID);
             editor.remove(KEY_IS_LOGGED_IN);
             editor.apply();
@@ -78,12 +79,12 @@ public class SessionManager {
         
         User user = getCurrentUser();
         if (user != null && user.name != null && !user.name.isEmpty()) {
-            // Update cache
+            
             editor.putString(KEY_USER_NAME, user.name).apply();
             return user.name;
         }
         
-        // Fallback to email prefix if possible
+        
         if (user != null && user.email != null && user.email.contains("@")) {
             return user.email.split("@")[0];
         }
@@ -137,10 +138,42 @@ public class SessionManager {
         return prefs.getString(KEY_PREFERRED_CITY, null);
     }
 
+    /** Store the lat/lng of the manually selected city. Pass Double.NaN to clear. */
+    public void setPreferredLocation(double lat, double lng) {
+        if (editor != null) {
+            if (Double.isNaN(lat) || Double.isNaN(lng)) {
+                editor.remove(KEY_PREFERRED_LAT).remove(KEY_PREFERRED_LNG);
+            } else {
+                editor.putString(KEY_PREFERRED_LAT, String.valueOf(lat));
+                editor.putString(KEY_PREFERRED_LNG, String.valueOf(lng));
+            }
+            editor.apply();
+        }
+    }
+
+    /** Returns the stored preferred latitude, or Double.NaN if not set. */
+    public double getPreferredLat() {
+        String v = prefs.getString(KEY_PREFERRED_LAT, null);
+        if (v == null) return Double.NaN;
+        try { return Double.parseDouble(v); } catch (NumberFormatException e) { return Double.NaN; }
+    }
+
+    /** Returns the stored preferred longitude, or Double.NaN if not set. */
+    public double getPreferredLng() {
+        String v = prefs.getString(KEY_PREFERRED_LNG, null);
+        if (v == null) return Double.NaN;
+        try { return Double.parseDouble(v); } catch (NumberFormatException e) { return Double.NaN; }
+    }
+
+    /** True if user has manually selected a city (has stored coords). */
+    public boolean hasManualLocation() {
+        return !Double.isNaN(getPreferredLat()) && !Double.isNaN(getPreferredLng());
+    }
+
     private void initializeBadgesForUser(String userId) {
-        // Check if badges already exist
+        
         if (db.badgeDao().getBadgesForUser(userId).isEmpty()) {
-            // Create default badges with descriptions and requirements
+            
             db.badgeDao().insert(new UserBadge(userId, "first_steps", "First Steps", "Vizitează prima ta locație", "ic_badge_first", "Vizitează o locație de pe hartă"));
             db.badgeDao().insert(new UserBadge(userId, "coffee_lover", "Coffee Lover", "Ești un fan al cafelei", "ic_badge_coffee", "Vizitează 5 cafenele diferite"));
             db.badgeDao().insert(new UserBadge(userId, "culture_seeker", "Culture Seeker", "Explorator cultural", "ic_badge_culture", "Vizitează 3 muzee sau galerii de artă"));
@@ -158,10 +191,10 @@ public class SessionManager {
         if (userId == null)
             return;
 
-        // Add achievement
+        
         db.achievementDao().insert(new UserAchievement(userId, title, xpReward));
 
-        // Update user XP
+        
         User user = getCurrentUser();
         if (user != null) {
             user.addXp(xpReward);
@@ -179,14 +212,14 @@ public class SessionManager {
             badge.unlock();
             db.badgeDao().update(badge);
 
-            // Update user badge count
+            
             User user = getCurrentUser();
             if (user != null) {
                 user.badgesEarned++;
                 db.userDao().update(user);
             }
 
-            // Award XP for unlocking badge
+            
             awardAchievement("Unlocked: " + badge.name, 100);
         }
     }
@@ -201,10 +234,10 @@ public class SessionManager {
             user.placesVisited++;
             db.userDao().update(user);
 
-            // Award XP
+            
             awardAchievement("Visited " + placeName, 50);
 
-            // Check for badge unlocks
+            
             if (user.placesVisited == 1) {
                 unlockBadge("first_steps");
             }

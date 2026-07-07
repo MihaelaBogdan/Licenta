@@ -17,7 +17,7 @@ public class GroupMember {
     public String userId;
     @SerializedName("user_name")
     public String userName;
-    public String status; // "pending", "accepted", "declined"
+    public String status; 
     @SerializedName("joined_at")
     public long joinedAt;
     @SerializedName("is_creator")

@@ -1020,4 +1020,28 @@ Do you want to send an invitation to %2$s?</string>
     <string name="offline_btn_map">Map</string>
     <string name="offline_btn_favorites">Favorites</string>
     <string name="offline_btn_routes">Routes</string>
+
+    <!-- Hype Battle / Live Battle -->
+    <string name="hype_battle_title">Live Battle</string>
+    <string name="hype_battle_subtitle">Vote for the best posts</string>
+    <string name="hype_battle_today">Today\'s Battle: %s - %s</string>
+    <string name="hype_battle_left">Left</string>
+    <string name="hype_battle_right">Right</string>
+    <string name="hype_battle_votes">votes</string>
+    <string name="hype_battle_vote">Vote</string>
+    <string name="hype_battle_time_remaining">Time remaining: %s</string>
+    <string name="hype_battle_top_10">Top 10 Posts Today</string>
+    <string name="hype_battle_winner">Winner</string>
+    <string name="hype_battle_finalist">Finalist</string>
+    <string name="hype_battle_congratulations">Congratulations!</string>
+    <string name="hype_battle_you_won">You won the battle! +200 XP and Hype Champion badge</string>
+    <string name="hype_battle_you_finalist">You\'re a finalist! +100 XP</string>
+    <string name="hype_battle_new_battle">New battle: %s vs %s</string>
+    <string name="hype_battle_ended">Battle ended</string>
+    <string name="hype_battle_points">points</string>
+    <string name="hype_battle_started">⚔️ Live Battle started! Vote now!</string>
+    <string name="hype_battle_final_minutes">⏱️ 5 minutes left! Vote quickly!</string>
+    <string name="hype_battle_badge_champion">Hype Champion</string>
+    <string name="hype_battle_posted_by">Posted by %s</string>
+    <string name="hype_battle_rank">%d. %s</string>
 </resources>

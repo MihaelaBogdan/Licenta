@@ -10,13 +10,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- AR Overlay Layer -->
+    
     <com.cityscape.app.ui.ar.AROverlayView
         android:id="@+id/ar_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- UI Layer -->
+    
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

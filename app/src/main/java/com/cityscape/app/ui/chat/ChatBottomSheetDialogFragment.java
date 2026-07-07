@@ -79,7 +79,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
     @Override
     public void onAttach(@NonNull Context context) {
-        // Apply saved locale to the fragment's context
+        
         super.onAttach(LocaleHelper.applyLocale(context));
     }
 
@@ -103,7 +103,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // Initial welcome message - personalized with user's name
+        
         com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
         String userName = sessionManager.getUserName();
         boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
@@ -116,7 +116,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         messages.add(new ChatMessage(finalWelcome, false));
         adapter.notifyDataSetChanged();
 
-        // Show welcome suggestions
+        
         List<String> welcomeSuggestions = new ArrayList<>();
         if (isEn) {
             welcomeSuggestions.add("🍽️ Fine Dining");
@@ -135,7 +135,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
         }
         showSuggestions(welcomeSuggestions);
 
-        // Setup Persistent Themes
+        
         setupDiscussionThemes(view);
 
         sendButton.setOnClickListener(v -> sendMessage());
@@ -203,14 +203,14 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 return;
             }
 
-            // Send with session data (RAG)
+            
             com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
             String userId = sessionManager.getUserId();
             double lat = sessionManager.getLastLat();
             double lng = sessionManager.getLastLng();
             String cityName = sessionManager.getPreferredCity();
             
-            // Get local profile data
+            
             String interests = "";
             int userXp = 0;
             int userLevel = 1;
@@ -233,7 +233,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 @Override
                 public void onResponse(Call<ChatResponse> call, Response<ChatResponse> response) {
                     if (getContext() == null)
-                        return; // Fragment detached
+                        return; 
                     if (response.isSuccessful() && response.body() != null) {
                         String reply = response.body().answer;
                         String itineraryJson = response.body().itineraryJson;
@@ -241,7 +241,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                         adapter.notifyItemInserted(messages.size() - 1);
                         recyclerView.scrollToPosition(messages.size() - 1);
                         
-                        // Show suggestions if available
+                        
                         showSuggestions(response.body().suggestions);
                     } else {
                         Toast.makeText(getContext(), getString(R.string.chatbot_error), Toast.LENGTH_SHORT).show();
@@ -251,7 +251,7 @@ public class ChatBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 @Override
                 public void onFailure(Call<ChatResponse> call, Throwable t) {
                     if (getContext() == null)
-                        return; // Fragment detached
+                        return; 
                     Log.e(TAG, "Error sending message", t);
                     messages.add(new ChatMessage(getString(R.string.chatbot_connection_error), false));
                     adapter.notifyItemInserted(messages.size() - 1);

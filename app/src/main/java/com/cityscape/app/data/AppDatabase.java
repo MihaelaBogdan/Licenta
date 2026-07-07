@@ -70,8 +70,8 @@ public abstract class AppDatabase extends RoomDatabase {
                                     @Override
                                     public void onCreate(@androidx.annotation.NonNull androidx.sqlite.db.SupportSQLiteDatabase db) {
                                         super.onCreate(db);
-                                        // Room creation callback doesn't have direct access to DAO easily here,
-                                        // so we rely on the check in getInstance or just seed later.
+                                        
+                                        
                                     }
                                 })
                                 .fallbackToDestructiveMigration()

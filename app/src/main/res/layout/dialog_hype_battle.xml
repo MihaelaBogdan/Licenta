@@ -12,7 +12,7 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Handle -->
+        
         <View
             android:layout_width="40dp"
             android:layout_height="4dp"
@@ -20,7 +20,7 @@
             android:layout_marginBottom="16dp"
             android:background="@color/app_divider" />
 
-        <!-- Timer and XP Prize Header -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Dialog Title -->
+        
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
             android:fontFamily="sans-serif-black"
             android:layout_marginBottom="6dp" />
 
-        <!-- Suggestive Description -->
+        
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
             android:textSize="12sp"
             android:layout_marginBottom="20dp" />
 
-        <!-- Place A Card -->
+        
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -168,7 +168,7 @@
                         android:insetBottom="0dp" />
                 </LinearLayout>
 
-                <!-- Google Maps Review Bubble Place A -->
+                
                 <LinearLayout
                     android:id="@+id/hype_review_container_a"
                     android:layout_width="match_parent"
@@ -200,7 +200,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- VS Divider -->
+        
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -211,7 +211,7 @@
             android:fontFamily="sans-serif-black"
             android:layout_marginVertical="2dp" />
 
-        <!-- Place B Card -->
+        
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -313,7 +313,7 @@
                         android:insetBottom="0dp" />
                 </LinearLayout>
 
-                <!-- Google Maps Review Bubble Place B -->
+                
                 <LinearLayout
                     android:id="@+id/hype_review_container_b"
                     android:layout_width="match_parent"
@@ -345,7 +345,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Dynamic Explorer Leaderboard Card -->
+        
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -376,12 +376,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-                    <!-- Dynamic rows populated from Java code -->
+                    
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Current Most Voted Landmark Card -->
+        
         <androidx.cardview.widget.CardView
             android:id="@+id/battle_results_container"
             android:layout_width="match_parent"
@@ -434,7 +434,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Close Button -->
+        
         <com.google.android.material.button.MaterialButton
             android:id="@+id/hype_btn_close"
             android:layout_width="match_parent"

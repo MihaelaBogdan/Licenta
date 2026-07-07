@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Header -->
+        
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- Horizontal Date Scroller (PRO FEATURE) -->
+        
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_horizontal_calendar"
             android:layout_width="match_parent"
@@ -81,7 +81,7 @@
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        <!-- Quick Actions Banner -->
+        
         <androidx.cardview.widget.CardView
             android:id="@+id/banner_actions"
             android:layout_width="match_parent"
@@ -174,7 +174,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Monthly Grid (Collapsible/Secondary) -->
+        
         <androidx.cardview.widget.CardView
             android:id="@+id/card_monthly_calendar"
             android:layout_width="match_parent"
@@ -213,7 +213,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Selected Date Label -->
+        
         <TextView
             android:id="@+id/text_selected_date"
             android:layout_width="wrap_content"
@@ -225,7 +225,7 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- Activities List -->
+        
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_activities"
             android:layout_width="match_parent"
@@ -235,7 +235,7 @@
             android:nestedScrollingEnabled="false"
             android:paddingHorizontal="16dp" />
 
-        <!-- Empty State for Activities -->
+        
         <LinearLayout
             android:id="@+id/empty_state"
             android:layout_width="match_parent"
@@ -269,7 +269,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Divider -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -277,7 +277,7 @@
             android:layout_marginTop="16dp"
             android:background="@color/card_elevated" />
 
-        <!-- My Groups Section -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -305,7 +305,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Groups List -->
+        
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_groups"
             android:layout_width="match_parent"
@@ -314,7 +314,7 @@
             android:nestedScrollingEnabled="false"
             android:paddingHorizontal="16dp" />
 
-        <!-- Empty State for Groups -->
+        
         <LinearLayout
             android:id="@+id/empty_groups_state"
             android:layout_width="match_parent"
@@ -349,7 +349,7 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Return Home Button -->
+        
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_return_home"
             android:layout_width="match_parent"
@@ -369,7 +369,7 @@
             app:iconGravity="textStart"
             app:iconTint="@color/app_background" />
 
-        <!-- Bottom spacing -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="24dp" />

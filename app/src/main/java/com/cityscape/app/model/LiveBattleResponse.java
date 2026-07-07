@@ -7,7 +7,7 @@ public class LiveBattleResponse {
         public String name;
         public String type;
         public String image_url;
-        public int pct; // percentage integer
+        public int pct; 
         public String review_text;
         public String review_author;
     }

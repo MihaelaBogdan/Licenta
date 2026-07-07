@@ -47,14 +47,14 @@ public class CalendarDateAdapter extends RecyclerView.Adapter<CalendarDateAdapte
         holder.eventDot.setVisibility(date.hasEvents ? View.VISIBLE : View.INVISIBLE);
         
         if (date.isSelected) {
-            holder.card.setCardBackgroundColor(Color.parseColor("#10B981")); // Primary
+            holder.card.setCardBackgroundColor(Color.parseColor("#10B981")); 
             holder.dayName.setTextColor(Color.WHITE);
             holder.dayNumber.setTextColor(Color.WHITE);
             holder.eventDot.setBackgroundResource(R.drawable.circle_white);
         } else {
             holder.card.setCardBackgroundColor(Color.parseColor("#1A808080"));
-            holder.dayName.setTextColor(Color.parseColor("#9CA3AF")); // Gray 400
-            holder.dayNumber.setTextColor(Color.parseColor("#F3F4F6")); // Gray 100
+            holder.dayName.setTextColor(Color.parseColor("#9CA3AF")); 
+            holder.dayNumber.setTextColor(Color.parseColor("#F3F4F6")); 
             holder.eventDot.setBackgroundResource(R.drawable.circle_primary);
         }
 

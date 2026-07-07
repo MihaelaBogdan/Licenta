@@ -7,7 +7,7 @@
     android:background="@drawable/bg_premium_dialog_light"
     android:padding="24dp">
 
-    <!-- Header bar (Handle) -->
+    
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
@@ -16,6 +16,7 @@
         android:background="@color/app_divider" />
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/dialog_nested_scroll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true"
@@ -26,7 +27,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Place image with premium rounded corners -->
+            
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
@@ -49,7 +50,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <!-- Place Type Chip -->
+                
                 <TextView
                     android:id="@+id/detail_place_type"
                     android:layout_width="wrap_content"
@@ -68,7 +69,7 @@
                     android:layout_height="1dp"
                     android:layout_weight="1" />
 
-                <!-- Rating text and stars -->
+                
                 <TextView
                     android:id="@+id/detail_place_rating"
                     android:layout_width="wrap_content"
@@ -81,7 +82,7 @@
                     android:drawablePadding="4dp"
                     app:drawableTint="@color/gold_accent" />
 
-                <!-- Live Weather Badge -->
+                
                 <TextView
                     android:id="@+id/detail_place_weather"
                     android:layout_width="wrap_content"
@@ -94,7 +95,7 @@
                     android:visibility="gone" />
             </LinearLayout>
 
-            <!-- Place Name -->
+            
             <TextView
                 android:id="@+id/detail_place_name"
                 android:layout_width="match_parent"
@@ -105,7 +106,7 @@
                 android:textSize="22sp"
                 android:fontFamily="sans-serif-black" />
 
-            <!-- Address -->
+            
             <TextView
                 android:id="@+id/detail_place_address"
                 android:layout_width="match_parent"
@@ -118,7 +119,7 @@
                 android:drawablePadding="6dp"
                 app:drawableTint="@color/app_text_secondary" />
 
-            <!-- Vibeometer Premium Layout -->
+            
             <LinearLayout
                 android:id="@+id/layout_vibeometer"
                 android:layout_width="match_parent"
@@ -162,7 +163,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- AI Summary / Gemini Reason Header with Speaker -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,7 +193,7 @@
                     android:padding="2dp" />
             </LinearLayout>
 
-            <!-- AI Match Analysis Section (Advanced Breakdown) -->
+            
             <LinearLayout
                 android:id="@+id/aiAnalysisSection"
                 android:layout_width="match_parent"
@@ -203,7 +204,7 @@
                 android:padding="16dp"
                 android:visibility="gone">
 
-                <!-- Title and Total Match Score -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -230,7 +231,7 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Factor 1: Interest Match -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -267,7 +268,7 @@
                         android:progressTint="@color/primary" />
                 </LinearLayout>
 
-                <!-- Factor 2: Freshness (Noutate) -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -304,7 +305,7 @@
                         android:progressTint="@color/accent_purple" />
                 </LinearLayout>
 
-                <!-- Factor 3: Popularity -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -341,7 +342,7 @@
                         android:progressTint="@color/gold_accent" />
                 </LinearLayout>
 
-                <!-- Factor 4: Explorer Level Match -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -378,7 +379,7 @@
                         android:progressTint="#3B82F6" />
                 </LinearLayout>
 
-                <!-- Factor 5: Category Diversity -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -415,7 +416,7 @@
                         android:progressTint="#EC4899" />
                 </LinearLayout>
 
-                <!-- Factor 6: Weather & Time Match -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -451,7 +452,7 @@
                         android:progressTint="#10B981" />
                 </LinearLayout>
 
-                <!-- Active Criteria (Interests & Filters) -->
+                
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -472,7 +473,7 @@
                     app:singleLine="false" />
             </LinearLayout>
 
-            <!-- AI Summary Content -->
+            
             <TextView
                 android:id="@+id/detail_place_description"
                 android:layout_width="match_parent"
@@ -483,7 +484,7 @@
                 android:textSize="14sp"
                 android:lineSpacingMultiplier="1.2" />
 
-            <!-- Top Reviews Header -->
+            
             <TextView
                 android:id="@+id/lbl_reviews_title"
                 android:layout_width="match_parent"
@@ -496,7 +497,7 @@
                 android:letterSpacing="0.03"
                 android:visibility="gone" />
 
-            <!-- Horizontal Scroll for Review Cards -->
+            
             <HorizontalScrollView
                 android:id="@+id/scroll_reviews"
                 android:layout_width="match_parent"
@@ -522,14 +523,14 @@
         android:layout_marginTop="20dp"
         android:background="@color/app_divider" />
 
-    <!-- Action buttons layout -->
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="horizontal">
 
-        <!-- Plan button -->
+        
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_plan_place_detail"
             android:layout_width="0dp"
@@ -541,7 +542,7 @@
             android:backgroundTint="@color/primary"
             app:cornerRadius="16dp" />
 
-        <!-- Close button -->
+        
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_close_place_detail"
             android:layout_width="0dp"

@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Premium Background Image -->
+    
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:src="@drawable/bg_welcome" />
 
-    <!-- Dark Overlay -->
+    
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -63,19 +63,14 @@
                     android:focusable="true"
                     android:background="?attr/selectableItemBackgroundBorderless" />
                     
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/auto_apasa_pentru_poza_7db699"
-                    android:textColor="@color/primary"
-                    android:textSize="12sp"
-                    android:layout_marginTop="4dp" />
+
             </LinearLayout>
 
             <TextView
                 android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
                 android:text="@string/auto_creeaza_cont_175878"
                 android:textColor="@color/app_text_primary"
                 android:textSize="36sp"
@@ -83,17 +78,9 @@
                 android:fontFamily="sans-serif-condensed-medium"
                 android:letterSpacing="0.05" />
 
-            <TextView
-                android:id="@+id/txtSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="40dp"
-                android:text="@string/auto_incepe_aventura_ta_globala_b23eea"
-                android:textColor="@color/app_text_secondary"
-                android:textSize="18sp"
-                android:fontFamily="sans-serif-light" />
 
-            <!-- Glassmorphism Container -->
+
+            
             <LinearLayout
                 android:id="@+id/registerCard"
                 android:layout_width="match_parent"
@@ -251,7 +238,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Progress Overlay -->
+    
     <FrameLayout
         android:id="@+id/progressOverlay"
         android:layout_width="match_parent"

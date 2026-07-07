@@ -6,10 +6,6 @@ import android.content.res.Configuration;
 
 import com.cityscape.app.data.LocaleHelper;
 
-/**
- * Custom Application class that ensures the saved locale is applied
- * globally across the entire app from the very start.
- */
 public class CityScapeApp extends Application {
 
     @Override
@@ -26,7 +22,6 @@ public class CityScapeApp extends Application {
             sessionManager.isDarkMode() ? androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES : 
                                          androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
         );
-
 
     }
 

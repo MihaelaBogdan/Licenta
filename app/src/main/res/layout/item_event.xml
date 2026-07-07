@@ -89,7 +89,7 @@
 
         </LinearLayout>
 
-        <!-- AI Match Badge (top-right) -->
+        
         <LinearLayout
             android:id="@+id/badge_ai_container"
             android:layout_width="wrap_content"
@@ -129,7 +129,7 @@
 
         </LinearLayout>
 
-        <!-- Translucent glass stroke border overlay -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"

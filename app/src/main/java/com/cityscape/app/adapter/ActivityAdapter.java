@@ -94,7 +94,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             placeName.setText(activity.placeName);
             placeType.setText(activity.placeType);
 
-            // Load Image
+            
             if (activity.placeImageUrl != null && !activity.placeImageUrl.isEmpty()) {
                 Glide.with(context).load(activity.placeImageUrl).placeholder(R.drawable.vibe_placeholder).into(activityImage);
             } else {
@@ -108,7 +108,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                 notes.setVisibility(View.GONE);
             }
 
-            // Budget Info
+            
             if (activity.budget > 0) {
                 budgetInfoContainer.setVisibility(View.VISIBLE);
                 String curr = activity.currency != null ? activity.currency : "RON";
@@ -117,7 +117,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                 budgetInfoContainer.setVisibility(View.GONE);
             }
 
-            // Check if activity has a group
+            
             ActivityGroup group = db.groupDao().getGroupForActivity(activity.id);
             if (group != null) {
                 groupInfoContainer.setVisibility(View.VISIBLE);
@@ -129,7 +129,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                 btnInviteFriendsText.setText("Invită");
             }
 
-            // Update completion state
+            
             if (activity.isCompleted) {
                 btnComplete.setImageResource(R.drawable.ic_check);
                 btnComplete.setAlpha(0.5f);
@@ -142,7 +142,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                 if (btnEdit != null) btnEdit.setVisibility(View.VISIBLE);
             }
 
-            // Click listeners
+            
             btnComplete.setOnClickListener(v -> {
                 if (listener != null && !activity.isCompleted) {
                     listener.onCompleteClick(activity, position);
@@ -169,6 +169,21 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
 
             btnInviteFriendsText.setOnClickListener(v -> {
                 if (listener != null) listener.onCreateGroupClick(activity);
+            });
+            
+            // Open maps when clicking the whole item
+            itemView.setOnClickListener(v -> {
+                if (activity.placeName != null && !activity.placeName.isEmpty()) {
+                    android.net.Uri gmmIntentUri = android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode(activity.placeName));
+                    android.content.Intent mapIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    if (mapIntent.resolveActivity(context.getPackageManager()) != null) {
+                        context.startActivity(mapIntent);
+                    } else {
+                        android.content.Intent fallbackIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW, gmmIntentUri);
+                        context.startActivity(fallbackIntent);
+                    }
+                }
             });
         }
     }

@@ -85,7 +85,7 @@ public class ItineraryFragment extends Fragment {
             itineraryItems = new Gson().fromJson(json, new TypeToken<List<ItineraryItem>>() {
             }.getType());
             variants.clear();
-            variants.add(itineraryItems); // Add the first one received
+            variants.add(itineraryItems); 
             
             String type = getArguments().getString("itinerary_type", "Explorare");
             boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
@@ -102,13 +102,13 @@ public class ItineraryFragment extends Fragment {
                 binding.tvItineraryTitle.setText("Plan: " + translatedType);
             }
 
-            // fetchExtraVariants();
+            
         } else if (getArguments() != null) {
-            // No initial JSON? Trigger full generation from here
+            
             Log.d("ItineraryFragment", "No initial JSON, triggering generation...");
             variants.clear();
             regenerateItinerary();
-            // fetchExtraVariants();
+            
         }
 
         binding.itineraryTabs.setVisibility(View.GONE);
@@ -122,7 +122,6 @@ public class ItineraryFragment extends Fragment {
         binding.btnExportCalendar.setOnClickListener(v -> showShareOptionsDialog());
 
         binding.btnAddLocation.setOnClickListener(v -> showAddLocationPicker());
-
 
         binding.itineraryToggleCurrency.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
@@ -219,7 +218,7 @@ public class ItineraryFragment extends Fragment {
         int totalSlots = Math.max(1, itineraryItems.size() + 1);
         double budgetPerSlot = (double) budget / totalSlots;
 
-        // Build comma-separated list of already used place IDs
+        
         StringBuilder usedIds = new StringBuilder();
         for (ItineraryItem item : itineraryItems) {
             if (item.placeId != null && !item.placeId.isEmpty()) {
@@ -261,7 +260,7 @@ public class ItineraryFragment extends Fragment {
         boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         Toast.makeText(getContext(), isEn ? "Looking for alternatives for " + current.slot + "..." : "Căutăm alternative pentru " + current.slot + "...", Toast.LENGTH_SHORT).show();
         
-        // Use Api to get alternatives for this specific type
+        
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         Bundle args = getArguments();
         double lat = args != null ? args.getDouble("lat") : 0;
@@ -291,13 +290,13 @@ public class ItineraryFragment extends Fragment {
                 ItineraryItem replacement = alternatives.get(which);
                 
                 if (position == -1) {
-                    // ADD case
+                    
                     replacement.slot = "Extra";
                     replacement.time = isEn ? "Select time" : "Selectează ora";
                     itineraryItems.add(replacement);
                     adapter.notifyItemInserted(itineraryItems.size() - 1);
                 } else {
-                    // REPLACE case
+                    
                     replacement.slot = itineraryItems.get(position).slot;
                     replacement.time = itineraryItems.get(position).time;
                     itineraryItems.set(position, replacement);
@@ -310,10 +309,9 @@ public class ItineraryFragment extends Fragment {
             .show();
     }
 
-
     private void showAddLocationPicker() {
         Toast.makeText(getContext(), getString(R.string.personalization_add_location), Toast.LENGTH_SHORT).show();
-        // Simple mock for now: let user pick from a search
+        
         Bundle args = getArguments();
         double lat = args != null ? args.getDouble("lat") : 0;
         double lng = args != null ? args.getDouble("lng") : 0;
@@ -323,7 +321,7 @@ public class ItineraryFragment extends Fragment {
             @Override
             public void onResponse(Call<List<ItineraryItem>> call, Response<List<ItineraryItem>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
-                    showReplacementDialog(-1, response.body()); // -1 means ADD
+                    showReplacementDialog(-1, response.body()); 
                 }
             }
             @Override public void onFailure(Call<List<ItineraryItem>> call, Throwable t) {}
@@ -334,12 +332,12 @@ public class ItineraryFragment extends Fragment {
         if (googleMap == null || itineraryItems == null || itineraryItems.isEmpty())
             return;
 
-        // Visual smoothness: clear markers and stop existing animations if possible 
+        
         googleMap.clear();
         
-        // ... apply style ...
         
-        // Apply dynamic map style based on theme
+        
+        
         try {
             com.cityscape.app.data.SessionManager sessionManager = new com.cityscape.app.data.SessionManager(requireContext());
             int styleRes = sessionManager.isDarkMode() ? R.raw.map_style_dark : R.raw.map_style_light;
@@ -350,7 +348,6 @@ public class ItineraryFragment extends Fragment {
 
         googleMap.getUiSettings().setAllGesturesEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-
 
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
         final List<LatLng> points = new java.util.ArrayList<>();
@@ -368,7 +365,7 @@ public class ItineraryFragment extends Fragment {
                             i == 0 ? BitmapDescriptorFactory.HUE_GREEN : BitmapDescriptorFactory.HUE_AZURE)));
         }
 
-        // Animate the Polyline drawing
+        
         final PolylineOptions polylineOptions = new PolylineOptions()
                 .width(12)
                 .color(Color.parseColor("#4CAF50"))
@@ -393,7 +390,7 @@ public class ItineraryFragment extends Fragment {
             animator.start();
         }
 
-        // Zoom to fit all markers
+        
         googleMap.setOnMapLoadedCallback(() -> {
             try {
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 150));
@@ -411,14 +408,14 @@ public class ItineraryFragment extends Fragment {
             totalRon += item.estimatedCost;
         }
 
-        // Improved Accuracy: Transport costs based on scope
+        
         String scope = getArguments() != null ? getArguments().getString("scope", "nearby") : "nearby";
         double transportPerLeg = "city".equalsIgnoreCase(scope) ? 25.0 : 12.0;
 
         double totalTransport = (itineraryItems.size() - 1) * transportPerLeg;
         totalRon += totalTransport;
 
-        // Add 10% safety buffer for tips/unexpected
+        
         totalRon *= 1.1;
 
         boolean isEur = binding.itineraryToggleCurrency.getCheckedButtonId() == R.id.itinerary_btn_eur;
@@ -431,7 +428,7 @@ public class ItineraryFragment extends Fragment {
             binding.tvTotalBudget.setText(String.format(java.util.Locale.getDefault(), "%.0f RON", totalRon));
         }
 
-        // Dynamically calculate and display the total itinerary duration
+        
         calculateAndDisplayDuration();
     }
 
@@ -470,7 +467,7 @@ public class ItineraryFragment extends Fragment {
                 binding.tvTotalDuration.setText(hours + "h " + mins + "m");
             }
         } else {
-            // Fallback: estimate based on number of items (approx 2h per item)
+            
             int estimatedHours = itineraryItems.size() * 2;
             binding.tvTotalDuration.setText("aprox. " + estimatedHours + "h");
         }
@@ -511,7 +508,7 @@ public class ItineraryFragment extends Fragment {
         SessionManager sessionManager = new SessionManager(requireContext());
         String userId = sessionManager.getUserId();
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        // Fetch 2 more to have a total of 3
+        
         for (int i = 0; i < 2; i++) {
             apiService.getItinerary(lat, lng, scope, radius, type, budget, interests, duration, points, userId, travelMode, startHour, companion, avoidCrowds, java.util.Locale.getDefault().getLanguage()).enqueue(new Callback<List<ItineraryItem>>() {
                 @Override
@@ -520,7 +517,7 @@ public class ItineraryFragment extends Fragment {
                         synchronized (variants) {
                             variants.add(response.body());
                             
-                            // If user is waiting on this tab, update it now
+                            
                             int currentTab = binding.itineraryTabs.getSelectedTabPosition();
                             if (currentTab == variants.size() - 1) {
                                 getActivity().runOnUiThread(() -> {
@@ -554,7 +551,7 @@ public class ItineraryFragment extends Fragment {
         int points = args.getInt("itinerary_points", 4);
         int budget = args.getInt("itinerary_budget", 250);
 
-        // Visual feedback
+        
         binding.btnRegenerate.setEnabled(false);
         binding.btnRegenerate.animate().rotationBy(720).setDuration(1000).start();
         Toast.makeText(getContext(), getString(R.string.generating_plans), Toast.LENGTH_SHORT).show();
@@ -565,7 +562,7 @@ public class ItineraryFragment extends Fragment {
         String userId = sessionManager.getUserId();
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
 
-        // Call enhanced itinerary endpoint with optimization and budget
+        
         String lang = com.cityscape.app.data.LocaleHelper.getLanguage(getContext());
         apiService.getEnhancedItinerary(lat, lng, userId, type, duration, points, true, budget, lang)
             .enqueue(new Callback<com.google.gson.JsonObject>() {
@@ -577,12 +574,12 @@ public class ItineraryFragment extends Fragment {
                         try {
                             com.google.gson.JsonObject data = response.body();
 
-                            // Parse base itinerary
+                            
                             java.util.List<ItineraryItem> items = new com.google.gson.Gson()
                                 .fromJson(data.getAsJsonArray("itinerary"),
                                     new com.google.gson.reflect.TypeToken<java.util.List<ItineraryItem>>(){}.getType());
 
-                            // Parse travel legs (transport times and distances)
+                            
                             java.util.List<com.google.gson.JsonObject> travelLegs = new java.util.ArrayList<>();
                             if (data.has("travel_legs")) {
                                 for (com.google.gson.JsonElement elem : data.getAsJsonArray("travel_legs")) {
@@ -590,7 +587,7 @@ public class ItineraryFragment extends Fragment {
                                 }
                             }
 
-                            // Parse weather forecast
+                            
                             java.util.List<com.google.gson.JsonObject> weatherForecast = new java.util.ArrayList<>();
                             if (data.has("weather_forecast")) {
                                 for (com.google.gson.JsonElement elem : data.getAsJsonArray("weather_forecast")) {
@@ -598,13 +595,13 @@ public class ItineraryFragment extends Fragment {
                                 }
                             }
 
-                            // Parse cost breakdown
+                            
                             com.google.gson.JsonObject costInfo = null;
                             if (data.has("cost_breakdown")) {
                                 costInfo = data.getAsJsonObject("cost_breakdown");
                             }
 
-                            // Update UI
+                            
                             synchronized (variants) {
                                 if (currentTabIndex < variants.size()) {
                                     variants.set(currentTabIndex, items);
@@ -619,7 +616,7 @@ public class ItineraryFragment extends Fragment {
                                 setupMap();
                                 calculateAndDisplayBudget();
 
-                                // Display enhanced information
+                                
                                 displayTransportInfo(travelLegs);
                                 displayWeatherForecast(weatherForecast);
                                 displayCostBreakdown(costInfo);
@@ -646,7 +643,7 @@ public class ItineraryFragment extends Fragment {
     }
 
     private void displayTransportInfo(java.util.List<com.google.gson.JsonObject> travelLegs) {
-        // Show transport times and distances between stops
+        
         boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
         StringBuilder transportInfo = new StringBuilder(isEn ? "🚌 TRANSPORT:\n" : "🚌 TRANSPORT:\n");
         int totalTime = 0;
@@ -668,13 +665,13 @@ public class ItineraryFragment extends Fragment {
             transportInfo.append(String.format("\n⏱️ Total transport: %d min\n📍 Total distanță: %.1f km", totalTime, totalDistance));
         }
 
-        // Display in a SnackBar or Toast for now
+        
         Toast.makeText(getContext(), isEn ? String.format("Transport: %d min, %.1f km", totalTime, totalDistance) : String.format("Transport: %d min, %.1f km", totalTime, totalDistance),
             Toast.LENGTH_LONG).show();
     }
 
     private void displayWeatherForecast(java.util.List<com.google.gson.JsonObject> weatherForecast) {
-        // Show weather for the day with activity recommendations
+        
         if (weatherForecast.isEmpty()) return;
 
         boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
@@ -696,7 +693,7 @@ public class ItineraryFragment extends Fragment {
     }
 
     private void displayCostBreakdown(com.google.gson.JsonObject costInfo) {
-        // Show detailed cost breakdown
+        
         if (costInfo == null) return;
 
         boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
@@ -740,11 +737,11 @@ public class ItineraryFragment extends Fragment {
 
     private void performSave(long date) {
         SessionManager sessionManager = new SessionManager(requireContext());
-        String userId = sessionManager.getUserId();
-        if (userId == null) {
-            Toast.makeText(getContext(), getString(R.string.must_be_authenticated), Toast.LENGTH_SHORT).show();
-            return;
+        String tempUserId = sessionManager.getUserId();
+        if (tempUserId == null) {
+            tempUserId = "guest"; // Allow guests to save offline itineraries
         }
+        final String userId = tempUserId;
 
         AppDatabase db = AppDatabase.getInstance(requireContext());
         SupabaseSyncManager syncManager = SupabaseSyncManager.getInstance(requireContext());
@@ -785,12 +782,12 @@ public class ItineraryFragment extends Fragment {
                         } else {
                             Toast.makeText(getContext(), getString(R.string.itinerary_saved), Toast.LENGTH_LONG).show();
                         }
-                        // Navigate to calendar to see results
+                        
                         try {
                             Navigation.findNavController(getView())
                                     .navigate(R.id.action_itineraryFragment_to_navigation_calendar);
                         } catch (Exception e) {
-                            // Fallback if action not found
+                            
                             Navigation.findNavController(getView()).navigateUp();
                         }
                     });
@@ -805,10 +802,7 @@ public class ItineraryFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * Directly exports the itinerary items to the system calendar (Google, Samsung, etc.)
-     * using Intents for a seamless user experience.
-     */
+    
     private void exportToSystemCalendar() {
         if (itineraryItems == null || itineraryItems.isEmpty()) {
             Toast.makeText(getContext(), getString(R.string.generate_itinerary_first), Toast.LENGTH_SHORT).show();
@@ -833,7 +827,7 @@ public class ItineraryFragment extends Fragment {
 
     private void addEventToCalendar(ItineraryItem item, int year, int month, int day) {
         try {
-            // Parse time from slot like "09:00 - 10:30"
+            
             String timeSlot = item.time != null ? item.time : "09:00 - 10:00";
             String[] parts = timeSlot.split(" - ");
             String startTimeStr = parts.length > 0 ? parts[0].trim() : "09:00";

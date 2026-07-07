@@ -1657,31 +1657,79 @@ class TrendingScraper:
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
         })
 
-    def scrape_web_trends(self, city):
+    # Cuvinte care apar des in snippet-uri dar nu sunt nume de locuri
+    _STOPWORDS = {"London", "Paris", "Rome", "Romania", "Bucuresti", "Bucharest", "Google",
+                  "Instagram", "TripAdvisor", "Facebook", "TikTok", "YouTube", "Booking",
+                  "Airbnb", "Best", "Top", "The Best", "Things To Do", "Europe", "Reddit"}
+
+    def _extract_place_names(self, text):
+        """Extrage secvente capitalizate care arata a nume de locuri."""
+        names = []
+        for p in re.findall(r"\b[A-ZĂÂÎȘȚ][a-zA-ZăâîșțĂÂÎȘȚ'\-]+(?:\s+[A-ZĂÂÎȘȚa-zăâîșț'\-]+){0,3}\b", text):
+            p = p.strip()
+            if len(p) > 5 and p not in self._STOPWORDS and not p.isupper():
+                names.append(p)
+        return names
+
+    def scrape_web_trends(self, city, interests=None):
         """
-        Scrapes popular locations for a city using a public web search tool
+        Aduna nume de locuri populare din mai multe surse web:
+        DuckDuckGo, Bing si Wikipedia. Daca exista interese, cauta si dupa ele.
         """
         scraped_names = []
+
+        # Construim mai multe interogari: generala + pe interesele utilizatorului
+        queries = [f"instagrammable popular spots sights in {city}",
+                   f"cele mai frumoase locuri de vizitat {city}"]
+        if interests:
+            for it in [i.strip() for i in str(interests).split(",") if i.strip()][:3]:
+                queries.append(f"best {it} places in {city}")
+
+        # Sursa 1: DuckDuckGo HTML
+        for query in queries:
+            try:
+                url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(query)}"
+                res = self.session.get(url, timeout=5)
+                if res.status_code == 200:
+                    soup = BeautifulSoup(res.text, "html.parser")
+                    for anchor in soup.find_all("a", class_="result__snippet"):
+                        scraped_names.extend(self._extract_place_names(anchor.get_text()))
+            except Exception as e:
+                print(f"⚠️ DuckDuckGo scraping warning (non-blocking): {e}")
+
+        # Sursa 2: Bing (titluri + snippet-uri)
         try:
-            # We search for popular/instagrammable sights
-            query = f"instagrammable popular spots sights in {city}"
-            url = f"https://html.duckduckgo.com/html/?q={requests.utils.quote(query)}"
+            url = f"https://www.bing.com/search?q={requests.utils.quote(queries[0])}&setlang=ro"
             res = self.session.get(url, timeout=5)
             if res.status_code == 200:
                 soup = BeautifulSoup(res.text, "html.parser")
-                # Look at search result title or snippet anchors
-                for anchor in soup.find_all("a", class_="result__snippet"):
-                    snippet = anchor.get_text()
-                    # Try to extract capitalized nouns that look like place names using regex
-                    # (e.g. capitalized sequences)
-                    places = re.findall(r'\b[A-Z][a-zA-Z\']+(?:\s+[A-Z][a-zA-Z\']+)*\b', snippet)
-                    for p in places:
-                        if len(p) > 5 and p not in ["London", "Paris", "Rome", "Romania", "Bucuresti", "Bucharest", "Google", "Instagram", "TripAdvisor"]:
-                            scraped_names.append(p)
-            return list(set(scraped_names))[:15]
+                for tag in soup.select("li.b_algo h2, li.b_algo p"):
+                    scraped_names.extend(self._extract_place_names(tag.get_text()))
         except Exception as e:
-            print(f"⚠️ Web scraping warning (non-blocking): {e}")
-            return []
+            print(f"⚠️ Bing scraping warning (non-blocking): {e}")
+
+        # Sursa 3: Wikipedia (titluri de articole despre atractii)
+        for term in [f"atracții turistice {city}", city]:
+            try:
+                res = self.session.get(
+                    "https://ro.wikipedia.org/w/api.php",
+                    params={"action": "opensearch", "search": term, "limit": 10, "format": "json"},
+                    timeout=5)
+                if res.status_code == 200:
+                    data = res.json()
+                    if len(data) > 1:
+                        for title in data[1]:
+                            scraped_names.extend(self._extract_place_names(title))
+            except Exception as e:
+                print(f"⚠️ Wikipedia scraping warning (non-blocking): {e}")
+
+        # Deduplicare pastrand ordinea
+        seen, unique = set(), []
+        for n in scraped_names:
+            if n.lower() not in seen:
+                seen.add(n.lower())
+                unique.append(n)
+        return unique[:25]
 
     def get_google_places_trends(self, city):
         """
@@ -1757,20 +1805,35 @@ class TrendingScraper:
             print(f"⚠️ Google Places trending fetch warning (non-blocking): {e}")
             return []
 
-    def get_trending_locations(self, city="București"):
+    def _interest_boost(self, place, interests):
+        """Scor suplimentar daca locul se potriveste cu interesele utilizatorului."""
+        if not interests:
+            return 0
+        hay = " ".join([
+            place.get("name", ""), place.get("description", ""),
+            place.get("category", ""), " ".join(place.get("tags", []))
+        ]).lower()
+        boost = 0
+        for it in [i.strip().lower() for i in str(interests).split(",") if i.strip()]:
+            if it and it in hay:
+                boost += 12
+        return boost
+
+    def get_trending_locations(self, city="București", interests=None):
         """
-        Main entrypoint. Returns exactly 10 high-quality trending/social-popular locations for a city.
+        Main entrypoint. Returns exactly 10 high-quality trending/social-popular locations
+        for a city, ordonate si dupa preferintele utilizatorului daca sunt furnizate.
         """
         # Normalize city
         city_key = city.strip()
-        
+
         # 1. Try Google Places API (dynamic & most accurate)
         places = self.get_google_places_trends(city_key)
-        
-        # 2. Try scraping DuckDuckGo to match names
+
+        # 2. Try scraping multiple web sources to match names
         scraped_names = []
         if len(places) < 10:
-            scraped_names = self.scrape_web_trends(city_key)
+            scraped_names = self.scrape_web_trends(city_key, interests=interests)
             
         # 3. Use curated database (primary fallbacks)
         curated_list = self.fallback_db.get(city_key)
@@ -1830,6 +1893,12 @@ class TrendingScraper:
                     if len(merged_places) >= 10:
                         break
                         
+        # Ordonare dupa potrivirea cu preferintele utilizatorului + hype
+        if interests:
+            merged_places.sort(
+                key=lambda p: p.get("hype_score", 0) + self._interest_boost(p, interests),
+                reverse=True)
+
         # Final slice to return exactly 10 places
         final_list = merged_places[:10]
         
@@ -1953,9 +2022,9 @@ class TrendingScraper:
 trending = TrendingScraper()
 
 # Compatibility helper function
-def get_trending_locations(city="București"):
+def get_trending_locations(city="București", interests=None):
     """Compatibility function to fetch trending locations directly"""
-    return trending.get_trending_locations(city)
+    return trending.get_trending_locations(city, interests=interests)
 
 if __name__ == "__main__":
     print("📍 Running Local Trending Scraper Verification...")

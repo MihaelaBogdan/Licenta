@@ -149,7 +149,7 @@ public class ARExplorerActivity extends BaseActivity implements SensorEventListe
                 if (response.isSuccessful() && response.body() != null && response.body().size() > 0) {
                     nearbyPlaces = response.body();
                 } else {
-                    // DEMO MODE: If no real places nearby, create some virtual ones for testing
+                    
                     nearbyPlaces = new ArrayList<>();
                     nearbyPlaces.add(createMockPlace("🏰 Castelul Magic", lat + 0.001, lng + 0.001));
                     nearbyPlaces.add(createMockPlace("☕ Cafeneaua AR", lat - 0.001, lng + 0.002));
@@ -161,7 +161,7 @@ public class ARExplorerActivity extends BaseActivity implements SensorEventListe
 
             @Override
             public void onFailure(Call<List<Place>> call, Throwable t) {
-                // Fallback to mock even on failure for demo purposes
+                
                 nearbyPlaces = new ArrayList<>();
                 nearbyPlaces.add(createMockPlace("🏰 Castelul Magic", lat + 0.001, lng + 0.001));
                 nearbyPlaces.add(createMockPlace("☕ Cafeneaua AR", lat - 0.001, lng + 0.002));

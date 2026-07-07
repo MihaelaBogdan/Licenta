@@ -74,9 +74,9 @@ public class SupabaseDataManager {
         void onError(String error);
     }
 
-    // ==========================================================
-    // ACTIVITY GROUPS
-    // ==========================================================
+    
+    
+    
 
     public void insertGroup(ActivityGroup group, DataCallback<Void> callback) {
         executorService.execute(() -> {
@@ -104,9 +104,9 @@ public class SupabaseDataManager {
     public void getGroupsForUser(String userId, DataCallback<List<ActivityGroup>> callback) {
         executorService.execute(() -> {
             try {
-                // To get groups for a user, we query via group_members table join in REST API
-                // Supabase syntax:
-                // /rest/v1/activity_groups?select=*,group_members!inner(*)&group_members.user_id=eq.{userId}
+                
+                
+                
                 String url = "activity_groups?select=*,group_members!inner(*)&group_members.user_id=eq." + userId;
                 Request request = getAuthenticatedRequestBuilder(url).get().build();
 
@@ -148,9 +148,9 @@ public class SupabaseDataManager {
         });
     }
 
-    // ==========================================================
-    // PLANNED ACTIVITIES
-    // ==========================================================
+    
+    
+    
 
     public void insertActivity(PlannedActivity activity, DataCallback<Void> callback) {
         executorService.execute(() -> {
@@ -220,9 +220,9 @@ public class SupabaseDataManager {
         });
     }
 
-    // ==========================================================
-    // USER PROFILES
-    // ==========================================================
+    
+    
+    
 
     public void getUserProfile(String userId, DataCallback<com.cityscape.app.model.User> callback) {
         executorService.execute(() -> {
@@ -273,9 +273,9 @@ public class SupabaseDataManager {
         });
     }
 
-    // ==========================================================
-    // UTILS
-    // ==========================================================
+    
+    
+    
 
     private <T> void postSuccess(DataCallback<T> callback, T result) {
         if (callback != null) {

@@ -100,10 +100,13 @@ public class LocalApiInterceptor implements Interceptor {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            jsonResponse = "[]";
-            if (path.endsWith("/weather") || path.endsWith("/predict") || path.endsWith("/predict/detailed")) {
-                jsonResponse = "{}";
-            }
+            return new Response.Builder()
+                    .code(503)
+                    .message("Service Unavailable - Offline")
+                    .request(request)
+                    .protocol(Protocol.HTTP_1_1)
+                    .body(ResponseBody.create("{\"error\":\"offline\"}", MediaType.parse("application/json; charset=utf-8")))
+                    .build();
         }
 
         return new Response.Builder()
@@ -158,7 +161,8 @@ public class LocalApiInterceptor implements Interceptor {
 
     private String getNearby(double lat, double lng, String requestedType) throws Exception {
         List<String> types = new ArrayList<>();
-        if ("mixed".equals(requestedType) || "tourist_attraction".equals(requestedType)) {
+        if (requestedType == null || requestedType.isEmpty() || "All".equalsIgnoreCase(requestedType)
+                || "mixed".equals(requestedType) || "tourist_attraction".equals(requestedType)) {
             types.add("restaurant"); types.add("cafe"); types.add("park"); types.add("tourist_attraction"); types.add("museum");
         } else {
             types.add(requestedType);
@@ -350,7 +354,7 @@ public class LocalApiInterceptor implements Interceptor {
             cal.set(java.util.Calendar.HOUR_OF_DAY, 18 + (i % 4));
             e.put("time", sdf.format(cal.getTime()));
             
-            e.put("latitude", 0.0); // Will use current city coords in UI
+            e.put("latitude", 0.0); 
             e.put("longitude", 0.0);
             
             out.put(e);

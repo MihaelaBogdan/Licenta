@@ -15,7 +15,7 @@ public class AROverlayView extends View {
 
     private List<Place> places = new ArrayList<>();
     private float userAzimuth = 0;
-    private final float CAMERA_FOV = 60f; // Typical phone camera field of view
+    private final float CAMERA_FOV = 60f; 
     private Paint pointPaint;
     private Paint textPaint;
     private Paint bgPaint;
@@ -61,24 +61,24 @@ public class AROverlayView extends View {
         int height = getHeight();
 
         for (Place place : places) {
-            // This is a simplified bearing calculation for "Lite" version
-            // In a real app we would use Location.bearingTo()
+            
+            
             float placeBearing = (float) Math.toDegrees(Math.atan2(place.longitude, place.latitude)); 
-            // Note: properly computing bearing requires user location too. 
-            // For now we assume the activity handles the bearing relative to user.
+            
+            
 
             float delta = placeBearing - userAzimuth;
 
-            // Normalize delta to [-180, 180]
+            
             if (delta > 180) delta -= 360;
             if (delta < -180) delta += 360;
 
-            // Is it visible within the camera FOV?
+            
             if (Math.abs(delta) < CAMERA_FOV / 2) {
                 float x = (width / 2) + (delta / (CAMERA_FOV / 2)) * (width / 2);
-                float y = height / 2; // Keep them centered vertically for simplicity
+                float y = height / 2; 
 
-                // Draw floating card
+                
                 String label = place.name;
                 float textWidth = textPaint.measureText(label);
                 RectF rect = new RectF(x - textWidth/2 - 20, y - 60, x + textWidth/2 + 20, y + 20);

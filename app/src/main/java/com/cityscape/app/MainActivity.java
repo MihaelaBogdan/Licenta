@@ -42,9 +42,33 @@ public class MainActivity extends BaseActivity {
             NavigationUI.setupWithNavController(binding.navView, navController);
         }
 
+        if (!isNetworkAvailable()) {
+            binding.navView.getMenu().removeItem(R.id.navigation_feed);
+            binding.navView.getMenu().removeItem(R.id.navigation_calendar);
+            
+            binding.fabChat.setVisibility(android.view.View.GONE);
+        }
+
         binding.fabChat.setOnClickListener(v -> {
             com.cityscape.app.ui.chat.ChatBottomSheetDialogFragment chatFragment = new com.cityscape.app.ui.chat.ChatBottomSheetDialogFragment();
             chatFragment.show(getSupportFragmentManager(), "ChatBot");
         });
+    }
+
+    private boolean isNetworkAvailable() {
+        android.net.ConnectivityManager connectivityManager = (android.net.ConnectivityManager) getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            android.net.NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (capabilities != null) {
+                return capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                       capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                       capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET);
+            }
+        }
+        return false;
+    }
+
+    public void navigateToTab(int menuItemId) {
+        binding.navView.setSelectedItemId(menuItemId);
     }
 }

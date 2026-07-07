@@ -23,7 +23,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     private final List<ChatMessage> messages;
 
-    // [MAPS:Place Name:lat:lng]
+    
     private static final Pattern MAPS_TAG = Pattern.compile(
         "\\[MAPS:([^:]+):([\\d.\\-]+):([\\d.\\-]+)\\]"
     );
@@ -85,7 +85,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
             String rawText = message.message != null ? message.message : "";
 
-            // Extract [MAPS:...] tags then strip them from displayed text
+            
             List<PlaceLink> places = extractPlaces(rawText);
             String displayText = stripMapsTags(rawText);
 
@@ -93,7 +93,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 holder.botMessageText.setText(displayText);
             }
 
-            // Build Maps buttons — only if the message contained [MAPS:...] tags
+            
             if (holder.buttonsContainer != null) {
                 holder.buttonsContainer.removeAllViews();
 
@@ -161,7 +161,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 }
             }
 
-            // Itinerary card
+            
             if (message.itineraryJson != null && !message.itineraryJson.isEmpty()) {
                 if (holder.chatItineraryCard != null) holder.chatItineraryCard.setVisibility(View.VISIBLE);
                 if (holder.chatItineraryTitle != null) holder.chatItineraryTitle.setText("🗺️ Traseu AI Personalizat");

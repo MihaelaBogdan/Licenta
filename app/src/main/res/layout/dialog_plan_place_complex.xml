@@ -7,7 +7,7 @@
     android:background="@drawable/bg_premium_dialog_light"
     android:padding="24dp">
 
-    <!-- Header bar (Handle) -->
+    
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
@@ -15,7 +15,7 @@
         android:layout_marginBottom="16dp"
         android:background="@color/app_divider" />
 
-    <!-- Dialog Title -->
+    
     <TextView
         android:id="@+id/txt_plan_title"
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
         android:fontFamily="sans-serif-black"
         android:layout_marginBottom="18dp" />
 
-    <!-- Step 1: Select Date -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -49,7 +49,7 @@
         android:insetBottom="0dp"
         android:layout_marginBottom="16dp" />
 
-    <!-- Step 2: Time Range Selection -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -94,7 +94,7 @@
             android:layout_marginStart="6dp" />
     </LinearLayout>
 
-    <!-- Step 3: Priority Selector -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -134,7 +134,7 @@
             android:text="@string/auto_optional_e0a738" />
     </com.google.android.material.chip.ChipGroup>
 
-    <!-- Step 4: Budget Allocation -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -157,7 +157,7 @@
         android:textSize="14sp"
         android:layout_marginBottom="16dp" />
 
-    <!-- Step 5: Transit Selection -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -197,7 +197,7 @@
             android:text="@string/auto_autouber_30a060" />
     </com.google.android.material.chip.ChipGroup>
 
-    <!-- Step 6: Custom Notes -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -221,7 +221,7 @@
         android:textSize="14sp"
         android:layout_marginBottom="24dp" />
 
-    <!-- Action Buttons -->
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

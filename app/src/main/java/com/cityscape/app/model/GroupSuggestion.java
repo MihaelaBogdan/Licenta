@@ -29,6 +29,6 @@ public class GroupSuggestion {
         this.placeName = placeName;
         this.suggestedByUserId = userId;
         this.suggestedByUserName = userName;
-        this.voteCount = 1; // Auto-vote from suggester
+        this.voteCount = 1; 
     }
 }

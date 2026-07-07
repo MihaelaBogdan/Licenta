@@ -19,7 +19,7 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Header Section -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                     android:fontFamily="sans-serif-black" />
             </LinearLayout>
 
-            <!-- Place Name -->
+            
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.CityScape.TextInput"
                 android:layout_width="match_parent"
@@ -62,7 +62,7 @@
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Suggestion Chips -->
+            
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/dialog_activity_suggestions"
                 android:layout_width="match_parent"
@@ -99,7 +99,7 @@
                     android:textSize="12sp" />
             </com.google.android.material.chip.ChipGroup>
 
-            <!-- Place Type -->
+            
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.CityScape.TextInput"
                 android:layout_width="match_parent"
@@ -117,7 +117,7 @@
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Time Selector -->
+            
             <TextView
                 android:id="@+id/input_time"
                 android:layout_width="match_parent"
@@ -132,7 +132,7 @@
                 android:textColor="@color/app_text_primary"
                 android:textSize="16sp" />
 
-            <!-- Budget Selector -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,7 +192,7 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
 
-            <!-- Notes -->
+            
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.CityScape.TextInput"
                 android:layout_width="match_parent"
@@ -212,7 +212,7 @@
                     android:textColorHint="@color/app_text_hint" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Action Buttons -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

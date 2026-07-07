@@ -65,7 +65,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="@string/auto_ce_stil_preferi_469b83"
+            android:text="Ce stil preferi?"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -74,15 +74,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
+            app:singleSelection="false"
+            app:selectionRequired="false">
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chip_type_exploration"
+                android:id="@+id/chip_type_sport"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/auto_explorare_ee76dc"
+                android:text="Sport"
                 android:checked="true" />
 
             <com.google.android.material.chip.Chip
@@ -90,49 +90,28 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/auto_relaxare_260ccf" />
+                android:text="Relaxare" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_cultural"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/auto_cultural_061cb8" />
+                android:text="Cultură" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_type_gastronomic"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/auto_gastronomic_1b3897" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_type_nightlife"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/auto_nocturn_a28388" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_type_cinema"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/auto_cinema_2d365e" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_type_sport"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/auto_tenis_sport_30ff84" />
+                android:text="Gastronomic" />
         </com.google.android.material.chip.ChipGroup>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="@string/auto_mod_de_transport_cb9a70"
+            android:text="Transport"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -171,7 +150,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="@string/auto_cu_cine_mergi_fd3c27"
+            android:text="Tip Grup"
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
@@ -213,7 +192,7 @@
                 android:text="@string/auto_familie_783013" />
         </com.google.android.material.chip.ChipGroup>
 
-        <!-- Start hour + avoid crowds row -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -311,7 +290,7 @@
                 android:text="@string/auto_restaurante_85a859" />
         </com.google.android.material.chip.ChipGroup>
 
-        <!-- Duration Slider -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -349,7 +328,7 @@
             app:trackColorActive="@color/primary"
             app:labelBehavior="gone" />
 
-        <!-- Density / Points Slider -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -387,7 +366,7 @@
             app:trackColorActive="@color/primary"
             app:labelBehavior="gone" />
 
-        <!-- Budget Slider -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

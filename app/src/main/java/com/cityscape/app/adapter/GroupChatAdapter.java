@@ -40,13 +40,13 @@ public class GroupChatAdapter extends RecyclerView.Adapter<GroupChatAdapter.Grou
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) holder.layoutBubbleContainer.getLayoutParams();
 
         if (isCurrentUser) {
-            // Align bubble right
+            
             params.gravity = Gravity.END;
             holder.txtSenderName.setVisibility(View.GONE);
             holder.txtMessageBody.setBackgroundResource(R.drawable.bg_message_user);
             holder.txtMessageBody.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.app_background));
         } else {
-            // Align bubble left
+            
             params.gravity = Gravity.START;
             holder.txtSenderName.setVisibility(View.VISIBLE);
             holder.txtSenderName.setText(message.userName != null ? message.userName : "Prieten");

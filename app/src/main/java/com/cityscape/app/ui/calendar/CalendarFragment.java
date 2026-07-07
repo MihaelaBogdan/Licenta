@@ -111,7 +111,7 @@ public class CalendarFragment extends Fragment {
         initViews(view);
         setupCalendar();
 
-        // Select today by default or target date from args
+        
         selectedDate = normalizeDate(System.currentTimeMillis());
         if (getArguments() != null && getArguments().containsKey("target_date")) {
             selectedDate = normalizeDate(getArguments().getLong("target_date"));
@@ -121,7 +121,7 @@ public class CalendarFragment extends Fragment {
         textSelectedDate.setText(getDateFormat().format(new Date(selectedDate)));
 
         if (getArguments() != null) {
-            // Auto-trigger group creation if requested
+            
             if (getArguments().getBoolean("auto_create_group", false)) {
                 String activityId = getArguments().getString("target_activity_id");
                 if (activityId != null) {
@@ -155,7 +155,7 @@ public class CalendarFragment extends Fragment {
         loadUserGroups();
         checkPendingInvitations();
         
-        // Auto-sync external calendar if permission is already granted
+        
         if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.READ_CALENDAR)
                 == PackageManager.PERMISSION_GRANTED) {
             syncGoogleCalendar();
@@ -192,7 +192,7 @@ public class CalendarFragment extends Fragment {
         btnSyncCalendar = view.findViewById(R.id.btn_sync_calendar);
         btnExportCalendar = view.findViewById(R.id.btn_export_calendar);
 
-        // UI Collapsing Logic
+        
         calendarView.setVisibility(View.GONE);
         view.findViewById(R.id.btn_expand_calendar).setOnClickListener(v -> {
             isMonthlyCalendarExpanded = !isMonthlyCalendarExpanded;
@@ -214,10 +214,10 @@ public class CalendarFragment extends Fragment {
         recyclerGroups.setLayoutManager(new LinearLayoutManager(getContext()));
 
         btnAddActivity.setOnClickListener(v -> showAddActivityDialog());
-        // Map the new quick action banner buttons to existing logic
+        
         view.findViewById(R.id.action_invitations).setOnClickListener(v -> showPendingInvitationsDialog());
         view.findViewById(R.id.action_groups).setOnClickListener(v -> {
-            // Scroll to groups section
+            
             View groupsLabel = view.findViewById(R.id.recycler_groups);
             groupsLabel.getParent().requestChildFocus(groupsLabel, groupsLabel);
         });
@@ -236,12 +236,12 @@ public class CalendarFragment extends Fragment {
     private void setupHorizontalCalendar() {
         dateItems.clear();
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -7); // Start 1 week ago
+        cal.add(Calendar.DAY_OF_YEAR, -7); 
         
         for (int i = 0; i < 45; i++) {
             long time = normalizeDate(cal.getTimeInMillis());
             boolean isSelected = (time == selectedDate);
-            // Default to false for indicators, fill via thread below
+            
             dateItems.add(new com.cityscape.app.model.CalendarDate(new Date(time), isSelected, false));
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
@@ -249,13 +249,13 @@ public class CalendarFragment extends Fragment {
         horizontalAdapter = new com.cityscape.app.adapter.CalendarDateAdapter(dateItems, date -> {
             selectedDate = normalizeDate(date.date.getTime());
             updateDateSelectionUI();
-            calendarView.setDate(selectedDate); // Sync with monthly grid
+            calendarView.setDate(selectedDate); 
             loadActivitiesForDate(selectedDate);
         });
 
         recyclerHorizontalCalendar.setAdapter(horizontalAdapter);
         
-        // Background update for dots/indicators
+        
         new Thread(() -> {
             String userId = sessionManager.getUserId();
             if (userId == null) return;
@@ -304,7 +304,7 @@ public class CalendarFragment extends Fragment {
             return;
         }
 
-        // Show a dialog to confirm exporting all or first one
+        
         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
             .setTitle(getString(R.string.export_activities))
             .setMessage(getString(R.string.export_confirmation, dayActivities.size()))
@@ -320,7 +320,7 @@ public class CalendarFragment extends Fragment {
 
     private void exportActivityToPhone(PlannedActivity activity) {
         try {
-            // Parse time
+            
             int hour = 9, minute = 0;
             if (activity.scheduledTime != null && activity.scheduledTime.contains(":")) {
                 try {
@@ -338,14 +338,13 @@ public class CalendarFragment extends Fragment {
                 else if (slot.contains("după")) hour = 16;
             }
 
-
             Calendar beginTime = Calendar.getInstance();
             beginTime.setTimeInMillis(activity.scheduledDate);
             beginTime.set(Calendar.HOUR_OF_DAY, hour);
             beginTime.set(Calendar.MINUTE, minute);
 
             Calendar endTime = (Calendar) beginTime.clone();
-            endTime.add(Calendar.HOUR_OF_DAY, 2); // Default duration 2h
+            endTime.add(Calendar.HOUR_OF_DAY, 2); 
 
             Intent intent = new Intent(Intent.ACTION_INSERT)
                     .setData(android.provider.CalendarContract.Events.CONTENT_URI)
@@ -383,7 +382,7 @@ public class CalendarFragment extends Fragment {
             
             java.util.Calendar startTime = java.util.Calendar.getInstance();
             java.util.Calendar endTime = java.util.Calendar.getInstance();
-            endTime.add(java.util.Calendar.DAY_OF_YEAR, 30); // Urmatoarele 30 zile
+            endTime.add(java.util.Calendar.DAY_OF_YEAR, 30); 
             
             String selection = android.provider.CalendarContract.Events.DTSTART + " >= ? AND " + 
                                android.provider.CalendarContract.Events.DTSTART + " <= ?";
@@ -415,7 +414,7 @@ public class CalendarFragment extends Fragment {
                     String location = cursor.getString(1);
                     long dtstart = cursor.getLong(2);
                     
-                    // Fallback to title if location is empty
+                    
                     String activityName = (location != null && !location.trim().isEmpty()) ? location : title;
                     if (activityName == null || activityName.isEmpty()) continue;
 
@@ -535,7 +534,7 @@ public class CalendarFragment extends Fragment {
                         }
                         textActivitySummary.setText(summaryText);
                     }
-                    // Animation for "Pro" feel
+                    
                     recyclerActivities.setAlpha(0f);
                     recyclerActivities.animate().alpha(1f).setDuration(400).start();
 
@@ -555,7 +554,7 @@ public class CalendarFragment extends Fragment {
                             com.cityscape.app.data.SupabaseSyncManager.getInstance(context)
                                     .updateActivityInCloud(activity);
                             
-                            // Record visit in Cloud
+                            
                             User user = sessionManager.getCurrentUser();
                             if (user != null) {
                                 com.cityscape.app.api.VisitRequest req = new com.cityscape.app.api.VisitRequest(
@@ -591,7 +590,7 @@ public class CalendarFragment extends Fragment {
                             if (existingGroup != null) {
                                 showGroupDetails(existingGroup, activity);
                             } else {
-                                // Offer choice: full group or 1-on-1 availability check
+                                
                                 new AlertDialog.Builder(context, R.style.DarkDialogTheme)
                                     .setTitle(getString(R.string.how_to_invite))
                                     .setMessage(getString(R.string.group_create_invite))
@@ -621,7 +620,6 @@ public class CalendarFragment extends Fragment {
         }).start();
     }
 
-
     private void showFeedbackDialog(String placeName) {
         boolean isEn = "en".equals(getLanguage());
         new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
@@ -641,10 +639,46 @@ public class CalendarFragment extends Fragment {
             if (userId == null) return;
             List<ActivityGroup> groups = db.groupDao().getGroupsForUser(userId);
 
+            if (groups.isEmpty()) {
+                // Generate Mock Data for presentation
+                com.cityscape.app.model.PlannedActivity mockActivity = new com.cityscape.app.model.PlannedActivity();
+                mockActivity.userId = userId;
+                mockActivity.placeName = "Explorare Centrul Vechi";
+                mockActivity.placeType = "Mock Location";
+                mockActivity.scheduledDate = normalizeDate(System.currentTimeMillis() + 86400000L); // tomorrow
+                mockActivity.scheduledTime = "10:00";
+                db.activityDao().insert(mockActivity);
+
+                ActivityGroup mockGroup = new ActivityGroup(mockActivity.id, userId, "Grup Explorare București");
+                db.groupDao().insertGroup(mockGroup);
+                db.groupDao().insertMember(new com.cityscape.app.model.GroupMember(mockGroup.id, userId, "Test User", true));
+                
+                com.cityscape.app.model.PlannedActivity mockActivity2 = new com.cityscape.app.model.PlannedActivity();
+                mockActivity2.userId = userId;
+                mockActivity2.placeName = "Relaxare la Therme București";
+                mockActivity2.placeType = "Therme";
+                mockActivity2.scheduledDate = normalizeDate(System.currentTimeMillis() + 2 * 86400000L); // day after tomorrow
+                mockActivity2.scheduledTime = "14:00";
+                db.activityDao().insert(mockActivity2);
+
+                ActivityGroup mockGroup2 = new ActivityGroup(mockActivity2.id, userId, "Relaxare Grup");
+                db.groupDao().insertGroup(mockGroup2);
+                db.groupDao().insertMember(new com.cityscape.app.model.GroupMember(mockGroup2.id, userId, "Test User", true));
+
+                groups = db.groupDao().getGroupsForUser(userId);
+                
+                // Trigger reload of activities as well
+                long selectedDate = this.selectedDate;
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> loadActivitiesForDate(selectedDate));
+                }
+            }
+
             if (getActivity() != null) {
+                final List<ActivityGroup> finalGroups = groups;
                 getActivity().runOnUiThread(() -> {
                     if (!isAdded()) return;
-                    if (groups.isEmpty()) {
+                    if (finalGroups.isEmpty()) {
                         recyclerGroups.setVisibility(View.GONE);
                         emptyGroupsState.setVisibility(View.VISIBLE);
                         textGroupCount.setText("");
@@ -652,9 +686,9 @@ public class CalendarFragment extends Fragment {
                         recyclerGroups.setVisibility(View.VISIBLE);
                         emptyGroupsState.setVisibility(View.GONE);
                         boolean isEnVal = "en".equals(getLanguage());
-                        textGroupCount.setText(groups.size() + (isEnVal ? (groups.size() == 1 ? " group" : " groups") : (groups.size() == 1 ? " grup" : " grupuri")));
+                        textGroupCount.setText(finalGroups.size() + (isEnVal ? (finalGroups.size() == 1 ? " group" : " groups") : (finalGroups.size() == 1 ? " grup" : " grupuri")));
 
-                        groupCardAdapter = new GroupCardAdapter(context, groups,
+                        groupCardAdapter = new GroupCardAdapter(context, finalGroups,
                                 new GroupCardAdapter.OnGroupActionListener() {
                                     @Override
                                     public void onViewSchedule(ActivityGroup group) {
@@ -668,7 +702,7 @@ public class CalendarFragment extends Fragment {
 
                                     @Override
                                     public void onGroupClick(ActivityGroup group) {
-                                        // Find the activity for this group
+                                        
                                         new Thread(() -> {
                                             PlannedActivity activity = findActivityForGroup(group);
                                             if (activity != null && getActivity() != null) {
@@ -699,7 +733,7 @@ public class CalendarFragment extends Fragment {
         return null;
     }
 
-    // ==================== SHARE METHODS ====================
+    
 
     private void shareActivity(PlannedActivity activity) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
@@ -765,7 +799,7 @@ public class CalendarFragment extends Fragment {
         showShareChooser(shareText, "Intră în " + group.groupName);
     }
 
-    // ==================== CREATE GROUP ====================
+    
 
     private void showCreateGroupDialog(PlannedActivity activity) {
         if (!isAdded() || getContext() == null) return;
@@ -776,7 +810,7 @@ public class CalendarFragment extends Fragment {
         EditText inputSearchEmail = dialogView.findViewById(R.id.input_search_email);
         TextView btnShareLink = dialogView.findViewById(R.id.btn_share_link);
         
-        // Recommended Friends section
+        
         RecyclerView rvRecommended = dialogView.findViewById(R.id.rv_recommended_friends);
         View labelRecommended = dialogView.findViewById(R.id.text_recommended_label);
         com.cityscape.app.adapter.SmallUserAdapter recommendedAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
@@ -799,7 +833,7 @@ public class CalendarFragment extends Fragment {
             });
         }
 
-        // Following list
+        
         RecyclerView rvFollowing = dialogView.findViewById(R.id.rv_following_to_invite);
         View labelFollowing = dialogView.findViewById(R.id.text_following_label);
         com.cityscape.app.adapter.SmallUserAdapter followingAdapter = new com.cityscape.app.adapter.SmallUserAdapter(null);
@@ -844,7 +878,7 @@ public class CalendarFragment extends Fragment {
             db.groupDao().insertMember(creatorMember);
             com.cityscape.app.data.SupabaseSyncManager.getInstance(requireContext()).pushMemberToCloud(creatorMember);
 
-            // Invite selected users
+            
             List<User> selectedUsers = new ArrayList<>();
             selectedUsers.addAll(followingAdapter.getSelectedUsers());
             selectedUsers.addAll(recommendedAdapter.getSelectedUsers());
@@ -852,13 +886,13 @@ public class CalendarFragment extends Fragment {
                 sendInvitation(group, activity, u);
             }
 
-            // Also check email/username if typed
+            
             String query = inputSearchEmail.getText().toString().trim();
             if (!query.isEmpty()) {
                 android.content.Context context = getContext();
                 if (context != null) {
                     new Thread(() -> {
-                        // Search locally first, then via API
+                        
                         User targetUser = db.userDao().getUserByEmail(query);
                         if (targetUser == null) targetUser = db.userDao().getUserByUsername(query);
                         
@@ -868,7 +902,7 @@ public class CalendarFragment extends Fragment {
                                 if (isAdded()) sendInvitation(group, activity, finalTarget);
                             });
                         } else {
-                            // Fallback to API search
+                            
                             apiService.searchUsers(query, sessionManager.getUserId()).enqueue(new retrofit2.Callback<List<User>>() {
                                 @Override
                                 public void onResponse(retrofit2.Call<List<User>> call, retrofit2.Response<List<User>> response) {
@@ -907,7 +941,7 @@ public class CalendarFragment extends Fragment {
         dialog.show();
     }
 
-    // ==================== GROUP DETAILS ====================
+    
 
     private void showGroupDetails(ActivityGroup group, PlannedActivity activity) {
         if (!isAdded()) return;
@@ -1000,10 +1034,10 @@ public class CalendarFragment extends Fragment {
         User currentUser = sessionManager.getCurrentUser();
         String currentUserName = currentUser != null ? currentUser.name : "Eu";
 
-        // Load historical messages from DB
+        
         List<com.cityscape.app.model.GroupMessage> chatMessages = new ArrayList<>(db.groupMessageDao().getMessagesForGroup(group.id));
 
-        // Loaded clean historical messages with no predefined seeds
+        
 
         com.cityscape.app.adapter.GroupChatAdapter chatAdapter = new com.cityscape.app.adapter.GroupChatAdapter(chatMessages, currentUserId);
         rvChat.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -1015,7 +1049,7 @@ public class CalendarFragment extends Fragment {
             chipAskAi.setOnClickListener(v -> {
                 chipAskAi.setEnabled(false);
                 
-                // Show loading message
+                
                 String loadingMsgText = getString(R.string.ai_analyzing_members);
                 com.cityscape.app.model.GroupMessage loadingMsg = new com.cityscape.app.model.GroupMessage(
                         group.id, "cityscape_ai_loading", "CityScape AI", loadingMsgText);
@@ -1041,7 +1075,7 @@ public class CalendarFragment extends Fragment {
                         if (!isAdded()) return;
                         chipAskAi.setEnabled(true);
                         
-                        // Remove loading message
+                        
                         for (int i = 0; i < chatMessages.size(); i++) {
                             if ("cityscape_ai_loading".equals(chatMessages.get(i).userId)) {
                                 chatMessages.remove(i);
@@ -1059,7 +1093,7 @@ public class CalendarFragment extends Fragment {
                                 sb.append("✨ ").append(rec.get("why_for_group")).append("\n\n");
                             }
                             
-                            // Insert real AI message to DB
+                            
                             com.cityscape.app.model.GroupMessage aiMsg = new com.cityscape.app.model.GroupMessage(
                                     group.id, "cityscape_ai", "CityScape AI", sb.toString());
                             db.groupMessageDao().insert(aiMsg);
@@ -1075,7 +1109,7 @@ public class CalendarFragment extends Fragment {
                     public void onFailure(retrofit2.Call<java.util.List<java.util.Map<String, String>>> call, Throwable t) {
                         if (!isAdded()) return;
                         chipAskAi.setEnabled(true);
-                        // Remove loading message
+                        
                         for (int i = 0; i < chatMessages.size(); i++) {
                             if ("cityscape_ai_loading".equals(chatMessages.get(i).userId)) {
                                 chatMessages.remove(i);
@@ -1107,21 +1141,21 @@ public class CalendarFragment extends Fragment {
 
             inputChat.setText("");
 
-            // Insert user message
+            
             com.cityscape.app.model.GroupMessage userMsg = new com.cityscape.app.model.GroupMessage(group.id, currentUserId, currentUserName, rawMsg);
             db.groupMessageDao().insert(userMsg);
             chatMessages.add(userMsg);
             chatAdapter.notifyItemInserted(chatMessages.size() - 1);
             rvChat.scrollToPosition(chatMessages.size() - 1);
 
-            // Award small social XP
+            
             com.cityscape.app.util.BadgeManager.addExperience(requireContext(), currentUserId, 10);
 
-            // Delayed reply simulation exclusively from other group members (1.5s)
+            
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 if (!isAdded()) return;
 
-                // Load active group members
+                
                 List<com.cityscape.app.model.GroupMember> membersList = db.groupDao().getMembersForGroup(group.id);
                 List<com.cityscape.app.model.GroupMember> otherMembers = new ArrayList<>();
                 for (com.cityscape.app.model.GroupMember m : membersList) {
@@ -1130,7 +1164,7 @@ public class CalendarFragment extends Fragment {
                     }
                 }
 
-                // If other members exist in this group, simulate a reply from one of them
+                
                 if (!otherMembers.isEmpty()) {
                     com.cityscape.app.model.GroupMember replier = otherMembers.get((int) (Math.random() * otherMembers.size()));
                     String sender = replier.userName;
@@ -1160,7 +1194,6 @@ public class CalendarFragment extends Fragment {
         chatDialog.show();
     }
 
-
     private void showVotingDialog(ActivityGroup group) {
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_group_voting, null);
         RecyclerView recycler = dialogView.findViewById(R.id.recycler_suggestions);
@@ -1173,7 +1206,7 @@ public class CalendarFragment extends Fragment {
 
         loadSuggestions(group, recycler, emptyText);
 
-        // Only creator can finalize
+        
         if (group.creatorId.equals(sessionManager.getUserId())) {
             btnFinalize.setVisibility(View.VISIBLE);
         }
@@ -1208,10 +1241,10 @@ public class CalendarFragment extends Fragment {
                 return;
             }
 
-            // Find winner (first in sorted list)
+            
             com.cityscape.app.model.GroupSuggestion winner = suggestions.get(0);
 
-            // Update the linked activity
+            
             com.cityscape.app.model.PlannedActivity activity = findActivityForGroup(group);
             if (activity != null) {
                 activity.placeName = "🏆 " + winner.placeName;
@@ -1239,7 +1272,7 @@ public class CalendarFragment extends Fragment {
 
             com.cityscape.app.adapter.SuggestionAdapter adapter = new com.cityscape.app.adapter.SuggestionAdapter(
                     suggestions, suggestion -> {
-                        // Vote logic
+                        
                         String userId = sessionManager.getUserId();
                         List<com.cityscape.app.model.Vote> userVotes = db.voteDao().getUserVotesInGroup(userId,
                                 group.id);
@@ -1265,10 +1298,10 @@ public class CalendarFragment extends Fragment {
         }
     }
 
-    // ==================== INVITATIONS ====================
+    
 
     private void sendInvitation(ActivityGroup group, PlannedActivity activity, User targetUser) {
-        // Check if already a member
+        
         GroupMember existingMember = db.groupDao().getMember(group.id, targetUser.id);
         if (existingMember != null) {
             Toast.makeText(getContext(), getString(R.string.already_in_group_msg, targetUser.name), Toast.LENGTH_SHORT).show();
@@ -1295,8 +1328,8 @@ public class CalendarFragment extends Fragment {
 
     private void checkPendingInvitations() {
         int pendingCount = db.invitationDao().getPendingCount(sessionManager.getUserId());
-        // For the new design, we might want a badge on action_invitations
-        // But for now, we'll just handle the dialog trigger via action_invitations click
+        
+        
     }
 
     private void showPendingInvitationsDialog() {
@@ -1360,7 +1393,7 @@ public class CalendarFragment extends Fragment {
         dialog.show();
     }
 
-    // ==================== JOIN GROUP ====================
+    
 
     private void showJoinGroupDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
@@ -1384,7 +1417,7 @@ public class CalendarFragment extends Fragment {
                 return;
             }
 
-            // Check if already a member
+            
             User currentUser = sessionManager.getCurrentUser();
             GroupMember existingMember = db.groupDao().getMember(group.id, currentUser.id);
             if (existingMember != null) {
@@ -1393,14 +1426,14 @@ public class CalendarFragment extends Fragment {
                 return;
             }
 
-            // Check member limit
+            
             int currentMembers = db.groupDao().getAcceptedMemberCount(group.id);
             if (currentMembers >= group.maxMembers) {
                 Toast.makeText(getContext(), getString(R.string.group_full_error), Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Join the group
+            
             GroupMember member = new GroupMember(group.id, currentUser.id, currentUser.name, false);
             member.status = "accepted";
             db.groupDao().insertMember(member);
@@ -1416,7 +1449,7 @@ public class CalendarFragment extends Fragment {
         dialog.show();
     }
 
-    // ==================== GROUP SCHEDULE ====================
+    
 
     private void showGroupScheduleDialog(ActivityGroup group) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme);
@@ -1432,7 +1465,7 @@ public class CalendarFragment extends Fragment {
 
         recyclerSchedules.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Default to selected date from calendar
+        
         final long[] scheduleDate = { selectedDate };
         final String[] startTime = { "09:00" };
         final String[] endTime = { "18:00" };
@@ -1440,10 +1473,10 @@ public class CalendarFragment extends Fragment {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault());
         textDate.setText(sdf.format(new Date(selectedDate)));
 
-        // Load existing schedules
+        
         loadSchedulesForGroup(group, scheduleDate[0], recyclerSchedules, textNoSchedules);
 
-        // Date picker
+        
         textDate.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             cal.setTimeInMillis(scheduleDate[0]);
@@ -1457,7 +1490,7 @@ public class CalendarFragment extends Fragment {
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
         });
 
-        // Time pickers
+        
         textStartTime.setOnClickListener(v -> {
             new TimePickerDialog(getContext(), (view, hour, minute) -> {
                 startTime[0] = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
@@ -1478,10 +1511,10 @@ public class CalendarFragment extends Fragment {
                     if (currentUser == null)
                         return;
 
-                    // Clear old schedule for this date
+                    
                     db.scheduleDao().clearUserScheduleForDate(group.id, currentUser.id, scheduleDate[0]);
 
-                    // Save new schedule
+                    
                     MemberSchedule schedule = new MemberSchedule(
                             group.id,
                             currentUser.id,
@@ -1519,7 +1552,7 @@ public class CalendarFragment extends Fragment {
         }
     }
 
-    // ==================== ADD ACTIVITY ====================
+    
 
     private void fetchPlaces() {
         apiService.getPlaces().enqueue(new retrofit2.Callback<List<com.cityscape.app.model.Place>>() {
@@ -1637,7 +1670,7 @@ public class CalendarFragment extends Fragment {
         TextView textConversion = dialogView.findViewById(R.id.text_conversion_result);
         EditText inputNotes = dialogView.findViewById(R.id.input_notes);
 
-        // Setup AutoComplete
+        
         setupDynamicAutocomplete(inputName, inputType);
 
         com.google.android.material.chip.ChipGroup suggestionChips = dialogView.findViewById(R.id.dialog_activity_suggestions);
@@ -1653,7 +1686,7 @@ public class CalendarFragment extends Fragment {
         }
 
         final String[] selectedTime = { "10:00" };
-        final double EUR_RATE = 4.97; // 1 EUR = 4.97 RON
+        final double EUR_RATE = 4.97; 
 
         android.text.TextWatcher budgetWatcher = new android.text.TextWatcher() {
             @Override
@@ -1761,12 +1794,9 @@ public class CalendarFragment extends Fragment {
         }
     }
 
-    // ==================== EDIT ACTIVITY ====================
+    
 
-    /**
-     * Opens the add-activity dialog pre-filled with the existing activity's data.
-     * On save, updates the Room record and pushes to Supabase.
-     */
+    
     private void showEditActivityDialog(PlannedActivity existingActivity) {
         if (!isAdded() || getContext() == null) return;
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.DarkDialogTheme);
@@ -1781,21 +1811,21 @@ public class CalendarFragment extends Fragment {
         TextView textConversion = dialogView.findViewById(R.id.text_conversion_result);
         EditText inputNotes   = dialogView.findViewById(R.id.input_notes);
 
-        // Pre-fill existing values
+        
         inputName.setText(existingActivity.placeName);
         inputType.setText(existingActivity.placeType);
         inputNotes.setText(existingActivity.notes);
         if (existingActivity.budget > 0)
             inputBudget.setText(String.valueOf((int) existingActivity.budget));
 
-        // Pre-select currency
+        
         if ("EUR".equals(existingActivity.currency)) {
             toggleCurrency.check(R.id.btn_eur);
         } else {
             toggleCurrency.check(R.id.btn_ron);
         }
 
-        // Autocomplete
+        
         setupDynamicAutocomplete(inputName, inputType);
 
         TextView dialogTitle = dialogView.findViewById(R.id.dialog_title);
@@ -1877,16 +1907,9 @@ public class CalendarFragment extends Fragment {
         });
     }
 
-    // ==================== AVAILABILITY / DOODLE ====================
+    
 
-    /**
-     * Shows a "Who's free?" dialog.
-     * - User picks a date range (up to 7 days)
-     * - Loads the calendar of the current user + every invited user for those days
-     * - Highlights hours where EVERYONE is free (no PlannedActivity overlaps)
-     * - Proposes the best common slot
-     * - Allows inviting a single friend (1-on-1) or a full group
-     */
+    
     private void showAvailabilityPickerDialog(PlannedActivity activityToSchedule) {
         if (!isAdded() || getContext() == null) return;
 
@@ -1894,13 +1917,13 @@ public class CalendarFragment extends Fragment {
         User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null) return;
 
-        // ── Build dialog UI programmatically ──────────────────────────
+        
         LinearLayout root = new LinearLayout(ctx);
         root.setOrientation(LinearLayout.VERTICAL);
         int pad = (int) (16 * getResources().getDisplayMetrics().density);
         root.setPadding(pad, pad, pad, pad);
 
-        // Section title
+        
         TextView titleLabel = new TextView(ctx);
         titleLabel.setText("🗓️ Verifică disponibilitate");
         titleLabel.setTextSize(16f);
@@ -1908,7 +1931,7 @@ public class CalendarFragment extends Fragment {
         titleLabel.setTextColor(android.graphics.Color.WHITE);
         root.addView(titleLabel);
 
-        // Date range picker row
+        
         TextView dateRangeInfo = new TextView(ctx);
         SimpleDateFormat sdf7 = new SimpleDateFormat("dd MMM", Locale.getDefault());
         Calendar startCal = Calendar.getInstance();
@@ -1938,7 +1961,7 @@ public class CalendarFragment extends Fragment {
             }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
         });
 
-        // Invite user field (email or username) — 1-on-1 or group
+        
         TextView inviteLabel = new TextView(ctx);
         inviteLabel.setText(getString(R.string.invite_user_label));
         inviteLabel.setTextColor(android.graphics.Color.WHITE);
@@ -1950,7 +1973,7 @@ public class CalendarFragment extends Fragment {
         inputInvite.setTextColor(android.graphics.Color.WHITE);
         root.addView(inputInvite);
 
-        // Result area
+        
         TextView resultText = new TextView(ctx);
         resultText.setText("");
         resultText.setTextColor(0xFF00E5FF);
@@ -1973,11 +1996,11 @@ public class CalendarFragment extends Fragment {
             resultText.setText(getString(R.string.status_analyzing_calendars));
 
             new Thread(() -> {
-                // 1. Collect current user's busy hours across range
+                
                 java.util.Map<Long, List<String>> myBusy = collectBusySlots(
                         currentUser.id, rangeStart[0], rangeEnd[0]);
 
-                // 2. Try to find the invited user
+                
                 User invited = null;
                 if (!query.isEmpty()) {
                     String q = query.startsWith("@") ? query.substring(1) : query;
@@ -1990,7 +2013,7 @@ public class CalendarFragment extends Fragment {
                     theirBusy = collectBusySlots(invited.id, rangeStart[0], rangeEnd[0]);
                 }
 
-                // 3. Find best common free slot (first 1-hour window free for both)
+                
                 String bestSlot = findBestOverlap(myBusy, theirBusy, rangeStart[0], rangeEnd[0]);
 
                 final User finalInvited = invited;
@@ -2015,13 +2038,13 @@ public class CalendarFragment extends Fragment {
 
                         resultText.setText(sb.toString());
 
-                        // If best slot found + user exists → offer to send invite
+                        
                         if (finalBest != null && finalInvited != null) {
                             new AlertDialog.Builder(ctx, R.style.DarkDialogTheme)
                                     .setTitle(getString(R.string.dialog_send_invite_title))
                                     .setMessage(getString(R.string.dialog_send_invite_msg, finalBest, finalInvited.name))
                                     .setPositiveButton(getString(R.string.btn_send_invite), (dd, ww) -> {
-                                        // Create a group (or invite 1-on-1 via group with 2 members)
+                                        
                                         ActivityGroup grp = new ActivityGroup(
                                                 activityToSchedule.id, currentUser.id,
                                                 getString(R.string.activity_with_user, finalInvited.name));
@@ -2050,9 +2073,7 @@ public class CalendarFragment extends Fragment {
         });
     }
 
-    /**
-     * Collects all busy time slots ("dd/MM HH") for a user in [start, end] from local DB.
-     */
+    
     private java.util.Map<Long, List<String>> collectBusySlots(
             String userId, long rangeStart, long rangeEnd) {
         java.util.Map<Long, List<String>> busyByDay = new java.util.LinkedHashMap<>();
@@ -2062,19 +2083,16 @@ public class CalendarFragment extends Fragment {
             List<String> busyHours = new ArrayList<>();
             for (PlannedActivity a : acts) {
                 if (a.scheduledTime != null && a.scheduledTime.contains(":")) {
-                    busyHours.add(a.scheduledTime.split(":")[0].trim()); // busy hour string
+                    busyHours.add(a.scheduledTime.split(":")[0].trim()); 
                 }
             }
             busyByDay.put(cursor, busyHours);
-            cursor += 86400_000L; // next day
+            cursor += 86400_000L; 
         }
         return busyByDay;
     }
 
-    /**
-     * Finds the earliest 1-hour slot where BOTH users are free (08:00–22:00 window).
-     * Returns a human-readable string or null if none found.
-     */
+    
     private String findBestOverlap(
             java.util.Map<Long, List<String>> myBusy,
             java.util.Map<Long, List<String>> theirBusy,

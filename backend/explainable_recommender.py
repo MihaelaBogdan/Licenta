@@ -166,7 +166,7 @@ class ExplainableRecommender:
         """
         try:
             # Validate limit
-            limit = min(max(int(limit), 1), 10)  # Clamp to 1-10
+            limit = min(max(int(limit), 1), 100)  # Clamp to 1-100
 
             # 1. Fetch user profile for personalization
             user_data = self._fetch_user_profile(user_id)
@@ -183,8 +183,9 @@ class ExplainableRecommender:
             visit_history = self._fetch_visit_history(user_id)
             bookmarks = self._fetch_user_bookmarks(user_id)
 
-            # 3. Find nearby places
-            nearby_places = self._fetch_nearby_places(lat, lng, category=category)
+            # 3. Find nearby places (expanded radius if max_distance not specified)
+            fetch_radius = int(float(max_distance) * 1000) if max_distance is not None else 50000
+            nearby_places = self._fetch_nearby_places(lat, lng, radius=fetch_radius, category=category)
 
             # Text query candidate expansion
             if query and query.strip() != "":

@@ -79,11 +79,11 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
         if (item.time != null && !item.time.isEmpty()) {
             holder.textTime.setText(item.time);
         } else {
-            // Fallback mock time
+            
             holder.textTime.setText("09:00 - 10:00");
         }
 
-        // Travel time separator
+        
         if (holder.travelSeparator != null) {
             if (position > 0 && item.travelMinutes > 0) {
                 holder.travelSeparator.setVisibility(View.VISIBLE);
@@ -98,12 +98,12 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             }
         }
 
-        // Show warning if place is closed
+        
         if (holder.badgeWarning != null) {
             holder.badgeWarning.setVisibility(item.is_open ? View.GONE : View.VISIBLE);
         }
 
-        // Show tip / recommendation
+        
         if (holder.textTip != null) {
             if (item.tip != null && !item.tip.isEmpty()) {
                 holder.textTip.setText("💡 " + item.tip);
@@ -113,7 +113,7 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             }
         }
 
-        // Mock distance for demo (improved calculation)
+        
         double dist = (position == 0) ? 0.5 : 1.2 + (position * 0.5);
         holder.textDistance.setText(String.format(java.util.Locale.getDefault(), isEn ? "%.1f km distance" : "%.1f km distanță", dist));
 
@@ -126,7 +126,7 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
         holder.btnSwap.setOnClickListener(v -> listener.onStepSwap(position));
         holder.btnDelete.setOnClickListener(v -> listener.onStepDelete(position));
 
-        // Google Maps navigation button
+        
         if (holder.btnNavigate != null) {
             if (item.mapsUrl != null && !item.mapsUrl.isEmpty()) {
                 holder.btnNavigate.setVisibility(View.VISIBLE);

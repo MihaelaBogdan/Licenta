@@ -19,10 +19,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-/**
- * Manages Supabase authentication via REST API (GoTrue).
- * Replaces Firebase Auth in a pure Java project.
- */
 public class SupabaseAuthManager {
 
     private static final String TAG = "SupabaseAuthManager";
@@ -56,6 +52,17 @@ public class SupabaseAuthManager {
         void onError(String errorMessage);
     }
 
+    public interface EmailConfirmedCallback {
+        void onConfirmed();
+        void onNotConfirmed();
+        void onError(String errorMessage);
+    }
+
+    public interface PasswordResetCallback {
+        void onSent();
+        void onError(String errorMessage);
+    }
+
     public interface EmailNotificationCallback {
         void onEmailSent(String email);
 
@@ -82,9 +89,7 @@ public class SupabaseAuthManager {
         return INSTANCE;
     }
 
-    /**
-     * Sign up with email and password with automatic verification email.
-     */
+    
     public void signUpWithEmail(String email, String password, String displayName, AuthCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
@@ -151,9 +156,7 @@ public class SupabaseAuthManager {
         });
     }
 
-    /**
-     * Resend verification email to user.
-     */
+    
     public void resendVerificationEmail(String email, VerificationCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
@@ -187,16 +190,12 @@ public class SupabaseAuthManager {
         });
     }
 
-    /**
-     * Send email verification link.
-     */
+    
     private void sendEmailVerification(String email, VerificationCallback callback) {
         resendVerificationEmail(email, callback);
     }
 
-    /**
-     * Send welcome notification email to new user.
-     */
+    
     public void sendWelcomeEmail(String email, String userName, EmailNotificationCallback callback) {
         new Thread(() -> {
             try {
@@ -228,9 +227,7 @@ public class SupabaseAuthManager {
         }).start();
     }
 
-    /**
-     * Sign in with email and password.
-     */
+    
     public void signInWithEmail(String email, String password, AuthCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("email", email);
@@ -276,10 +273,7 @@ public class SupabaseAuthManager {
         });
     }
 
-    /**
-     * Sign in with Google ID token via Supabase.
-     * Uses the id_token flow: POST /auth/v1/token?grant_type=id_token
-     */
+    
     public void signInWithGoogle(String idToken, AuthCallback callback) {
         JsonObject body = new JsonObject();
         body.addProperty("provider", "google");
@@ -325,9 +319,7 @@ public class SupabaseAuthManager {
         });
     }
 
-    /**
-     * Sign out - revoke session and clear local tokens.
-     */
+    
     public void signOut() {
         String accessToken = getAccessToken();
         if (accessToken != null) {
@@ -353,57 +345,45 @@ public class SupabaseAuthManager {
         clearSession();
     }
 
-    /**
-     * Check if there is a stored session (access token).
-     */
+    
     public boolean isAuthenticated() {
         return getAccessToken() != null;
     }
 
-    /**
-     * Retrieve stored user email.
-     */
+    
     public String getStoredEmail() {
         return prefs.getString(KEY_USER_EMAIL, null);
     }
 
-    /**
-     * Retrieve stored user name.
-     */
+    
     public String getStoredName() {
         return prefs.getString(KEY_USER_NAME, null);
     }
 
-    /**
-     * Retrieve stored Supabase user ID.
-     */
+    
     public String getStoredUserId() {
         return prefs.getString(KEY_USER_ID, null);
     }
 
-    /**
-     * Check if the user has confirmed their email.
-     */
+    
     public boolean isUserConfirmed() {
         return prefs.getBoolean(KEY_USER_CONFIRMED, false);
     }
 
-    /**
-     * Retrieve stored access token.
-     */
+    
     public String getAccessToken() {
         return prefs.getString(KEY_ACCESS_TOKEN, null);
     }
 
-    // --- Internal helpers ---
+    
 
     private void handleAuthResponse(JsonObject json, String displayName) {
-        // Signup response has a different structure - may include session directly
+        
         if (json.has("access_token")) {
             handleTokenResponse(json);
         }
 
-        // Extract user info
+        
         if (json.has("user")) {
             JsonObject user = json.getAsJsonObject("user");
             String email = user.has("email") ? user.get("email").getAsString() : null;
@@ -434,7 +414,7 @@ public class SupabaseAuthManager {
             editor.putString(KEY_REFRESH_TOKEN, json.get("refresh_token").getAsString());
         }
 
-        // Extract user info from token response
+        
         if (json.has("user")) {
             JsonObject user = json.getAsJsonObject("user");
             if (user.has("email")) {
@@ -444,7 +424,7 @@ public class SupabaseAuthManager {
                 editor.putString(KEY_USER_ID, user.get("id").getAsString());
             }
 
-            // Try to get display name from user_metadata
+            
             if (user.has("user_metadata")) {
                 JsonObject meta = user.getAsJsonObject("user_metadata");
                 String name = null;
@@ -465,6 +445,85 @@ public class SupabaseAuthManager {
         }
 
         editor.apply();
+    }
+
+    
+    public void checkEmailConfirmed(EmailConfirmedCallback callback) {
+        String accessToken = getAccessToken();
+        if (accessToken == null) {
+            callback.onError("Nicio sesiune activă.");
+            return;
+        }
+
+        Request request = new Request.Builder()
+                .url(supabaseUrl + "/auth/v1/user")
+                .addHeader("apikey", supabaseAnonKey)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .get()
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError(e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String body = response.body() != null ? response.body().string() : "";
+                if (!response.isSuccessful()) {
+                    callback.onError("HTTP " + response.code());
+                    return;
+                }
+                try {
+                    JsonObject user = JsonParser.parseString(body).getAsJsonObject();
+                    boolean confirmed = user.has("email_confirmed_at")
+                            && !user.get("email_confirmed_at").isJsonNull()
+                            && !user.get("email_confirmed_at").getAsString().isEmpty();
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean(KEY_USER_CONFIRMED, confirmed);
+                    editor.apply();
+
+                    if (confirmed) callback.onConfirmed();
+                    else callback.onNotConfirmed();
+                } catch (Exception e) {
+                    callback.onError("Parse error: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    
+    public void requestPasswordReset(String email, PasswordResetCallback callback) {
+        JsonObject body = new JsonObject();
+        body.addProperty("email", email);
+
+        RequestBody requestBody = RequestBody.create(body.toString(), JSON);
+        Request request = new Request.Builder()
+                .url(supabaseUrl + "/auth/v1/recover")
+                .addHeader("apikey", supabaseAnonKey)
+                .addHeader("Authorization", "Bearer " + supabaseAnonKey)
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError(e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    callback.onSent();
+                } else {
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    callback.onError("HTTP " + response.code() + ": " + parseErrorMessage(responseBody));
+                }
+            }
+        });
     }
 
     private void clearSession() {

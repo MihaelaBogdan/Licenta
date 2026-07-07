@@ -16,7 +16,7 @@
         android:padding="16dp"
         android:gravity="center_vertical">
 
-        <!-- City Icon -->
+        
         <FrameLayout
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -30,7 +30,7 @@
                 app:tint="@color/accent_green" />
         </FrameLayout>
 
-        <!-- City Info -->
+        
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Place Count -->
+        
         <TextView
             android:id="@+id/placeCount"
             android:layout_width="wrap_content"

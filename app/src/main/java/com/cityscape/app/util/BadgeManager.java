@@ -11,9 +11,7 @@ public class BadgeManager {
 
     private static final String TAG = "BadgeManager";
 
-    /**
-     * Awards XP and checks for level-ups.
-     */
+    
     public static void addExperience(Context context, String userId, int amount) {
         if (userId == null || context == null) return;
         new Thread(() -> {
@@ -31,9 +29,7 @@ public class BadgeManager {
         }).start();
     }
 
-    /**
-     * Generic method to award a badge by ID.
-     */
+    
     public static void awardBadge(Context context, String userId, String badgeId, String name, String desc, String requirement, String icon) {
         if (userId == null || context == null || userId.isEmpty()) return;
         new Thread(() -> {
@@ -46,7 +42,7 @@ public class BadgeManager {
                 db.badgeDao().insert(badge);
                 com.cityscape.app.data.SupabaseSyncManager.getInstance(context).pushBadgeToCloud(badge);
                 
-                // Add bonus XP for badge
+                
                 addExperience(context, userId, 250);
                 showBadgeToast(context, name);
             } else if (!badge.isUnlocked) {
@@ -65,9 +61,7 @@ public class BadgeManager {
                   "Ai postat prima ta experiență în feed!", "Postează cel puțin o dată în comunitate", "ic_badge_social");
     }
 
-    /**
-     * Checks for visit-based badges (Early Bird, Night Owl, etc).
-     */
+    
     public static void checkVisitBadges(Context context, String userId, String placeType) {
         long hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
         

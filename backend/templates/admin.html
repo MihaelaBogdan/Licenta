@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CityScape Admin</title>
+<style>
+  :root {
+    --green: #10B981; --green-dim: #059669; --dark: #050A06;
+    --card: #0D1810; --card2: #111B14; --text: #F0FDF4;
+    --muted: #6B7280; --red: #EF4444; --yellow: #F59E0B; --blue: #3B82F6;
+    --border: rgba(16,185,129,0.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--dark); color:var(--text); font-family:'Segoe UI',sans-serif; min-height:100vh; }
+
+  .topbar {
+    background:rgba(13,24,16,0.95); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100;
+  }
+  .logo { font-size:20px; font-weight:800; color:var(--text); }
+  .logo span { color:var(--green); }
+  .badge-admin { background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3);
+    color:var(--green); font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .refresh-btn { background:var(--green); color:#000; border:none; padding:8px 18px;
+    border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; transition:.2s; }
+  .refresh-btn:hover { background:var(--green-dim); }
+
+  .nav-tabs {
+    display:flex; gap:4px; padding:20px 32px 0; border-bottom:1px solid var(--border);
+    background:var(--card);
+  }
+  .tab { padding:10px 22px; border-radius:10px 10px 0 0; cursor:pointer; font-weight:600;
+    font-size:14px; color:var(--muted); transition:.2s; border:none; background:transparent; }
+  .tab.active { background:var(--dark); color:var(--green); border:1px solid var(--border); border-bottom:1px solid var(--dark); }
+  .tab:hover:not(.active) { color:var(--text); }
+
+  .content { padding:28px 32px; }
+
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:28px; }
+  .stat-card {
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .stat-label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .stat-value { font-size:32px; font-weight:800; }
+  .stat-value.green { color:var(--green); }
+  .stat-value.yellow { color:var(--yellow); }
+  .stat-value.red { color:var(--red); }
+  .stat-value.blue { color:var(--blue); }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .section-title { font-size:16px; font-weight:700; color:var(--green); margin-bottom:14px; }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { text-align:left; padding:10px 14px; color:var(--muted); font-size:11px;
+    text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); }
+  tbody tr { border-bottom:1px solid rgba(255,255,255,0.04); transition:background .15s; }
+  tbody tr:hover { background:rgba(16,185,129,0.04); }
+  td { padding:10px 14px; color:var(--text); vertical-align:middle; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:var(--green);
+    display:inline-flex; align-items:center; justify-content:center; font-weight:700;
+    font-size:13px; color:#000; margin-right:8px; flex-shrink:0; }
+  .user-cell { display:flex; align-items:center; }
+  .badge-level { background:rgba(16,185,129,0.15); color:var(--green);
+    font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; }
+  .badge-report { background:rgba(239,68,68,0.15); color:var(--red);
+    font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; }
+  .xp-bar-wrap { width:80px; height:6px; background:rgba(16,185,129,0.1); border-radius:3px; display:inline-block; }
+  .xp-bar { height:6px; background:var(--green); border-radius:3px; }
+
+  .action-btn { border:none; cursor:pointer; padding:5px 12px; border-radius:7px;
+    font-size:12px; font-weight:700; transition:.2s; }
+  .del-btn { background:rgba(239,68,68,0.12); color:var(--red); }
+  .del-btn:hover { background:rgba(239,68,68,0.25); }
+
+  .chart-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:20px; margin-bottom:20px; }
+  .bar-chart { display:flex; align-items:flex-end; gap:8px; height:120px; margin-top:12px; }
+  .bar-col { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+  .bar { background:var(--green); border-radius:4px 4px 0 0; width:100%; min-height:4px; transition:height .5s; }
+  .bar-label { font-size:10px; color:var(--muted); text-align:center; }
+  .bar-val { font-size:10px; color:var(--green); font-weight:700; }
+
+  .empty-state { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+  .report-type { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700; }
+  .rt-spam { background:rgba(245,158,11,0.15); color:var(--yellow); }
+  .rt-inappropriate { background:rgba(239,68,68,0.15); color:var(--red); }
+  .rt-other { background:rgba(107,114,128,0.2); color:var(--muted); }
+
+  .caption-cell { max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); }
+  .loading { text-align:center; padding:60px; color:var(--muted); font-size:15px; }
+
+  @media(max-width:700px) {
+    .content, .topbar, .nav-tabs { padding-left:16px; padding-right:16px; }
+    .stats-grid { grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">City<span>Scape</span></div>
+    <div class="badge-admin">ADMIN</div>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">⟳ Reîncarcă</button>
+</div>
+
+<div class="nav-tabs">
+  <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+  <button class="tab" onclick="switchTab('users')">👥 Utilizatori</button>
+  <button class="tab" onclick="switchTab('posts')">📸 Postări</button>
+  <button class="tab" onclick="switchTab('reports')">🚨 Raportări</button>
+  <button class="tab" onclick="switchTab('comments')">💬 Comentarii</button>
+</div>
+
+<div class="content">
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-label">Utilizatori</div><div class="stat-value green" id="s-users">—</div></div>
+      <div class="stat-card"><div class="stat-label">Postări</div><div class="stat-value blue" id="s-posts">—</div></div>
+      <div class="stat-card"><div class="stat-label">Like-uri totale</div><div class="stat-value yellow" id="s-likes">—</div></div>
+      <div class="stat-card"><div class="stat-label">Raportări</div><div class="stat-value red" id="s-reports">—</div></div>
+      <div class="stat-card"><div class="stat-label">Badge-uri date</div><div class="stat-value green" id="s-badges">—</div></div>
+      <div class="stat-card"><div class="stat-label">Top XP</div><div class="stat-value yellow" id="s-topxp">—</div></div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="section-title">XP pe utilizatori (top 8)</div>
+      <div class="bar-chart" id="xp-chart"></div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="section-title">Înregistrări pe luni</div>
+      <div class="bar-chart" id="reg-chart"></div>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="panel" id="panel-users">
+    <div class="section-title">Toți utilizatorii</div>
+    <table>
+      <thead><tr>
+        <th>Utilizator</th><th>Email</th><th>Level</th><th>XP</th><th>Înregistrat</th><th>Acțiuni</th>
+      </tr></thead>
+      <tbody id="users-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- POSTS -->
+  <div class="panel" id="panel-posts">
+    <div class="section-title">Postări recente</div>
+    <table>
+      <thead><tr>
+        <th>Utilizator</th><th>Locație</th><th>Caption</th><th>Rating</th><th>Data</th><th>Acțiuni</th>
+      </tr></thead>
+      <tbody id="posts-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="panel" id="panel-reports">
+    <div class="section-title">Raportări de conținut</div>
+    <div id="reports-container">
+      <div class="empty-state">Se încarcă...</div>
+    </div>
+  </div>
+
+  <!-- COMMENTS -->
+  <div class="panel" id="panel-comments">
+    <div class="section-title">Comentarii recente</div>
+    <table>
+      <thead><tr>
+        <th>Utilizator</th><th>Comentariu</th><th>Data</th>
+      </tr></thead>
+      <tbody id="comments-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const PWD = new URLSearchParams(location.search).get('pwd') || '';
+const ADMIN_TOKEN = PWD;
+let DATA = {};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['overview','users','posts','reports','comments'];
+    t.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+async function loadData() {
+  try {
+    const r = await fetch('/admin/api/stats', { headers: { 'X-Admin-Token': ADMIN_TOKEN } });
+    DATA = await r.json();
+    if (DATA.error) { alert('Eroare: ' + DATA.error); return; }
+    renderAll();
+  } catch(e) { alert('Eroare de conexiune: ' + e); }
+}
+
+function renderAll() {
+  renderStats();
+  renderUsers();
+  renderPosts();
+  renderReports();
+  renderComments();
+  renderCharts();
+}
+
+function renderStats() {
+  const u = DATA.users || [], p = DATA.posts || [], b = DATA.badges || [], rep = DATA.reports || [];
+  document.getElementById('s-users').textContent = u.length;
+  document.getElementById('s-posts').textContent = p.length;
+  document.getElementById('s-likes').textContent = DATA.likes_count || 0;
+  document.getElementById('s-reports').textContent = rep.length;
+  document.getElementById('s-badges').textContent = b.length;
+  const topXp = u.reduce((m, u) => Math.max(m, u.total_xp || 0), 0);
+  document.getElementById('s-topxp').textContent = topXp.toLocaleString();
+}
+
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('ro-RO', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function colorFor(name) {
+  const colors = ['#10B981','#3B82F6','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#84CC16'];
+  let h = 0; for (let c of (name||'')) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[h];
+}
+
+function renderUsers() {
+  const tbody = document.getElementById('users-tbody');
+  const users = DATA.users || [];
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Niciun utilizator</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => {
+    const xpPct = Math.min(100, ((u.total_xp || 0) / 5000) * 100);
+    return `<tr>
+      <td><div class="user-cell">
+        <div class="avatar" style="background:${colorFor(u.name)}">${initials(u.name)}</div>
+        <span>${u.name || '—'}</span>
+      </div></td>
+      <td style="color:var(--muted)">${u.email || '—'}</td>
+      <td><span class="badge-level">Lv. ${u.level || 1}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="xp-bar-wrap"><div class="xp-bar" style="width:${xpPct}%"></div></div>
+          <span style="color:var(--green);font-size:12px">${(u.total_xp||0).toLocaleString()} XP</span>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${fmt(u.created_at)}</td>
+      <td><button class="action-btn del-btn" onclick="deleteUser('${u.id}','${(u.name||'').replace(/'/g,'\\'')}')">🗑 Șterge</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPosts() {
+  const tbody = document.getElementById('posts-tbody');
+  const posts = DATA.posts || [];
+  if (!posts.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nicio postare</td></tr>'; return; }
+  tbody.innerHTML = posts.map(p => `<tr>
+    <td><div class="user-cell">
+      <div class="avatar" style="background:${colorFor(p.user_name)}">${initials(p.user_name)}</div>
+      <span>${p.user_name || '—'}</span>
+    </div></td>
+    <td style="color:var(--muted)">${p.place_name || '—'}</td>
+    <td class="caption-cell" title="${(p.caption||'').replace(/"/g,'&quot;')}">${p.caption || '—'}</td>
+    <td><span style="color:var(--yellow)">★ ${p.rating || '—'}</span></td>
+    <td style="color:var(--muted)">${fmt(p.created_at)}</td>
+    <td><button class="action-btn del-btn" onclick="deletePost('${p.id}')">🗑 Șterge</button></td>
+  </tr>`).join('');
+}
+
+function renderReports() {
+  const container = document.getElementById('reports-container');
+  const reports = DATA.reports || [];
+  if (!reports.length) {
+    container.innerHTML = '<div class="empty-state">✅ Nicio raportare activă. Totul e în ordine!</div>';
+    return;
+  }
+  container.innerHTML = `<table>
+    <thead><tr><th>Raportat de</th><th>Conținut</th><th>Motiv</th><th>Status</th><th>Data</th></tr></thead>
+    <tbody>${reports.map(r => {
+      const typeClass = r.reason?.includes('spam') ? 'rt-spam' : r.reason?.includes('inappropriate') ? 'rt-inappropriate' : 'rt-other';
+      return `<tr>
+        <td>${r.reporter_id || '—'}</td>
+        <td style="color:var(--muted)">${r.content_id || r.post_id || '—'}</td>
+        <td><span class="report-type ${typeClass}">${r.reason || r.report_type || 'necunoscut'}</span></td>
+        <td><span class="badge-report">${r.status || 'pending'}</span></td>
+        <td style="color:var(--muted)">${fmt(r.created_at)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function renderComments() {
+  const tbody = document.getElementById('comments-tbody');
+  const comments = DATA.comments || [];
+  if (!comments.length) { tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Niciun comentariu</td></tr>'; return; }
+  tbody.innerHTML = comments.map(c => `<tr>
+    <td><div class="user-cell">
+      <div class="avatar" style="background:${colorFor(c.user_name)}">${initials(c.user_name)}</div>
+      <span>${c.user_name || '—'}</span>
+    </div></td>
+    <td class="caption-cell" title="${(c.content||'').replace(/"/g,'&quot;')}">${c.content || '—'}</td>
+    <td style="color:var(--muted)">${fmt(c.created_at)}</td>
+  </tr>`).join('');
+}
+
+function renderCharts() {
+  const users = (DATA.users || []).filter(u => u.total_xp > 0).sort((a,b) => (b.total_xp||0)-(a.total_xp||0)).slice(0,8);
+  const maxXp = users.reduce((m,u) => Math.max(m, u.total_xp||0), 1);
+  document.getElementById('xp-chart').innerHTML = users.length ? users.map(u => {
+    const h = Math.max(4, Math.round(((u.total_xp||0)/maxXp)*110));
+    return `<div class="bar-col">
+      <div class="bar-val">${((u.total_xp||0)/1000).toFixed(1)}k</div>
+      <div class="bar" style="height:${h}px"></div>
+      <div class="bar-label">${(u.name||'').split(' ')[0]}</div>
+    </div>`;
+  }).join('') : '<div class="empty-state">Fără date XP</div>';
+
+  const byMonth = {};
+  for (const u of (DATA.users||[])) {
+    if (!u.created_at) continue;
+    const m = u.created_at.slice(0,7);
+    byMonth[m] = (byMonth[m]||0)+1;
+  }
+  const months = Object.keys(byMonth).sort().slice(-8);
+  const maxReg = Math.max(...months.map(m=>byMonth[m]),1);
+  document.getElementById('reg-chart').innerHTML = months.length ? months.map(m => {
+    const h = Math.max(4, Math.round((byMonth[m]/maxReg)*110));
+    return `<div class="bar-col">
+      <div class="bar-val">${byMonth[m]}</div>
+      <div class="bar" style="height:${h}px;background:var(--blue)"></div>
+      <div class="bar-label">${m.slice(5)}.${m.slice(2,4)}</div>
+    </div>`;
+  }).join('') : '<div class="empty-state">Fără date</div>';
+}
+
+async function deletePost(id) {
+  if (!confirm('Ștergi această postare?')) return;
+  const r = await fetch('/admin/api/delete_post/'+id, { method:'DELETE', headers:{'X-Admin-Token':ADMIN_TOKEN} });
+  const d = await r.json();
+  if (d.ok) { DATA.posts = DATA.posts.filter(p=>p.id!==id); renderPosts(); renderStats(); }
+  else alert('Eroare la ștergere');
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Ștergi utilizatorul "${name}"? Acțiunea este ireversibilă.`)) return;
+  const r = await fetch('/admin/api/delete_user/'+id, { method:'DELETE', headers:{'X-Admin-Token':ADMIN_TOKEN} });
+  const d = await r.json();
+  if (d.ok) { DATA.users = DATA.users.filter(u=>u.id!==id); renderUsers(); renderStats(); renderCharts(); }
+  else alert('Eroare la ștergere');
+}
+
+loadData();
+</script>
+</body>
+</html>

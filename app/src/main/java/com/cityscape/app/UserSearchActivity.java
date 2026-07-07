@@ -93,11 +93,22 @@ public class UserSearchActivity extends BaseActivity implements UserAdapter.OnUs
         apiService.followUser(data).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> res) {
-                if (res.isSuccessful()) {
-                    user.isFollowing = !user.isFollowing;
+                if (res.isSuccessful() && res.body() != null) {
+                    String status = res.body().get("status").getAsString();
+                    if ("requested".equals(status)) {
+                        user.isRequested = true;
+                        user.isFollowing = false;
+                        Toast.makeText(UserSearchActivity.this, "Cerere de urmărire trimisă!", Toast.LENGTH_SHORT).show();
+                    } else if ("unfollowed".equals(status)) {
+                        user.isRequested = false;
+                        user.isFollowing = false;
+                        Toast.makeText(UserSearchActivity.this, "Nu mai urmărești pe " + user.name, Toast.LENGTH_SHORT).show();
+                    } else {
+                        user.isRequested = false;
+                        user.isFollowing = true;
+                        Toast.makeText(UserSearchActivity.this, "Urmărești pe " + user.name, Toast.LENGTH_SHORT).show();
+                    }
                     adapter.notifyItemChanged(position);
-                    String msg = user.isFollowing ? getString(R.string.following_status) + user.name : getString(R.string.unfollowing_status) + user.name;
-                    Toast.makeText(UserSearchActivity.this, msg, Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -110,6 +121,6 @@ public class UserSearchActivity extends BaseActivity implements UserAdapter.OnUs
 
     @Override
     public void onUserClicked(User user) {
-        // Optionale: Deschide profilul utilizatorului
+        
     }
 }

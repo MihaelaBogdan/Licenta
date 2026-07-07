@@ -18,7 +18,7 @@ public class ActivityGroup {
     @SerializedName("group_name")
     public String groupName;
     @SerializedName("group_code")
-    public String groupCode; // Unique code for sharing
+    public String groupCode; 
     @SerializedName("created_at")
     public long createdAt;
     @SerializedName("max_members")

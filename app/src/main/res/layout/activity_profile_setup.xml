@@ -13,7 +13,7 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Title -->
+        
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,7 +30,7 @@
             android:textColor="@color/app_text_secondary"
             android:textSize="14sp" />
 
-        <!-- Categories Section -->
+        
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -96,7 +96,7 @@
                 style="@style/Widget.CityScape.Chip.Choice" />
         </com.google.android.material.chip.ChipGroup>
 
-        <!-- Atmosphere Section -->
+        
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -156,7 +156,7 @@
                 style="@style/Widget.CityScape.Chip.Choice" />
         </com.google.android.material.chip.ChipGroup>
 
-        <!-- Budget Section -->
+        
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -202,13 +202,13 @@
                 android:buttonTint="@color/accent_green" />
         </RadioGroup>
 
-        <!-- Spacer -->
+        
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Continue Button -->
+        
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnContinue"
             android:layout_width="match_parent"
@@ -220,7 +220,7 @@
             app:backgroundTint="@color/accent_green"
             app:cornerRadius="28dp" />
 
-        <!-- Skip Button -->
+        
         <TextView
             android:id="@+id/btnSkip"
             android:layout_width="match_parent"

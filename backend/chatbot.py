@@ -39,6 +39,8 @@ import os
 # Initialize Gemini
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-flash-latest") # Using flash-latest alias
+GOOGLE_PLACES_CACHE = {}
+ITINERARY_CACHE = {}
 
 # Load intents
 intents_path = os.path.join(BASE_PATH, 'data', 'intents.json')
@@ -402,133 +404,221 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
     user_xp_val = user_xp or 0
     user_interests_val = interests or "Generale"
     user_badges_val = "Nicio insignă momentan"
-    user_bookmarks_val = "none" if language == "en" else "niciunul"
+    import concurrent.futures
+
+    p_res = None
+    v_res = None
+    b_res = None
+    bm_res = None
+    events_res = None
+    trends_res = None
+    near_results = None
+    situr_places = None
+    search_results = None
+
+    if user_id or (lat and lng) or msg:
+        from app import SUPABASE_URL, SUPABASE_KEY
+        headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+
+        def fetch_profile():
+            if not user_id: return None
+            try:
+                profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
+                return requests.get(profile_url, headers=headers, timeout=2).json()
+            except Exception as e:
+                print(f"⚠️ Fetch profile error: {e}")
+                return None
+
+        def fetch_visits():
+            if not user_id: return None
+            try:
+                visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=15"
+                return requests.get(visits_url, headers=headers, timeout=2).json()
+            except Exception as e:
+                print(f"⚠️ Fetch visits error: {e}")
+                return None
+
+        def fetch_badges():
+            if not user_id: return None
+            try:
+                badges_url = f"{SUPABASE_URL}/rest/v1/user_badges?user_id=eq.{user_id}&select=name"
+                return requests.get(badges_url, headers=headers, timeout=2).json()
+            except Exception as e:
+                print(f"⚠️ Fetch badges error: {e}")
+                return None
+
+        def fetch_bookmarks():
+            if not user_id: return None
+            try:
+                bookmarks_url = f"{SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.{user_id}&select=place_name&limit=15"
+                return requests.get(bookmarks_url, headers=headers, timeout=2).json()
+            except Exception as e:
+                print(f"⚠️ Fetch bookmarks error: {e}")
+                return None
+
+        def fetch_events_local():
+            if not (lat and lng): return None
+            try:
+                port = os.environ.get('PORT', '5001')
+                events_url = f"http://localhost:{port}/events?lat={lat}&lng={lng}&interests={interests or ''}"
+                return requests.get(events_url, timeout=3).json()
+            except Exception as e:
+                print(f"⚠️ Fetch events error: {e}")
+                return None
+
+        def fetch_trends_local():
+            msg_lower = msg.lower()
+            if not any(x in msg_lower for x in ["trend", "popular", "social", "hype", "vibe", "ce se poarta"]):
+                return None
+            try:
+                port = os.environ.get('PORT', '5001')
+                trends_url = f"http://localhost:{port}/social/trending"
+                return requests.get(trends_url, timeout=3).json()
+            except Exception as e:
+                print(f"⚠️ Fetch trends error: {e}")
+                return None
+
+        def fetch_google_nearby():
+            if not (lat and lng): return None
+            try:
+                from app import google_nearby_search
+                return google_nearby_search(lat, lng, "tourist_attraction", radius=10000)
+            except Exception as e:
+                print(f"⚠️ Google nearby search error: {e}")
+                return None
+
+        def fetch_situr():
+            try:
+                return search_situr_places(msg, limit=8)
+            except Exception as e:
+                print(f"⚠️ SITUR search error: {e}")
+                return None
+
+        def fetch_google_text():
+            if len(msg) > 5 and not any(g in msg.lower() for g in ["buna", "salut", "hey", "ciao", "hello", "hi", "ce faci", "cine esti", "cine ești", "multumesc", "mulțumesc", "mrs", "thx", "thanks"]):
+                try:
+                    from app import google_text_search
+                    clean_q = msg.lower()
+                    preambles = ["ce parere ai despre", "ce părere ai despre", "spune-mi despre", "stii ceva despre", "știi ceva despre", "cum ajung la", "recomanda-mi", "recomandă-mi", "unde este", "unde e"]
+                    for pr in preambles:
+                        clean_q = clean_q.replace(pr, "")
+                    clean_q = clean_q.strip("? .!,\"'-")
+                    if len(clean_q) > 3:
+                        return google_text_search(clean_q, lat, lng)
+                except Exception as e:
+                    print(f"⚠️ Google text search error: {e}")
+            return None
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=9) as executor:
+            future_profile = executor.submit(fetch_profile)
+            future_visits = executor.submit(fetch_visits)
+            future_badges = executor.submit(fetch_badges)
+            future_bookmarks = executor.submit(fetch_bookmarks)
+            future_events = executor.submit(fetch_events_local)
+            future_trends = executor.submit(fetch_trends_local)
+            future_nearby = executor.submit(fetch_google_nearby)
+            future_situr = executor.submit(fetch_situr)
+            future_text = executor.submit(fetch_google_text)
+
+            p_res = future_profile.result()
+            v_res = future_visits.result()
+            b_res = future_badges.result()
+            bm_res = future_bookmarks.result()
+            events_res = future_events.result()
+            trends_res = future_trends.result()
+            near_results = future_nearby.result()
+            situr_places = future_situr.result()
+            search_results = future_text.result()
+
+    if p_res:
+        u = p_res[0]
+        user_name = u.get("name", "Explorator CityScape")
+        user_interests_val = u.get("interests") or interests or "Generale"
+        user_xp_val = u.get("total_xp") or user_xp or 0
+        user_level_val = u.get("level") or user_level or 1
+
+    if b_res and isinstance(b_res, list):
+        badge_names = [b.get("name") for b in b_res if b.get("name")]
+        if badge_names:
+            user_badges_val = ", ".join(badge_names)
+
     visited_places_list = []
     visits_list = []
+    if v_res and isinstance(v_res, list):
+        visited_places_list = [v.get('place_name') for v in v_res if v.get('place_name')]
+        visits_list = [f"{v.get('place_name')} ({v.get('place_type', 'Atracție')})" for v in v_res if v.get('place_name')]
+
+    user_bookmarks_val = "none" if language == "en" else "niciunul"
+    if bm_res and isinstance(bm_res, list):
+        bookmark_names = [bm.get("place_name") for bm in bm_res if bm.get("place_name")]
+        if bookmark_names:
+            user_bookmarks_val = ", ".join(bookmark_names)
 
     nearby_context = ""
     events_context = ""
     social_trends_context = ""
+    situr_block = ""
+    searched_places_block = ""
     detected_city = city_name or "un oraș nespecificat"
 
-    if user_id:
+    # Process events context
+    if events_res and isinstance(events_res, list):
         try:
-            from app import SUPABASE_URL, SUPABASE_KEY
-            import requests
-            headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
-            profile_url = f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*"
-            p_res = requests.get(profile_url, headers=headers, timeout=2).json()
+            for event in events_res:
+                event['formatted_date'] = format_event_date_ro(event.get('date', 'TBA'))
             
-            visits_url = f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=15"
-            v_res = requests.get(visits_url, headers=headers, timeout=2).json()
+            msg_lower = msg.lower()
+            is_weekend_query = any(w in msg_lower for w in ["weekend", "sâmbătă", "sambata", "duminică", "duminica", "sfarsit de saptamana", "sfârșit de săptămână"])
             
-            badges_url = f"{SUPABASE_URL}/rest/v1/user_badges?user_id=eq.{user_id}&select=name"
-            b_res = requests.get(badges_url, headers=headers, timeout=2).json()
+            if is_weekend_query:
+                weekend_days = ["Vineri", "Sâmbătă", "Duminică"]
+                events_res = [e for e in events_res if any(d in e.get('formatted_date', '') for d in weekend_days)]
 
-            bookmarks_url = f"{SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.{user_id}&select=place_name&limit=15"
-            bm_res = requests.get(bookmarks_url, headers=headers, timeout=2).json()
+            events_list = []
+            for event in events_res[:10]:
+                evt = f"📌 {event.get('title', 'Event')[:40]} ({event.get('formatted_date', 'TBA')}) [lat: {event.get('latitude', lat)}, lng: {event.get('longitude', lng)}]"
+                events_list.append(evt)
 
-            if p_res:
-                u = p_res[0]
-                user_name = u.get("name", "Explorator CityScape")
-                user_interests_val = u.get("interests") or interests or "Generale"
-                user_xp_val = u.get("total_xp") or user_xp or 0
-                user_level_val = u.get("level") or user_level or 1
-
-            if b_res and isinstance(b_res, list):
-                badge_names = [b.get("name") for b in b_res if b.get("name")]
-                if badge_names:
-                    user_badges_val = ", ".join(badge_names)
-
-            if v_res and isinstance(v_res, list):
-                visited_places_list = [v.get('place_name') for v in v_res if v.get('place_name')]
-                visits_list = [f"{v.get('place_name')} ({v.get('place_type', 'Atracție')})" for v in v_res if v.get('place_name')]
-
-            if bm_res and isinstance(bm_res, list):
-                bookmark_names = [bm.get("place_name") for bm in bm_res if bm.get("place_name")]
-                if bookmark_names:
-                    user_bookmarks_val = ", ".join(bookmark_names)
+            if events_list:
+                events_context = "🎭 EVENIMENTE DIN APROPIERE:\n" + "\n".join(events_list) + "\n\n"
+            elif is_weekend_query:
+                events_context = "🎭 EVENIMENTE DIN APROPIERE:\n(Nu s-au găsit evenimente pentru weekend-ul acesta în zona utilizatorului. Spune-i politicos utilizatorului că nu sunt evenimente în weekend-ul acesta, fără să inventezi altele.)\n\n"
         except Exception as e:
-            print(f"⚠️ RAG Supabase Context Fetch Error: {e}")
-            pass
+            print(f"⚠️ Events formatting error: {e}")
 
-    # 2. Fetch REAL EVENTS + NEARBY PLACES
-    if lat and lng:
+    # Process trends context
+    if trends_res:
         try:
-            port = os.environ.get('PORT', '5001')
-            from app import MAPS_API_KEY, google_nearby_search
-            import requests
-
-            # Get EVENTS (NEW!)
-            try:
-                events_url = f"http://localhost:{port}/events?lat={lat}&lng={lng}&interests={interests or ''}"
-                events_res = requests.get(events_url, timeout=3).json()
-                if events_res and isinstance(events_res, list):
-                    # Format events date using helper
-                    for event in events_res:
-                        event['formatted_date'] = format_event_date_ro(event.get('date', 'TBA'))
-                    
-                    # Detect weekend query
-                    msg_lower = msg.lower()
-                    is_weekend_query = any(w in msg_lower for w in ["weekend", "sâmbătă", "sambata", "duminică", "duminica", "sfarsit de saptamana", "sfârșit de săptămână"])
-                    
-                    if is_weekend_query:
-                        weekend_days = ["Vineri", "Sâmbătă", "Duminică"]
-                        events_res = [e for e in events_res if any(d in e.get('formatted_date', '') for d in weekend_days)]
-
-                    # Format events nicely
-                    events_list = []
-                    for event in events_res[:10]:  # Top 10 events
-                        evt = f"📌 {event.get('title', 'Event')[:40]} ({event.get('formatted_date', 'TBA')}) [lat: {event.get('latitude', lat)}, lng: {event.get('longitude', lng)}]"
-                        events_list.append(evt)
-
-                    if events_list:
-                        events_context = "🎭 EVENIMENTE DIN APROPIERE:\n" + "\n".join(events_list) + "\n\n"
-                    elif is_weekend_query:
-                        events_context = "🎭 EVENIMENTE DIN APROPIERE:\n(Nu s-au găsit evenimente pentru weekend-ul acesta în zona utilizatorului. Spune-i politicos utilizatorului că nu sunt evenimente în weekend-ul acesta, fără să inventezi altele.)\n\n"
-            except Exception as e:
-                print(f"⚠️ Events fetch error: {e}")
-
-            # Get SOCIAL TRENDS (NEW!)
-            social_trends_context = ""
-            try:
-                msg_lower = msg.lower()
-                if any(x in msg_lower for x in ["trend", "popular", "social", "hype", "vibe", "ce se poarta"]):
-                    trends_url = f"http://localhost:{port}/social/trending"
-                    trends_res = requests.get(trends_url, timeout=3).json()
-                    if trends_res:
-                        social_trends_context = (
-                            f"🔥 TRENDURI SOCIAL MEDIA RECENTE (extrase din feed-ul comunității):\n"
-                            f"- Rezumat: {trends_res.get('trending_summary')}\n"
-                            f"- Hashtag-uri populare: {', '.join(trends_res.get('top_hashtags', []))}\n"
-                            f"- Locații cu cel mai mare Hype: " + 
-                            ", ".join([f"{p['name']} (Hype Score: {p['hype_score']})" for p in trends_res.get('hype_places', [])]) + "\n\n"
-                        )
-            except Exception as e:
-                print(f"⚠️ Social trends fetch error for chatbot: {e}")
-
-            # Get nearby places
-            near_results = google_nearby_search(lat, lng, "tourist_attraction", radius=10000)
-            if near_results:
-                places_formatted = []
-                for place in near_results[:8]:
-                    place_name = place.get('name', 'Locație')
-                    rating = place.get('rating', 0)
-                    place_type = place.get('types', ['place'])[0].replace('_', ' ').title()
-                    
-                    loc = place.get('geometry', {}).get('location', {})
-                    plat = loc.get('lat', lat)
-                    plng = loc.get('lng', lng)
-                    
-                    places_formatted.append(f"📍 {place_name} ({place_type}, ⭐{rating}) [lat: {plat}, lng: {plng}]")
-
-                nearby_context = "LOCURI REALE ÎN ZONĂ:\n" + "\n".join(places_formatted) + "\n\n"
+            social_trends_context = (
+                f"🔥 TRENDURI SOCIAL MEDIA RECENTE (extrase din feed-ul comunității):\n"
+                f"- Rezumat: {trends_res.get('trending_summary')}\n"
+                f"- Hashtag-uri populare: {', '.join(trends_res.get('top_hashtags', []))}\n"
+                f"- Locații cu cel mai mare Hype: " + 
+                ", ".join([f"{p['name']} (Hype Score: {p['hype_score']})" for p in trends_res.get('hype_places', [])]) + "\n\n"
+            )
         except Exception as e:
-            print(f"⚠️ Places/Events fetch error: {e}")
+            print(f"⚠️ Trends parsing error: {e}")
 
-    # Query SITUR Ministry of Tourism database dynamically for matching places
-    situr_places = search_situr_places(msg, limit=8)
-    situr_block = ""
+    # Process nearby context
+    if near_results:
+        try:
+            places_formatted = []
+            for place in near_results[:8]:
+                place_name = place.get('name', 'Locație')
+                rating = place.get('rating', 0)
+                place_type = place.get('types', ['place'])[0].replace('_', ' ').title()
+                
+                loc = place.get('geometry', {}).get('location', {})
+                plat = loc.get('lat', lat)
+                plng = loc.get('lng', lng)
+                
+                places_formatted.append(f"📍 {place_name} ({place_type}, ⭐{rating}) [lat: {plat}, lng: {plng}]")
+
+            nearby_context = "LOCURI REALE ÎN ZONĂ:\n" + "\n".join(places_formatted) + "\n\n"
+        except Exception as e:
+            print(f"⚠️ Nearby parsing error: {e}")
+
+    # Process SITUR block
     if situr_places:
         situr_list = []
         for p in situr_places:
@@ -538,37 +628,26 @@ def get_response_with_rag(msg, user_id=None, lat=None, lng=None, language="ro", 
             )
         situr_block = "DATE OFICIALE MINISTERUL TURISMULUI (SITUR):\n" + "\n".join(situr_list) + "\n\n"
 
-    # Dynamic Google Places search for specific places referenced in the query
-    searched_places_block = ""
-    if len(msg) > 5 and not any(g in msg.lower() for g in ["buna", "salut", "hey", "ciao", "hello", "hi", "ce faci", "cine esti", "cine ești", "multumesc", "mulțumesc", "mrs", "thx", "thanks"]):
+    # Process text search results
+    if search_results:
         try:
-            from app import google_text_search
-            clean_q = msg.lower()
-            preambles = ["ce parere ai despre", "ce părere ai despre", "spune-mi despre", "stii ceva despre", "știi ceva despre", "cum ajung la", "recomanda-mi", "recomandă-mi", "unde este", "unde e"]
-            for pr in preambles:
-                clean_q = clean_q.replace(pr, "")
-            clean_q = clean_q.strip("? .!,\"'-")
-            
-            if len(clean_q) > 3:
-                search_results = google_text_search(clean_q, lat, lng)
-                if search_results:
-                    places_info = []
-                    for r in search_results[:3]: # top 3 matches
-                        name = r.get("name")
-                        addr = r.get("formatted_address") or r.get("vicinity")
-                        rating = r.get("rating", 0)
-                        reviews = r.get("user_ratings_total", 0)
-                        price = r.get("price_level", "N/A")
-                        types = ", ".join(r.get("types", []))
-                        loc = r.get("geometry", {}).get("location", {})
-                        plat, plng = loc.get("lat"), loc.get("lng")
-                        places_info.append(
-                            f"• {name} ({types}) - Adresă: {addr}, Rating: ⭐{rating} ({reviews} recenzii), Preț: {price} [lat: {plat}, lng: {plng}]"
-                        )
-                    if places_info:
-                        searched_places_block = "SPECIFIC SEARCHED PLACES (HIGHLY RELEVANT):\n" + "\n".join(places_info) + "\n\n"
+            places_info = []
+            for r in search_results[:3]:
+                name = r.get("name")
+                addr = r.get("formatted_address") or r.get("vicinity")
+                rating = r.get("rating", 0)
+                reviews = r.get("user_ratings_total", 0)
+                price = r.get("price_level", "N/A")
+                types = ", ".join(r.get("types", []))
+                loc = r.get("geometry", {}).get("location", {})
+                plat, plng = loc.get("lat"), loc.get("lng")
+                places_info.append(
+                    f"• {name} ({types}) - Adresă: {addr}, Rating: ⭐{rating} ({reviews} recenzii), Preț: {price} [lat: {plat}, lng: {plng}]"
+                )
+            if places_info:
+                searched_places_block = "SPECIFIC SEARCHED PLACES (HIGHLY RELEVANT):\n" + "\n".join(places_info) + "\n\n"
         except Exception as e:
-            print(f"⚠️ Chatbot dynamic text search error: {e}")
+            print(f"⚠️ Text search parsing error: {e}")
 
     nav_keywords = ["ajung", "directii", "ruta", "navigatie", "maps", "cum merg", "drum", "directions", "route", "map", "navigation", "how to get", "get to"]
     wants_navigation = any(k in msg.lower() for k in nav_keywords)
@@ -809,6 +888,11 @@ def generate_personalized_itinerary(lat, lng, style, duration, points_count, con
     from os import getenv
     MAPS_API_KEY = getenv("MAPS_API_KEY")
 
+    cache_params = (round(lat, 4), round(lng, 4), style, duration, points_count, budget, user_query, language)
+    if cache_params in ITINERARY_CACHE:
+        print(f"⚡ Returning cached final itinerary for {cache_params}")
+        return ITINERARY_CACHE[cache_params]
+
     FORBIDDEN_ITINERARY_WORDS = {
         "stație", "statie", "bus stop", "bus station", "gară", "gara",
         "metrou", "parcare", "parking", "benzinărie", "benzinarie",
@@ -838,11 +922,18 @@ def generate_personalized_itinerary(lat, lng, style, duration, points_count, con
         return True
 
     def quick_search(p_type):
+        cache_key = f"{round(lat, 4)},{round(lng, 4)},{p_type}"
+        if cache_key in GOOGLE_PLACES_CACHE:
+            print(f"⚡ Returning cached Google places for {cache_key}")
+            return GOOGLE_PLACES_CACHE[cache_key]
+
         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
         params = {"location": f"{lat},{lng}", "radius": "8000", "type": p_type,
                   "key": MAPS_API_KEY, "language": language}
         try:
-            return requests.get(url, params=params, timeout=8).json().get("results", [])
+            results = requests.get(url, params=params, timeout=8).json().get("results", [])
+            GOOGLE_PLACES_CACHE[cache_key] = results
+            return results
         except:
             return []
 
@@ -853,18 +944,32 @@ def generate_personalized_itinerary(lat, lng, style, duration, points_count, con
         from app import SUPABASE_URL, SUPABASE_KEY
         headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
         if user_id:
-            p_res = requests.get(
-                f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*",
-                headers=headers, timeout=3
-            ).json()
-            v_res = requests.get(
-                f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=15",
-                headers=headers, timeout=3
-            ).json()
-            fav_res = requests.get(
-                f"{SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.{user_id}&select=place_name,place_type&limit=10",
-                headers=headers, timeout=3
-            ).json()
+            def fetch_prof():
+                try:
+                    return requests.get(f"{SUPABASE_URL}/rest/v1/user_profiles?id=eq.{user_id}&select=*", headers=headers, timeout=3).json()
+                except:
+                    return None
+
+            def fetch_vsts():
+                try:
+                    return requests.get(f"{SUPABASE_URL}/rest/v1/visited_places?user_id=eq.{user_id}&order=visited_at.desc&limit=15", headers=headers, timeout=3).json()
+                except:
+                    return None
+
+            def fetch_favs():
+                try:
+                    return requests.get(f"{SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.{user_id}&select=place_name,place_type&limit=10", headers=headers, timeout=3).json()
+                except:
+                    return None
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as exec_it:
+                fut_p = exec_it.submit(fetch_prof)
+                fut_v = exec_it.submit(fetch_vsts)
+                fut_f = exec_it.submit(fetch_favs)
+
+                p_res = fut_p.result()
+                v_res = fut_v.result()
+                fav_res = fut_f.result()
 
             if p_res:
                 u = p_res[0]
@@ -974,7 +1079,7 @@ def generate_personalized_itinerary(lat, lng, style, duration, points_count, con
             "distance_from_start_km": round(c["_dist"], 1),
             "id": c["place_id"],
         }
-        for c in unique_candidates[:35]
+        for c in unique_candidates[:12]
     ]
 
     # Build sequential schedule starting at 08:00
@@ -1054,7 +1159,7 @@ RULES:
 3. Choose places that are geographically close to each other to minimize travel time (preferably under 2-3 km between successive stops).
 4. Respect the total budget of {budget} RON. The sum of "estimatedCost" of chosen places must not exceed the budget.
 5. Personalize choices based on user interests and the special request.
-6. For each place, write a short, useful practical tip/advice in the "tip" field (e.g. what to try there, what to order). Write it in English.
+6. For each place, write an ultra-short practical tip/advice of maximum 8 words in the "tip" field (e.g. what to try there, what to order). Write it in English.
 
 RESPOND EXCLUSIVELY with a valid JSON block, no other text or explanation:
 [
@@ -1067,7 +1172,7 @@ RESPOND EXCLUSIVELY with a valid JSON block, no other text or explanation:
     "latitude": 44.xxx,
     "longitude": 26.xxx,
     "placeId": "ID from list",
-    "tip": "Practical tip in English"
+    "tip": "Practical tip"
   }}
 ]"""
     else:
@@ -1091,7 +1196,7 @@ REGULI:
 3. Alege locuri care sunt geografic apropiate între ele pentru a minimiza timpul de deplasare (preferabil sub 2-3 km între opriri succesive).
 4. Respectă bugetul total de {budget} RON. Suma costurilor estimate ale locurilor alese ("estimatedCost") nu trebuie să depășească bugetul.
 5. Personalizează alegerea în funcție de interesele utilizatorului și cererea specială.
-6. Pentru fiecare loc, scrie un sfat scurt și util în câmpul "tip" (ex: ce să încerce acolo, ce masă să rezerve).
+6. Pentru fiecare loc, scrie un sfat ultra-scurt de maximum 8 cuvinte în câmpul "tip" (ex: ce să încerce acolo, ce masă să rezerve).
 
 RĂSPUNDE EXCLUSIV cu un bloc JSON valid, fără alte explicații sau text:
 [
@@ -1109,7 +1214,10 @@ RĂSPUNDE EXCLUSIV cu un bloc JSON valid, fără alte explicații sau text:
 ]"""
 
     try:
-        response = gemini_model.generate_content(prompt)
+        response = gemini_model.generate_content(
+            prompt,
+            generation_config={"response_mime_type": "application/json"}
+        )
         text = response.text.strip()
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
@@ -1215,6 +1323,7 @@ RĂSPUNDE EXCLUSIV cu un bloc JSON valid, fără alte explicații sau text:
             item.setdefault("is_open", True)
             item.setdefault("tip", "")
 
+        ITINERARY_CACHE[cache_params] = plan
         print(f"✅ Gemini personalized itinerary: {len(plan)} stops for user {user_id}")
         return plan
 

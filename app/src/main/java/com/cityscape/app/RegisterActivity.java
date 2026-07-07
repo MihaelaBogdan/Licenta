@@ -46,7 +46,7 @@ public class RegisterActivity extends BaseActivity {
     private de.hdodenhof.circleimageview.CircleImageView imgLogo;
     private String selectedAvatarPath = null;
 
-    // Supabase
+    
     private SupabaseAuthManager supabaseAuth;
     private GoogleSignInClient googleSignInClient;
 
@@ -104,7 +104,7 @@ public class RegisterActivity extends BaseActivity {
         sessionManager = new SessionManager(this);
         supabaseAuth = SupabaseAuthManager.getInstance(this);
 
-        // Configure Google Sign-In
+        
         try {
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.google_web_client_id))
@@ -244,10 +244,9 @@ public class RegisterActivity extends BaseActivity {
             finish();
         });
 
-        // Apply Entrance Animations
+        
         Animation fadeInUp = AnimationUtils.loadAnimation(this, R.anim.fade_in_up);
         findViewById(R.id.txtTitle).startAnimation(fadeInUp);
-        findViewById(R.id.txtSubtitle).startAnimation(fadeInUp);
         findViewById(R.id.registerCard).startAnimation(fadeInUp);
         findViewById(R.id.btnLogin).startAnimation(fadeInUp);
     }
@@ -321,35 +320,154 @@ public class RegisterActivity extends BaseActivity {
         }
     }
 
+    private android.os.Handler verifyPollHandler;
+    private Runnable verifyPollRunnable;
+
     private void showVerificationNeededDialog(String email) {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme);
-        builder.setTitle(getString(R.string.confirm_email));
-        String confirmMessage = getString(R.string.confirmation_link_message) + email + getString(R.string.confirmation_link_instruction);
-        builder.setMessage(confirmMessage);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_email_verify, null);
 
-        builder.setPositiveButton(getString(R.string.email_confirmed), (dialog, which) -> {
-            dialog.dismiss();
-            supabaseAuth.signOut();
-            finish();
-        });
+        android.widget.TextView txtEmail = dialogView.findViewById(R.id.txt_verify_email);
+        android.widget.TextView txtStatus = dialogView.findViewById(R.id.txt_verify_status);
+        android.widget.Button btnCheck = dialogView.findViewById(R.id.btn_check_confirmed);
+        android.widget.Button btnResend = dialogView.findViewById(R.id.btn_resend_verify);
 
-        builder.setNegativeButton(getString(R.string.resend_email_btn), (dialog, which) -> {
-            Toast.makeText(this, getString(R.string.resending_verification_email), Toast.LENGTH_SHORT).show();
-            supabaseAuth.resendVerificationEmail(email, new SupabaseAuthManager.VerificationCallback() {
-                @Override
-                public void onSent() {
-                    Toast.makeText(RegisterActivity.this, getString(R.string.email_resent), Toast.LENGTH_LONG).show();
-                }
+        if (txtEmail != null) txtEmail.setText(email);
 
-                @Override
-                public void onError(String errorMessage) {
-                    Toast.makeText(RegisterActivity.this, getString(R.string.resend_error) + errorMessage, Toast.LENGTH_LONG).show();
-                }
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        if (btnCheck != null) {
+            btnCheck.setOnClickListener(v -> {
+                btnCheck.setEnabled(false);
+                btnCheck.setText("Se verifică...");
+                if (txtStatus != null) txtStatus.setText("");
+
+                supabaseAuth.checkEmailConfirmed(new SupabaseAuthManager.EmailConfirmedCallback() {
+                    @Override
+                    public void onConfirmed() {
+                        stopVerifyPolling();
+                        runOnUiThread(() -> {
+                            dialog.dismiss();
+                            String name = supabaseAuth.getStoredName();
+                            Toast.makeText(RegisterActivity.this,
+                                    "Email confirmat! Bine ai venit" + (name != null ? ", " + name : "") + "! 🎉",
+                                    Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                            finish();
+                        });
+                    }
+
+                    @Override
+                    public void onNotConfirmed() {
+                        runOnUiThread(() -> {
+                            btnCheck.setEnabled(true);
+                            btnCheck.setText("Am confirmat, verifică acum");
+                            if (txtStatus != null) {
+                                txtStatus.setText("⚠️ Email-ul nu a fost confirmat încă. Verifică inbox-ul (și spam-ul).");
+                                txtStatus.setTextColor(0xFFFF9800);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        runOnUiThread(() -> {
+                            btnCheck.setEnabled(true);
+                            btnCheck.setText("Am confirmat, verifică acum");
+                            if (txtStatus != null) {
+                                txtStatus.setText("Eroare: " + errorMessage);
+                                txtStatus.setTextColor(0xFFEF4444);
+                            }
+                        });
+                    }
+                });
             });
-        });
+        }
 
-        builder.setCancelable(false);
-        builder.show();
+        if (btnResend != null) {
+            btnResend.setOnClickListener(v -> {
+                btnResend.setEnabled(false);
+                supabaseAuth.resendVerificationEmail(email, new SupabaseAuthManager.VerificationCallback() {
+                    @Override
+                    public void onSent() {
+                        runOnUiThread(() -> {
+                            btnResend.setEnabled(true);
+                            if (txtStatus != null) {
+                                txtStatus.setText("✅ Email retrimis! Verifică inbox-ul.");
+                                txtStatus.setTextColor(0xFF10B981);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        runOnUiThread(() -> {
+                            btnResend.setEnabled(true);
+                            if (txtStatus != null) {
+                                txtStatus.setText("Eroare la retrimitere: " + errorMessage);
+                                txtStatus.setTextColor(0xFFEF4444);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        dialog.show();
+
+        
+        verifyPollHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        verifyPollRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!dialog.isShowing()) return;
+                supabaseAuth.checkEmailConfirmed(new SupabaseAuthManager.EmailConfirmedCallback() {
+                    @Override
+                    public void onConfirmed() {
+                        stopVerifyPolling();
+                        runOnUiThread(() -> {
+                            if (dialog.isShowing()) dialog.dismiss();
+                            String name = supabaseAuth.getStoredName();
+                            Toast.makeText(RegisterActivity.this,
+                                    "Email confirmat automat! Bine ai venit" + (name != null ? ", " + name : "") + "! 🎉",
+                                    Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                            finish();
+                        });
+                    }
+
+                    @Override
+                    public void onNotConfirmed() {
+                        
+                        if (verifyPollHandler != null) verifyPollHandler.postDelayed(verifyPollRunnable, 5000);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (verifyPollHandler != null) verifyPollHandler.postDelayed(verifyPollRunnable, 8000);
+                    }
+                });
+            }
+        };
+        verifyPollHandler.postDelayed(verifyPollRunnable, 5000);
+    }
+
+    private void stopVerifyPolling() {
+        if (verifyPollHandler != null && verifyPollRunnable != null) {
+            verifyPollHandler.removeCallbacks(verifyPollRunnable);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopVerifyPolling();
+        super.onDestroy();
     }
 
     private boolean isValidEmail(String email) {
@@ -357,27 +475,19 @@ public class RegisterActivity extends BaseActivity {
     }
 
     private boolean isPasswordStrong(String password) {
-        if (password == null || password.length() < 8) {
+        if (password == null || password.length() < 6) {
             return false;
         }
-        boolean hasUppercase = password.matches(".*[A-Z].*");
-        boolean hasLowercase = password.matches(".*[a-z].*");
         boolean hasNumber = password.matches(".*\\d.*");
-        return hasUppercase && hasLowercase && hasNumber;
+        return hasNumber;
     }
 
     private String getPasswordStrengthMessage(String password) {
         if (password == null || password.isEmpty()) {
             return getString(R.string.err_password_required);
         }
-        if (password.length() < 8) {
+        if (password.length() < 6) {
             return getString(R.string.err_password_too_short);
-        }
-        if (!password.matches(".*[A-Z].*")) {
-            return getString(R.string.err_password_uppercase);
-        }
-        if (!password.matches(".*[a-z].*")) {
-            return getString(R.string.err_password_lowercase);
         }
         if (!password.matches(".*\\d.*")) {
             return getString(R.string.err_password_digit);

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="12dp"
+    app:cardBackgroundColor="@color/app_card"
+    app:strokeColor="#1A10B981"
+    app:strokeWidth="1.5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="28dp"
+        android:gravity="center">
+
+        
+        <TextView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:gravity="center"
+            android:text="📧"
+            android:textSize="38sp"
+            android:background="@drawable/bg_dialog_rounded"
+            android:layout_marginBottom="20dp" />
+
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirmă adresa de email"
+            android:textColor="@color/app_text_primary"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-black"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Am trimis un link de confirmare la:"
+            android:textColor="@color/app_text_secondary"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/txt_verify_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/primary"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Deschide email-ul și apasă pe link. Dacă nu îl găsești, verifică și dosarul Spam."
+            android:textColor="@color/app_text_hint"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:layout_marginBottom="20dp" />
+
+        
+        <TextView
+            android:id="@+id/txt_verify_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:minHeight="28dp"
+            android:layout_marginBottom="16dp" />
+
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_check_confirmed"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Am confirmat, verifică acum ✓"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            app:cornerRadius="26dp"
+            app:backgroundTint="@color/primary"
+            android:layout_marginBottom="10dp" />
+
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_resend_verify"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Retrimite email-ul"
+            android:textColor="@color/primary"
+            android:textSize="14sp"
+            app:cornerRadius="24dp"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1.5dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

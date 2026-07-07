@@ -84,7 +84,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             placeAddress = itemView.findViewById(isHorizontal ? R.id.place_address : R.id.placeAddress);
             aiSuggestion = itemView.findViewById(R.id.ai_suggestion);
 
-            // Recommendation scores
+            
             recommendationInfo = itemView.findViewById(R.id.recommendation_info);
             confidenceScore = itemView.findViewById(R.id.confidence_score);
             interestMatchLayout = itemView.findViewById(R.id.interest_match_layout);
@@ -156,16 +156,16 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                 placeAddress.setText(place.address != null ? place.address : "");
             }
 
-            // Display recommendation scores if available
+            
             if (recommendationInfo != null) {
                 float displayPct = place.confidence > 0 ? place.confidence : place.matchHistoryPct;
                 if (displayPct > 0) {
                     recommendationInfo.setVisibility(View.VISIBLE);
 
-                    // Show overall confidence
+                    
                     if (confidenceScore != null) {
                         confidenceScore.setText(String.format(java.util.Locale.US, "%.1f%%", displayPct));
-                        // Color code: green if >= 80, yellow if >= 60, red otherwise
+                        
                         int color = displayPct >= 80f ?
                             context.getColor(android.R.color.holo_green_dark) :
                             displayPct >= 60f ?
@@ -174,7 +174,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                         confidenceScore.setTextColor(color);
                     }
 
-                    // Show interest match if available
+                    
                     if (interestMatchLayout != null && place.matchPrefsPct > 0) {
                         interestMatchLayout.setVisibility(View.VISIBLE);
                         if (interestMatchScore != null) {
@@ -203,7 +203,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                     .placeholder(R.drawable.placeholder_place)
                     .into(placeImage);
 
-            // Toggle button visibilities based on mode
+            
             View btnPlan = ((View)placeImage.getParent()).findViewById(R.id.btn_plan);
             if (isManualMode) {
                 if (btnFavorite != null) btnFavorite.setVisibility(View.GONE);
@@ -217,7 +217,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
                 if (btnPlan != null) btnPlan.setVisibility(View.GONE);
             }
 
-            // Toggle favorite icon
+            
             if (btnFavorite != null && !isManualMode) {
                 if (place.isFavorite) {
                     btnFavorite.setImageResource(R.drawable.ic_favorite_filled);

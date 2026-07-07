@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Guest State (shown when not logged in) -->
+        
         <LinearLayout
             android:id="@+id/guest_container"
             android:layout_width="match_parent"
@@ -59,7 +59,7 @@
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
-        <!-- Logged-in profile content -->
+        
         <LinearLayout
             android:id="@+id/profile_content"
             android:layout_width="match_parent"
@@ -67,7 +67,7 @@
             android:orientation="vertical"
             android:visibility="visible">
 
-            <!-- Profile Header Card (Premium Layout) -->
+            
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -95,9 +95,20 @@
                             android:src="@drawable/ic_settings"
                             app:tint="@color/primary"
                             android:padding="8dp" />
+
+                        <ImageButton
+                            android:id="@+id/btn_follow_requests"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_toStartOf="@id/btn_settings"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/bg_glass_card"
+                            android:src="@drawable/ic_heart"
+                            app:tint="@color/primary"
+                            android:padding="8dp" />
                     </RelativeLayout>
 
-                    <!-- Large Avatar Circle with Border -->
+                    
                     <FrameLayout
                         android:layout_width="120dp"
                         android:layout_height="120dp"
@@ -149,7 +160,7 @@
                 </LinearLayout>
             </FrameLayout>
 
-            <!-- Main Content Area -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -157,7 +168,7 @@
                 android:paddingHorizontal="20dp"
                 android:layout_marginTop="-24dp">
 
-                <!-- XP & PROGRESS CARD -->
+                
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -214,14 +225,14 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- STATS ROW -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:orientation="horizontal">
 
-                    <!-- Stat 1: Visits -->
+                    
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_weight="1"
@@ -265,7 +276,7 @@
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Stat 2: Badges -->
+                    
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_weight="1"
@@ -326,7 +337,6 @@
                     app:iconGravity="textStart"
                     app:iconPadding="10dp" />
 
-
                 <Button
                     android:id="@+id/btn_admin_stats"
                     android:layout_width="match_parent"
@@ -342,7 +352,7 @@
                     app:strokeColor="@color/primary"
                     android:visibility="gone" />
 
-                <!-- INSIGNE SECTION -->
+                
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -360,7 +370,7 @@
                     android:clipToPadding="false"
                     android:orientation="horizontal" />
 
-                <!-- POSTS SECTION (COLLECTION SELECTOR) -->
+                
                 <TextView
                     android:id="@+id/title_my_posts"
                     android:layout_width="wrap_content"
@@ -444,7 +454,25 @@
                     android:orientation="horizontal"
                     android:visibility="gone" />
 
-                <!-- ACHIEVEMENTS SECTION -->
+                <!-- Locatii Favorite -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Locații Favorite"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="18sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_favorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal" />
+
+                
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

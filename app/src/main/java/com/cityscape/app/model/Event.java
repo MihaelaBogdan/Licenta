@@ -44,7 +44,7 @@ public class Event {
         @SerializedName("info_quality")   public int infoQuality;
     }
 
-    // New enriched fields
+    
     public String description;
     public List<Photo> photos;
     public List<Review> reviews;
@@ -68,7 +68,7 @@ public class Event {
         this.url = url;
     }
 
-    // Inner classes for photos and reviews
+    
     public static class Photo {
         public String url;
         public String source;

@@ -31,13 +31,13 @@ public class InterestsActivity extends BaseActivity {
         chipGroup = findViewById(R.id.chipGroupInterests);
         btnContinue = findViewById(R.id.btn_continue);
 
-        // Definim categoriile de interese
+
         String[] categories = {"Muzee", "Parcuri și natură", "Artă și design", "Restaurante", "Cultură și istorie", "Locuri interesante", "Sporte", "Shopping", "Viața de noapte", "Evenimente"};
         
         User tempUser = sessionManager.getCurrentUser();
         String activeInterests = (tempUser != null && tempUser.interests != null) ? tempUser.interests : "";
 
-        // Creăm butoanele (Chips) vizual 
+        
         for (String category : categories) {
             Chip chip = new Chip(this);
             chip.setText(category);
@@ -45,7 +45,7 @@ public class InterestsActivity extends BaseActivity {
             boolean isChecked = activeInterests.contains(category);
             chip.setChecked(isChecked);
             
-            // Culoare inițială
+            
             if (isChecked) {
                 chip.setChipBackgroundColorResource(R.color.primary);
                 chip.setTextColor(getResources().getColor(R.color.app_background));
@@ -57,7 +57,7 @@ public class InterestsActivity extends BaseActivity {
             chip.setChipStrokeColorResource(R.color.primary);
             chip.setChipStrokeWidth(2.0f);
             
-            // Colorare la click
+            
             chip.setOnCheckedChangeListener((buttonView, isCheckedNow) -> {
                 if (isCheckedNow) {
                     chip.setChipBackgroundColorResource(R.color.primary);
@@ -98,7 +98,7 @@ public class InterestsActivity extends BaseActivity {
                 db.userDao().update(currentUser);
                 sessionManager.createSession(currentUser);
             }
-            sessionManager.setInterestsCompleted(true); // Flag salvat!
+            sessionManager.setInterestsCompleted(true); 
 
             Intent intent = new Intent(InterestsActivity.this, MainActivity.class);
             startActivity(intent);
@@ -113,7 +113,7 @@ public class InterestsActivity extends BaseActivity {
                 db.userDao().update(currentUser);
                 sessionManager.createSession(currentUser);
             }
-            sessionManager.setInterestsCompleted(true); // Flag salvat!
+            sessionManager.setInterestsCompleted(true); 
             startActivity(new Intent(InterestsActivity.this, MainActivity.class));
             finish();
         });

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 1. Baza întunecată: adâncime de sticlă, centru ușor mai cald -->
+    
     <item>
         <shape android:shape="oval">
             <gradient
@@ -14,7 +14,7 @@
         </shape>
     </item>
 
-    <!-- 2. Nucleu nebula - energia magică verde smarald -->
+    
     <item android:top="32dp" android:left="32dp" android:right="32dp" android:bottom="38dp">
         <shape android:shape="oval">
             <gradient
@@ -27,7 +27,7 @@
         </shape>
     </item>
 
-    <!-- 3. Rim lighting: centru transparent → verde la margini (efect Fresnel) -->
+    
     <item>
         <shape android:shape="oval">
             <gradient
@@ -40,7 +40,7 @@
         </shape>
     </item>
 
-    <!-- 4. Highlight specultar principal: pată luminoasă stânga-sus -->
+    
     <item android:top="9dp" android:left="13dp" android:right="86dp" android:bottom="86dp">
         <shape android:shape="oval">
             <gradient
@@ -53,7 +53,7 @@
         </shape>
     </item>
 
-    <!-- 5. Miezul specultar: punctul alb pur (reflecția sursei de lumină) -->
+    
     <item android:top="14dp" android:left="19dp" android:right="112dp" android:bottom="112dp">
         <shape android:shape="oval">
             <gradient

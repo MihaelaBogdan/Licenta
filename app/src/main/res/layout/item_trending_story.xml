@@ -9,27 +9,27 @@
     android:focusable="true"
     android:background="?attr/selectableItemBackground">
 
-    <!-- Story Ring Container -->
+    
     <FrameLayout
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginBottom="6dp">
 
-        <!-- Outer Glowing Ring -->
+        
         <View
             android:id="@+id/story_ring"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/bg_story_ring_gradient" />
 
-        <!-- Inner Content Circle (Glassmorphic) -->
+        
         <FrameLayout
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_gravity="center"
             android:background="@drawable/bg_story_inner_circle">
 
-            <!-- Icon or Emoji -->
+            
             <TextView
                 android:id="@+id/story_emoji"
                 android:layout_width="wrap_content"
@@ -39,7 +39,7 @@
                 android:text="@string/auto_str_0a8b4b" />
         </FrameLayout>
 
-        <!-- Dynamic Indicator / Flame Badge -->
+        
         <FrameLayout
             android:layout_width="20dp"
             android:layout_height="20dp"
@@ -59,7 +59,7 @@
 
     </FrameLayout>
 
-    <!-- Name Label -->
+    
     <TextView
         android:id="@+id/story_name"
         android:layout_width="match_parent"
@@ -73,7 +73,7 @@
         android:textStyle="bold"
         android:fontFamily="sans-serif-medium" />
 
-    <!-- Hype Percent (Subtitle) -->
+    
     <TextView
         android:id="@+id/story_hype_score"
         android:layout_width="wrap_content"

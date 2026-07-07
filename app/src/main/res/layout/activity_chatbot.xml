@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/primary_dark">
 
-    <!-- Header -->
+    
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -55,7 +55,7 @@
             app:tint="@color/accent_green" />
     </LinearLayout>
 
-    <!-- Chat Messages -->
+    
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecycler"
         android:layout_width="match_parent"
@@ -65,7 +65,7 @@
         app:layout_constraintBottom_toTopOf="@id/suggestionsContainer"
         app:layout_constraintTop_toBottomOf="@id/header" />
 
-    <!-- Typing Indicator -->
+    
     <LinearLayout
         android:id="@+id/typingIndicator"
         android:layout_width="wrap_content"
@@ -99,7 +99,7 @@
             android:background="@drawable/typing_dot" />
     </LinearLayout>
 
-    <!-- Quick Suggestions -->
+    
     <HorizontalScrollView
         android:id="@+id/suggestionsContainer"
         android:layout_width="match_parent"
@@ -145,7 +145,7 @@
         </LinearLayout>
     </HorizontalScrollView>
 
-    <!-- Input Container -->
+    
     <LinearLayout
         android:id="@+id/inputContainer"
         android:layout_width="match_parent"

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/app_background">
 
-    <!-- Header Section -->
+    
     <RelativeLayout
         android:id="@+id/header_leaderboard"
         android:layout_width="match_parent"
@@ -55,7 +55,7 @@
 
     </RelativeLayout>
 
-    <!-- Content Card -->
+    
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"

@@ -7,7 +7,7 @@
     android:background="@color/primary_dark"
     android:orientation="vertical">
 
-    <!-- Title -->
+    
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,7 +18,7 @@
         android:textSize="28sp"
         android:fontFamily="sans-serif-medium" />
 
-    <!-- Favorites List -->
+    
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/favoritesRecycler"
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
         android:paddingHorizontal="16dp"
         android:paddingBottom="16dp" />
 
-    <!-- Empty State -->
+    
     <LinearLayout
         android:id="@+id/emptyState"
         android:layout_width="match_parent"

@@ -4,31 +4,41 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dp"
-    android:background="@color/app_surface">
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_rounded">
+
+    
+    <TextView
+        android:id="@+id/txt_dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Postare nouă"
+        android:textColor="@color/app_text_primary"
+        android:textSize="21sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/txt_posting_as"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="18dp"
         android:text="@string/auto_postezi_ca_explorer_b90fd1"
         android:textColor="@color/primary"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:gravity="center" />
+        android:textSize="13sp" />
 
-    <!-- Image Picker -->
-
+    
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/btn_pick_image"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
-        app:cardCornerRadius="16dp"
+        android:layout_height="170dp"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="0dp"
         app:cardBackgroundColor="#1A1A2E"
         app:strokeColor="@color/primary"
         app:strokeWidth="1dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="18dp"
+        android:foreground="?attr/selectableItemBackground">
 
         <LinearLayout
             android:id="@+id/pick_image_placeholder"
@@ -37,19 +47,36 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/auto_str_23d4d7"
-                android:textSize="36sp" />
+            <FrameLayout
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/circle_primary">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_menu_camera"
+                    app:tint="#FFFFFF"
+                    android:contentDescription="@string/auto_adauga_o_poza_78b940" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:text="@string/auto_adauga_o_poza_78b940"
-                android:textColor="@color/app_text_secondary"
+                android:textColor="@color/app_text_primary"
                 android:textSize="14sp"
-                android:layout_marginTop="8dp" />
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="postările cu poze primesc mai multe aprecieri"
+                android:textColor="@color/app_text_hint"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <ImageView
@@ -60,16 +87,18 @@
             android:visibility="gone" />
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Place Name with Autocomplete -->
+    
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/til_place_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        app:boxCornerRadiusBottomEnd="16dp"
-        app:boxCornerRadiusBottomStart="16dp"
-        app:boxCornerRadiusTopEnd="16dp"
-        app:boxCornerRadiusTopStart="16dp"
+        app:boxCornerRadiusBottomEnd="14dp"
+        app:boxCornerRadiusBottomStart="14dp"
+        app:boxCornerRadiusTopEnd="14dp"
+        app:boxCornerRadiusTopStart="14dp"
+        app:boxStrokeColor="@color/primary"
+        app:hintTextColor="@color/primary"
         app:startIconDrawable="@drawable/ic_location"
         app:startIconTint="@color/primary"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -85,15 +114,19 @@
             android:padding="16dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Caption / Review -->
+    
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:boxCornerRadiusBottomEnd="16dp"
-        app:boxCornerRadiusBottomStart="16dp"
-        app:boxCornerRadiusTopEnd="16dp"
-        app:boxCornerRadiusTopStart="16dp"
+        android:layout_marginBottom="14dp"
+        app:boxCornerRadiusBottomEnd="14dp"
+        app:boxCornerRadiusBottomStart="14dp"
+        app:boxCornerRadiusTopEnd="14dp"
+        app:boxCornerRadiusTopStart="14dp"
+        app:boxStrokeColor="@color/primary"
+        app:hintTextColor="@color/primary"
+        app:counterEnabled="true"
+        app:counterMaxLength="200"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -103,26 +136,29 @@
             android:hint="@string/auto_ce_tia_placut_aici_25b74d"
             android:textColor="@color/app_text_primary"
             android:inputType="textMultiLine"
-            android:minLines="3"
+            android:maxLength="200"
+            android:minLines="2"
             android:gravity="top" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Rating with Label -->
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:background="@drawable/bg_rounded_input"
-        android:padding="12dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:layout_marginBottom="20dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="@string/auto_cum_a_fost_experienta_6a33e6"
             android:textColor="@color/app_text_secondary"
-            android:textSize="13sp"
-            android:layout_marginBottom="8dp" />
+            android:textSize="13sp" />
 
         <RatingBar
             android:id="@+id/rating_input"
@@ -133,7 +169,37 @@
             android:stepSize="1.0"
             android:rating="4.0"
             android:isIndicator="false"
-            android:progressTint="@color/primary" />
+            android:progressTint="@color/gold_accent" />
+    </LinearLayout>
+
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel_post"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="10dp"
+            android:text="Anulează"
+            android:textColor="@color/app_text_secondary"
+            app:strokeColor="@color/app_text_hint"
+            app:cornerRadius="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_publish_post"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="Publică"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="16dp" />
     </LinearLayout>
 
 </LinearLayout>

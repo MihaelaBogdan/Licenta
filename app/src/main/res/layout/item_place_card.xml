@@ -13,7 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- Premium Base Image -->
+            
             <ImageView
                 android:id="@+id/place_image"
                 android:layout_width="match_parent"
@@ -21,13 +21,13 @@
                 android:scaleType="centerCrop"
                 android:background="@color/primary" />
 
-            <!-- Adaptive Scrim Overlay (Crucial for Light/Dark balance) -->
+            
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_gradient_overlay" />
 
-            <!-- Sophisticated Rating Badge -->
+            
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Interaction Buttons Container (Horizontal Row at Top-Right) -->
+            
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -92,7 +92,7 @@
                     app:tint="@color/white" />
             </LinearLayout>
 
-            <!-- Floating Content Capsule -->
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -121,8 +121,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
+                    android:ellipsize="none"
+                    android:maxLines="4"
                     android:text="@string/auto_place_name_ec8e16"
                     android:textColor="@color/white"
                     android:textSize="18sp"
@@ -130,7 +130,7 @@
                     android:textStyle="bold"
                     android:lineSpacingExtra="1dp" />
 
-                <!-- Explainable Recommendation Info -->
+                
                 <LinearLayout
                     android:id="@+id/recommendation_info"
                     android:layout_width="match_parent"
@@ -139,7 +139,7 @@
                     android:orientation="vertical"
                     android:visibility="gone">
 
-                    <!-- Overall Confidence Score & Inline Suggestion -->
+                    
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -163,26 +163,14 @@
                             android:textSize="10sp"
                             android:textStyle="bold" />
 
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="10dp"
-                            android:layout_marginHorizontal="6dp"
-                            android:background="#40FFFFFF" />
-
                         <TextView
                             android:id="@+id/ai_suggestion"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/auto_preferinte_similare_f72626"
-                            android:textColor="#A7F3D0"
-                            android:textSize="10sp"
-                            android:fontFamily="sans-serif-light" />
-                    </LinearLayout>
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
+                     </LinearLayout>
 
-                    <!-- Interest Match Score (if available) -->
+                    
                     <LinearLayout
                         android:id="@+id/interest_match_layout"
                         android:layout_width="match_parent"
@@ -230,8 +218,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
+                        android:ellipsize="none"
+                        android:maxLines="2"
                         android:text="@string/auto_bucharest_ro_c9e838"
                         android:textColor="#D1FAE5"
                         android:textSize="10sp"
@@ -239,7 +227,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Translucent glass stroke border overlay -->
+            
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

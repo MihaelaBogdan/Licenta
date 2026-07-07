@@ -54,11 +54,11 @@ public class SettingsActivity extends BaseActivity {
 
         sessionManager = new SessionManager(this);
 
-        // Back button
+        
         ImageButton btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        // Language selection
+        
         languageItem = findViewById(R.id.languageItem);
         currentLanguageText = findViewById(R.id.currentLanguageText);
 
@@ -66,7 +66,7 @@ public class SettingsActivity extends BaseActivity {
 
         languageItem.setOnClickListener(v -> showLanguageDialog());
         
-        // Personalize button
+        
         LinearLayout personalizeItem = findViewById(R.id.personalizeItem);
         if (personalizeItem != null) {
             personalizeItem.setOnClickListener(v -> {
@@ -76,34 +76,34 @@ public class SettingsActivity extends BaseActivity {
             });
         }
 
-        // City selection
+        
         LinearLayout changeCityItem = findViewById(R.id.changeCityItem);
-        TextView currentCityLabel = new TextView(this); // Just for reference
+        TextView currentCityLabel = new TextView(this); 
         changeCityItem.setOnClickListener(v -> showCitySelectionDialog());
 
-        // Logout button
+        
         btnLogout = findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(v -> showLogoutDialog());
         
-        // Edit Profile
+        
         LinearLayout editProfileItem = findViewById(R.id.editProfileItem);
         if (editProfileItem != null) {
             editProfileItem.setOnClickListener(v -> showEditProfileDialog());
         }
 
-        // Terms and Conditions
+        
         LinearLayout termsItem = findViewById(R.id.termsItem);
         if (termsItem != null) {
             termsItem.setOnClickListener(v -> showTermsDialog());
         }
         
-        // Privacy Policy
+        
         LinearLayout privacyItem = findViewById(R.id.privacyItem);
         if (privacyItem != null) {
             privacyItem.setOnClickListener(v -> showPrivacyPolicyDialog());
         }
         
-        // Dark mode toggle
+        
         com.google.android.material.switchmaterial.SwitchMaterial darkModeSwitch = findViewById(R.id.darkModeSwitch);
         darkModeSwitch.setChecked(sessionManager.isDarkMode());
         darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -144,7 +144,7 @@ public class SettingsActivity extends BaseActivity {
                         Toast.makeText(this, getString(R.string.language_changed), Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
 
-                        // Restart the app to apply new locale
+                        
                         restartApp();
                     } else {
                         dialog.dismiss();
@@ -167,11 +167,11 @@ public class SettingsActivity extends BaseActivity {
                 .setTitle(getString(R.string.logout))
                 .setMessage(getString(R.string.logout_confirm))
                 .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
-                    // Logout from Supabase
+                    
                     SupabaseAuthManager.getInstance(this).signOut();
-                    // Logout from local session
+                    
                     sessionManager.logout();
-                    // Go to login
+                    
                     Intent intent = new Intent(this, LoginActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -189,7 +189,7 @@ public class SettingsActivity extends BaseActivity {
         android.widget.Button btnCancel = dialogView.findViewById(R.id.btn_cancel_city);
         android.widget.Button btnExplore = dialogView.findViewById(R.id.btn_explore_city);
 
-        // Change title and button text for Settings context
+        
         android.widget.TextView dialogTitle = dialogView.findViewById(R.id.dialog_title);
         if (dialogTitle != null) dialogTitle.setText(getString(R.string.select_city_dialog));
         android.widget.TextView dialogSubtitle = dialogView.findViewById(R.id.dialog_subtitle);
@@ -207,7 +207,7 @@ public class SettingsActivity extends BaseActivity {
             dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0));
         }
 
-        // Populate popular cities
+        
         String[] popularCities = {"București", "Cluj-Napoca", "Brașov", "Constanța", "London", "Paris"};
         if (chipGroup != null) {
             for (String city : popularCities) {
@@ -222,7 +222,7 @@ public class SettingsActivity extends BaseActivity {
                     Toast.makeText(this, getString(R.string.city_saved) + city, Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     
-                    // Go back to feed
+                    
                     Intent intent = new Intent(this, MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
@@ -240,7 +240,7 @@ public class SettingsActivity extends BaseActivity {
                     Toast.makeText(this, getString(R.string.city_saved) + city, Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                     
-                    // Go back to feed
+                    
                     Intent intent = new Intent(this, MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
@@ -282,7 +282,7 @@ public class SettingsActivity extends BaseActivity {
                 .setView(dialogView)
                 .create();
         
-        // Face fundalul dialogului transparent pentru a pastra design-ul curbat din XML
+        
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
@@ -306,7 +306,7 @@ public class SettingsActivity extends BaseActivity {
                     runOnUiThread(() -> {
                         Toast.makeText(this, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
-                        recreate(); // Auto-refresh the activity
+                        recreate(); 
                     });
                 }).start();
             }

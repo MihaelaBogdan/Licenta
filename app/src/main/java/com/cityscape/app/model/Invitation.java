@@ -18,7 +18,7 @@ public class Invitation {
     public String activityName;
     public String activityDate;
     public String activityTime;
-    public String status; // "pending", "accepted", "declined"
+    public String status; 
     public long sentAt;
 
     public Invitation() {

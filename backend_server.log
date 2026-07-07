@@ -1,1 +1,133 @@
-/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/mihaela/Desktop/Licenta/app.py': [Errno 2] No such file or directory
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/mihaela/Desktop/Licenta/backend/chatbot.py:36: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+✅ Chatbot model loaded successfully!
+✅ Loaded 5966 SITUR places from Ministry of Tourism!
+✅ Trending scraper loaded
+✅ Loaded fallback database with 15 places
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5002
+ * Running on http://192.168.1.137:5002
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [07/Jul/2026 10:40:12] "GET /nearby?lat=44.4268&lng=26.1025 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:56] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.43826675415039&lng=25.993144989013672 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:58] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:59] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:59] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:59] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4382867&lng=25.993155&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:59] "GET /map/hype?lat=44.4382867&lng=25.993155 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:59] "GET /recommendations/personalized?lat=44.4382867&lng=25.993155&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:40:59] "GET /weather?lat=44.4382867&lng=25.993155 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:00] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:00] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:01] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:02] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:02] "GET /nearby?lat=44.4382867&lng=25.993155&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:02] "GET /nearby?lat=44.4382867&lng=25.993155&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:03] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:03] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:06] "GET /places/search?lat=44.4382867&lng=25.993155&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:06] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:13] "GET /events?lat=44.4382867&lng=25.993155&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:25] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.43828582763672&lng=25.993154525756836 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:26] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:27] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:27] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:27] "GET /quests/daily?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.4382976&lng=25.9931507&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:27] "GET /map/hype?lat=44.4382976&lng=25.9931507 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:27] "GET /recommendations/personalized?lat=44.4382976&lng=25.9931507&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:27] "GET /weather?lat=44.4382976&lng=25.9931507 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:28] "GET /events?lat=44.4382976&lng=25.9931507&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:28] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:28] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:28] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:29] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:29] "GET /nearby?lat=44.4382976&lng=25.9931507&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:29] "GET /nearby?lat=44.4382976&lng=25.9931507&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:30] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:30] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:31] "GET /places/search?lat=44.4382976&lng=25.9931507&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:31] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:44] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:45] "GET /recommendations/personalized?lat=44.4382716&lng=25.9931453&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:45] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:46] "GET /places/search?lat=44.4382716&lng=25.9931453&query=restaurant&type=restaurant&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:46] "GET /places/search?lat=44.4382716&lng=25.9931453&query=park&type=park&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:47] "GET /events?lat=44.4382716&lng=25.9931453&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:47] "GET /places/search?lat=44.4382716&lng=25.9931453&query=cafe&type=cafe&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:47] "GET /places/search?lat=44.4382716&lng=25.9931453&query=museum&type=museum&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:47] "GET /trending/stories?city=București HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:41:47] "GET /places/search?lat=44.4382716&lng=25.9931453&query=night_club&type=night_club&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:42:10] "GET /places HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:42:13] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.438297271728516&lng=25.99315071105957 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:27] "GET /users/8e875b0f-87f3-4e1a-bd08-1c506716f9cf/posts HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:29] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.438297271728516&lng=25.99315071105957 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:42] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:43] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:43] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:43] "GET /map/hype?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:43] "GET /weather?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:43] "GET /events?lat=21.304547&lng=-157.855676&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:43] "GET /recommendations/personalized?lat=21.304547&lng=-157.855676&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=Honolulu&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:45] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:45] "GET /nearby?lat=21.304547&lng=-157.855676&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:45:49] "GET /places/search?lat=21.304547&lng=-157.855676&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=Honolulu&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:46:49] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.438297271728516&lng=25.99315071105957 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:12] "GET /feed?type=friends&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.438297271728516&lng=25.99315071105957 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:17] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:17] "GET /feed?type=foryou&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&lat=44.438297271728516&lng=25.99315071105957 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:17] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:17] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:17] "GET /recommendations/personalized?lat=21.304547&lng=-157.855676&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=Honolulu&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:18] "GET /map/hype?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:18] "GET /weather?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:18] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:18] "GET /events?lat=21.304547&lng=-157.855676&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:18] "GET /places/search?lat=21.304547&lng=-157.855676&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=Honolulu&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:20] "GET /nearby?lat=21.304547&lng=-157.855676&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:44] "GET /crystal-ball/timeline/8e875b0f-87f3-4e1a-bd08-1c506716f9cf?language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:47:56] "GET /recommendation/magic?lat=44.4383616&lng=25.9931751&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&type=museum&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:16] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:16] "GET /recommendations/personalized?lat=44.4382935&lng=25.993168&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=Honolulu&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:17] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:17] "GET /places/search?lat=44.4382935&lng=25.993168&query=museum&type=museum&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:17] "GET /places/search?lat=44.4382935&lng=25.993168&query=park&type=park&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:17] "GET /places/search?lat=44.4382935&lng=25.993168&query=cafe&type=cafe&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /events?lat=44.4382935&lng=25.993168&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /visited?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /trending/stories?city=Honolulu HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /places/search?lat=44.4382935&lng=25.993168&query=restaurant&type=restaurant&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /places/search?lat=44.4382935&lng=25.993168&query=night_club&type=night_club&radius=15000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /recommendations/personalized?lat=21.304547&lng=-157.855676&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=Honolulu&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /map/hype?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:18] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /hype/battles?user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /places/search?lat=21.304547&lng=-157.855676&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=Honolulu&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "POST /recommendations/explainable HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /weather?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /recommendations/personalized?lat=21.304547&lng=-157.855676&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=Honolulu&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /events?lat=21.304547&lng=-157.855676&radius=50&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /recommendations/personalized?lat=21.304547&lng=-157.855676&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&query=&type=All&city=Honolulu&interests=Parcuri%20și%20natură,Restaurante,Cultură%20și%20istorie,Shopping HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /map/hype?lat=21.304547&lng=-157.855676 HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:19] "GET /places/search?lat=21.304547&lng=-157.855676&query=&type=&radius=50000&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&city=Honolulu&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:20] "GET /nearby?lat=21.304547&lng=-157.855676&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -
+192.168.1.152 - - [07/Jul/2026 10:50:21] "GET /nearby?lat=21.304547&lng=-157.855676&type=&user_id=8e875b0f-87f3-4e1a-bd08-1c506716f9cf&language=ro HTTP/1.1" 200 -

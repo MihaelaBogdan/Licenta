@@ -48,7 +48,7 @@ public class SupabaseSyncManager {
             @Override
             public void onSuccess(com.cityscape.app.model.User cloudUser) {
                 if (cloudUser != null) {
-                    db.userDao().insert(cloudUser); // insert/replace
+                    db.userDao().insert(cloudUser); 
                     Log.d(TAG, "Successfully synced profile for: " + cloudUser.name);
                 }
             }
@@ -83,9 +83,9 @@ public class SupabaseSyncManager {
         });
     }
 
-    // =======================================================
-    // PUSH NOTIFICATIONS TO CLOUD (UPLOAD)
-    // =======================================================
+    
+    
+    
 
     public void pushActivityToCloud(PlannedActivity activity) {
         cloudData.insertActivity(activity, null);
@@ -99,7 +99,7 @@ public class SupabaseSyncManager {
         cloudData.insertGroup(group, null);
     }
 
-    // Auto-sync hooks for others (mocked to cloud interface until expanded)
+    
     public void pushMemberToCloud(GroupMember member) {
         Log.d(TAG, "Group membership pushed");
     }

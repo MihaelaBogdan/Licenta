@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base Colors -->
+    
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Branding Colors (Keep identical in both themes for recognition) -->
+    
     <color name="primary">#10B981</color>
     <color name="primary_variant">#059669</color>
     <color name="primary_light">#34D399</color>
@@ -24,7 +24,7 @@
     <color name="accent_purple">#8B5CF6</color>
     <color name="accent_gold">#F59E0B</color>
 
-    <!-- Semantic Colors (PREMIUM LIGHT THEME) -->
+    
     <color name="app_background">#FFFFFF</color>
     <color name="app_surface">#FFFFFF</color>
     <color name="app_card">#F8FAFC</color>
@@ -35,7 +35,7 @@
     <color name="card_background">#FFFFFF</color>
     <color name="overlay_dark">#26000000</color>
 
-    <!-- Glassmorphism Tokens (Light Mode - More Premium) -->
+    
     <color name="glass_background">#CCFFFFFF</color>
     <color name="glass_center">#99FFFFFF</color>
     <color name="glass_stroke">#12000000</color>
@@ -43,10 +43,10 @@
     <color name="login_overlay_start">#00FFFFFF</color>
     <color name="login_overlay_end">#F8FAFC</color>
 
-    <!-- UI Backgrounds -->
+    
     <color name="bg_chat_bot">#F3F4F6</color>
 
-    <!-- Smart Recommendation Card Colors (Light Mode) -->
+    
     <color name="smart_card_start">#E0F7FA</color>
     <color name="smart_card_center">#F2FCFD</color>
     <color name="smart_card_end">#FFFFFF</color>
@@ -55,27 +55,25 @@
     <color name="smart_card_text_secondary">#00838F</color>
     <color name="smart_card_text_body">#1F2937</color>
 
-    <!-- Daily Quest Card Colors (Light Mode) -->
-    <color name="quest_card_start">#E6F4EA</color>
-    <color name="quest_card_center">#F4FAF6</color>
-    <color name="quest_card_end">#FFFFFF</color>
-    <color name="quest_card_stroke">#8010B981</color>
-    <color name="quest_card_text_primary">#065F46</color>
-    <color name="quest_card_text_secondary">#047857</color>
-    <color name="quest_card_text_body">#1F2937</color>
-    <color name="quest_reward_bg">#2610B981</color>
-    <color name="quest_reward_stroke">#4D10B981</color>
-    <color name="quest_reward_text">#059669</color>
+    <!-- Quest Card (Dark Green Style) -->
+    <color name="quest_card_start">#2ECC71</color>
+    <color name="quest_card_center">#27AE60</color>
+    <color name="quest_card_end">#229954</color>
+    <color name="quest_card_stroke">#1E8449</color>
+    <color name="quest_card_text_primary">#FFFFFF</color>
+    <color name="quest_card_text_secondary">#E8F8F5</color>
+    <color name="quest_card_text_body">#FFFFFF</color>
+    <color name="quest_reward_bg">#F39C12</color>
+    <color name="quest_reward_stroke">#D68910</color>
+    <color name="quest_reward_text">#FFFFFF</color>
 
-    <!-- Live Battle Card Colors (Light Mode) -->
+    
     <color name="battle_card_start">#FDF2F8</color>
     <color name="battle_card_center">#F5F3FF</color>
     <color name="battle_card_end">#FFFFFF</color>
     <color name="battle_card_stroke">#4D8B5CF6</color>
 
-
-
-    <!-- Legacy / Backup pointers to avoid breaking existing styles -->
+    
     <color name="background_light">#F8FAFC</color>
     <color name="surface_light">#FFFFFF</color>
     <color name="text_primary_light">#1F2937</color>

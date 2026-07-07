@@ -5,18 +5,18 @@
     android:viewportWidth="512"
     android:viewportHeight="512">
 
-    <!-- Premium Dark Squircle Background -->
+    
     <path
         android:fillColor="#0D1117"
         android:pathData="M 128,32 L 384,32 C 437,32 480,75 480,128 L 480,384 C 480,437 437,480 384,480 L 128,480 C 75,480 32,437 32,384 L 32,128 C 32,75 75,32 128,32 Z" />
 
-    <!-- Technical Mapping grid/connection lines (Faint Background Detail) -->
+    
     <path
         android:strokeColor="#1E293B"
         android:strokeWidth="4"
         android:pathData="M 32,256 L 480,256 M 256,32 L 256,480" />
     
-    <!-- Concentric tech rings in the background -->
+    
     <path
         android:strokeColor="#182235"
         android:strokeWidth="2"
@@ -28,7 +28,7 @@
         android:fillColor="#00000000"
         android:pathData="M 256,-10 A 220,220 0 1, 1 256,430 A 220,220 0 1, 1 256,-10 Z" />
 
-    <!-- The Location Pin (Emerald Green Primary Branding) -->
+    
     <path
         android:strokeColor="#10B981"
         android:strokeWidth="24"
@@ -37,31 +37,31 @@
         android:fillColor="#00000000"
         android:pathData="M 256,390 C 190,330 150,265 150,210 C 150,150 197,100 256,100 C 315,100 362,150 362,210 C 362,265 322,330 256,390 Z" />
 
-    <!-- Inner City Skyline Silhouette (Clean Vector Lines) -->
+    
 
-    <!-- Base/Ground Line -->
+    
     <path
         android:strokeColor="#34D399"
         android:strokeWidth="8"
         android:strokeLineCap="round"
         android:pathData="M 180,310 L 332,310" />
 
-    <!-- Left Skyscraper (Mint Green) -->
+    
     <path
         android:fillColor="#34D399"
         android:pathData="M 205,310 L 205,240 L 233,212 L 233,310 Z" />
 
-    <!-- Right Skyscraper (Mint Green) -->
+    
     <path
         android:fillColor="#34D399"
         android:pathData="M 279,310 L 279,220 L 307,192 L 307,310 Z" />
 
-    <!-- Center Skyscraper (Solid White for contrast and premium focus) -->
+    
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M 242,310 L 242,185 L 270,157 L 270,310 Z" />
 
-    <!-- AI/Smart Guide Golden Star Beacon -->
+    
     <path
         android:fillColor="#F59E0B"
         android:pathData="M 256,108 L 259.5,118.5 L 270,122 L 259.5,125.5 L 256,136 L 252.5,125.5 L 242,122 L 252.5,118.5 Z" />

@@ -5,6 +5,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
+import com.cityscape.app.api.ApiClient;
+import com.cityscape.app.api.ApiService;
+import com.google.gson.JsonObject;
+import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import android.widget.Toast;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -43,20 +52,20 @@ public class ProfileFragment extends Fragment {
     private TextView statPlaces, statBadges;
     private ProgressBar xpProgress;
     private TextView xpNeededText;
-    private RecyclerView recyclerBadges, recyclerAchievements, recyclerUserPosts;
+    private RecyclerView recyclerBadges, recyclerAchievements, recyclerUserPosts, recyclerFavorites;
     private ImageView profileAvatar;
     private SessionManager sessionManager;
     private AppDatabase db;
     private com.cityscape.app.api.ApiService apiService;
     private android.content.Context appContext;
 
-    // Segmented profile tabs
+    
     private MaterialButton btnTabDiscoveries, btnTabLiked, btnTabBookmarked;
     private View layoutProfileTabs;
-    private String currentCollectionTab = "discoveries"; // discoveries, liked, bookmarked
+    private String currentCollectionTab = "discoveries"; 
     private int secretClickCount = 0;
 
-    // Containers
+    
     private LinearLayout guestContainer;
     private LinearLayout profileContent;
 
@@ -70,12 +79,12 @@ public class ProfileFragment extends Fragment {
         db = AppDatabase.getInstance(requireContext());
         appContext = requireContext().getApplicationContext();
 
-        // Get containers
+        
         guestContainer = view.findViewById(R.id.guest_container);
         profileContent = view.findViewById(R.id.profile_content);
 
         if (sessionManager.isLoggedIn()) {
-            // Show profile
+            
             guestContainer.setVisibility(View.GONE);
             profileContent.setVisibility(View.VISIBLE);
 
@@ -85,13 +94,14 @@ public class ProfileFragment extends Fragment {
             setupBadges();
             setupAchievements();
 
-            // Settings button on long press of avatar
+            
             profileAvatar.setOnLongClickListener(v -> {
                 startActivity(new Intent(requireContext(), SettingsActivity.class));
                 return true;
             });
 
-            // Settings button
+            
+            
             View settingsButton = view.findViewById(R.id.btn_settings);
             if (settingsButton != null) {
                 settingsButton.setOnClickListener(v -> {
@@ -99,13 +109,38 @@ public class ProfileFragment extends Fragment {
                 });
             }
 
-            // Report Buttons
+            ImageButton btnFollowRequests = view.findViewById(R.id.btn_follow_requests);
+            if (btnFollowRequests != null) {
+                btnFollowRequests.setOnClickListener(v -> {
+                    ApiService api = ApiClient.getClient().create(ApiService.class);
+                    api.getFollowRequests(sessionManager.getUserId()).enqueue(new Callback<List<JsonObject>>() {
+                        @Override
+                        public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                if (response.body().isEmpty()) {
+                                    Toast.makeText(requireContext(), "Nu ai cereri noi.", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    FollowRequestsDialog dialog = new FollowRequestsDialog(response.body());
+                                    dialog.show(getParentFragmentManager(), "FollowRequestsDialog");
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                            Toast.makeText(requireContext(), "Eroare la încărcarea cererilor.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
+            }
+
+            
             View btnReport = view.findViewById(R.id.btn_generate_report);
             if (btnReport != null) btnReport.setOnClickListener(v -> showUserReport());
 
             View btnAdmin = view.findViewById(R.id.btn_admin_stats);
             if (btnAdmin != null) {
-                // Show only for admins
+                
                 if (sessionManager.getEmail() != null && sessionManager.getEmail().contains("admin")) {
                     btnAdmin.setVisibility(View.VISIBLE);
                 } else {
@@ -114,7 +149,7 @@ public class ProfileFragment extends Fragment {
                 btnAdmin.setOnClickListener(v -> showAdminStats());
             }
         } else {
-            // Show guest state
+            
             guestContainer.setVisibility(View.VISIBLE);
             profileContent.setVisibility(View.GONE);
 
@@ -136,7 +171,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Re-check login state on resume (user might have just logged in)
+        
         if (sessionManager.isLoggedIn()) {
             if (guestContainer != null)
                 guestContainer.setVisibility(View.GONE);
@@ -145,12 +180,14 @@ public class ProfileFragment extends Fragment {
                 if (profileName != null) {
                     loadUserData();
                     setupBadges();
+                    loadFavorites();
                     setupAchievements();
                 } else {
-                    // Views not yet initialized, init them
+                    
                     initViews(profileContent);
                     loadUserData();
                     setupBadges();
+                    loadFavorites();
                     setupAchievements();
                 }
             }
@@ -168,6 +205,7 @@ public class ProfileFragment extends Fragment {
         recyclerBadges = view.findViewById(R.id.recycler_badges);
         recyclerAchievements = view.findViewById(R.id.recycler_achievements);
         recyclerUserPosts = view.findViewById(R.id.recycler_user_posts);
+        recyclerFavorites = view.findViewById(R.id.recycler_favorites);
         titleMyPosts = view.findViewById(R.id.title_my_posts);
         profileAvatar = view.findViewById(R.id.profile_avatar);
         xpNeededText = view.findViewById(R.id.xp_needed_text);
@@ -179,7 +217,7 @@ public class ProfileFragment extends Fragment {
         
         apiService = com.cityscape.app.api.ApiClient.getClient().create(com.cityscape.app.api.ApiService.class);
 
-        // Easter Egg Listener
+        
         if (profileAvatar != null) {
             profileAvatar.setOnClickListener(v -> {
                 secretClickCount++;
@@ -229,7 +267,7 @@ public class ProfileFragment extends Fragment {
             xpProgress.setMax(100);
             xpProgress.setProgress(user.getProgressPercentage());
 
-            // Handle the new 'XP needed' text
+            
             if (xpNeededText != null) {
                 int remaining = xpNeeded - user.currentXp;
                 boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
@@ -259,6 +297,36 @@ public class ProfileFragment extends Fragment {
         recyclerBadges.setAdapter(adapter);
     }
 
+    private void loadFavorites() {
+        new Thread(() -> {
+            List<com.cityscape.app.model.Place> favorites = db.placeDao().getFavoritePlaces();
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (recyclerFavorites != null) {
+                        com.cityscape.app.adapter.PlaceAdapter adapter = new com.cityscape.app.adapter.PlaceAdapter(getContext(), favorites, true, new com.cityscape.app.adapter.PlaceAdapter.OnPlaceClickListener() {
+                            @Override
+                            public void onPlaceClick(com.cityscape.app.model.Place place) {}
+                            @Override
+                            public void onFavoriteClick(com.cityscape.app.model.Place place) {}
+                            @Override
+                            public void onVisitedClick(com.cityscape.app.model.Place place) {}
+                            @Override
+                            public void onPlanClick(com.cityscape.app.model.Place place) {}
+                        });
+                        recyclerFavorites.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                        recyclerFavorites.setAdapter(adapter);
+                        
+                        if (favorites.isEmpty()) {
+                            recyclerFavorites.setVisibility(android.view.View.GONE);
+                        } else {
+                            recyclerFavorites.setVisibility(android.view.View.VISIBLE);
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+
     private int getIconResource(String iconName) {
         switch (iconName) {
             case "ic_badge_first":
@@ -272,7 +340,7 @@ public class ProfileFragment extends Fragment {
             case "ic_badge_explorer":
                 return R.drawable.ic_badge_explorer;
             case "ic_badge_social":
-                return R.drawable.ic_badge_explorer; // Using explorer as fallback for social post badge
+                return R.drawable.ic_badge_explorer; 
             default:
                 return R.drawable.ic_badge_default;
         }
@@ -302,14 +370,14 @@ public class ProfileFragment extends Fragment {
         btnTabLiked.setOnClickListener(v -> switchTab("liked"));
         btnTabBookmarked.setOnClickListener(v -> switchTab("bookmarked"));
         
-        switchTab("discoveries"); // Default active
+        switchTab("discoveries"); 
     }
     
     private void switchTab(String tab) {
         currentCollectionTab = tab;
         if (getContext() == null) return;
         
-        // Tab button visual states
+        
         if (tab.equals("discoveries")) {
             btnTabDiscoveries.setTextColor(getContext().getColor(R.color.white));
             btnTabDiscoveries.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getContext().getColor(R.color.primary)));
@@ -566,8 +634,6 @@ public class ProfileFragment extends Fragment {
         dialog.show();
     }
 
-
-
     private void showUserReport() {
         if (!isAdded()) return;
         AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
@@ -625,11 +691,11 @@ public class ProfileFragment extends Fragment {
                                         .setTitle(isEn ? "How would you like to share?" : "Cum dorești să partajezi?")
                                         .setItems(shareOptions, (subDialog, optionIndex) -> {
                                             if (optionIndex == 0) {
-                                                // Load groups on background thread
+                                                
                                                 new Thread(() -> {
                                                     List<com.cityscape.app.model.ActivityGroup> groups = db.groupDao().getGroupsForUser(sessionManager.getUserId());
                                                     if (groups == null || groups.isEmpty()) {
-                                                        // Fallback to sending to a friend (users list)
+                                                        
                                                         List<com.cityscape.app.model.User> friends = db.userDao().getAllUsers();
                                                         if (getActivity() == null) return;
                                                         getActivity().runOnUiThread(() -> {
@@ -651,7 +717,7 @@ public class ProfileFragment extends Fragment {
                                                                     .show();
                                                         });
                                                     } else {
-                                                        // List user's groups to share to
+                                                        
                                                         if (getActivity() == null) return;
                                                         getActivity().runOnUiThread(() -> {
                                                             String[] groupNames = new String[groups.size()];
@@ -663,7 +729,7 @@ public class ProfileFragment extends Fragment {
                                                                     .setItems(groupNames, (gDialog, gIndex) -> {
                                                                         com.cityscape.app.model.ActivityGroup chosenGroup = groups.get(gIndex);
                                                                         
-                                                                        // Post message to the group chat
+                                                                        
                                                                         new Thread(() -> {
                                                                             com.cityscape.app.model.GroupMessage sharedMsg = new com.cityscape.app.model.GroupMessage(
                                                                                 chosenGroup.id, 
@@ -686,7 +752,7 @@ public class ProfileFragment extends Fragment {
                                                     }
                                                 }).start();
                                             } else {
-                                                // External share
+                                                
                                                 Intent s = new Intent(Intent.ACTION_SEND); 
                                                 s.setType("text/plain");
                                                 s.putExtra(Intent.EXTRA_TEXT, sb.toString());

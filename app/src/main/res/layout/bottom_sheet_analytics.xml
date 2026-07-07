@@ -7,7 +7,7 @@
     android:background="@color/app_background"
     android:padding="24dp">
 
-    <!-- Header -->
+    
     <TextView
         android:id="@+id/tv_analytics_title"
         android:layout_width="wrap_content"
@@ -18,7 +18,7 @@
         android:fontFamily="sans-serif-black"
         android:layout_marginBottom="20dp" />
 
-    <!-- Stats Section -->
+    
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
             android:lineSpacingMultiplier="1.6" />
     </androidx.cardview.widget.CardView>
 
-    <!-- Insights Section -->
+    
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -58,7 +58,7 @@
             android:lineSpacingMultiplier="1.6" />
     </androidx.cardview.widget.CardView>
 
-    <!-- Achievements Section -->
+    
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -78,7 +78,7 @@
             android:lineSpacingMultiplier="1.8" />
     </androidx.cardview.widget.CardView>
 
-    <!-- Export Button -->
+    
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
         android:layout_height="48dp"

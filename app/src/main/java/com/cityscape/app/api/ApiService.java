@@ -26,7 +26,6 @@ public interface ApiService {
                 @retrofit2.http.Path("placeId") String placeId,
                 @retrofit2.http.Query("language") String language);
 
-
         @GET("places/search")
         Call<List<Place>> getPlacesSearch(
                         @retrofit2.http.Query("lat") double lat,
@@ -111,7 +110,6 @@ public interface ApiService {
                         @retrofit2.http.Query("user_id") String userId,
                         @retrofit2.http.Query("language") String language);
 
-
         @POST("visit")
         Call<Void> recordVisit(@Body VisitRequest request);
 
@@ -167,14 +165,20 @@ public interface ApiService {
         Call<List<com.cityscape.app.model.FeedPost>> getLikedPosts(
                         @retrofit2.http.Path("userId") String userId);
 
-        // ===== USERS & SOCIAL =====
+        
         @GET("users/search")
         Call<List<com.cityscape.app.model.User>> searchUsers(
                         @retrofit2.http.Query("query") String query,
                         @retrofit2.http.Query("current_user_id") String currentUserId);
 
-        @POST("users/follow")
+        @POST("/users/follow")
         Call<com.google.gson.JsonObject> followUser(@Body java.util.Map<String, String> data);
+        
+        @GET("/users/follow/requests")
+        Call<java.util.List<com.google.gson.JsonObject>> getFollowRequests(@Query("user_id") String userId);
+        
+        @POST("/users/follow/respond")
+        Call<com.google.gson.JsonObject> respondFollowRequest(@Body java.util.Map<String, String> data);
 
         @GET("users/{userId}/following")
         Call<List<com.cityscape.app.model.User>> getFollowing(

@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Premium Header -->
+        
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Interactive Map Section -->
+                
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="300dp"
@@ -103,7 +103,7 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Stats & Budget Card -->
+                
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -196,7 +196,7 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Navigation Tabs -->
+                
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/itineraryTabs"
                     android:layout_width="match_parent"
@@ -220,7 +220,7 @@
                         android:text="@string/auto_analiza_ai_c3c627" />
                 </com.google.android.material.tabs.TabLayout>
 
-                <!-- Steps List -->
+                
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -239,7 +239,7 @@
                     android:nestedScrollingEnabled="false"
                     android:paddingBottom="24dp" />
 
-                <!-- Pro Actions -->
+                
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_save_itinerary"
                     android:layout_width="match_parent"

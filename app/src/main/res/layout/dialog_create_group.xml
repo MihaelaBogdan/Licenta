@@ -15,7 +15,7 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Header Section -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
             android:textColor="@color/app_text_secondary"
             android:textSize="13sp" />
 
-        <!-- Group Name Input -->
+        
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.CityScape.TextInput"
             android:layout_width="match_parent"
@@ -69,7 +69,7 @@
                 android:padding="16dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Recommended Friends Section -->
+        
         <TextView
             android:id="@+id/text_recommended_label"
             android:layout_width="wrap_content"
@@ -89,7 +89,7 @@
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        <!-- Invite Following Section -->
+        
         <TextView
             android:id="@+id/text_following_label"
             android:layout_width="wrap_content"
@@ -111,7 +111,7 @@
             android:visibility="gone"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        <!-- Invite by email Section -->
+        
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.CityScape.TextInput"
             android:layout_width="match_parent"
@@ -132,7 +132,7 @@
                 android:padding="14dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Action Section -->
+        
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_create_group_action"
             android:layout_width="match_parent"
@@ -146,7 +146,7 @@
             android:backgroundTint="@color/primary"
             app:cornerRadius="16dp" />
 
-        <!-- WhatsApp Share Button -->
+        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

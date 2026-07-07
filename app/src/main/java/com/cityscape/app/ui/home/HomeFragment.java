@@ -85,8 +85,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
         private Location actualGpsLocation;
         private List<Place> nearbyPlacesList = new ArrayList<>(); 
         private List<Place> allPlacesList = new ArrayList<>(); 
-        private List<Place> combinedPlacesList = new ArrayList<>(); 
-        private List<Place> visitedPlacesList = new ArrayList<>(); 
+        private List<Place> combinedPlacesList = new ArrayList<>();
         private List<Place> restaurantsList = new ArrayList<>();
         private List<Place> cafesList = new ArrayList<>();
         private List<Place> museumsList = new ArrayList<>();
@@ -1390,9 +1389,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
 
                     @Override
-                    public void onVisitedClick(Place place) {
-                        handleVisitedClick(place);
-                    }
+                    public void onVisitedClick(Place place) { }
 
                     @Override
                     public void onPlanClick(Place place) {
@@ -1403,7 +1400,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 
                 fetchPlaces(false);
                 fetchEvents();
-                fetchVisitedPlaces();
         }
 
     private void setupCategoryChips() {
@@ -2213,95 +2209,6 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                 }
         }
 
-        private void handleVisitedClick(Place place) {
-            User user = sessionManager.getCurrentUser();
-            if (user == null) return;
-
-            com.cityscape.app.api.VisitRequest request = new com.cityscape.app.api.VisitRequest(
-                user.id,
-                (place.id != null && place.id.length() < 10) ? place.id : null,
-                (place.googlePlaceId != null) ? place.googlePlaceId : ((place.id != null && place.id.length() >= 10) ? place.id : null),
-                place.name,
-                place.type
-            );
-
-            apiService.recordVisit(request).enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (isAdded() && response.isSuccessful()) {
-                        if (getContext() != null) Toast.makeText(getContext(), getString(R.string.visit_registered), Toast.LENGTH_SHORT).show();
-                        fetchVisitedPlaces();
-                        showFeedbackDialog(place);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Void> call, Throwable t) {
-                    Toast.makeText(getContext(), getString(R.string.visit_reg_error), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        private void showFeedbackDialog(Place place) {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.DarkDialogTheme)
-                .setTitle(getString(R.string.feedback_title, place.name))
-                .setMessage(getString(R.string.visit_feedback))
-                .setPositiveButton("Grozav! ⭐", (d, w) -> Toast.makeText(getContext(), getString(R.string.thank_you), Toast.LENGTH_SHORT).show())
-                .setNeutralButton("E OK", (d, w) -> Toast.makeText(getContext(), getString(R.string.thank_you), Toast.LENGTH_SHORT).show())
-                .setNegativeButton("Slab", (d, w) -> Toast.makeText(getContext(), getString(R.string.noted), Toast.LENGTH_SHORT).show())
-                .show();
-        }
-
-        private void fetchVisitedPlaces() {
-            User user = sessionManager.getCurrentUser();
-            if (user == null || binding == null) return;
-
-            apiService.getVisited(user.id).enqueue(new Callback<List<Place>>() {
-                @Override
-                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                    if (isAdded() && binding != null && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                        visitedPlacesList = response.body();
-                        if (!isOfflineMode) {
-                            binding.sectionVisited.setVisibility(View.VISIBLE);
-                            binding.recyclerVisited.setVisibility(View.VISIBLE);
-                        }
-                        updateVisitedAdapter();
-                    } else if (isAdded() && binding != null) {
-                        if (binding != null) {
-                            binding.sectionVisited.setVisibility(View.GONE);
-                            binding.recyclerVisited.setVisibility(View.GONE);
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<List<Place>> call, Throwable t) {
-                    Log.e("HomeFragment", "Error fetching visited", t);
-                }
-            });
-        }
-
-        private void updateVisitedAdapter() {
-            if (binding == null) return;
-            PlaceAdapter adapter = new PlaceAdapter(getContext(), visitedPlacesList, true, 
-                new PlaceAdapter.OnPlaceClickListener() {
-                    @Override
-                    public void onPlaceClick(Place place) {
-                        com.cityscape.app.util.BadgeManager.addExperience(getContext(), sessionManager.getUserId(), 15);
-                        com.cityscape.app.util.BadgeManager.checkVisitBadges(getContext(), sessionManager.getUserId(), place.type);
-                        showPlaceDetailDialog(place);
-                    }
-                    @Override
-                    public void onFavoriteClick(Place place) { }
-                    @Override
-                    public void onVisitedClick(Place place) { }
-                    @Override
-                    public void onPlanClick(Place place) {
-                        showPlanPlaceDialog(place);
-                    }
-                });
-            binding.recyclerVisited.setAdapter(adapter);
-        }
 
         private void updateAiPicksAdapter(List<Place> list) {
                 if (binding == null) return;
@@ -4081,9 +3988,7 @@ public class HomeFragment extends Fragment implements com.google.android.gms.map
                     }
 
                     @Override
-                    public void onVisitedClick(Place place) {
-                        handleVisitedClick(place);
-                    }
+                    public void onVisitedClick(Place place) { }
 
                     @Override
                     public void onPlanClick(Place place) {

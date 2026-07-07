@@ -60,11 +60,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             if (listener != null) listener.onEventClick(event);
         });
 
-        // AI confidence badge
+        
         int confidence = event.confidence > 0 ? event.confidence
                 : (event.relevance_score > 0 ? event.relevance_score : 0);
 
-        // Fallback: check if title matches interests manually
+        
         if (confidence == 0 && !userInterests.isEmpty()) {
             for (String interest : userInterests.split(",")) {
                 String kw = interest.trim();

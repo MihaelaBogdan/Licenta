@@ -11,7 +11,7 @@ import java.util.List;
 
 @Dao
 public interface GroupDao {
-    // Activity Groups
+    
     @Insert
     void insertGroup(ActivityGroup group);
 
@@ -33,7 +33,7 @@ public interface GroupDao {
     @Query("SELECT ag.* FROM activity_groups ag INNER JOIN group_members gm ON ag.id = gm.groupId WHERE gm.userId = :userId")
     List<ActivityGroup> getGroupsForUser(String userId);
 
-    // Group Members
+    
     @Insert
     void insertMember(GroupMember member);
 

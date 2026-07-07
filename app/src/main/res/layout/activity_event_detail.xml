@@ -135,7 +135,7 @@
                 android:textSize="16sp"
                 android:text="@string/auto_acesta_este_un_eveniment_real_aea6e7" />
 
-            <!-- Explainable AI Section -->
+            
             <LinearLayout
                 android:id="@+id/ai_section"
                 android:layout_width="match_parent"
@@ -180,7 +180,7 @@
                     android:textSize="13sp"
                     android:lineSpacingExtra="3dp" />
 
-                <!-- Factor: Interese -->
+                
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -198,7 +198,7 @@
                     android:progressTint="@color/primary"
                     android:progressBackgroundTint="@color/app_divider" />
 
-                <!-- Factor: Noutate -->
+                
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -216,7 +216,7 @@
                     android:progressTint="@color/primary"
                     android:progressBackgroundTint="@color/app_divider" />
 
-                <!-- Factor: Istoric -->
+                
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

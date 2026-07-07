@@ -57,6 +57,8 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
     private ApiService apiService;
     private SessionManager sessionManager;
     private String currentTab = "foryou";
+    private EditText etFeedSearch;
+    private final List<FeedPost> allPosts = new ArrayList<>();
 
     private Uri selectedImageUri;
     private ImageView dialogImagePreview;
@@ -109,10 +111,35 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         View fab = view.findViewById(R.id.fab_new_post);
         if (fab != null) fab.setOnClickListener(v -> showNewPostDialog());
 
+        
+        View btnAddFriends = view.findViewById(R.id.btn_new_post);
+        if (btnAddFriends != null) btnAddFriends.setOnClickListener(v ->
+            startActivity(new Intent(requireContext(), com.cityscape.app.UserSearchActivity.class)));
+
+        
+        etFeedSearch = view.findViewById(R.id.et_feed_search);
         View btnSearch = view.findViewById(R.id.btn_search_users);
         if (btnSearch != null) btnSearch.setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), com.cityscape.app.UserSearchActivity.class));
+            if (etFeedSearch == null) return;
+            if (etFeedSearch.getVisibility() == View.VISIBLE) {
+                etFeedSearch.setText("");
+                etFeedSearch.setVisibility(View.GONE);
+                applyFeedFilter();
+            } else {
+                etFeedSearch.setVisibility(View.VISIBLE);
+                etFeedSearch.requestFocus();
+                android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+                    requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                if (imm != null) imm.showSoftInput(etFeedSearch, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+            }
         });
+        if (etFeedSearch != null) {
+            etFeedSearch.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyFeedFilter(); }
+                @Override public void afterTextChanged(Editable s) {}
+            });
+        }
 
         if (tabLayout != null) {
             tabLayout.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
@@ -135,7 +162,6 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             return;
         }
 
-
         if (swipeRefresh != null && !swipeRefresh.isRefreshing()) progressBar.setVisibility(View.VISIBLE);
         
         String uId = (sessionManager != null) ? sessionManager.getUserId() : "";
@@ -156,25 +182,24 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                     for (FeedPost post : postsList) {
                         post.isBookmarked = database.bookmarkDao().isBookmarked(post.id, currentUserId);
                     }
-                    adapter.setPosts(postsList);
-                    if (rvFeed != null) rvFeed.setVisibility(View.VISIBLE);
-                    if (emptyState != null) emptyState.setVisibility(View.GONE);
+                    allPosts.clear();
+                    allPosts.addAll(postsList);
+                    applyFeedFilter();
+                } else if (currentTab.equals("foryou")) {
+                    
+                    allPosts.clear();
+                    allPosts.addAll(getMockPosts());
+                    applyFeedFilter();
                 } else {
-                    // Real empty state (no fallback to mock data unless desired)
+                    allPosts.clear();
                     adapter.setPosts(new ArrayList<>());
                     if (rvFeed != null) rvFeed.setVisibility(View.GONE);
                     if (emptyState != null) {
                         emptyState.setVisibility(View.VISIBLE);
                         TextView emptyTitle = emptyState.findViewById(R.id.feed_empty_title);
                         TextView emptySub = emptyState.findViewById(R.id.feed_empty_subtitle);
-                        
-                        if (currentTab.equals("friends")) {
-                            if (emptyTitle != null) emptyTitle.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "No posts from friends" : "Nicio postare de la prieteni");
-                            if (emptySub != null) emptySub.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Follow other explorers to see their adventures!" : "Urmărește exploratori pentru a le vedea aventurile!");
-                        } else {
-                            if (emptyTitle != null) emptyTitle.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "No community posts" : "Nicio postare în comunitate");
-                            if (emptySub != null) emptySub.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Be the first to share one!" : "Fii tu cel care dă startul!");
-                        }
+                        if (emptyTitle != null) emptyTitle.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "No posts from friends" : "Nicio postare de la prieteni");
+                        if (emptySub != null) emptySub.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Follow other explorers to see their adventures!" : "Urmărește exploratori pentru a le vedea aventurile!");
                     }
                 }
             }
@@ -183,13 +208,51 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                 if (!isAdded()) return;
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+
                 
-                // Show empty state on error as well
-                adapter.setPosts(new ArrayList<>());
-                if (rvFeed != null) rvFeed.setVisibility(View.GONE);
-                if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+                if (currentTab.equals("foryou")) {
+                    allPosts.clear();
+                    allPosts.addAll(getMockPosts());
+                    applyFeedFilter();
+                } else {
+                    allPosts.clear();
+                    adapter.setPosts(new ArrayList<>());
+                    if (rvFeed != null) rvFeed.setVisibility(View.GONE);
+                    if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+                }
             }
         });
+    }
+
+    
+    private void applyFeedFilter() {
+        if (adapter == null) return;
+        String q = (etFeedSearch != null && etFeedSearch.getVisibility() == View.VISIBLE)
+            ? etFeedSearch.getText().toString().trim().toLowerCase() : "";
+        List<FeedPost> shown;
+        if (q.isEmpty()) {
+            shown = new ArrayList<>(allPosts);
+        } else {
+            shown = new ArrayList<>();
+            for (FeedPost p : allPosts) {
+                String hay = ((p.placeName != null ? p.placeName : "") + " "
+                    + (p.userName != null ? p.userName : "") + " "
+                    + (p.caption != null ? p.caption : "")).toLowerCase();
+                if (hay.contains(q)) shown.add(p);
+            }
+        }
+        adapter.setPosts(shown);
+        boolean empty = shown.isEmpty();
+        if (rvFeed != null) rvFeed.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (emptyState != null) {
+            emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+            if (empty && !q.isEmpty()) {
+                TextView emptyTitle = emptyState.findViewById(R.id.feed_empty_title);
+                TextView emptySub = emptyState.findViewById(R.id.feed_empty_subtitle);
+                if (emptyTitle != null) emptyTitle.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "No results" : "Niciun rezultat");
+                if (emptySub != null) emptySub.setText("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Try a different search" : "Încearcă o altă căutare");
+            }
+        }
     }
 
     private void showNewPostDialog() {
@@ -241,16 +304,33 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
             Intent intent = new Intent(Intent.ACTION_PICK); intent.setType("image/*"); imagePickerLauncher.launch(intent);
         });
 
-        builder.setPositiveButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Publish" : "Publică", (dialog, which) -> {
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        boolean isEn = "en".equals(java.util.Locale.getDefault().getLanguage());
+        TextView dialogTitle = v.findViewById(R.id.txt_dialog_title);
+        if (dialogTitle != null && isEn) dialogTitle.setText("New post");
+        com.google.android.material.button.MaterialButton btnCancel = v.findViewById(R.id.btn_cancel_post);
+        com.google.android.material.button.MaterialButton btnPublish = v.findViewById(R.id.btn_publish_post);
+        if (btnCancel != null) {
+            if (isEn) btnCancel.setText("Cancel");
+            btnCancel.setOnClickListener(view -> dialog.dismiss());
+        }
+        if (btnPublish != null && isEn) btnPublish.setText("Publish");
+
+        if (btnPublish != null) btnPublish.setOnClickListener(view -> {
             if (etPlace == null) return;
             String name = etPlace.getText().toString().trim();
             if (name.isEmpty()) {
                 Toast.makeText(getContext(), getString(R.string.enter_place_name_dialog), Toast.LENGTH_SHORT).show();
                 return;
             }
+            dialog.dismiss();
 
-            String img = (selectedImageUri != null) ? selectedImageUri.toString() : 
-                "https://source.unsplash.com/featured/800x600/?" + Uri.encode(name);
+            String img = (selectedImageUri != null) ? selectedImageUri.toString() :
+                "https://picsum.photos/seed/" + Uri.encode(name) + "/800/600";
 
             Map<String, Object> body = new HashMap<>();
             body.put("user_id", sessionManager.getUserId());
@@ -271,10 +351,10 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                             if (res.isSuccessful()) {
                                 Toast.makeText(getContext(), getString(R.string.shared_successfully), Toast.LENGTH_SHORT).show();
                                 
-                                // Award badge for posting
+                                
                                 com.cityscape.app.util.BadgeManager.awardPostBadge(getContext(), sessionManager.getUserId());
                                 
-                                // Check for mission status in response
+                                
                                 JsonObject bodyRes = res.body();
                                 if (bodyRes != null && bodyRes.has("mission_status") && !bodyRes.get("mission_status").isJsonNull()) {
                                     JsonObject ms = bodyRes.getAsJsonObject("mission_status");
@@ -324,8 +404,7 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                 });
             }
         });
-        builder.setNegativeButton("en".equals(java.util.Locale.getDefault().getLanguage()) ? "Cancel" : "Anulează", null);
-        builder.show();
+        dialog.show();
     }
 
     @Override
@@ -395,7 +474,7 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
                     post.isBookmarked = !wasBookmarked;
                     adapter.notifyItemChanged(pos);
                     
-                    // Feedback haptic
+                    
                     View view = getView();
                     if (view != null) {
                         view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
@@ -472,46 +551,42 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         d.show();
     }
 
+    private String isoHoursAgo(int hours) {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date(System.currentTimeMillis() - hours * 3600000L));
+    }
+
+    private FeedPost mockPost(String id, String user, String place, String img, String caption,
+                              double rating, int likes, int comments, int hoursAgo) {
+        FeedPost p = new FeedPost();
+        p.id = id; p.userName = user; p.placeName = place; p.imageUrl = img;
+        p.caption = caption; p.rating = rating; p.likesCount = likes;
+        p.commentsCount = comments; p.createdAt = isoHoursAgo(hoursAgo);
+        return p;
+    }
 
     private List<FeedPost> getMockPosts() {
         List<FeedPost> posts = new ArrayList<>();
-        
-        FeedPost p1 = new FeedPost();
-        p1.id = "mock1";
-        p1.userName = "Alex Ionescu";
-        p1.placeName = "Caru' cu Bere";
-        p1.imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800";
-        p1.caption = "Cea mai bună mâncare tradițională din București! 🍺🥘 #Bucuresti #Traditie";
-        p1.rating = 5.0;
-        p1.likesCount = 24;
-        p1.commentsCount = 5;
-        p1.createdAt = "acum 2 ore";
-        posts.add(p1);
-
-        FeedPost p2 = new FeedPost();
-        p2.id = "mock2";
-        p2.userName = "Maria Popescu";
-        p2.placeName = "Cărturești Carusel";
-        p2.imageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800";
-        p2.caption = "O după-amiază liniștită între cărți. Arhitectura este absolut superbă! 📚✨";
-        p2.rating = 4.8;
-        p2.likesCount = 42;
-        p2.commentsCount = 8;
-        p2.createdAt = "acum 5 ore";
-        posts.add(p2);
-
-        FeedPost p3 = new FeedPost();
-        p3.id = "mock3";
-        p3.userName = "Andrei Radu";
-        p3.placeName = "Parcul Herăstrău";
-        p3.imageUrl = "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800";
-        p3.caption = "Plimbare de primăvară pe malul lacului. 🌸🚣‍♂️";
-        p3.rating = 4.5;
-        p3.likesCount = 15;
-        p3.commentsCount = 2;
-        p3.createdAt = "acum 1 zi";
-        posts.add(p3);
-
+        posts.add(mockPost("mock1", "Alex Ionescu", "Caru' cu Bere",
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80",
+            "Cea mai bună mâncare tradițională din București! 🍺🥘 #Bucuresti #Traditie",
+            5.0, 24, 5, 2));
+        posts.add(mockPost("mock2", "Maria Popescu", "Cărturești Carusel",
+            "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&q=80",
+            "O după-amiază liniștită între cărți. Arhitectura este absolut superbă! 📚✨",
+            4.8, 42, 8, 5));
+        posts.add(mockPost("mock3", "Andrei Radu", "Parcul Herăstrău",
+            "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800&q=80",
+            "Plimbare de primăvară pe malul lacului. 🌸🚣‍♂️",
+            4.5, 15, 2, 26));
+        posts.add(mockPost("mock4", "Ioana Dumitrescu", "Ateneul Român",
+            "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&q=80",
+            "Concert superb aseară! Acustica sălii e de alt nivel. 🎻✨ #Ateneu",
+            4.9, 37, 6, 40));
+        posts.add(mockPost("mock5", "Vlad Georgescu", "Grădina Botanică",
+            "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&q=80",
+            "Colț de liniște în mijlocul orașului. Perfect pentru o pauză de duminică. 🌿",
+            4.6, 21, 3, 55));
         return posts;
     }
 

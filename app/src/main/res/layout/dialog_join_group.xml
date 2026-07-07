@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <!-- Icon -->
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- Code Input -->
+    
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.CityScape.TextInput"
         android:layout_width="match_parent"
@@ -63,7 +63,7 @@
             android:textStyle="bold" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Join Button -->
+    
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_join_group"
         android:layout_width="match_parent"

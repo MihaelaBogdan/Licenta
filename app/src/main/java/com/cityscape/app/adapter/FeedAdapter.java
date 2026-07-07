@@ -55,7 +55,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         holder.placeName.setText(post.placeName != null ? post.placeName : defaultPlaceName);
         holder.caption.setText(post.caption != null ? post.caption : "");
         
-        // Likes formatting
+        
         String likesText;
         if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
             likesText = post.likesCount == 1 ? "1 like" : String.format("%,d likes", post.likesCount);
@@ -64,7 +64,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
         }
         holder.likesCount.setText(likesText);
 
-        // Comments formatting (Pro addition)
+        
         if (holder.commentsCount != null) {
             if (post.commentsCount > 0) {
                 if ("en".equals(java.util.Locale.getDefault().getLanguage())) {
@@ -84,10 +84,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             });
         }
 
-        // Time ago - uppercase for style
+        
         holder.timeAgo.setText(getTimeAgo(post.createdAt).toUpperCase());
 
-        // Post Image
+        
         if (post.imageUrl != null && !post.imageUrl.isEmpty()) {
             holder.postImage.setVisibility(View.VISIBLE);
             Glide.with(holder.itemView.getContext())
@@ -99,7 +99,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             holder.postImage.setVisibility(View.GONE);
         }
 
-        // User Avatar
+        
         if (post.userAvatar != null && !post.userAvatar.isEmpty()) {
             Glide.with(holder.itemView.getContext())
                 .load(post.userAvatar)
@@ -110,7 +110,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             holder.userAvatar.setImageResource(R.drawable.ic_profile);
         }
 
-        // Like state - change icon if liked
+        
         if (post.isLiked) {
             holder.btnLike.setImageResource(R.drawable.ic_favorite_filled);
             holder.btnLike.setColorFilter(holder.itemView.getContext().getColor(R.color.error));
@@ -119,7 +119,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             holder.btnLike.setColorFilter(holder.itemView.getContext().getColor(R.color.app_text_primary));
         }
 
-        // Click listeners
+        
         holder.btnLike.setOnClickListener(v -> {
             if (listener != null) listener.onLikeClicked(post, position);
         });
@@ -132,7 +132,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.PostViewHolder
             if (listener != null) listener.onShareClicked(post);
         });
 
-        // Bookmark state
+        
         if (holder.btnBookmark != null) {
             if (post.isBookmarked) {
                 holder.btnBookmark.setColorFilter(holder.itemView.getContext().getColor(R.color.gold_accent));

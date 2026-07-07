@@ -25,7 +25,7 @@ public class EventDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_detail);
 
-        // Get event data from intent
+        
         String eventJson = getIntent().getStringExtra("event_json");
         if (eventJson != null) {
             event = new Gson().fromJson(eventJson, Event.class);
@@ -82,7 +82,7 @@ public class EventDetailActivity extends BaseActivity {
             });
         }
 
-        // Explainable AI section
+        
         android.view.View aiSection = findViewById(R.id.ai_section);
         TextView txtConfidence = findViewById(R.id.txt_event_confidence);
         TextView txtAiReason = findViewById(R.id.txt_ai_reason);

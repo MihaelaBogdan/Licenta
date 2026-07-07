@@ -82,7 +82,7 @@ public class GroupCardAdapter extends RecyclerView.Adapter<GroupCardAdapter.Grou
             int memberCount = db.groupDao().getAcceptedMemberCount(group.id);
             groupMemberCount.setText(memberCount + (memberCount == 1 ? " membru" : " membri"));
 
-            // Load associated activity
+            
             PlannedActivity activity = null;
             if (group.activityId != null && !group.activityId.isEmpty()) {
                 List<PlannedActivity> allActivities = db.activityDao().getActivitiesForUser(group.creatorId);
@@ -102,7 +102,7 @@ public class GroupCardAdapter extends RecyclerView.Adapter<GroupCardAdapter.Grou
                 activityInfoContainer.setVisibility(View.GONE);
             }
 
-            // Click listeners
+            
             btnViewSchedule.setOnClickListener(v -> {
                 if (listener != null)
                     listener.onViewSchedule(group);
