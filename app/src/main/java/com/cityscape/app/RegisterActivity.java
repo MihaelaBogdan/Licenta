@@ -333,36 +333,6 @@ public class RegisterActivity extends BaseActivity {
         finish();
     }
 
-        if (btnResend != null) {
-            btnResend.setOnClickListener(v -> {
-                btnResend.setEnabled(false);
-                supabaseAuth.resendVerificationEmail(email, new SupabaseAuthManager.VerificationCallback() {
-                    @Override
-                    public void onSent() {
-                        runOnUiThread(() -> {
-                            btnResend.setEnabled(true);
-                            if (txtStatus != null) {
-                                txtStatus.setText("✅ Email retrimis! Verifică inbox-ul.");
-                                txtStatus.setTextColor(0xFF10B981);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        runOnUiThread(() -> {
-                            btnResend.setEnabled(true);
-                            if (txtStatus != null) {
-                                txtStatus.setText("Eroare la retrimitere: " + errorMessage);
-                                txtStatus.setTextColor(0xFFEF4444);
-                            }
-                        });
-                    }
-                });
-            });
-        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
