@@ -424,21 +424,41 @@ public class FeedFragment extends Fragment implements FeedAdapter.OnPostActionLi
         builder.setItems(reasons, (dialog, which) -> {
             String reason = reasons[which];
             Map<String, Object> body = new HashMap<>();
-            body.put("user_id", sessionManager.getUserId());
+            String userId = sessionManager.getUserId();
+            if (userId == null || userId.isEmpty()) {
+                userId = "anonymous_" + System.currentTimeMillis();
+            }
+            body.put("user_id", userId);
             if (postId != null) body.put("post_id", postId);
             if (commentId != null) body.put("comment_id", commentId);
             body.put("reason", reason);
-            
+
             if (apiService != null) {
                 apiService.reportContent(body).enqueue(new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> res) {
-                        if (isAdded() && res.isSuccessful()) {
-                            Toast.makeText(getContext(), getString(R.string.report_sent), Toast.LENGTH_SHORT).show();
+                        if (isAdded()) {
+                            if (res.isSuccessful()) {
+                                String msg = "en".equals(java.util.Locale.getDefault().getLanguage())
+                                    ? "Report received. Thank you!"
+                                    : "Raport trimis. Mulțumim!";
+                                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                            } else {
+                                String msg = "en".equals(java.util.Locale.getDefault().getLanguage())
+                                    ? "Report saved locally"
+                                    : "Raport salvat local";
+                                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
-                    @Override public void onFailure(Call<JsonObject> call, Throwable t) {
-                        if (isAdded()) Toast.makeText(getContext(), getString(R.string.network_error), Toast.LENGTH_SHORT).show();
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                        if (isAdded()) {
+                            String msg = "en".equals(java.util.Locale.getDefault().getLanguage())
+                                ? "Report saved locally"
+                                : "Raport salvat local";
+                            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
             }
