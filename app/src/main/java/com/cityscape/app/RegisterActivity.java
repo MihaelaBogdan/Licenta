@@ -104,7 +104,6 @@ public class RegisterActivity extends BaseActivity {
         sessionManager = new SessionManager(this);
         supabaseAuth = SupabaseAuthManager.getInstance(this);
 
-        
         try {
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.google_web_client_id))
@@ -113,6 +112,7 @@ public class RegisterActivity extends BaseActivity {
             googleSignInClient = GoogleSignIn.getClient(this, gso);
         } catch (Exception e) {
             Log.e(TAG, "Error configuring Google Sign-In", e);
+            googleSignInClient = null;
         }
 
         nameEditText = findViewById(R.id.nameInput);
@@ -221,20 +221,24 @@ public class RegisterActivity extends BaseActivity {
         });
 
         if (btnGoogle != null) {
+            if (googleSignInClient == null) {
+                btnGoogle.setEnabled(false);
+                btnGoogle.setAlpha(0.5f);
+            }
             btnGoogle.setOnClickListener(v -> {
+                if (googleSignInClient == null) {
+                    Toast.makeText(this, "Google Sign-In nu e disponibil. Folosește email și parolă.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Log.d(TAG, "Google Sign-Up button clicked");
                 try {
-                    if (googleSignInClient != null) {
-                        googleSignInClient.signOut().addOnCompleteListener(task -> {
-                            Intent signInIntent = googleSignInClient.getSignInIntent();
-                            googleSignInLauncher.launch(signInIntent);
-                        });
-                    } else {
-                        Toast.makeText(this, getString(R.string.google_services_not_initialized), Toast.LENGTH_SHORT).show();
-                    }
+                    googleSignInClient.signOut().addOnCompleteListener(task -> {
+                        Intent signInIntent = googleSignInClient.getSignInIntent();
+                        googleSignInLauncher.launch(signInIntent);
+                    });
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching Google sign-in", e);
-                    Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Google Sign-In nu e disponibil. Folosește email și parolă.", Toast.LENGTH_SHORT).show();
                 }
             });
         }

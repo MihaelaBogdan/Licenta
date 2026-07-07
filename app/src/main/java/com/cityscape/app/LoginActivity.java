@@ -98,25 +98,10 @@ public class LoginActivity extends BaseActivity {
                         Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
                     }
                 } catch (ApiException e) {
-                    String sha1 = getSigningCertificateSHA1();
-                    Log.e(TAG, "Google sign-in failed, code: " + e.getStatusCode() + ". Actual SHA-1: " + sha1, e);
-
-                    new androidx.appcompat.app.AlertDialog.Builder(this, R.style.DarkDialogTheme)
-                        .setTitle(getString(R.string.google_connection_error))
-                        .setMessage(getString(R.string.sha1_instruction) + (sha1 != null ? sha1 : getString(R.string.sha1_not_generated)))
-                        .setPositiveButton(getString(R.string.copy_sha1), (dialog, which) -> {
-                            if (sha1 != null) {
-                                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
-                                android.content.ClipData clip = android.content.ClipData.newPlainText("SHA-1", sha1);
-                                clipboard.setPrimaryClip(clip);
-                                Toast.makeText(this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .setNegativeButton(getString(R.string.close), null)
-                        .show();
+                    Log.e(TAG, "Google sign-in failed, code: " + e.getStatusCode(), e);
+                    Toast.makeText(this, "Google Sign-In nu e disponibil. Folosește email/parolă.", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     Log.e(TAG, "Unexpected error during Google sign-in", e);
-                    Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -130,7 +115,6 @@ public class LoginActivity extends BaseActivity {
 
         setContentView(R.layout.activity_login);
 
-        
         try {
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.google_web_client_id))
@@ -139,6 +123,7 @@ public class LoginActivity extends BaseActivity {
             googleSignInClient = GoogleSignIn.getClient(this, gso);
         } catch (Exception e) {
             Log.e(TAG, "Error configuring Google Sign-In", e);
+            googleSignInClient = null;
         }
 
         emailEditText = findViewById(R.id.emailInput);
@@ -213,20 +198,24 @@ public class LoginActivity extends BaseActivity {
         });
 
         if (btnGoogleSignIn != null) {
+            if (googleSignInClient == null) {
+                btnGoogleSignIn.setEnabled(false);
+                btnGoogleSignIn.setAlpha(0.5f);
+            }
             btnGoogleSignIn.setOnClickListener(v -> {
+                if (googleSignInClient == null) {
+                    Toast.makeText(this, "Google Sign-In nu e disponibil. Folosește email și parolă.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Log.d(TAG, "Google Sign-In button clicked");
                 try {
-                    if (googleSignInClient != null) {
-                        googleSignInClient.signOut().addOnCompleteListener(task -> {
-                            Intent signInIntent = googleSignInClient.getSignInIntent();
-                            googleSignInLauncher.launch(signInIntent);
-                        });
-                    } else {
-                        Toast.makeText(this, getString(R.string.google_services_not_initialized), Toast.LENGTH_SHORT).show();
-                    }
+                    googleSignInClient.signOut().addOnCompleteListener(task -> {
+                        Intent signInIntent = googleSignInClient.getSignInIntent();
+                        googleSignInLauncher.launch(signInIntent);
+                    });
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching Google sign-in", e);
-                    Toast.makeText(this, getString(R.string.google_sign_in_failed), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Google Sign-In nu e disponibil. Folosește email și parolă.", Toast.LENGTH_SHORT).show();
                 }
             });
         }
